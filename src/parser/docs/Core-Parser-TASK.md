@@ -42,12 +42,12 @@
 
 ## 3. DPML适配器实现
 
-- [x] 3.1 **DPML适配器核心**
-  - [x] 编写测试：验证DpmlAdapter主要功能
-  - [x] 实现 `src/parser/dpml-adapter.ts` 
-  - [x] 实现element处理逻辑
-  - [x] 实现content处理逻辑
-  - [x] 验证测试通过
+- [ ] 3.1 **DPML适配器核心**
+  - [ ] 编写测试：验证DpmlAdapter主要功能
+  - [ ] 实现 `src/parser/dpml-adapter.ts` 
+  - [ ] 实现element处理逻辑
+  - [ ] 实现content处理逻辑
+  - [ ] 验证测试通过
 
 - [ ] 3.2 **引用识别与提取**
   - [ ] 编写测试：验证各种形式引用的识别与提取
@@ -201,4 +201,4 @@
 - [ ] 性能目标达成
 - [ ] 内存目标达成
 - [ ] 文档完善
-- [ ] 无遗留TODO项
+- [ ] 无遗留TODO项 

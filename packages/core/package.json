@@ -24,6 +24,11 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@types/chai": "^5.2.1",
+    "chai": "^5.2.0",
     "vitest": "^1.4.0"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.2.0"
   }
 }
