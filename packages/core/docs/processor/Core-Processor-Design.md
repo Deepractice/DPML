@@ -166,18 +166,14 @@ private checkCircularInheritance(element: Element, baseElement: Element, visited
 
 #### 3.2.1 引用类型
 
-- **内联引用**：在文本内容中的@引用
-- **引用元素**：作为独立元素的引用，如`<ref src="..." />`
+- **内联引用**：在文本内容中的@引用，如`@resource-id`或`@http://example.com/document.pdf`
 
 #### 3.2.2 引用处理流程
 
 ```mermaid
 flowchart TD
-    Start[开始处理] --> FindRefs[查找文档中所有引用]
-    FindRefs --> ProcessInline[处理内联引用]
-    FindRefs --> ProcessElements[处理引用元素]
-    ProcessInline --> ResolveRefs[解析引用内容]
-    ProcessElements --> ResolveRefs
+    Start[开始处理] --> FindRefs[查找文档中的@符号引用]
+    FindRefs --> ResolveRefs[解析引用内容]
     ResolveRefs --> Replace[替换引用为解析内容]
     Replace --> End[完成处理]
 ```
