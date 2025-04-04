@@ -291,7 +291,6 @@ if (document.children.length > 0 && document.children[0].type === 'element') {
 - **Validator**: 验证DPML文档结构
 - **Document/Element/Content/Reference**: AST节点类型
 - **CoreAttributeProcessor**: 处理核心属性
-- **ExtendedAttributeProcessor**: 处理扩展属性
 
 ### 解析结果结构
 
@@ -317,7 +316,6 @@ interface ParseResult {
 DPML Parser 模块支持不同版本的DPML:
 
 - 版本1.0: 基本语法和核心属性
-- 版本1.1: 添加扩展属性支持
 - 版本2.0: 计划中，将支持更高级的引用系统
 
 在使用 `version` 属性时，请指定正确的DPML版本以确保兼容性。

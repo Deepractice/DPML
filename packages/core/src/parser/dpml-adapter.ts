@@ -7,7 +7,6 @@ import { ErrorCode, ErrorPosition } from '../errors/types';
 import { TagRegistry } from './tag-registry';
 import { Validator } from './validator';
 import { CoreAttributeProcessor } from './attribute-processors/core-attributes';
-import { ExtendedAttributeProcessor } from './attribute-processors/extended-attributes';
 
 /**
  * DPML适配器核心类
@@ -35,9 +34,7 @@ export class DpmlAdapter {
   private validator: Validator | null = null;
   
   private coreAttributeProcessor: CoreAttributeProcessor;
-  private extendedAttributeProcessor: ExtendedAttributeProcessor;
   private idRegistry: Map<string, Element> = new Map();
-  private extendedAttributes: Map<Element, Record<string, any>> = new Map();
   private errors: Array<ParseError> = [];
   private warnings: Array<ParseWarning> = [];
   private parserMode: string = 'strict';
@@ -67,7 +64,6 @@ export class DpmlAdapter {
     
     // 初始化属性处理器
     this.coreAttributeProcessor = new CoreAttributeProcessor();
-    this.extendedAttributeProcessor = new ExtendedAttributeProcessor();
   }
   
   /**
@@ -88,7 +84,6 @@ export class DpmlAdapter {
     try {
       // 重置状态
       this.idRegistry.clear();
-      this.extendedAttributes.clear();
       this.errors = [];
       this.warnings = [];
       this.parserMode = 'strict';
@@ -275,24 +270,5 @@ export class DpmlAdapter {
     // 更新解析器状态
     this.parserMode = coreContext.parserMode;
     this.documentLang = coreContext.documentLang;
-    
-    // 处理扩展属性
-    const extendedContext = {
-      extendedAttributes: this.extendedAttributes,
-      addWarning: (code: string, message?: string, position?: SourcePosition) => {
-        this.warnings.push({
-          code,
-          message: message || code,
-          position: position ? {
-            line: position.start.line,
-            column: position.start.column,
-            offset: position.start.offset
-          } : undefined
-        });
-      }
-    };
-    
-    // 使用扩展属性处理器处理属性
-    this.extendedAttributeProcessor.processAttributes(element, extendedContext);
   }
 } 
