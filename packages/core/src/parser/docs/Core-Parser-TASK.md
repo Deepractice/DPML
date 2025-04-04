@@ -75,38 +75,16 @@
   - [x] 实现属性验证方法
   - [x] 验证测试通过
 
-- [ ] 4.3 **内置标签定义**
-  - [ ] 编写测试：验证核心标签的定义正确性
-  - [ ] 实现 `src/parser/builtin-tags.ts`
-  - [ ] 定义常用标签（document, prompt等）
-  - [ ] 验证测试通过
-
-## 5. 特殊属性处理
-
-- [ ] 5.1 **核心属性处理器**
-  - [ ] 编写测试：验证id, version, lang等核心属性的处理
-  - [ ] 实现 `src/parser/attribute-processors/core-attributes.ts`
-  - [ ] 实现属性验证与处理逻辑
-  - [ ] 验证测试通过
-
-- [ ] 5.2 **继承属性处理器**
-  - [ ] 编写测试：验证extends属性的解析与处理
-  - [ ] 实现 `src/parser/attribute-processors/inheritance.ts`
-  - [ ] 实现继承解析逻辑（本地和远程引用）
-  - [ ] 实现属性和内容继承规则
-  - [ ] 验证测试通过
-
-- [ ] 5.3 **控制属性处理器**
-  - [ ] 编写测试：验证schema, mode等控制属性的处理
-  - [ ] 实现 `src/parser/attribute-processors/control-attributes.ts`
-  - [ ] 实现模式切换逻辑
-  - [ ] 验证测试通过
-
-- [ ] 5.4 **扩展属性处理器**
-  - [ ] 编写测试：验证x-前缀属性的处理
-  - [ ] 实现 `src/parser/attribute-processors/extension-attributes.ts`
-  - [ ] 实现扩展属性处理器注册机制
-  - [ ] 验证测试通过
+## 5. 属性处理器实现
+- [x] **5.1 核心属性处理器**
+  - [x] 测试核心属性处理器对id、version、lang属性的验证和处理
+  - [x] 实现CoreAttributeProcessor类，处理元素ID、文档版本和语言
+  - [x] 集成到DpmlAdapter，在解析过程中自动处理属性
+  - [x] 实现ID注册表，支持检测重复ID
+- [ ] **5.2 扩展属性处理器**
+  - [ ] 测试扩展属性处理器对disabled、hidden等属性的处理
+  - [ ] 实现ExtendedAttributeProcessor类，处理条件渲染和样式相关属性
+  - [ ] 集成到属性处理管道中
 
 ## 6. 引用系统实现
 
