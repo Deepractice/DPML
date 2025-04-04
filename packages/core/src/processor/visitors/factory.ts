@@ -1,36 +1,43 @@
 /**
  * 访问者工厂函数
  * 
- * 提供创建各种访问者实例的工厂函数
+ * 提供创建各类访问者的工厂方法
  */
 
-import { IdValidationVisitor, IdValidationVisitorOptions } from './idValidationVisitor';
+import { ReferenceResolver } from '../interfaces';
+import { InheritanceVisitor } from './inheritanceVisitor';
+import { DocumentMetadataVisitor } from './documentMetadataVisitor';
 import { ReferenceVisitor, ReferenceVisitorOptions } from './referenceVisitor';
-import { DocumentMetadataVisitor, DocumentMetadataVisitorOptions } from './documentMetadataVisitor';
+import { IdValidationVisitor } from './idValidationVisitor';
 
 /**
- * 创建ID验证访问者
- * @param options ID验证访问者选项
- * @returns ID验证访问者实例
+ * 创建继承处理访问者
  */
-export function createIdValidationVisitor(options?: IdValidationVisitorOptions): IdValidationVisitor {
-  return new IdValidationVisitor(options);
-}
-
-/**
- * 创建引用访问者
- * @param options 引用访问者选项
- * @returns 引用访问者实例
- */
-export function createReferenceVisitor(options: ReferenceVisitorOptions): ReferenceVisitor {
-  return new ReferenceVisitor(options);
+export function createInheritanceVisitor(referenceResolver?: ReferenceResolver): InheritanceVisitor {
+  return new InheritanceVisitor(referenceResolver);
 }
 
 /**
  * 创建文档元数据访问者
- * @param options 文档元数据访问者选项
- * @returns 文档元数据访问者实例
  */
-export function createDocumentMetadataVisitor(options?: DocumentMetadataVisitorOptions): DocumentMetadataVisitor {
-  return new DocumentMetadataVisitor(options);
+export function createDocumentMetadataVisitor(): DocumentMetadataVisitor {
+  return new DocumentMetadataVisitor();
+}
+
+/**
+ * 创建引用访问者
+ */
+export function createReferenceVisitor(referenceResolver: ReferenceResolver): ReferenceVisitor {
+  const options: ReferenceVisitorOptions = {
+    referenceResolver,
+    resolveInContent: true  // 默认启用内容中的引用解析
+  };
+  return new ReferenceVisitor(options);
+}
+
+/**
+ * 创建ID验证访问者
+ */
+export function createIdValidationVisitor(): IdValidationVisitor {
+  return new IdValidationVisitor();
 } 
