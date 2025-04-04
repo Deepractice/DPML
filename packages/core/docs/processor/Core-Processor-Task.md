@@ -67,11 +67,11 @@
 - [x] 实现DocumentMetadataVisitor
 
 ### 2.6. 实现AttributeValidationVisitor
-- [ ] 测试属性类型验证
-- [ ] 测试属性值范围验证
-- [ ] 测试必需属性验证
-- [ ] 测试严格模式与宽松模式的验证差异
-- [ ] 实现AttributeValidationVisitor
+- [x] 测试属性类型验证
+- [x] 测试属性值范围验证
+- [x] 测试必需属性验证
+- [x] 测试严格模式与宽松模式的验证差异
+- [x] 实现AttributeValidationVisitor
 
 ## 3. 引用系统实现
 

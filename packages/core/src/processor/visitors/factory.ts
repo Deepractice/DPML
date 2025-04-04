@@ -6,10 +6,12 @@
 
 import { ReferenceResolver } from '../interfaces';
 import { InheritanceVisitor } from './inheritanceVisitor';
-import { DocumentMetadataVisitor } from './documentMetadataVisitor';
+import { DocumentMetadataVisitor, DocumentMode } from './documentMetadataVisitor';
 import { ReferenceVisitor, ReferenceVisitorOptions } from './referenceVisitor';
-import { IdValidationVisitor } from './idValidationVisitor';
+import { IdValidationVisitor, IdValidationVisitorOptions } from './idValidationVisitor';
 import { MarkdownContentVisitor, MarkdownContentVisitorOptions } from './markdownContentVisitor';
+import { AttributeValidationVisitor, AttributeValidationOptions } from './attributeValidationVisitor';
+import { TagRegistry } from '../../parser/tag-registry';
 
 /**
  * 创建继承处理访问者
@@ -20,31 +22,44 @@ export function createInheritanceVisitor(referenceResolver?: ReferenceResolver):
 
 /**
  * 创建文档元数据访问者
+ * @param options 选项
+ * @returns 文档元数据访问者实例
  */
-export function createDocumentMetadataVisitor(): DocumentMetadataVisitor {
-  return new DocumentMetadataVisitor();
-}
-
-/**
- * 创建引用访问者
- */
-export function createReferenceVisitor(referenceResolver: ReferenceResolver): ReferenceVisitor {
-  const options: ReferenceVisitorOptions = {
-    referenceResolver,
-    resolveInContent: true  // 默认启用内容中的引用解析
-  };
-  return new ReferenceVisitor(options);
+export function createDocumentMetadataVisitor(options?: { defaultMode?: DocumentMode }): DocumentMetadataVisitor {
+  return new DocumentMetadataVisitor(options);
 }
 
 /**
  * 创建ID验证访问者
+ * @param options 选项
+ * @returns ID验证访问者实例
  */
-export function createIdValidationVisitor(): IdValidationVisitor {
-  return new IdValidationVisitor();
+export function createIdValidationVisitor(options?: IdValidationVisitorOptions): IdValidationVisitor {
+  return new IdValidationVisitor(options);
 }
 
 /**
- * 创建Markdown内容访问者
+ * 创建属性验证访问者
+ * @param options 选项
+ * @returns 属性验证访问者实例
+ */
+export function createAttributeValidationVisitor(options: AttributeValidationOptions): AttributeValidationVisitor {
+  return new AttributeValidationVisitor(options);
+}
+
+/**
+ * 创建引用处理访问者
+ * @param options 选项
+ * @returns 引用处理访问者实例
+ */
+export function createReferenceVisitor(options: ReferenceVisitorOptions): ReferenceVisitor {
+  return new ReferenceVisitor(options);
+}
+
+/**
+ * 创建Markdown内容处理访问者
+ * @param options 选项
+ * @returns Markdown内容处理访问者实例
  */
 export function createMarkdownContentVisitor(options?: MarkdownContentVisitorOptions): MarkdownContentVisitor {
   return new MarkdownContentVisitor(options);

@@ -10,6 +10,7 @@ export * from './referenceVisitor';
 export * from './documentMetadataVisitor';
 export * from './inheritanceVisitor';
 export * from './markdownContentVisitor';
+export * from './attributeValidationVisitor';
 
 // 导出工厂函数
 export * from './factory'; 
