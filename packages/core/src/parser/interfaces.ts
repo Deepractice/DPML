@@ -34,12 +34,6 @@ export interface ParseOptions {
    * @default "loose"
    */
   mode?: "strict" | "loose";
-  
-  /**
-   * 是否处理继承（extends属性）
-   * @default true
-   */
-  processInheritance?: boolean;
 }
 
 /**
