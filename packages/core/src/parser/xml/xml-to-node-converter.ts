@@ -9,22 +9,16 @@ import {
 } from '../../types/node';
 import { ParseError } from '../../errors';
 import { ErrorCode } from '../../errors/types';
-import { ReferenceParser } from '../reference/reference-parser';
 
 /**
  * XML节点到DPML节点转换器
  */
 export class XMLToNodeConverter {
   /**
-   * 引用解析器
-   */
-  private referenceParser: ReferenceParser;
-
-  /**
    * 构造函数
    */
   constructor() {
-    this.referenceParser = new ReferenceParser();
+    // 移除引用解析器初始化
   }
 
   /**
@@ -84,10 +78,9 @@ export class XMLToNodeConverter {
 
     // 处理XML节点的文本内容
     if (xmlNode.textContent !== undefined) {
-      // 使用引用解析器处理文本内容，可能产生多个节点（Content和Reference的混合）
+      // 简化处理，直接创建文本内容节点
       const position = this.convertPosition(xmlNode.position);
-      const contentNodes = this.processText(xmlNode.textContent, position);
-      element.children.push(...contentNodes);
+      element.children.push(this.createContentNode(xmlNode.textContent, xmlNode.position));
     }
 
     // 处理子节点
@@ -97,23 +90,6 @@ export class XMLToNodeConverter {
     }
 
     return element;
-  }
-
-  /**
-   * 处理文本内容，提取引用
-   * @param text 文本内容
-   * @param position 位置信息
-   * @returns 处理后的节点数组
-   */
-  private processText(text: string, position: SourcePosition): Node[] {
-    try {
-      // 使用引用解析器提取文本中的引用
-      return this.referenceParser.extractReferenceNodes(text, position);
-    } catch (error) {
-      // 如果引用解析失败，回退为单纯的文本节点
-      console.warn('引用解析失败，回退为纯文本:', error);
-      return [this.createContentNode(text, position)];
-    }
   }
 
   /**
