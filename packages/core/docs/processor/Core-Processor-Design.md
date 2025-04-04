@@ -33,18 +33,18 @@ Processor模块作为DPML处理流程的第二阶段，位于Parser和Transforme
 
 ```mermaid
 classDiagram
-    class Processor {
+    class ProcessorManager {
         +process(doc: Document): Promise<ProcessedDocument>
         +configure(options: ProcessorOptions): void
     }
     
     class ProcessorRegistry {
-        +register(name: string, processor: IProcessor)
-        +get(name: string): IProcessor
-        +createPipeline(names: string[]): Processor
+        +register(name: string, processor: Processor)
+        +get(name: string): Processor
+        +createPipeline(names: string[]): ProcessorManager
     }
     
-    class IProcessor {
+    class Processor {
         <<interface>>
         +process(doc: Document): Promise<Document>
     }
@@ -65,18 +65,18 @@ classDiagram
         +process(doc: Document): Promise<Document>
     }
     
-    IProcessor <|.. InheritanceProcessor
-    IProcessor <|.. ReferenceProcessor
-    IProcessor <|.. CustomAttributeProcessor
+    Processor <|.. InheritanceProcessor
+    Processor <|.. ReferenceProcessor
+    Processor <|.. CustomAttributeProcessor
     
-    Processor --> ProcessorRegistry: uses
-    ProcessorRegistry --> IProcessor: manages
+    ProcessorManager --> ProcessorRegistry: uses
+    ProcessorRegistry --> Processor: manages
 ```
 
 ### 2.2 模块组件
 
-- **Processor**: 主处理器类，协调不同处理器的执行
-- **IProcessor**: 处理器接口，定义所有处理器的统一接口
+- **ProcessorManager**: 主处理器管理类，协调不同处理器的执行
+- **Processor**: 处理器接口，定义所有处理器的统一接口
 - **ProcessorRegistry**: 处理器注册表，管理所有处理器
 - **InheritanceProcessor**: 处理标签继承关系
 - **ReferenceProcessor**: 处理引用解析
@@ -86,12 +86,12 @@ classDiagram
 
 ```mermaid
 flowchart TD
-    Parser[Parser模块] -->|生成基础AST| Processor[Processor模块]
-    Processor -->|生成增强AST| Transformer[Transformer模块]
+    Parser[Parser模块] -->|生成基础AST| ProcessorMod[Processor模块]
+    ProcessorMod -->|生成增强AST| Transformer[Transformer模块]
     
-    Processor -->|使用| TagRegistry[TagRegistry]
-    Processor -->|使用| ReferenceResolver[ReferenceResolver]
-    Processor -->|报告| ErrorHandler[ErrorHandler]
+    ProcessorMod -->|使用| TagRegistry[TagRegistry]
+    ProcessorMod -->|使用| ReferenceResolver[ReferenceResolver]
+    ProcessorMod -->|报告| ErrorHandler[ErrorHandler]
 ```
 
 - 接收Parser生成的AST
@@ -117,11 +117,11 @@ flowchart TD
 
 ```mermaid
 sequenceDiagram
-    participant Processor
+    participant PManager as ProcessorManager
     participant InheritanceProcessor
     participant IdRegistry
     
-    Processor->>InheritanceProcessor: process(document)
+    PManager->>InheritanceProcessor: process(document)
     loop 遍历所有元素
         InheritanceProcessor->>InheritanceProcessor: 检查元素是否有extends属性
         alt 有extends属性
@@ -135,7 +135,7 @@ sequenceDiagram
             end
         end
     end
-    InheritanceProcessor-->>Processor: 返回处理后的文档
+    InheritanceProcessor-->>PManager: 返回处理后的文档
 ```
 
 #### 3.1.3 核心方法
@@ -188,7 +188,7 @@ ProcessorRegistry管理所有处理器的注册和获取，支持创建处理器
 
 ```typescript
 // 处理器接口
-interface IProcessor {
+interface Processor {
   process(doc: Document): Promise<Document>;
   priority?: number; // 处理优先级
 }
@@ -196,13 +196,13 @@ interface IProcessor {
 // 处理器注册表
 class ProcessorRegistry {
   // 注册处理器
-  register(name: string, processor: IProcessor): void;
+  register(name: string, processor: Processor): void;
   
   // 获取处理器
-  get(name: string): IProcessor | null;
+  get(name: string): Processor | null;
   
   // 创建处理器管道
-  createPipeline(processorNames?: string[]): Processor;
+  createPipeline(processorNames?: string[]): ProcessorManager;
 }
 ```
 
@@ -241,8 +241,8 @@ interface ProcessorOptions {
 ### 5.1 核心接口
 
 ```typescript
-// 主处理器接口
-export interface Processor {
+// 主处理器管理接口
+export interface ProcessorManager {
   // 处理文档
   process(doc: Document): Promise<ProcessedDocument>;
   
@@ -284,7 +284,7 @@ export interface ProcessingWarning {
 
 ```typescript
 // 处理器接口
-export interface IProcessor {
+export interface Processor {
   // 处理文档
   process(doc: Document): Promise<Document>;
   
@@ -296,13 +296,13 @@ export interface IProcessor {
 }
 
 // 继承处理器接口
-export interface InheritanceProcessor extends IProcessor {
+export interface InheritanceProcessor extends Processor {
   // 设置ID注册表
   setIdRegistry(registry: Map<string, Element>): void;
 }
 
 // 引用处理器接口
-export interface ReferenceProcessor extends IProcessor {
+export interface ReferenceProcessor extends Processor {
   // 设置引用解析器
   setReferenceResolver(resolver: ReferenceResolver): void;
 }
@@ -315,7 +315,7 @@ export interface ReferenceProcessor extends IProcessor {
 继承处理器需要实现复杂的继承逻辑，包括：
 
 ```typescript
-class InheritanceProcessor implements IProcessor {
+class InheritanceProcessor implements Processor {
   private idRegistry: Map<string, Element> = new Map();
   private processedElements: Set<Element> = new Set();
   
@@ -417,10 +417,10 @@ class InheritanceProcessor implements IProcessor {
 处理器管道协调多个处理器按顺序处理文档：
 
 ```typescript
-class ProcessorPipeline implements Processor {
-  private processors: IProcessor[] = [];
+class ProcessorManagerImpl implements ProcessorManager {
+  private processors: Processor[] = [];
   
-  constructor(processors: IProcessor[]) {
+  constructor(processors: Processor[]) {
     // 按优先级排序处理器
     this.processors = [...processors].sort((a, b) => 
       (a.priority || 100) - (b.priority || 100)
