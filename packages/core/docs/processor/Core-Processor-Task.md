@@ -21,13 +21,13 @@
 - [ ] 测试上下文创建与存取
 - [ ] 测试引用缓存机制
 - [ ] 测试变量管理功能
-- [x] 实现ProcessingContext类
+- [] 实现ProcessingContext类
 
 ### 1.3. 实现DefaultProcessor框架
 - [ ] 测试访问者注册和排序机制
 - [ ] 测试处理流程骨架
 - [ ] 测试节点遍历逻辑
-- [x] 实现DefaultProcessor基础框架
+- [] 实现DefaultProcessor基础框架
 
 ## 2. 核心访问者实现
 
@@ -46,7 +46,7 @@
 - [ ] 测试引用解析与替换
 - [ ] 测试Reference节点处理
 - [ ] 测试引用错误处理
-- [x] 实现ReferenceVisitor
+- [] 实现ReferenceVisitor
 
 ### 2.3. 实现MarkdownContentVisitor
 - [ ] 测试Markdown内容处理
@@ -57,14 +57,14 @@
 - [ ] 测试ID收集功能
 - [ ] 测试ID唯一性验证
 - [ ] 测试ID冲突错误处理
-- [x] 实现IdValidationVisitor
+- [] 实现IdValidationVisitor
 
 ### 2.5. 实现DocumentMetadataVisitor
 - [ ] 测试文档元数据收集功能
 - [ ] 测试`mode`属性处理逻辑
 - [ ] 测试`lang`属性记录功能
 - [ ] 测试`schema`属性处理
-- [x] 实现DocumentMetadataVisitor
+- [] 实现DocumentMetadataVisitor
 
 ### 2.6. 实现AttributeValidationVisitor
 - [ ] 测试属性类型验证
@@ -80,13 +80,13 @@
 - [ ] 测试协议处理器集成
 - [ ] 测试引用缓存机制
 - [ ] 测试解析错误处理
-- [x] 实现DefaultReferenceResolver
+- [] 实现DefaultReferenceResolver
 
 ### 3.2. 实现基础协议处理器
 - [ ] 测试HTTP协议处理器
 - [ ] 测试文件协议处理器
 - [ ] 测试ID协议处理器
-- [x] 实现基础协议处理器
+- [] 实现基础协议处理器
 
 ## 4. 集成测试与端到端测试
 
@@ -138,9 +138,9 @@
 
 ### 6.3. 错误处理完善
 - [ ] 测试各类错误场景
-- [x] 完善错误报告与恢复机制
+- [] 完善错误报告与恢复机制
 - [ ] 测试严格模式与宽松模式的错误处理差异
-- [x] 实现基于`mode`属性的错误处理策略
+- [] 实现基于`mode`属性的错误处理策略
 - [ ] 测试错误信息的清晰度和可用性
 
 ### 6.4. 跨平台兼容性
@@ -152,7 +152,7 @@
 ## 7. 文档与示例
 
 ### 7.1. 编写API文档
-- [x] 为所有公共接口编写文档
+- [] 为所有公共接口编写文档
 - [ ] 编写使用指南和最佳实践
 
 ### 7.2. 创建示例代码
