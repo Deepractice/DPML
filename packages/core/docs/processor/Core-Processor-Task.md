@@ -60,11 +60,11 @@
 - [x] 实现IdValidationVisitor
 
 ### 2.5. 实现DocumentMetadataVisitor
-- [ ] 测试文档元数据收集功能
-- [ ] 测试`mode`属性处理逻辑
-- [ ] 测试`lang`属性记录功能
-- [ ] 测试`schema`属性处理
-- [] 实现DocumentMetadataVisitor
+- [x] 测试文档元数据收集功能
+- [x] 测试`mode`属性处理逻辑
+- [x] 测试`lang`属性记录功能
+- [x] 测试`schema`属性处理
+- [x] 实现DocumentMetadataVisitor
 
 ### 2.6. 实现AttributeValidationVisitor
 - [ ] 测试属性类型验证
