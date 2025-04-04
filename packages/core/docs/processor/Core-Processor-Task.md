@@ -54,10 +54,10 @@
 - [x] 实现MarkdownContentVisitor
 
 ### 2.4. 实现IdValidationVisitor
-- [ ] 测试ID收集功能
-- [ ] 测试ID唯一性验证
-- [ ] 测试ID冲突错误处理
-- [] 实现IdValidationVisitor
+- [x] 测试ID收集功能
+- [x] 测试ID唯一性验证
+- [x] 测试ID冲突错误处理
+- [x] 实现IdValidationVisitor
 
 ### 2.5. 实现DocumentMetadataVisitor
 - [ ] 测试文档元数据收集功能
