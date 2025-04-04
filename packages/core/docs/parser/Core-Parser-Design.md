@@ -24,20 +24,19 @@ Parser 模块基于现有XML解析库构建，添加DPML特有的功能和扩展
 flowchart LR
     Input[DPML 文本] --> XmlParser[XML解析库]
     XmlParser --> DpmlAdapter[DPML适配器]
-    DpmlAdapter --> Processor[处理器]
-    Processor --> AST[DPML AST]
+    DpmlAdapter --> AST[基础DPML AST]
     
     subgraph "辅助组件"
       TagRegistry[标签注册表]
       ErrorHandler[错误处理器]
-      ReferenceParser[引用解析器]
     end
     
     TagRegistry -.-> DpmlAdapter
     ErrorHandler -.-> XmlParser
     ErrorHandler -.-> DpmlAdapter
-    ReferenceParser -.-> Processor
 ```
+
+> 注意：高级处理功能（如继承处理、引用解析）不属于Parser模块，而是由Processor模块负责。Parser仅生成基础AST。
 
 ### 2.2 核心组件
 
@@ -51,13 +50,6 @@ classDiagram
         +adapt(xmlNode: XmlNode): DpmlNode
         -processElement(element: XmlElement): Element
         -processText(text: XmlText): Content
-        -findReferences(content: string): Reference[]
-    }
-    
-    class Processor {
-        +process(dpmlNode: DpmlNode): Document
-        -resolveReferences(node: Node)
-        -validateStructure(node: Node)
     }
     
     class TagRegistry {
@@ -72,8 +64,7 @@ classDiagram
     }
     
     XmlParser --> DpmlAdapter: provides XML nodes
-    DpmlAdapter --> Processor: provides DPML nodes
-    Processor --> ParseResult: produces
+    DpmlAdapter --> ParseResult: produces
     DpmlAdapter --> TagRegistry: uses
 ```
 
@@ -112,7 +103,7 @@ class XmlParserAdapter {
 
 ### 3.2 DPML适配器
 
-适配器负责将通用XML节点转换为DPML特定节点，处理DPML特有的语法（如引用）：
+适配器负责将通用XML节点转换为DPML特定节点：
 
 ```typescript
 class DpmlAdapter {
@@ -139,28 +130,16 @@ class DpmlAdapter {
   }
   
   /**
-   * 处理文本节点，提取引用
+   * 处理文本节点
    */
-  private processText(text: XmlText): Content | Node[] {
-    // 检查文本中的引用
-    const references = this.findReferences(text.value);
-    if (references.length === 0) {
-      return new Content(text.value, text.position);
-    }
-    
-    // 拆分文本和引用节点
-    // ...
-  }
-  
-  /**
-   * 提取文本中的引用
-   */
-  private findReferences(content: string): Reference[] {
-    // 使用正则表达式查找引用
-    // 例如 @http://example.com 格式
+  private processText(text: XmlText): Content {
+    // 创建内容节点
+    return new Content(text.value, text.position);
   }
 }
 ```
+
+> 注意：Parser模块不负责识别和处理@引用，这是Processor模块的职责。Parser仅将文本内容作为整体处理。
 
 ### 3.3 节点类型
 
@@ -191,14 +170,9 @@ interface Content extends Node {
   type: 'content';
   value: string;
 }
-
-interface Reference extends Node {
-  type: 'reference';
-  protocol: string;
-  path: string;
-  resolved?: any;
-}
 ```
+
+> 注意：Reference类型不由Parser模块创建，它将在Processor模块中处理@引用时生成。
 
 ### 3.4 标签定义
 
@@ -228,46 +202,21 @@ interface TagDefinition {
 
 ### 3.5 处理流程
 
-使用适配好的DPML节点进行处理：
+基础解析流程：
 
 ```mermaid
 flowchart TD
     Start[开始处理] --> ParseXml[使用XML库解析文档]
     ParseXml --> AdaptNodes[转换为DPML节点]
-    AdaptNodes --> ProcessRefs[处理引用节点]
-    ProcessRefs --> ValidateStruct[验证结构]
-    ValidateStruct --> Return[返回AST]
+    AdaptNodes --> ValidateBasic[基础验证]
+    ValidateBasic --> Return[返回基础AST]
 ```
 
 ### 3.6 DPML规范属性处理
 
-DPML规范定义了一系列标准属性，Parser需要专门处理这些属性：
+Parser模块负责解析所有属性并生成AST，但只进行基础的属性验证：
 
-#### 3.6.1 基础属性
-
-```typescript
-interface CoreAttributes {
-  /**
-   * 标签唯一标识符
-   * 格式：字母开头，允许字母、数字、下划线、连字符
-   */
-  id?: string;
-  
-  /**
-   * DPML规范版本，仅用于根标签
-   * 格式：主版本.次版本，如"1.0"
-   */
-  version?: string;
-  
-  /**
-   * 语言代码，仅用于根标签
-   * 格式：ISO语言代码，如"zh-CN"
-   */
-  lang?: string;
-}
-```
-
-处理逻辑：
+#### 3.6.1 基础属性验证
 
 ```typescript
 class CoreAttributeProcessor {
@@ -286,161 +235,16 @@ class CoreAttributeProcessor {
   }
   
   /**
-   * 处理根标签特殊属性
+   * 验证语言格式
    */
-  processRootAttributes(element: Element): void {
-    // 处理版本
-    if (element.attributes.version) {
-      if (!this.validateVersion(element.attributes.version)) {
-        // 添加警告
-      }
-      // 设置解析器版本模式
-    }
-    
-    // 处理语言
-    if (element.attributes.lang) {
-      // 设置文档语言
-    }
+  validateLang(lang: string): boolean {
+    // 简单验证ISO语言代码格式
+    return /^[a-z]{2}(-[A-Z]{2})?$/.test(lang);
   }
 }
 ```
 
-#### 3.6.2 继承属性处理
-
-```typescript
-class InheritanceProcessor {
-  /**
-   * 处理标签继承
-   * @param element 当前元素
-   * @param context 处理上下文
-   */
-  async processInheritance(element: Element, context: ProcessingContext): Promise<void> {
-    if (!element.attributes.extends) {
-      return;
-    }
-    
-    // 解析extends引用
-    const baseElement = await this.resolveExtends(element.attributes.extends, context);
-    
-    if (!baseElement) {
-      context.addError('inheritance-error', `无法找到继承基础: ${element.attributes.extends}`, element.position);
-      return;
-    }
-    
-    // 验证类型匹配
-    if (baseElement.tagName !== element.tagName) {
-      context.addWarning('type-mismatch', `继承类型不匹配: ${baseElement.tagName} != ${element.tagName}`, element.position);
-    }
-    
-    // 应用属性继承规则
-    this.inheritAttributes(element, baseElement);
-    
-    // 应用内容继承规则
-    this.inheritContent(element, baseElement);
-  }
-  
-  /**
-   * 解析extends引用
-   */
-  private async resolveExtends(extendsValue: string, context: ProcessingContext): Promise<Element | null> {
-    // 处理不同类型的引用（ID引用、相对路径、绝对路径、HTTP路径）
-    // ...
-  }
-  
-  /**
-   * 应用属性继承规则
-   */
-  private inheritAttributes(element: Element, baseElement: Element): void {
-    // 子优先原则：当前标签的属性优先
-    for (const [key, value] of Object.entries(baseElement.attributes)) {
-      if (key !== 'id' && !(key in element.attributes)) {
-        element.attributes[key] = value;
-      }
-    }
-  }
-  
-  /**
-   * 应用内容继承规则
-   */
-  private inheritContent(element: Element, baseElement: Element): void {
-    // 如果当前标签没有有效内容，则继承基础标签的内容
-    if (this.isEmptyContent(element) && !this.isEmptyContent(baseElement)) {
-      element.children = [...baseElement.children];
-    }
-  }
-  
-  /**
-   * 判断是否为空内容
-   */
-  private isEmptyContent(element: Element): boolean {
-    // 检查是否只有空白内容和注释
-    // ...
-  }
-}
-```
-
-#### 3.6.3 控制属性处理
-
-```typescript
-class ControlAttributeProcessor {
-  /**
-   * 处理控制属性
-   */
-  processControlAttributes(element: Element, context: ProcessingContext): void {
-    // 处理schema属性
-    if (element.attributes.schema) {
-      this.processSchema(element.attributes.schema, context);
-    }
-    
-    // 处理mode属性
-    if (element.attributes.mode) {
-      this.processMode(element.attributes.mode, context);
-    }
-  }
-  
-  /**
-   * 处理schema属性
-   */
-  private processSchema(schema: string, context: ProcessingContext): void {
-    // 加载并应用schema验证规则
-    // ...
-  }
-  
-  /**
-   * 处理mode属性
-   */
-  private processMode(mode: string, context: ProcessingContext): void {
-    if (mode !== 'strict' && mode !== 'loose') {
-      context.addWarning('invalid-mode', `无效的mode值: ${mode}，使用默认值'loose'`, context.currentNode?.position);
-      mode = 'loose';
-    }
-    
-    context.parserMode = mode;
-  }
-}
-```
-
-#### 3.6.4 扩展属性处理
-
-```typescript
-class ExtensionAttributeProcessor {
-  /**
-   * 处理扩展属性（x-前缀）
-   */
-  processExtensionAttributes(element: Element, context: ProcessingContext): void {
-    const extensionAttrs = Object.keys(element.attributes)
-      .filter(key => key.startsWith('x-'));
-    
-    for (const attr of extensionAttrs) {
-      // 保留扩展属性，交由插件处理
-      const handler = context.getExtensionHandler(attr);
-      if (handler) {
-        handler.processAttribute(attr, element.attributes[attr], element, context);
-      }
-    }
-  }
-}
-```
+> 注意：Parser模块仅负责基础属性格式验证和解析，不处理继承(extends)等高级属性的逻辑。标签继承、引用处理等高级功能由Processor模块实现。
 
 ## 4. 接口设计
 
@@ -449,7 +253,7 @@ class ExtensionAttributeProcessor {
 ```typescript
 interface DPMLParser {
   /**
-   * 解析DPML文本并返回AST
+   * 解析DPML文本并返回基础AST
    * @param input DPML文本
    * @param options 解析选项
    * @returns 解析结果
@@ -484,16 +288,10 @@ interface ParseOptions {
   preserveComments?: boolean;
   
   /**
-   * 解析模式，对应DPML的mode属性
+   * 解析模式
    * @default "loose"
    */
   mode?: "strict" | "loose";
-  
-  /**
-   * 是否处理继承（extends属性）
-   * @default true
-   */
-  processInheritance?: boolean;
 }
 
 interface ParseResult {
@@ -584,53 +382,6 @@ interface TagValidator {
 tagRegistry.registerTagValidator('my-tag', myTagValidator);
 ```
 
-### 5.3 自定义引用处理
-
-```typescript
-interface ReferenceProtocolHandler {
-  /**
-   * 判断是否能处理此协议
-   * @param protocol 协议名
-   */
-  canHandle(protocol: string): boolean;
-  
-  /**
-   * 处理引用
-   * @param reference 引用节点
-   * @param context 处理上下文
-   * @returns 解析结果
-   */
-  handle(reference: Reference, context: ReferenceContext): Promise<any>;
-}
-
-// 注册协议处理器
-referenceRegistry.registerProtocolHandler(myProtocolHandler);
-```
-
-### 5.4 扩展属性处理器
-
-```typescript
-interface ExtensionAttributeHandler {
-  /**
-   * 判断是否能处理此扩展属性
-   */
-  canHandle(attributeName: string): boolean;
-  
-  /**
-   * 处理扩展属性
-   */
-  processAttribute(
-    name: string, 
-    value: any, 
-    element: Element, 
-    context: ProcessingContext
-  ): void;
-}
-
-// 注册扩展属性处理器
-extensionRegistry.registerAttributeHandler(myExtensionHandler);
-```
-
 ## 6. 错误处理策略
 
 Parser 模块采用分级错误处理策略：
@@ -653,7 +404,6 @@ Parser 模块的性能优化策略：
 2. **懒验证**：只在需要时验证AST
 3. **缓存标签定义**：避免重复查找
 4. **部分解析**：支持只解析文档的特定部分
-5. **继承处理优化**：缓存已解析的继承基础标签
 
 性能目标：
 - 100KB DPML文档解析时间 < 100ms
@@ -695,7 +445,7 @@ import { createParser, tagRegistry } from '@dpml/core';
 tagRegistry.registerTagDefinition('custom-tag', {
   attributes: ['type', 'id'],
   requiredAttributes: ['type'],
-  allowedChildren: ['text', 'reference']
+  allowedChildren: ['text']
 });
 
 // 创建解析器
@@ -711,26 +461,29 @@ const result = await parser.parse(`
 `);
 ```
 
-### 8.3 处理继承
+### 8.3 与Processor模块集成
 
 ```typescript
 import { createParser } from '@dpml/core';
+import { createProcessor } from '@dpml/core/processor';
 
-// 创建解析器
+// 创建解析器和处理器
 const parser = createParser();
+const processor = createProcessor();
 
-// 解析带有继承的DPML文档
-const result = await parser.parse(`
-<!-- 定义基础角色模板 -->
-<role id="base-assistant" name="assistant">
-  我是一个AI助手，可以回答各种问题。
-</role>
-
-<!-- 继承并自定义内容 -->
-<role extends="base-assistant" x-tone="friendly">
-  我是一个友好的AI助手，很高兴能帮助您解决问题！
-</role>
-`);
+// 完整处理流程
+async function processDpml(dpmlText) {
+  // 步骤1: 解析为基础AST
+  const parseResult = await parser.parse(dpmlText);
+  if (parseResult.errors.length > 0) {
+    return { errors: parseResult.errors };
+  }
+  
+  // 步骤2: 处理AST（继承、引用等高级功能）
+  const processedResult = await processor.process(parseResult.ast);
+  
+  return processedResult;
+}
 ```
 
 ## 9. 未来扩展
@@ -742,6 +495,25 @@ Parser 模块的未来扩展计划：
 3. **语言服务支持**：为编辑器集成提供LSP实现
 4. **强大的诊断**：提供更详细的错误信息和修复建议
 5. **解析优化**：针对特定场景的性能优化
+
+## 10. 模块边界
+
+### 10.1 Parser和Processor的职责分离
+
+为保持清晰的职责分离，Parser和Processor模块各自负责不同的处理阶段：
+
+| 职责 | Parser模块 | Processor模块 |
+|------|------------|--------------|
+| XML/标签解析 | ✅ | ❌ |
+| 基础属性验证 | ✅ | ❌ |
+| 生成基础AST | ✅ | ❌ |
+| @引用识别与解析 | ❌ | ✅ |
+| 标签继承处理 | ❌ | ✅ |
+| 属性继承规则 | ❌ | ✅ |
+| 内容继承规则 | ❌ | ✅ |
+| 引用协议处理 | ❌ | ✅ |
+
+Parser模块专注于将DPML文本转换为结构化的基础AST，而Processor模块负责对AST进行高级处理和增强。
 
 ---
 
