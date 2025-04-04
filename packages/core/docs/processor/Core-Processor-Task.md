@@ -1,12 +1,20 @@
 # Processor模块开发任务清单（基于TDD）
+## 重要提示：严格遵循TDD
+所有任务必须严格按照以下TDD流程开发：
+1. 先编写测试用例
+2. 运行测试并确认失败
+3. 实现最小代码使测试通过
+4. 重构代码
+5. 确认测试仍然通过
+
 
 ## 1. 核心框架与基础设施
 
 ### 1.1. 设计核心接口与类型
-- [ ] 编写NodeVisitor接口测试
-- [ ] 编写Processor接口测试
-- [ ] 编写ProtocolHandler接口测试
-- [ ] 编写ReferenceResolver接口测试
+- [x] 编写NodeVisitor接口测试
+- [x] 编写Processor接口测试
+- [x] 编写ProtocolHandler接口测试
+- [x] 编写ReferenceResolver接口测试
 - [x] 实现接口和类型定义
 
 ### 1.2. 实现ProcessingContext
