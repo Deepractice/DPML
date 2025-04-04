@@ -44,9 +44,13 @@ export class ReferenceVisitor implements NodeVisitor {
   
   /**
    * 引用正则表达式
-   * 匹配@开头的引用
+   * 匹配@开头的引用，支持以下格式：
+   * - @id:some-id
+   * - @file:./path/to/file.dpml
+   * - @http://example.com/resource.dpml
+   * - @https://example.com/resource.dpml
    */
-  private readonly referenceRegex = /@([a-zA-Z0-9._\-]+(?::[a-zA-Z0-9._\-\/]+)?)/g;
+  private readonly referenceRegex = /@((?:[a-zA-Z0-9._\-]+:)?[a-zA-Z0-9._\-\/\?=&%:]+(?:\.[a-zA-Z0-9]+)?(?:#[a-zA-Z0-9_\-]+)?)/g;
   
   /**
    * 构造函数
@@ -104,10 +108,16 @@ export class ReferenceVisitor implements NodeVisitor {
         let protocol = 'id'; // 默认为id协议
         let path = reference;
         
-        if (reference.includes(':')) {
-          const parts = reference.split(':');
-          protocol = parts[0];
-          path = parts.slice(1).join(':');
+        // 处理URL类型引用 (http://, https://)
+        if (reference.startsWith('http://') || reference.startsWith('https://')) {
+          protocol = 'http';
+          path = reference;
+        }
+        // 处理带有协议前缀的引用 (file:, id:)
+        else if (reference.includes(':')) {
+          const colonIndex = reference.indexOf(':');
+          protocol = reference.substring(0, colonIndex);
+          path = reference.substring(colonIndex + 1);
         }
         
         // 创建引用节点

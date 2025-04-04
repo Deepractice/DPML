@@ -42,11 +42,11 @@
 - [x] 实现InheritanceVisitor
 
 ### 2.2. 实现ReferenceVisitor
-- [ ] 测试内容中引用识别功能
-- [ ] 测试引用解析与替换
-- [ ] 测试Reference节点处理
-- [ ] 测试引用错误处理
-- [] 实现ReferenceVisitor
+- [x] 测试内容中引用识别功能
+- [x] 测试引用解析与替换
+- [x] 测试Reference节点处理
+- [x] 测试引用错误处理
+- [x] 实现ReferenceVisitor
 
 ### 2.3. 实现MarkdownContentVisitor
 - [ ] 测试Markdown内容处理
