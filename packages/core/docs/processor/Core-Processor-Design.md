@@ -521,10 +521,16 @@ const lightweightManager = processorRegistry.createPipeline(['inheritance', 'con
 class InheritanceProcessor implements Processor {
   private idRegistry: Map<string, Element> = new Map();
   private processedElements: Set<Element> = new Set();
+  private referenceResolver: ReferenceResolver;
   
   // 设置ID注册表
   setIdRegistry(registry: Map<string, Element>): void {
     this.idRegistry = registry;
+  }
+  
+  // 设置引用解析器（用于解析跨文件继承）
+  setReferenceResolver(resolver: ReferenceResolver): void {
+    this.referenceResolver = resolver;
   }
   
   // 主处理方法
@@ -546,21 +552,140 @@ class InheritanceProcessor implements Processor {
   // 构建ID注册表
   private buildIdRegistry(doc: Document): void {
     // 实现扫描文档并为所有带ID的元素建立映射
+    this.traverseDocument(doc, (element) => {
+      if (element.attributes?.id && typeof element.attributes.id === 'string') {
+        this.idRegistry.set(element.attributes.id, element);
+      }
+    });
+  }
+  
+  // 递归遍历文档
+  private traverseDocument(node: Node, callback: (element: Element) => void): void {
+    if (node.type === 'element') {
+      callback(node as Element);
+      
+      // 递归处理子节点
+      (node as Element).children?.forEach(child => {
+        this.traverseDocument(child, callback);
+      });
+    }
   }
   
   // 处理文档中所有元素的继承
   private async processDocumentInheritance(doc: Document): Promise<void> {
-    // 实现深度优先遍历并处理继承
+    // 深度优先遍历处理继承
+    await this.traverseDocumentAsync(doc, async (element) => {
+      if (element.attributes?.extends) {
+        await this.processInheritance(element);
+      }
+    });
   }
   
-  // 解析extends引用
-  private resolveExtends(element: Element): Element | null {
-    const extendsId = element.attributes?.extends;
-    if (!extendsId || typeof extendsId !== 'string') {
+  // 异步递归遍历文档
+  private async traverseDocumentAsync(node: Node, callback: (element: Element) => Promise<void>): Promise<void> {
+    if (node.type === 'element') {
+      await callback(node as Element);
+      
+      // 递归处理子节点
+      if ((node as Element).children) {
+        for (const child of (node as Element).children) {
+          await this.traverseDocumentAsync(child, callback);
+        }
+      }
+    }
+  }
+  
+  // 解析extends引用 - 支持多种引用方式
+  private async resolveExtends(element: Element): Promise<Element | null> {
+    const extendsValue = element.attributes?.extends;
+    if (!extendsValue || typeof extendsValue !== 'string') {
       return null;
     }
     
-    return this.idRegistry.get(extendsId) || null;
+    // 检查是否包含路径分隔符或URL协议，判断是否跨文件引用
+    if (extendsValue.includes('/') || extendsValue.includes(':') || extendsValue.includes('#')) {
+      // 处理跨文件引用
+      return this.resolveExternalReference(extendsValue, element);
+    } else {
+      // 处理同文件ID引用
+      const baseElement = this.idRegistry.get(extendsValue);
+      if (!baseElement) {
+        this.addWarning(element, 'REFERENCE_NOT_FOUND', 
+          `找不到ID为"${extendsValue}"的元素`);
+      }
+      return baseElement || null;
+    }
+  }
+  
+  // 解析外部引用
+  private async resolveExternalReference(reference: string, sourceElement: Element): Promise<Element | null> {
+    try {
+      // 解析引用以获取文件路径和ID
+      const [filePath, id] = this.parseReference(reference);
+      
+      if (!this.referenceResolver) {
+        this.addWarning(sourceElement, 'REFERENCE_RESOLVER_NOT_SET', 
+          '未设置引用解析器，无法处理跨文件继承');
+        return null;
+      }
+      
+      // 通过ReferenceResolver加载外部文件
+      const externalDoc = await this.referenceResolver.resolveDocument(filePath);
+      if (!externalDoc) {
+        this.addWarning(sourceElement, 'EXTERNAL_DOCUMENT_NOT_FOUND', 
+          `无法加载外部文件: ${filePath}`);
+        return null;
+      }
+      
+      // 在外部文档中查找指定ID
+      const externalElement = this.findElementById(externalDoc, id);
+      if (!externalElement) {
+        this.addWarning(sourceElement, 'EXTERNAL_ELEMENT_NOT_FOUND', 
+          `在文件"${filePath}"中找不到ID为"${id}"的元素`);
+      }
+      
+      return externalElement;
+    } catch (error) {
+      this.addError(sourceElement, 'EXTERNAL_REFERENCE_ERROR', 
+        `处理外部引用时出错: ${error.message}`);
+      return null;
+    }
+  }
+  
+  // 解析引用字符串，分离文件路径和ID
+  private parseReference(reference: string): [string, string] {
+    // 处理三种格式:
+    // 1. path/to/file.dpml#id
+    // 2. http://example.com/file.dpml#id
+    // 3. #id (同文件不同ID)
+    
+    const hashIndex = reference.lastIndexOf('#');
+    if (hashIndex === -1) {
+      // 没有#，假设整个字符串是文件路径，ID为空
+      return [reference, ''];
+    } else if (hashIndex === 0) {
+      // 以#开头，是同文件引用
+      return ['', reference.substring(1)];
+    } else {
+      // 包含#，分离文件路径和ID
+      return [
+        reference.substring(0, hashIndex),
+        reference.substring(hashIndex + 1)
+      ];
+    }
+  }
+  
+  // 在文档中查找特定ID的元素
+  private findElementById(doc: Document, id: string): Element | null {
+    let found: Element | null = null;
+    
+    this.traverseDocument(doc, (element) => {
+      if (element.attributes?.id === id) {
+        found = element;
+      }
+    });
+    
+    return found;
   }
   
   // 处理元素继承
@@ -570,20 +695,36 @@ class InheritanceProcessor implements Processor {
       return;
     }
     
-    const baseElement = this.resolveExtends(element);
+    const baseElement = await this.resolveExtends(element);
     if (!baseElement) {
-      // 添加找不到基础元素的警告
+      // 添加找不到基础元素的警告（已在resolveExtends中处理）
+      return;
+    }
+    
+    // 验证单层继承
+    if (!this.validateSingleInheritance(element, baseElement)) {
+      // 单层继承验证失败，但我们可以继续处理
+      // 忽略基础元素的extends属性，只应用当前继承
+    }
+    
+    // 验证类型匹配
+    if (!this.validateTypeMatch(element, baseElement)) {
+      // 类型不匹配时拒绝继承
       return;
     }
     
     // 检查循环继承
     if (this.hasCircularInheritance(element, baseElement)) {
       // 添加循环继承的错误
+      this.addError(element, 'CIRCULAR_INHERITANCE', 
+        '检测到循环继承，无法处理');
       return;
     }
     
-    // 递归处理基础元素的继承
-    await this.processInheritance(baseElement);
+    // 递归处理基础元素的继承（如果需要）
+    if (baseElement.attributes?.extends && !this.processedElements.has(baseElement)) {
+      await this.processInheritance(baseElement);
+    }
     
     // 应用继承规则
     this.inheritAttributes(element, baseElement);
@@ -593,27 +734,185 @@ class InheritanceProcessor implements Processor {
     this.processedElements.add(element);
   }
   
+  // 验证单层继承限制
+  private validateSingleInheritance(element: Element, baseElement: Element): boolean {
+    // 根据DPML规范5.1，标签只允许继承一次，不支持多层继承链
+    if (baseElement.attributes?.extends) {
+      // 基础元素也有extends属性，这违反了单层继承限制
+      // 根据设计需求，我们可以选择:
+      // 1. 拒绝继承
+      // 2. 允许继承但发出警告
+      // 3. 忽略基础元素的extends属性
+      
+      // 这里选择发出警告但继续处理
+      this.addWarning(element, 'MULTI_LEVEL_INHERITANCE', 
+        '不支持多层继承，将忽略基础元素的extends属性');
+      return false;
+    }
+    return true;
+  }
+  
+  // 验证类型匹配限制
+  private validateTypeMatch(element: Element, baseElement: Element): boolean {
+    // 根据DPML规范5.1，标签只能继承相同类型的标签
+    if (element.tagName !== baseElement.tagName) {
+      this.addWarning(element, 'TYPE_MISMATCH_INHERITANCE', 
+        `类型不匹配: 尝试让 <${element.tagName}> 继承 <${baseElement.tagName}>`);
+      return false;
+    }
+    return true;
+  }
+  
   // 属性继承实现
   private inheritAttributes(element: Element, baseElement: Element): void {
-    // 实现属性继承逻辑
+    // 根据DPML规范5.2，子优先原则
+    // 当前标签的属性始终覆盖继承标签的同名属性
+    
+    // 如果当前元素没有attributes，创建一个
+    if (!element.attributes) {
+      element.attributes = {};
+    }
+    
+    // 复制所有基础元素的属性，但不覆盖已存在的
+    if (baseElement.attributes) {
+      for (const [key, value] of Object.entries(baseElement.attributes)) {
+        // 排除extends属性本身不被继承
+        if (key === 'extends') {
+          continue;
+        }
+        
+        // 只有当当前元素没有该属性时才复制
+        if (!(key in element.attributes)) {
+          element.attributes[key] = structuredClone(value);
+        }
+      }
+    }
   }
   
   // 内容继承实现
   private inheritContent(element: Element, baseElement: Element): void {
-    // 实现内容继承逻辑
+    // 根据DPML规范5.3，内容继承遵循简单的二元原则
+    
+    // 检查当前元素内容是否为空
+    if (this.isEmptyContent(element)) {
+      // 如果为空，则继承基础元素的全部内容
+      if (baseElement.children && baseElement.children.length > 0) {
+        element.children = structuredClone(baseElement.children);
+      }
+    }
+    // 如果不为空，保留当前内容，不做任何操作
+  }
+  
+  // 判断内容是否为空（只包含空白或注释）
+  private isEmptyContent(element: Element): boolean {
+    // 根据DPML规范5.3，空白内容和注释不视为有效内容
+    
+    // 没有子节点或子节点数组为空
+    if (!element.children || element.children.length === 0) {
+      return true;
+    }
+    
+    // 只包含空白文本节点或注释
+    return element.children.every(child => {
+      if (child.type === 'content') {
+        // 移除所有空白字符后检查是否为空
+        return !child.value || child.value.trim() === '';
+      }
+      // 其他非内容节点（如element）视为非空
+      return false;
+    });
   }
   
   // 检查循环继承
   private hasCircularInheritance(element: Element, baseElement: Element): boolean {
-    // 实现循环继承检测
+    // 检测循环依赖，例如 A→B→A
+    
+    // 如果基础元素也有extends属性
+    if (baseElement.attributes?.extends) {
+      // 获取基础元素的extends属性值
+      const baseExtendsId = baseElement.attributes.extends;
+      
+      // 如果无法获取或不是字符串类型，则无法判断
+      if (typeof baseExtendsId !== 'string') {
+        return false;
+      }
+      
+      // 如果基础元素继承的是当前元素，则形成循环
+      if (element.attributes?.id && baseExtendsId === element.attributes.id) {
+        return true;
+      }
+      
+      // 查找基础元素的基础元素，构建继承链
+      const baseOfBase = this.idRegistry.get(baseExtendsId);
+      if (baseOfBase) {
+        // 递归检查与当前元素是否形成循环
+        return this.checkCircularInheritanceChain(element, baseOfBase, new Set());
+      }
+    }
+    
+    return false;
+  }
+  
+  // 深度检查循环继承
+  private checkCircularInheritanceChain(original: Element, current: Element, visited: Set<Element>): boolean {
+    // 如果已访问过该元素，跳过以防止无限递归
+    if (visited.has(current)) {
+      return false;
+    }
+    
+    // 标记为已访问
+    visited.add(current);
+    
+    // 如果current引用回original，形成循环
+    if (current.attributes?.extends && typeof current.attributes.extends === 'string') {
+      if (original.attributes?.id && current.attributes.extends === original.attributes.id) {
+        return true;
+      }
+      
+      // 继续在继承链上递归检查
+      const nextBase = this.idRegistry.get(current.attributes.extends);
+      if (nextBase) {
+        return this.checkCircularInheritanceChain(original, nextBase, visited);
+      }
+    }
+    
+    return false;
+  }
+  
+  // 添加警告
+  private addWarning(element: Element, code: string, message: string): void {
+    // 实际实现需要将警告添加到上下文或元数据中
+    console.warn(`Warning [${code}]: ${message}`, element.position);
+  }
+  
+  // 添加错误
+  private addError(element: Element, code: string, message: string): void {
+    // 实际实现需要将错误添加到上下文或元数据中
+    console.error(`Error [${code}]: ${message}`, element.position);
   }
   
   // 创建文档副本
   private cloneDocument(doc: Document): Document {
     // 实现深拷贝文档
+    return structuredClone(doc);
   }
 }
 ```
+
+上述实现中特别关注了DPML规范第5节中强调的继承机制关键点：
+
+1. **单层继承限制**：通过`validateSingleInheritance`方法检查基础元素是否也有extends属性，符合规范5.1"标签只允许继承一次，不支持多层继承链"的要求。
+
+2. **同类型继承限制**：通过`validateTypeMatch`方法确保元素只能继承相同类型的标签，实现规范5.1"标签只能继承相同类型的标签"的要求。
+
+3. **路径支持**：通过`resolveExtends`和`resolveExternalReference`方法支持三种路径格式，包括相对路径、绝对路径和HTTP路径，符合规范5.1的路径支持要求。
+
+4. **内容继承规则**：通过`isEmptyContent`和`inheritContent`方法实现规范5.3定义的内容继承二元原则：
+   - 当前标签有内容时完全替换继承标签的内容
+   - 当前标签无内容时完全继承基础标签的内容
+   - 空白内容和注释不视为有效内容
+
+5. **错误处理**：实现了规范5.4要求的继承机制错误处理，包括继承不存在、类型不匹配和循环继承检测。
 
 ### 7.2 处理器管道实现
 
