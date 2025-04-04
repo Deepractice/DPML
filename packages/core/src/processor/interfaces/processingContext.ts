@@ -1,0 +1,48 @@
+/**
+ * ProcessingContext接口
+ * 
+ * 定义处理过程中需要的上下文信息
+ */
+
+import { Document, Element } from '../../types/node';
+
+/**
+ * 处理上下文接口
+ * 在处理过程中传递信息和状态
+ */
+export interface ProcessingContext {
+  /**
+   * 当前处理的文档
+   */
+  document: Document;
+  
+  /**
+   * 当前文档的路径
+   * 用于解析相对路径引用
+   */
+  currentPath: string;
+  
+  /**
+   * 已解析的引用缓存
+   * 用于避免重复解析相同的引用
+   */
+  resolvedReferences: Map<string, any>;
+  
+  /**
+   * 祖先元素栈
+   * 保存当前处理节点的所有祖先元素
+   */
+  parentElements: Element[];
+  
+  /**
+   * 上下文变量
+   * 用于在处理过程中存储临时数据
+   */
+  variables: Record<string, any>;
+  
+  /**
+   * ID到元素的映射
+   * 用于快速查找元素
+   */
+  idMap?: Map<string, Element>;
+} 

@@ -9,6 +9,9 @@ export * from './types';
 // 导出解析器模块
 export * from './parser';
 
+// 导出处理器模块
+export * from './processor';
+
 // 导出错误模块
 export * from './errors';
 
