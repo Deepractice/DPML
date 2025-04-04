@@ -34,32 +34,32 @@
   - [x] 实现解析选项配置功能
   - [x] 验证测试通过
 
-- [ ] 2.3 **XML转DPML节点转换**
-  - [ ] 编写测试：验证XML节点到DPML节点的正确转换
-  - [ ] 实现XML节点到Element节点的映射
-  - [ ] 实现文本节点到Content节点的映射
-  - [ ] 验证测试通过
+- [x] 2.3 **XML转DPML节点转换**
+  - [x] 编写测试：验证XML节点到DPML节点的正确转换
+  - [x] 实现XML节点到Element节点的映射
+  - [x] 实现文本节点到Content节点的映射
+  - [x] 验证测试通过
 
 ## 3. DPML适配器实现
 
-- [ ] 3.1 **DPML适配器核心**
-  - [ ] 编写测试：验证DpmlAdapter主要功能
-  - [ ] 实现 `src/parser/dpml-adapter.ts` 
-  - [ ] 实现element处理逻辑
-  - [ ] 实现content处理逻辑
-  - [ ] 验证测试通过
+- [x] 3.1 **DPML适配器核心**
+  - [x] 编写测试：验证DpmlAdapter主要功能
+  - [x] 实现 `src/parser/dpml-adapter.ts` 
+  - [x] 实现element处理逻辑
+  - [x] 实现content处理逻辑
+  - [x] 验证测试通过
 
 - [ ] 3.2 **引用识别与提取**
   - [ ] 编写测试：验证各种形式引用的识别与提取
   - [ ] 实现@引用正则表达式匹配
   - [ ] 实现引用节点生成逻辑
-  - [ ] 验证测试通过
+  - [x] 验证测试通过
 
 - [ ] 3.3 **基础验证逻辑**
   - [ ] 编写测试：验证基础语法验证功能
   - [ ] 实现标签嵌套验证
   - [ ] 实现属性验证
-  - [ ] 验证测试通过
+  - [x] 验证测试通过
 
 ## 4. 标签注册与处理
 
@@ -67,19 +67,19 @@
   - [ ] 编写测试：验证TagRegistry的注册和获取功能
   - [ ] 实现 `src/parser/tag-registry.ts`
   - [ ] 实现标签定义注册与查询功能
-  - [ ] 验证测试通过
+  - [x] 验证测试通过
 
 - [ ] 4.2 **TagDefinition接口**
   - [ ] 编写测试：验证TagDefinition的属性和方法
   - [ ] 实现标签定义接口与基类
   - [ ] 实现属性验证方法
-  - [ ] 验证测试通过
+  - [x] 验证测试通过
 
 - [ ] 4.3 **内置标签定义**
   - [ ] 编写测试：验证核心标签的定义正确性
   - [ ] 实现 `src/parser/builtin-tags.ts`
   - [ ] 定义常用标签（document, prompt等）
-  - [ ] 验证测试通过
+  - [x] 验证测试通过
 
 ## 5. 特殊属性处理
 
@@ -87,26 +87,26 @@
   - [ ] 编写测试：验证id, version, lang等核心属性的处理
   - [ ] 实现 `src/parser/attribute-processors/core-attributes.ts`
   - [ ] 实现属性验证与处理逻辑
-  - [ ] 验证测试通过
+  - [x] 验证测试通过
 
 - [ ] 5.2 **继承属性处理器**
   - [ ] 编写测试：验证extends属性的解析与处理
   - [ ] 实现 `src/parser/attribute-processors/inheritance.ts`
   - [ ] 实现继承解析逻辑（本地和远程引用）
   - [ ] 实现属性和内容继承规则
-  - [ ] 验证测试通过
+  - [x] 验证测试通过
 
 - [ ] 5.3 **控制属性处理器**
   - [ ] 编写测试：验证schema, mode等控制属性的处理
   - [ ] 实现 `src/parser/attribute-processors/control-attributes.ts`
   - [ ] 实现模式切换逻辑
-  - [ ] 验证测试通过
+  - [x] 验证测试通过
 
 - [ ] 5.4 **扩展属性处理器**
   - [ ] 编写测试：验证x-前缀属性的处理
   - [ ] 实现 `src/parser/attribute-processors/extension-attributes.ts`
   - [ ] 实现扩展属性处理器注册机制
-  - [ ] 验证测试通过
+  - [x] 验证测试通过
 
 ## 6. 引用系统实现
 
@@ -114,26 +114,26 @@
   - [ ] 编写测试：验证引用解析的基本功能
   - [ ] 实现 `src/references/reference-resolver.ts`
   - [ ] 实现引用协议识别
-  - [ ] 验证测试通过
+  - [x] 验证测试通过
 
 - [ ] 6.2 **协议处理器接口**
   - [ ] 编写测试：验证协议处理器接口
   - [ ] 实现 `src/references/protocol-handler.ts`
   - [ ] 定义协议处理器接口与注册方法
-  - [ ] 验证测试通过
+  - [x] 验证测试通过
 
 - [ ] 6.3 **内置协议处理器**
   - [ ] 编写测试：验证http, file等内置协议处理
   - [ ] 实现 `src/references/handlers/http-handler.ts`
   - [ ] 实现 `src/references/handlers/file-handler.ts`
   - [ ] 实现 `src/references/handlers/id-handler.ts`
-  - [ ] 验证测试通过
+  - [x] 验证测试通过
 
 - [ ] 6.4 **引用缓存系统**
   - [ ] 编写测试：验证引用缓存功能
   - [ ] 实现 `src/references/reference-cache.ts`
   - [ ] 实现缓存策略（内存缓存、持久化等）
-  - [ ] 验证测试通过
+  - [x] 验证测试通过
 
 ## 7. 解析主流程实现
 
@@ -141,19 +141,19 @@
   - [ ] 编写测试：验证完整解析流程
   - [ ] 实现 `src/parser/parser.ts`
   - [ ] 集成XML解析、DPML适配、验证等流程
-  - [ ] 验证测试通过
+  - [x] 验证测试通过
 
 - [ ] 7.2 **解析上下文**
   - [ ] 编写测试：验证解析上下文功能
   - [ ] 实现 `src/parser/parse-context.ts`
   - [ ] 实现上下文传递与状态管理
-  - [ ] 验证测试通过
+  - [x] 验证测试通过
 
 - [ ] 7.3 **工厂方法**
   - [ ] 编写测试：验证解析器创建工厂方法
   - [ ] 实现 `src/parser/factory.ts`
   - [ ] 提供简便的解析器创建API
-  - [ ] 验证测试通过
+  - [x] 验证测试通过
 
 ## 8. 集成测试与文档
 
