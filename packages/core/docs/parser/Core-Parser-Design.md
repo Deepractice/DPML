@@ -18,7 +18,7 @@ Parser 模块的设计目标是：
 
 ### 2.1 整体架构
 
-Parser 模块基于现有XML解析库构建，添加DPML特有的功能和扩展点：
+Parser 模块基于现有XML解析库构建，专注于将DPML文本解析为AST：
 
 ```mermaid
 flowchart LR
@@ -36,7 +36,7 @@ flowchart LR
     ErrorHandler -.-> DpmlAdapter
 ```
 
-> 注意：高级处理功能（如继承处理、引用解析）不属于Parser模块，而是由Processor模块负责。Parser仅生成基础AST。
+> 注意：所有高级处理功能（如继承处理、属性处理、引用解析）都不属于Parser模块，而是由Processor模块负责。Parser仅生成基础AST结构。
 
 ### 2.2 核心组件
 
@@ -139,7 +139,7 @@ class DpmlAdapter {
 }
 ```
 
-> 注意：Parser模块不负责识别和处理@引用，这是Processor模块的职责。Parser仅将文本内容作为整体处理。
+> 注意：Parser模块不负责识别和处理@引用、解析属性或处理继承，这些都是Processor模块的职责。Parser仅将文本内容作为整体处理。
 
 ### 3.3 节点类型
 
@@ -211,40 +211,6 @@ flowchart TD
     AdaptNodes --> ValidateBasic[基础验证]
     ValidateBasic --> Return[返回基础AST]
 ```
-
-### 3.6 DPML规范属性处理
-
-Parser模块负责解析所有属性并生成AST，但只进行基础的属性验证：
-
-#### 3.6.1 基础属性验证
-
-```typescript
-class CoreAttributeProcessor {
-  /**
-   * 验证ID属性的格式
-   */
-  validateId(id: string): boolean {
-    return /^[a-zA-Z][a-zA-Z0-9_-]*$/.test(id);
-  }
-  
-  /**
-   * 验证版本格式
-   */
-  validateVersion(version: string): boolean {
-    return /^\d+\.\d+$/.test(version);
-  }
-  
-  /**
-   * 验证语言格式
-   */
-  validateLang(lang: string): boolean {
-    // 简单验证ISO语言代码格式
-    return /^[a-z]{2}(-[A-Z]{2})?$/.test(lang);
-  }
-}
-```
-
-> 注意：Parser模块仅负责基础属性格式验证和解析，不处理继承(extends)等高级属性的逻辑。标签继承、引用处理等高级功能由Processor模块实现。
 
 ## 4. 接口设计
 
@@ -505,16 +471,17 @@ Parser 模块的未来扩展计划：
 | 职责 | Parser模块 | Processor模块 |
 |------|------------|--------------|
 | XML/标签解析 | ✅ | ❌ |
-| 基础属性验证 | ✅ | ❌ |
 | 生成基础AST | ✅ | ❌ |
+| 基础标签验证 | ✅ | ❌ |
+| 属性验证和处理 | ❌ | ✅ |
 | @引用识别与解析 | ❌ | ✅ |
 | 标签继承处理 | ❌ | ✅ |
 | 属性继承规则 | ❌ | ✅ |
 | 内容继承规则 | ❌ | ✅ |
 | 引用协议处理 | ❌ | ✅ |
 
-Parser模块专注于将DPML文本转换为结构化的基础AST，而Processor模块负责对AST进行高级处理和增强。
+Parser模块专注于将DPML文本转换为结构化的基础AST，而Processor模块负责对AST进行高级处理和增强。Parser不进行任何属性处理、继承处理或引用解析。
 
 ---
 
-本文档定义了Parser模块的详细设计。实现时基于现有XML解析库，同时添加DPML特有的功能。 
+本文档定义了Parser模块的详细设计。实现时基于现有XML解析库，专注于将XML解析为AST结构，不进行任何额外的属性处理或继承解析。 
