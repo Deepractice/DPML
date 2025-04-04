@@ -6,8 +6,7 @@ DPML Parser 模块是 @dpml/core 包的核心组件，负责将 DPML 文本解�
 
 - **DPML 文本解析**：将 DPML 文本解析为标准的 AST 结构
 - **标签注册与验证**：支持标签定义、注册和验证
-- **属性处理**：处理核心属性（id、version、lang）和扩展属性（disabled、hidden 等）
-- **引用处理**：支持文档内引用和外部资源引用
+- **属性处理**：处理核心属性（id、version、lang）
 - **错误处理**：提供详细的错误信息和位置标记
 
 ## 安装
@@ -71,7 +70,6 @@ const dpmlAdapter = new DpmlAdapter({
   tolerant: true,              // 容错模式
   preserveComments: true,      // 保留注释
   mode: 'strict',              // 严格模式
-  processInheritance: true     // 处理继承
 });
 
 // 使用解析选项进行解析
@@ -141,65 +139,12 @@ if (!validationResult.valid) {
 DPML Parser 自动处理核心属性，如 id、version 和 lang：
 
 ```typescript
-// 解析带有核心属性的 DPML
-const dpmlWithAttributes = `
-<prompt id="my-prompt" version="1.0" lang="zh-CN">
-  <role id="user-role" name="user">
-    请解释量子计算
-  </role>
-</prompt>
-`;
-
-const result = await dpmlAdapter.parse(dpmlWithAttributes);
-
 // 解析过程中会自动验证和处理这些属性
 // - 检查 id 的唯一性和格式
 // - 验证 version 格式
 // - 设置文档语言
 ```
 
-### 扩展属性处理
-
-DPML 支持扩展属性，如 disabled 和 hidden：
-
-```typescript
-// 带有扩展属性的 DPML
-const dpmlWithExtendedAttributes = `
-<prompt>
-  <button disabled="true">禁用按钮</button>
-  <div hidden="\${isSecret}">条件隐藏内容</div>
-</prompt>
-`;
-
-const result = await dpmlAdapter.parse(dpmlWithExtendedAttributes);
-
-// 解析结果中包含处理后的扩展属性信息
-// 可以访问：dpmlAdapter['extendedAttributes'] 获取属性处理结果
-```
-
-## 引用处理
-
-### 解析文档内引用
-
-```typescript
-// 包含引用的 DPML
-const dpmlWithReferences = `
-<prompt>
-  <role id="system" name="system">
-    你是一个AI助手
-  </role>
-  
-  <role name="user">
-    请参考 @system 的设定回答我的问题
-  </role>
-</prompt>
-`;
-
-// 解析时会识别并处理 @system 引用
-const result = await dpmlAdapter.parse(dpmlWithReferences);
-```
-
-## 错误处理
 
 ```typescript
 try {
@@ -316,14 +261,14 @@ interface ParseResult {
 DPML Parser 模块支持不同版本的DPML:
 
 - 版本1.0: 基本语法和核心属性
-- 版本2.0: 计划中，将支持更高级的引用系统
+
 
 在使用 `version` 属性时，请指定正确的DPML版本以确保兼容性。
 
 ## 限制与注意事项
 
 - 大文档解析可能需要较多内存
-- 处理复杂引用链可能影响性能
+
 - 某些高级功能可能需要额外配置
 
 ## 更多资源
