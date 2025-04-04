@@ -308,9 +308,212 @@ export interface ReferenceProcessor extends Processor {
 }
 ```
 
-## 6. 实现细节
+## 6. 扩展机制
 
-### 6.1 继承处理器实现
+Processor模块设计为高度可扩展的架构，提供多个清晰的扩展点，允许开发者在不修改核心代码的情况下扩展文档处理功能。
+
+### 6.1 主要扩展点
+
+#### 6.1.1 自定义处理器
+
+最主要的扩展点是创建自定义处理器：
+
+```typescript
+// 创建自定义处理器
+class MyCustomProcessor implements Processor {
+  // 可选：设置优先级（数字越小优先级越高）
+  priority = 50;
+  
+  // 可选：设置名称
+  name = 'my-custom-processor';
+  
+  // 必须：实现process方法
+  async process(doc: Document): Promise<Document> {
+    // 对文档进行任何所需的处理
+    const newDoc = structuredClone(doc);
+    
+    // 例如：处理特定的标签
+    this.processSpecialTags(newDoc);
+    
+    return newDoc;
+  }
+  
+  private processSpecialTags(doc: Document): void {
+    // 实现具体处理逻辑
+  }
+}
+
+// 注册自定义处理器
+processorRegistry.register('my-custom-processor', new MyCustomProcessor());
+```
+
+#### 6.1.2 处理器流水线定制
+
+可以定制处理器的执行顺序和组合：
+
+```typescript
+// 创建自定义处理器流水线
+const customProcessorManager = processorRegistry.createPipeline([
+  'inheritance-processor',
+  'my-custom-processor',
+  'reference-processor'
+]);
+
+// 或者使用配置选项定制处理器执行
+const defaultProcessorManager = processorRegistry.createPipeline();
+defaultProcessorManager.configure({
+  processors: ['inheritance-processor', 'my-custom-processor', 'reference-processor']
+});
+```
+
+#### 6.1.3 处理选项扩展
+
+扩展处理选项接口以添加自定义配置：
+
+```typescript
+// 扩展处理选项
+interface MyCustomProcessorOptions {
+  specialMode?: boolean;
+  maxProcessingDepth?: number;
+}
+
+// 扩展ProcessorOptions
+interface ExtendedProcessorOptions extends ProcessorOptions {
+  myCustomOptions?: MyCustomProcessorOptions;
+}
+
+// 在处理器中使用扩展选项
+class MyCustomProcessor implements Processor {
+  private options: MyCustomProcessorOptions = {
+    specialMode: false,
+    maxProcessingDepth: 10
+  };
+  
+  configure(options: ExtendedProcessorOptions): void {
+    if (options.myCustomOptions) {
+      this.options = {...this.options, ...options.myCustomOptions};
+    }
+  }
+  
+  // 处理方法中使用这些选项
+  async process(doc: Document): Promise<Document> {
+    // 根据配置选项调整处理逻辑
+    if (this.options.specialMode) {
+      // 特殊模式处理...
+    }
+    // ...
+  }
+}
+```
+
+#### 6.1.4 元数据扩展
+
+扩展处理后文档的元数据：
+
+```typescript
+// 扩展元数据接口
+interface MyCustomMeta {
+  customData: Record<string, any>;
+  processTimestamp: number;
+}
+
+// 扩展ProcessedDocument
+interface ExtendedProcessedDocument extends ProcessedDocument {
+  meta: ProcessedDocument['meta'] & {
+    myCustomMeta?: MyCustomMeta;
+  };
+}
+
+// 在处理器中添加自定义元数据
+class ProcessorManagerWithCustomMeta extends ProcessorManagerImpl {
+  async process(doc: Document): Promise<ExtendedProcessedDocument> {
+    const processedDoc = await super.process(doc) as ExtendedProcessedDocument;
+    
+    // 添加自定义元数据
+    processedDoc.meta.myCustomMeta = {
+      customData: { /* ... */ },
+      processTimestamp: Date.now()
+    };
+    
+    return processedDoc;
+  }
+}
+```
+
+### 6.2 扩展示例
+
+以下是一些典型的扩展场景：
+
+#### 6.2.1 多语言处理器
+
+```typescript
+// 创建多语言处理器
+class I18nProcessor implements Processor {
+  priority = 40; // 在继承处理器之后运行
+  
+  async process(doc: Document): Promise<Document> {
+    const newDoc = structuredClone(doc);
+    
+    // 处理i18n标签和属性
+    this.processI18nElements(newDoc);
+    
+    return newDoc;
+  }
+  
+  private processI18nElements(doc: Document): void {
+    // 替换i18n标签和处理文本替换
+  }
+}
+```
+
+#### 6.2.2 条件处理器
+
+```typescript
+// 条件渲染处理器
+class ConditionalProcessor implements Processor {
+  priority = 30;
+  
+  async process(doc: Document): Promise<Document> {
+    const newDoc = structuredClone(doc);
+    
+    // 处理条件属性，如if/else
+    this.evaluateConditions(newDoc);
+    
+    return newDoc;
+  }
+  
+  private evaluateConditions(doc: Document): void {
+    // 评估条件表达式并移除不满足条件的元素
+  }
+}
+```
+
+### 6.3 注册和使用扩展处理器
+
+所有扩展处理器需要通过ProcessorRegistry注册后才能使用：
+
+```typescript
+// 获取处理器注册表
+const processorRegistry = new ProcessorRegistry();
+
+// 注册内置处理器
+processorRegistry.register('inheritance', new InheritanceProcessor());
+processorRegistry.register('reference', new ReferenceProcessor());
+
+// 注册自定义处理器
+processorRegistry.register('i18n', new I18nProcessor());
+processorRegistry.register('conditional', new ConditionalProcessor());
+
+// 创建包含所有处理器的管道
+const processorManager = processorRegistry.createPipeline();
+
+// 或创建自定义处理器子集
+const lightweightManager = processorRegistry.createPipeline(['inheritance', 'conditional']);
+```
+
+## 7. 实现细节
+
+### 7.1 继承处理器实现
 
 继承处理器需要实现复杂的继承逻辑，包括：
 
@@ -412,7 +615,7 @@ class InheritanceProcessor implements Processor {
 }
 ```
 
-### 6.2 处理器管道实现
+### 7.2 处理器管道实现
 
 处理器管道协调多个处理器按顺序处理文档：
 
@@ -451,7 +654,7 @@ class ProcessorManagerImpl implements ProcessorManager {
 }
 ```
 
-## 7. 测试策略
+## 8. 测试策略
 
 Processor模块的测试策略包括：
 
@@ -468,7 +671,7 @@ Processor模块的测试策略包括：
 - 引用解析成功与失败
 - 各种配置选项的效果
 
-## 8. 优化与性能
+## 9. 优化与性能
 
 为确保Processor模块高效运行：
 
@@ -477,7 +680,7 @@ Processor模块的测试策略包括：
 3. **延迟加载**：按需加载处理器
 4. **并行处理**：适用场景下并行解析引用
 
-## 9. 错误处理
+## 10. 错误处理
 
 Processor模块采用分级错误处理策略：
 
