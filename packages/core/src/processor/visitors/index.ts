@@ -9,6 +9,7 @@ export * from './idValidationVisitor';
 export * from './referenceVisitor';
 export * from './documentMetadataVisitor';
 export * from './inheritanceVisitor';
+export * from './markdownContentVisitor';
 
 // 导出工厂函数
 export * from './factory'; 

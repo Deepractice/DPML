@@ -9,6 +9,7 @@ import { InheritanceVisitor } from './inheritanceVisitor';
 import { DocumentMetadataVisitor } from './documentMetadataVisitor';
 import { ReferenceVisitor, ReferenceVisitorOptions } from './referenceVisitor';
 import { IdValidationVisitor } from './idValidationVisitor';
+import { MarkdownContentVisitor, MarkdownContentVisitorOptions } from './markdownContentVisitor';
 
 /**
  * 创建继承处理访问者
@@ -40,4 +41,11 @@ export function createReferenceVisitor(referenceResolver: ReferenceResolver): Re
  */
 export function createIdValidationVisitor(): IdValidationVisitor {
   return new IdValidationVisitor();
+}
+
+/**
+ * 创建Markdown内容访问者
+ */
+export function createMarkdownContentVisitor(options?: MarkdownContentVisitorOptions): MarkdownContentVisitor {
+  return new MarkdownContentVisitor(options);
 } 

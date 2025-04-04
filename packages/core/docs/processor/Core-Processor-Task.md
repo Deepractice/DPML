@@ -49,9 +49,9 @@
 - [x] 实现ReferenceVisitor
 
 ### 2.3. 实现MarkdownContentVisitor
-- [ ] 测试Markdown内容处理
-- [ ] 测试Markdown格式转换
-- [ ] 实现MarkdownContentVisitor
+- [x] 测试Markdown内容处理
+- [x] 测试Markdown格式转换
+- [x] 实现MarkdownContentVisitor
 
 ### 2.4. 实现IdValidationVisitor
 - [ ] 测试ID收集功能
