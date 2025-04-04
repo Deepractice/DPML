@@ -1,0 +1,26 @@
+{
+  "name": "@dpml/workflow",
+  "version": "1.0.0",
+  "description": "DPML Workflow framework for multi-agent collaboration",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint src --ext .ts"
+  },
+  "keywords": [
+    "dpml",
+    "workflow",
+    "multi-agent",
+    "collaboration",
+    "llm"
+  ],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.7.0",
+  "dependencies": {
+    "@dpml/agent": "workspace:*",
+    "@dpml/core": "workspace:*"
+  }
+} 

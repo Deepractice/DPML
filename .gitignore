@@ -1,0 +1,85 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+.npm
+
+# Build output
+dist/
+build/
+lib/
+*.tsbuildinfo
+*.js.map
+
+# Test
+coverage/
+.nyc_output/
+test-report.xml
+junit.xml
+
+# TypeScript cache
+*.tsbuildinfo
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+.history/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Turborepo
+.turbo
+
+# Cache
+.cache/
+.eslintcache
+.stylelintcache
+
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+
+# PNPM
+.pnpm-store/
+
+# Package files
+*.tgz
+
+# Temporary files
+tmp/
+temp/
+
+# Generated documentation
+docs/api/ 
+
+# cursor 配置
+.cursorrules

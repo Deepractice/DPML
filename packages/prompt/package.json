@@ -1,0 +1,17 @@
+{
+  "name": "@dpml/prompt",
+  "version": "1.0.0",
+  "description": "DPML Prompt handling library",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "dpml",
+    "prompt",
+    "llm"
+  ],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.7.0"
+} 

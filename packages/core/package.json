@@ -1,0 +1,25 @@
+{
+  "name": "@dpml/core",
+  "version": "0.1.0",
+  "description": "DPML language specification and types",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint src --ext .ts",
+    "test": "echo \"No tests yet\" && exit 0",
+    "clean": "rm -rf dist node_modules"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "dpml",
+    "prompt",
+    "llm"
+  ],
+  "author": "",
+  "license": "MIT"
+}

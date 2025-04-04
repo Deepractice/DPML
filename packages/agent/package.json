@@ -1,0 +1,17 @@
+{
+  "name": "@dpml/agent",
+  "version": "1.0.0",
+  "description": "DPML Agent framework",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "dpml",
+    "agent",
+    "llm"
+  ],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.7.0"
+} 
