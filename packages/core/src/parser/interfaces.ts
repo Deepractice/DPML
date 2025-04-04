@@ -1,4 +1,4 @@
-import { Document } from '../types';
+import { Document } from '../types/node';
 import { ParseError as ParseErrorClass } from '../errors';
 
 /**
@@ -22,6 +22,12 @@ export interface ParseOptions {
    * @default false
    */
   preserveComments?: boolean;
+  
+  /**
+   * 是否启用验证
+   * @default false
+   */
+  validate?: boolean;
   
   /**
    * 解析模式，对应DPML的mode属性
@@ -110,19 +116,59 @@ export interface ParseResult {
  */
 export interface ValidationResult {
   /**
-   * 是否验证通过
+   * 验证是否通过
    */
   valid: boolean;
   
   /**
    * 验证错误
    */
-  errors: ParseErrorClass[];
+  errors?: ValidationError[];
   
   /**
    * 验证警告
    */
-  warnings: ParseWarning[];
+  warnings?: ValidationWarning[];
+}
+
+/**
+ * 验证错误接口
+ */
+export interface ValidationError {
+  /**
+   * 错误码
+   */
+  code: string;
+  
+  /**
+   * 错误消息
+   */
+  message: string;
+  
+  /**
+   * 错误位置
+   */
+  position?: any;
+}
+
+/**
+ * 验证警告接口
+ */
+export interface ValidationWarning {
+  /**
+   * 警告码
+   */
+  code: string;
+  
+  /**
+   * 警告消息
+   */
+  message: string;
+  
+  /**
+   * 警告位置
+   */
+  position?: any;
 }
 
 /**

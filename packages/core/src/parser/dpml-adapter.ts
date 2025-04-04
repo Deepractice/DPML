@@ -4,6 +4,8 @@ import { ParseOptions, ParseResult } from './interfaces';
 import { Document, NodeType } from '../types/node';
 import { ParseError } from '../errors';
 import { ErrorCode } from '../errors/types';
+import { TagRegistry } from './tag-registry';
+import { Validator } from './validator';
 
 /**
  * DPML适配器核心类
@@ -21,6 +23,16 @@ export class DpmlAdapter {
   private nodeConverter: XMLToNodeConverter;
   
   /**
+   * 标签注册表
+   */
+  private tagRegistry: TagRegistry;
+  
+  /**
+   * 验证器
+   */
+  private validator: Validator | null = null;
+  
+  /**
    * 构造函数
    * @param options 解析选项
    */
@@ -33,6 +45,22 @@ export class DpmlAdapter {
     
     // 创建XML到DPML节点转换器
     this.nodeConverter = new XMLToNodeConverter();
+    
+    // 创建标签注册表
+    this.tagRegistry = new TagRegistry();
+    
+    // 如果提供了验证选项且启用了验证，创建验证器
+    if (options?.validate) {
+      this.validator = new Validator(this.tagRegistry);
+    }
+  }
+  
+  /**
+   * 获取标签注册表
+   * @returns 标签注册表
+   */
+  getTagRegistry(): TagRegistry {
+    return this.tagRegistry;
   }
   
   /**
@@ -61,11 +89,41 @@ export class DpmlAdapter {
         this.processElements(document);
       }
       
+      // 步骤5: 如果启用了验证，执行验证
+      const errors: ParseError[] = [];
+      const warnings: any[] = [];
+      
+      if ((options?.validate || this.validator) && document.children.length > 0) {
+        // 如果未创建验证器，但启用了验证，创建验证器
+        if (!this.validator) {
+          this.validator = new Validator(this.tagRegistry);
+        }
+        
+        // 执行验证
+        const validationResult = this.validator.validateDocument(document);
+        
+        // 处理验证错误
+        if (!validationResult.valid && validationResult.errors) {
+          for (const error of validationResult.errors) {
+            errors.push(new ParseError({
+              code: error.code,
+              message: error.message,
+              position: error.position
+            }));
+          }
+        }
+        
+        // 处理验证警告
+        if (validationResult.warnings) {
+          warnings.push(...validationResult.warnings);
+        }
+      }
+      
       // 返回解析结果
       return {
         ast: document,
-        errors: [],
-        warnings: []
+        errors,
+        warnings
       };
     } catch (error) {
       // 处理解析错误
