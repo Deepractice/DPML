@@ -76,11 +76,11 @@
 ## 3. 引用系统实现
 
 ### 3.1. 实现DefaultReferenceResolver
-- [ ] 测试引用解析基础功能
-- [ ] 测试协议处理器集成
-- [ ] 测试引用缓存机制
-- [ ] 测试解析错误处理
-- [] 实现DefaultReferenceResolver
+- [x] 测试引用解析基础功能
+- [x] 测试协议处理器集成
+- [x] 测试引用缓存机制
+- [x] 测试解析错误处理
+- [x] 实现DefaultReferenceResolver
 
 ### 3.2. 实现基础协议处理器
 - [ ] 测试HTTP协议处理器
