@@ -153,7 +153,7 @@
 ## 7. 与其他模块集成
 
 ### 7.1. 与Parser集成测试
-- [ ] 测试Parser输出到Processor处理流程
+- [x] 测试Parser输出到Processor处理流程
 
 
 ### 7.3. 测试覆盖度量
