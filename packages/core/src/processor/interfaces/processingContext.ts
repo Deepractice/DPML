@@ -7,6 +7,21 @@
 import { Document, Element } from '../../types/node';
 
 /**
+ * 已解析的引用信息
+ */
+export interface ResolvedReference {
+  /**
+   * 解析后的内容
+   */
+  content: any;
+  
+  /**
+   * 解析时间
+   */
+  timestamp: number;
+}
+
+/**
  * 处理上下文接口
  * 在处理过程中传递信息和状态
  */
@@ -23,10 +38,22 @@ export interface ProcessingContext {
   currentPath: string;
   
   /**
+   * 当前文件路径
+   * 与currentPath保持一致，为了API一致性
+   */
+  filePath: string;
+  
+  /**
+   * 文档处理模式
+   * 可以是严格模式或宽松模式
+   */
+  documentMode?: 'strict' | 'loose';
+  
+  /**
    * 已解析的引用缓存
    * 用于避免重复解析相同的引用
    */
-  resolvedReferences: Map<string, any>;
+  resolvedReferences: Map<string, ResolvedReference>;
   
   /**
    * 祖先元素栈

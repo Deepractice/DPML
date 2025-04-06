@@ -22,6 +22,31 @@ export interface ProcessorOptions {
    * 错误处理器
    */
   errorHandler?: any; // 后续会替换为实际的ErrorHandler类型
+  
+  /**
+   * 是否启用严格模式
+   * 默认: false
+   */
+  strictMode?: boolean;
+  
+  /**
+   * 是否启用错误恢复
+   * 默认: false
+   * 
+   * 当启用错误恢复时，处理器会尽量继续处理文档，
+   * 即使遇到非致命错误。
+   */
+  errorRecovery?: boolean;
+  
+  /**
+   * 错误回调函数
+   */
+  onError?: (error: Error) => void;
+  
+  /**
+   * 警告回调函数
+   */
+  onWarning?: (warning: string) => void;
 }
 
 /**
@@ -61,9 +86,10 @@ export interface Processor {
   /**
    * 处理文档
    * @param document 待处理的文档
+   * @param path 文档路径，可选
    * @returns 处理后的文档
    */
-  process(document: Document): Promise<ProcessedDocument>;
+  process(document: Document, path?: string): Promise<ProcessedDocument>;
   
   /**
    * 配置处理器

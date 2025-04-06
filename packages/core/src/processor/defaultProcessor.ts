@@ -15,6 +15,8 @@ import {
   ProcessingContext
 } from './interfaces';
 import { ProcessingContext as ProcessingContextImpl } from './processingContext';
+import { ErrorHandler } from './errors/errorHandler';
+import { ProcessingError, ErrorSeverity } from './errors/processingError';
 
 /**
  * 默认处理器实现
@@ -45,9 +47,7 @@ export class DefaultProcessor implements Processor {
   /**
    * 处理选项
    */
-  private options: ProcessorOptions = {
-    strict: true as any
-  };
+  private options: ProcessorOptions = {};
   
   /**
    * 标签注册表
@@ -57,13 +57,25 @@ export class DefaultProcessor implements Processor {
   /**
    * 错误处理器
    */
-  private errorHandler: any;
+  private errorHandler: ErrorHandler;
   
   /**
    * 构造函数
    * @param options 处理器选项
    */
   constructor(options?: ProcessorOptions) {
+    // 初始化错误处理器
+    this.errorHandler = new ErrorHandler({
+      strictMode: options?.strictMode,
+      errorRecovery: options?.errorRecovery,
+      onError: options?.onError,
+      onWarning: (warning) => {
+        if (options?.onWarning) {
+          options.onWarning(warning.message);
+        }
+      }
+    });
+    
     if (options) {
       this.configure(options);
     }
@@ -107,6 +119,15 @@ export class DefaultProcessor implements Processor {
     if (options.errorHandler) {
       this.errorHandler = options.errorHandler;
     }
+    
+    // 更新错误处理器配置
+    if (options.strictMode !== undefined) {
+      this.errorHandler.setStrictMode(options.strictMode);
+    }
+    
+    if (options.errorRecovery !== undefined) {
+      this.errorHandler.setErrorRecovery(options.errorRecovery);
+    }
   }
   
   /**
@@ -116,16 +137,35 @@ export class DefaultProcessor implements Processor {
    * @returns 处理后的文档
    */
   async process(document: Document, path: string): Promise<Document> {
-    // 初始化处理上下文
-    this.context = new ProcessingContextImpl(document, path);
-    
-    // 按优先级排序访问者（从高到低）
-    this.sortVisitors();
-    
-    // 处理文档
-    const processedDocument = await this.visitDocument(document, this.context);
-    
-    return processedDocument;
+    try {
+      // 设置当前处理文件路径
+      this.errorHandler.setCurrentFilePath(path);
+      
+      // 初始化处理上下文
+      this.context = new ProcessingContextImpl(document, path);
+      
+      // 按优先级排序访问者（从高到低）
+      this.sortVisitors();
+      
+      // 处理文档
+      const processedDocument = await this.visitDocument(document, this.context);
+      
+      return processedDocument;
+    } catch (error: any) {
+      // 处理错误
+      if (error instanceof ProcessingError) {
+        // 已经是ProcessingError，直接抛出
+        throw error;
+      } else {
+        // 将原始错误包装为ProcessingError
+        throw new ProcessingError({
+          message: error.message || '处理过程中发生未知错误',
+          filePath: path,
+          severity: ErrorSeverity.FATAL,
+          cause: error
+        });
+      }
+    }
   }
   
   /**
@@ -142,33 +182,73 @@ export class DefaultProcessor implements Processor {
    * @returns 处理后的文档
    */
   private async visitDocument(document: Document, context: ProcessingContext): Promise<Document> {
-    // 使用所有访问者依次处理文档
-    let result = document;
-    
-    for (const visitor of this.visitors) {
-      if (visitor.visitDocument) {
-        result = await visitor.visitDocument(result, context);
-      }
-    }
-    
-    // 处理文档的子节点
-    if (result.children && result.children.length > 0) {
-      const newChildren = [];
+    try {
+      // 使用所有访问者依次处理文档
+      let result = document;
       
-      for (const child of result.children) {
-        const processedChild = await this.visitNode(child, context);
-        if (processedChild) {
-          newChildren.push(processedChild);
+      for (const visitor of this.visitors) {
+        if (visitor.visitDocument) {
+          try {
+            result = await visitor.visitDocument(result, context);
+          } catch (error: any) {
+            // 处理访问者错误
+            this.errorHandler.handleError(
+              error, 
+              document, 
+              context, 
+              ErrorSeverity.ERROR,
+              `VISITOR_ERROR_${visitor.constructor.name || 'Unknown'}`
+            );
+            
+            // 如果错误处理没有抛出异常，说明我们处于恢复模式，继续处理
+          }
         }
       }
       
-      result = {
-        ...result,
-        children: newChildren
-      };
+      // 处理文档的子节点
+      if (result.children && result.children.length > 0) {
+        const newChildren = [];
+        
+        for (const child of result.children) {
+          try {
+            const processedChild = await this.visitNode(child, context);
+            if (processedChild) {
+              newChildren.push(processedChild);
+            }
+          } catch (error: any) {
+            // 处理子节点错误
+            this.errorHandler.handleError(
+              error,
+              child,
+              context,
+              ErrorSeverity.ERROR,
+              'NODE_PROCESSING_ERROR'
+            );
+            
+            // 如果错误处理没有抛出异常，说明我们处于恢复模式，跳过这个子节点
+          }
+        }
+        
+        result = {
+          ...result,
+          children: newChildren
+        };
+      }
+      
+      return result;
+    } catch (error: any) {
+      // 文档处理过程中发生的错误
+      this.errorHandler.handleError(
+        error,
+        document,
+        context,
+        ErrorSeverity.FATAL,
+        'DOCUMENT_PROCESSING_ERROR'
+      );
+      
+      // 如果handleError没有抛出异常（不应该发生），则手动抛出
+      throw error;
     }
-    
-    return result;
   }
   
   /**
@@ -178,39 +258,148 @@ export class DefaultProcessor implements Processor {
    * @returns 处理后的元素
    */
   private async visitElement(element: Element, context: ProcessingContext): Promise<Element> {
-    // 将当前元素添加到父元素栈
-    context.parentElements.push(element);
-    
-    // 使用所有访问者依次处理元素
-    let result = element;
-    
-    for (const visitor of this.visitors) {
-      if (visitor.visitElement) {
-        result = await visitor.visitElement(result, context);
-      }
-    }
-    
-    // 处理元素的子节点
-    if (result.children && result.children.length > 0) {
-      const newChildren = [];
+    try {
+      // 将当前元素添加到父元素栈
+      context.parentElements.push(element);
       
-      for (const child of result.children) {
-        const processedChild = await this.visitNode(child, context);
-        if (processedChild) {
-          newChildren.push(processedChild);
+      // 检查并处理mode属性
+      if (element.attributes && element.attributes.mode) {
+        const isStrict = element.attributes.mode === 'strict';
+        
+        // 创建一个临时上下文分支，仅在这个元素的处理过程中使用特定的模式
+        const previousMode = this.errorHandler.isStrictMode();
+        this.errorHandler.setStrictMode(isStrict);
+        
+        // 确保在函数结束时恢复之前的模式
+        try {
+          // 继续处理元素
+          // 使用所有访问者依次处理元素
+          let result = element;
+          
+          for (const visitor of this.visitors) {
+            if (visitor.visitElement) {
+              try {
+                result = await visitor.visitElement(result, context);
+              } catch (error: any) {
+                // 基于context和元素的mode属性处理错误
+                this.errorHandler.handleErrorWithContext(
+                  error,
+                  element,
+                  context,
+                  `ELEMENT_VISITOR_ERROR_${visitor.constructor.name || 'Unknown'}`
+                );
+                
+                // 如果没有抛出异常，说明是警告或处于恢复模式
+              }
+            }
+          }
+          
+          // 处理元素的子节点
+          if (result.children && result.children.length > 0) {
+            const newChildren = [];
+            
+            for (const child of result.children) {
+              try {
+                const processedChild = await this.visitNode(child, context);
+                if (processedChild) {
+                  newChildren.push(processedChild);
+                }
+              } catch (error: any) {
+                // 处理子节点错误
+                this.errorHandler.handleErrorWithContext(
+                  error,
+                  child,
+                  context,
+                  'CHILD_PROCESSING_ERROR'
+                );
+                
+                // 如果没有抛出异常，跳过这个子节点
+              }
+            }
+            
+            result = {
+              ...result,
+              children: newChildren
+            };
+          }
+          
+          // 从父元素栈中移除当前元素
+          context.parentElements.pop();
+          
+          return result;
+        } finally {
+          // 恢复之前的模式
+          this.errorHandler.setStrictMode(previousMode);
         }
       }
       
-      result = {
-        ...result,
-        children: newChildren
-      };
+      // 使用所有访问者依次处理元素
+      let result = element;
+      
+      for (const visitor of this.visitors) {
+        if (visitor.visitElement) {
+          try {
+            result = await visitor.visitElement(result, context);
+          } catch (error: any) {
+            // 基于context和元素的mode属性处理错误
+            this.errorHandler.handleErrorWithContext(
+              error,
+              element,
+              context,
+              `ELEMENT_VISITOR_ERROR_${visitor.constructor.name || 'Unknown'}`
+            );
+            
+            // 如果没有抛出异常，说明是警告或处于恢复模式
+          }
+        }
+      }
+      
+      // 处理元素的子节点
+      if (result.children && result.children.length > 0) {
+        const newChildren = [];
+        
+        for (const child of result.children) {
+          try {
+            const processedChild = await this.visitNode(child, context);
+            if (processedChild) {
+              newChildren.push(processedChild);
+            }
+          } catch (error: any) {
+            // 处理子节点错误
+            this.errorHandler.handleErrorWithContext(
+              error,
+              child,
+              context,
+              'CHILD_PROCESSING_ERROR'
+            );
+            
+            // 如果没有抛出异常，跳过这个子节点
+          }
+        }
+        
+        result = {
+          ...result,
+          children: newChildren
+        };
+      }
+      
+      // 从父元素栈中移除当前元素
+      context.parentElements.pop();
+      
+      return result;
+    } catch (error: any) {
+      // 元素处理过程中发生的错误
+      this.errorHandler.handleErrorWithContext(
+        error,
+        element,
+        context,
+        'ELEMENT_PROCESSING_ERROR'
+      );
+      
+      // 如果handleError没有抛出异常，返回原始元素（保留处理功能）
+      context.parentElements.pop(); // 确保从栈中移除
+      return element;
     }
-    
-    // 从父元素栈中移除当前元素
-    context.parentElements.pop();
-    
-    return result;
   }
   
   /**

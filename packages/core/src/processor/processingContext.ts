@@ -15,6 +15,12 @@ export class ProcessingContext implements ProcessingContextInterface {
   
   /** 当前文档的路径 */
   public currentPath: string;
+
+  /** 当前文件路径（与currentPath相同，为了保持API一致性） */
+  public filePath: string;
+  
+  /** 文档处理模式 */
+  public documentMode?: 'strict' | 'loose';
   
   /** 已解析的引用缓存 */
   public resolvedReferences: Map<string, ResolvedReference>;
@@ -34,8 +40,17 @@ export class ProcessingContext implements ProcessingContextInterface {
   constructor(document: Document, currentPath: string) {
     this.document = document;
     this.currentPath = currentPath;
+    this.filePath = currentPath;
     this.resolvedReferences = new Map<string, ResolvedReference>();
     this.parentElements = [];
     this.variables = {};
+    
+    // 尝试从文档的根元素获取mode属性
+    if (document.children && document.children.length > 0) {
+      const rootElement = document.children[0] as Element;
+      if (rootElement && rootElement.attributes && rootElement.attributes.mode) {
+        this.documentMode = rootElement.attributes.mode === 'strict' ? 'strict' : 'loose';
+      }
+    }
   }
 } 
