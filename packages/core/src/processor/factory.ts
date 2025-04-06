@@ -13,7 +13,7 @@ import {
   createDocumentMetadataVisitor,
   DocumentMode
 } from './visitors';
-import { createHttpProtocolHandler, createIdProtocolHandler } from './protocols';
+import { createHttpProtocolHandler, createIdProtocolHandler, createFileProtocolHandler } from './protocols';
 
 /**
  * 处理器工厂选项
@@ -72,17 +72,20 @@ export function createProcessor(options?: ProcessorFactoryOptions): DefaultProce
     // 注册HTTP协议处理器
     referenceResolver.registerProtocolHandler(createHttpProtocolHandler());
     
+    // 注册文件协议处理器
+    referenceResolver.registerProtocolHandler(createFileProtocolHandler());
+    
     // 创建ID协议处理器，在process方法中设置上下文
     const idHandler = createIdProtocolHandler();
     referenceResolver.registerProtocolHandler(idHandler);
     
     // 重写原始process方法，添加对ID协议处理器的上下文设置
     const originalProcess = processor.process.bind(processor);
-    processor.process = async (document) => {
+    processor.process = async (document, path) => {
       // 创建处理上下文
       const context = {
         document,
-        currentPath: '',
+        currentPath: path || '',
         resolvedReferences: new Map(),
         parentElements: [],
         variables: {},
@@ -95,7 +98,7 @@ export function createProcessor(options?: ProcessorFactoryOptions): DefaultProce
       });
       
       // 调用原始process方法
-      return originalProcess(document);
+      return originalProcess(document, path);
     };
   }
   

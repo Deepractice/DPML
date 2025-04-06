@@ -6,6 +6,7 @@
 
 import { HttpProtocolHandler, HttpProtocolHandlerOptions } from './httpProtocolHandler';
 import { IdProtocolHandler, IdProtocolHandlerContext } from './idProtocolHandler';
+import { FileProtocolHandler, FileProtocolHandlerOptions } from './fileProtocolHandler';
 
 /**
  * 创建HTTP协议处理器
@@ -27,4 +28,13 @@ export function createIdProtocolHandler(context?: IdProtocolHandlerContext): IdP
     handler.setContext(context);
   }
   return handler;
+}
+
+/**
+ * 创建文件协议处理器
+ * @param options 文件协议处理器选项
+ * @returns 文件协议处理器实例
+ */
+export function createFileProtocolHandler(options?: FileProtocolHandlerOptions): FileProtocolHandler {
+  return new FileProtocolHandler(options);
 }

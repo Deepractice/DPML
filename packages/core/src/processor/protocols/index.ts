@@ -7,6 +7,7 @@
 // 导出协议处理器实现
 export * from './httpProtocolHandler';
 export * from './idProtocolHandler';
+export * from './fileProtocolHandler';
 
 // 导出工厂函数
 export * from './factory'; 

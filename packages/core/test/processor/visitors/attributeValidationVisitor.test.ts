@@ -275,3 +275,4 @@ describe('AttributeValidationVisitor', () => {
     await expect(visitor.visitElement(undefinedTagElement, context)).rejects.toThrow();
   });
 });
+

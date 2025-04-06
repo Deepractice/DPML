@@ -31,6 +31,9 @@ export class ProcessingContext implements ProcessingContextInterface {
   /** 处理过程中的变量存储 */
   public variables: Record<string, any>;
   
+  /** ID到元素的映射 */
+  public idMap: Map<string, Element>;
+  
   /**
    * 创建新的处理上下文
    * 
@@ -44,6 +47,7 @@ export class ProcessingContext implements ProcessingContextInterface {
     this.resolvedReferences = new Map<string, ResolvedReference>();
     this.parentElements = [];
     this.variables = {};
+    this.idMap = new Map<string, Element>();
     
     // 尝试从文档的根元素获取mode属性
     if (document.children && document.children.length > 0) {

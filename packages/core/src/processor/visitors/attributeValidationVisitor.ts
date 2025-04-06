@@ -237,3 +237,4 @@ export class AttributeValidationVisitor implements NodeVisitor {
     return element || {} as Element;
   }
 }
+

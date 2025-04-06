@@ -163,3 +163,4 @@ describe('DefaultReferenceResolver', () => {
     await expect(failingResolver.resolve(httpReference, context)).rejects.toThrow('引用解析失败');
   });
 });
+

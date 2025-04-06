@@ -96,19 +96,19 @@ describe('基本处理流程', () => {
                     start: { line: 3, column: 1, offset: 0 },
                     end: { line: 3, column: 20, offset: 19 }
                   }
-                }
+                } as Content
               ],
               position: {
                 start: { line: 2, column: 1, offset: 0 },
                 end: { line: 4, column: 1, offset: 20 }
               }
-            }
+            } as Element
           ],
           position: {
             start: { line: 1, column: 1, offset: 0 },
             end: { line: 5, column: 1, offset: 21 }
           }
-        }
+        } as Element
       ],
       position: {
         start: { line: 1, column: 1, offset: 0 },
@@ -173,13 +173,13 @@ describe('基本处理流程', () => {
                     start: { line: 3, column: 1, offset: 0 },
                     end: { line: 8, column: 10, offset: 50 }
                   }
-                }
+                } as Content
               ],
               position: {
                 start: { line: 2, column: 1, offset: 0 },
                 end: { line: 9, column: 1, offset: 51 }
               }
-            },
+            } as Element,
             {
               type: NodeType.ELEMENT,
               tagName: 'section',
@@ -195,19 +195,19 @@ describe('基本处理流程', () => {
                     start: { line: 11, column: 1, offset: 102 },
                     end: { line: 11, column: 12, offset: 113 }
                   }
-                }
+                } as Content
               ],
               position: {
                 start: { line: 10, column: 1, offset: 52 },
                 end: { line: 12, column: 1, offset: 114 }
               }
-            }
+            } as Element
           ],
           position: {
             start: { line: 1, column: 1, offset: 0 },
             end: { line: 13, column: 1, offset: 115 }
           }
-        }
+        } as Element
       ],
       position: {
         start: { line: 1, column: 1, offset: 0 },
