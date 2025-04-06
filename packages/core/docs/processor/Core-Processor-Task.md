@@ -91,8 +91,8 @@
 ## 4. 集成测试与端到端测试
 
 ### 4.1. 基本处理流程测试
-- [ ] 测试简单文档处理
-- [ ] 测试完整处理流程
+- [x] 测试简单文档处理
+- [x] 测试完整处理流程
 
 ### 4.2. 复杂功能集成测试
 - [ ] 测试继承+引用组合场景
@@ -214,94 +214,3 @@ describe('InheritanceVisitor', () => {
   });
 });
 ```
-
-实现代码:
-```typescript
-// src/visitors/InheritanceVisitor.ts
-export class InheritanceVisitor implements NodeVisitor {
-  priority = 100;
-  
-  async visitElement(element: Element, context: ProcessingContext): Promise<Element> {
-    if (!element.attributes.extends) {
-      return element;
-    }
-    
-    // 获取基础元素...
-    // 合并属性和内容...
-    
-    return mergedElement;
-  }
-}
-```
-
-### 代码示例: IdValidationVisitor测试与实现
-
-测试代码:
-```typescript
-// tests/visitors/IdValidationVisitor.test.ts
-describe('IdValidationVisitor', () => {
-  it('should collect all IDs in document', () => {
-    const document = {
-      type: 'document',
-      children: [
-        { type: 'element', tagName: 'test', attributes: { id: 'test1' }, children: [] },
-        { type: 'element', tagName: 'test', attributes: { id: 'test2' }, children: [] }
-      ]
-    };
-    const context = new ProcessingContext();
-    
-    const visitor = new IdValidationVisitor();
-    await visitor.visitDocument(document, context);
-    
-    expect(context.idMap.size).toBe(2);
-    expect(context.idMap.has('test1')).toBe(true);
-    expect(context.idMap.has('test2')).toBe(true);
-  });
-  
-  it('should throw error on duplicate IDs', async () => {
-    const document = {
-      type: 'document',
-      children: [
-        { type: 'element', tagName: 'test', attributes: { id: 'duplicate' }, children: [] },
-        { type: 'element', tagName: 'test', attributes: { id: 'duplicate' }, children: [] }
-      ]
-    };
-    const context = new ProcessingContext();
-    
-    const visitor = new IdValidationVisitor();
-    
-    await expect(async () => {
-      await visitor.visitDocument(document, context);
-    }).rejects.toThrow('Duplicate ID: duplicate');
-  });
-});
-```
-
-实现代码:
-```typescript
-// src/visitors/IdValidationVisitor.ts
-export class IdValidationVisitor implements NodeVisitor {
-  priority = 90; // 在继承处理后但在引用处理前
-  
-  async visitDocument(document: Document, context: ProcessingContext): Promise<Document> {
-    // 初始化ID收集映射
-    context.idMap = new Map();
-    return document;
-  }
-  
-  async visitElement(element: Element, context: ProcessingContext): Promise<Element> {
-    if (element.attributes.id) {
-      const id = element.attributes.id;
-      
-      // 检查ID是否已存在
-      if (context.idMap.has(id)) {
-        throw new DPMLError(`Duplicate ID: ${id}`);
-      }
-      
-      // 存储ID与元素的映射
-      context.idMap.set(id, element);
-    }
-    
-    return element;
-  }
-} 
