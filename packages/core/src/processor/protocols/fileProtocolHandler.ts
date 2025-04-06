@@ -8,6 +8,14 @@ import { Reference } from '../../types/node';
 import { ProtocolHandler } from '../interfaces';
 import fs from 'fs/promises';
 import path from 'path';
+import { normalizePath, isAbsolutePath, resolveRelativePath } from '../../utils/pathUtils';
+
+/**
+ * 文件系统错误类型
+ */
+interface FileSystemError extends Error {
+  code?: string;
+}
 
 /**
  * 文件协议处理器选项
@@ -17,13 +25,6 @@ export interface FileProtocolHandlerOptions {
    * 基础目录，用于解析相对路径
    */
   baseDir?: string;
-}
-
-/**
- * 文件系统错误接口
- */
-interface FileSystemError extends Error {
-  code?: string;
 }
 
 /**
@@ -116,17 +117,20 @@ export class FileProtocolHandler implements ProtocolHandler {
    * @returns 解析后的完整路径
    */
   private resolvePath(filePath: string): string {
-    // 如果是绝对路径，直接返回
-    if (path.isAbsolute(filePath)) {
-      return path.resolve(filePath);
+    // 标准化路径，处理不同平台的路径分隔符
+    filePath = normalizePath(filePath);
+    
+    // 如果是绝对路径，直接标准化后返回
+    if (isAbsolutePath(filePath)) {
+      return filePath;
     }
     
     // 如果有上下文路径，相对于上下文路径解析
     if (this.contextPath) {
-      return path.resolve(this.contextPath, filePath);
+      return resolveRelativePath(this.contextPath, filePath);
     }
     
     // 否则相对于基础目录解析
-    return path.resolve(this.baseDir, filePath);
+    return resolveRelativePath(this.baseDir, filePath);
   }
 } 
