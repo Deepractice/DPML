@@ -70,6 +70,13 @@ export interface ProcessedDocument extends Document {
    * 例如：从prompt文档中提取的模型配置、从agent文档中提取的工具定义等
    */
   semantics?: Record<string, any>;
+  
+  /**
+   * 元数据
+   * 用于存储文档的元数据信息，如标题、作者、创建日期等
+   * 在转换和输出过程中可能会被使用
+   */
+  meta?: Record<string, any>;
 }
 
 /**
