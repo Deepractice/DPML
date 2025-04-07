@@ -7,4 +7,5 @@ export * from './noopVisitor';
 export * from './documentStructureVisitor';
 export * from './metadataEnhancementVisitor';
 export * from './referenceInlineVisitor';
-export * from './semanticTagVisitor'; 
+export * from './semanticTagVisitor';
+export * from './elementVisitor'; 

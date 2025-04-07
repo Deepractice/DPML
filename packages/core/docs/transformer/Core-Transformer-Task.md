@@ -36,7 +36,7 @@
 - [x] 实现文档结构转换访问者，用于转换成特定格式的结构
 - [x] 实现元数据提取和增强访问者
 - [x] 实现引用解析和内联访问者
-- [ ] 实现语义标记处理访问者
+- [x] 实现语义标记处理访问者
 
 ### 六、转换配置（Transform Configuration）[计划中]
 
@@ -218,8 +218,8 @@
 
 ### 3.7 标签处理访问者
 
-- [ ] 设计TagProcessorVisitor测试用例
-- [ ] 实现TagProcessorVisitor
+- [x] 设计TagProcessorVisitor测试用例
+- [x] 实现TagProcessorVisitor
 - [ ] 设计处理器交互测试用例
 - [ ] 实现与标签处理器的交互
 - [ ] 设计处理器链执行测试用例
