@@ -12,4 +12,5 @@ export * from './elementVisitor';
 export * from './unknownElementVisitor';
 export * from './specialElementVisitor';
 export * from './contentVisitor';
-export * from './referenceVisitor'; 
+export * from './referenceVisitor';
+export * from './tagProcessorVisitor'; 
