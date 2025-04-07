@@ -1,4 +1,5 @@
 import { defineConfig } from 'tsup';
+import * as path from 'path';
 
 export default defineConfig({
   entry: ['src/index.ts'],
@@ -17,4 +18,9 @@ export default defineConfig({
       js: format === 'cjs' ? '.js' : '.mjs',
     };
   },
+  esbuildOptions(options) {
+    options.alias = {
+      '@core': path.resolve(process.cwd(), './src')
+    };
+  }
 }); 
