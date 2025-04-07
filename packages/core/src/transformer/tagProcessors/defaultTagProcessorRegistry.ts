@@ -1,4 +1,5 @@
-import { TagProcessor, TagProcessorRegistry } from '../interfaces/tagProcessor';
+import { TagProcessor } from '../interfaces/tagProcessor';
+import { TagProcessorRegistry } from '../interfaces/tagProcessorRegistry';
 
 /**
  * 标签处理器注册表的默认实现，用于管理和检索标签处理器
@@ -9,6 +10,21 @@ export class DefaultTagProcessorRegistry implements TagProcessorRegistry {
    * 特殊键 '*' 用于存储通配符处理器
    */
   private processorMap: Map<string, TagProcessor[]> = new Map();
+
+  /**
+   * 处理器映射 - 符合接口要求
+   */
+  get processors(): Map<string, TagProcessor> {
+    // 创建一个新的Map，每个标签只保留优先级最高的处理器
+    const result = new Map<string, TagProcessor>();
+    for (const [tagName, processors] of this.processorMap.entries()) {
+      if (processors.length > 0) {
+        // 取优先级最高的处理器
+        result.set(tagName, processors[0]);
+      }
+    }
+    return result;
+  }
 
   /**
    * 创建一个新的标签处理器注册表
@@ -30,6 +46,16 @@ export class DefaultTagProcessorRegistry implements TagProcessorRegistry {
     processors.sort((a, b) => (b.priority || 0) - (a.priority || 0));
     
     this.processorMap.set(tagName, processors);
+  }
+
+  /**
+   * 获取指定标签的处理器
+   * @param tagName 标签名称
+   * @returns 优先级最高的处理器，如果不存在则返回undefined
+   */
+  getProcessor(tagName: string): TagProcessor | undefined {
+    const processors = this.processorMap.get(tagName) || [];
+    return processors.length > 0 ? processors[0] : undefined;
   }
 
   /**
@@ -65,6 +91,15 @@ export class DefaultTagProcessorRegistry implements TagProcessorRegistry {
                         (this.processorMap.get('*')?.length || 0) > 0;
     
     return hasSpecific || hasWildcard;
+  }
+
+  /**
+   * 检查是否存在指定标签的处理器
+   * @param tagName 标签名称
+   * @returns 如果存在处理器则返回true，否则返回false
+   */
+  hasProcessor(tagName: string): boolean {
+    return this.getProcessor(tagName) !== undefined;
   }
 
   /**

@@ -1,7 +1,8 @@
-import { TransformerVisitor } from '../interfaces/transformerVisitor';
-import { TransformContext } from '../interfaces/transformContext';
 import { Element, NodeType } from '../../types/node';
-import { TagProcessor, TagProcessorRegistry } from '../interfaces/tagProcessor';
+import { TransformerVisitor } from '../interfaces/transformerVisitor';
+import { TagProcessor } from '../interfaces/tagProcessor';
+import { TagProcessorRegistry } from '../interfaces/tagProcessorRegistry';
+import { TransformContext } from '../interfaces/transformContext';
 
 /**
  * 语义标记处理访问者配置选项

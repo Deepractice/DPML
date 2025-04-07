@@ -6,6 +6,7 @@
 import * as path from 'path';
 import * as url from 'url';
 import * as os from 'os';
+import * as fs from 'fs';
 
 /**
  * 平台类型

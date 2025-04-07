@@ -33,33 +33,4 @@ export interface TagProcessor {
   priority?: number;
 }
 
-/**
- * 标签处理器注册表接口
- * 
- * 管理特定标签的处理器集合
- */
-export interface TagProcessorRegistry {
-  /**
-   * 注册标签处理器
-   * 
-   * @param tagName 标签名称
-   * @param processor 处理器实例
-   */
-  registerProcessor(tagName: string, processor: TagProcessor): void;
-  
-  /**
-   * 获取标签的所有处理器
-   * 
-   * @param tagName 标签名称
-   * @returns 处理器数组
-   */
-  getProcessors(tagName: string): TagProcessor[];
-  
-  /**
-   * 检查是否有处理器可以处理指定标签
-   * 
-   * @param tagName 标签名称
-   * @returns 如果有处理器返回true，否则返回false
-   */
-  hasProcessors(tagName: string): boolean;
-} 
+// 移除重复定义的TagProcessorRegistry接口，改为导入 
