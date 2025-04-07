@@ -36,8 +36,8 @@
 
 - [x] 设计OutputAdapter接口测试用例
 - [x] 实现OutputAdapter接口
-- [ ] 设计适配器工厂测试用例
-- [ ] 实现OutputAdapterFactory接口和默认实现
+- [x] 设计适配器工厂测试用例
+- [x] 实现OutputAdapterFactory接口和默认实现
 - [ ] 设计适配器链测试用例
 - [ ] 实现适配器链机制
 - [ ] 设计适配器选择机制测试用例
@@ -168,26 +168,30 @@
 
 ### 4.1 基础适配器框架
 
-- [ ] 设计BaseAdapter测试用例
-- [ ] 实现BaseAdapter抽象类
+- [x] 设计BaseAdapter测试用例
+- [x] 实现BaseAdapter抽象类
 
 ### 4.2 内置适配器
 
-- [ ] 设计JSONAdapter测试用例
-- [ ] 实现JSONAdapter
-- [ ] 设计StringAdapter测试用例
-- [ ] 实现StringAdapter
-- [ ] 设计GenericStructureAdapter测试用例
-- [ ] 实现GenericStructureAdapter
+- [x] 设计JSONAdapter测试用例
+- [x] 实现JSONAdapter
+- [x] 设计StringAdapter测试用例
+- [x] 实现StringAdapter
+- [x] 设计GenericStructureAdapter测试用例
+- [x] 实现GenericStructureAdapter
+- [x] 设计MarkdownAdapter测试用例
+- [x] 实现MarkdownAdapter
+- [x] 设计XMLAdapter测试用例
+- [x] 实现XMLAdapter
 
 ### 4.3 适配器工厂实现
 
-- [ ] 设计DefaultAdapterFactory测试用例
-- [ ] 实现DefaultAdapterFactory
-- [ ] 设计适配器注册机制测试用例
-- [ ] 实现适配器注册机制
-- [ ] 设计适配器选择测试用例
-- [ ] 实现基于格式选择适配器的功能
+- [x] 设计DefaultAdapterFactory测试用例
+- [x] 实现DefaultAdapterFactory
+- [x] 设计适配器注册机制测试用例
+- [x] 实现适配器注册机制
+- [x] 设计适配器选择测试用例
+- [x] 实现基于格式选择适配器的功能
 
 ### 4.4 适配器链
 
