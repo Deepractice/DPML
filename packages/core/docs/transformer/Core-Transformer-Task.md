@@ -179,23 +179,25 @@
 
 ### 3.4 元素访问者
 
-- [ ] 设计ElementVisitor测试用例
-- [ ] 实现ElementVisitor
+- [x] 设计ElementVisitor测试用例
+- [x] 实现ElementVisitor
 - [x] 设计元素属性转换测试用例
 - [x] 实现元素属性转换
 - [x] 设计元素元数据收集测试用例
 - [x] 实现元素元数据收集
-- [ ] 设计未知标签处理测试用例
-- [ ] 实现UnknownElementVisitor
-- [ ] 设计嵌套元素处理测试用例
-- [ ] 实现嵌套元素处理机制
+- [x] 设计未知标签处理测试用例
+- [x] 实现UnknownElementVisitor
+- [x] 设计嵌套元素处理测试用例
+- [x] 实现嵌套元素处理机制
+- [x] 设计特殊元素处理测试用例
+- [x] 实现SpecialElementVisitor
 - [ ] 设计不同类型元素处理测试用例
 - [ ] 实现不同类型元素处理机制
 
 ### 3.5 内容访问者
 
-- [ ] 设计ContentVisitor测试用例
-- [ ] 实现ContentVisitor
+- [x] 设计ContentVisitor测试用例
+- [x] 实现ContentVisitor
 - [ ] 设计Markdown内容转换测试用例
 - [ ] 实现Markdown内容转换
 - [ ] 设计纯文本处理测试用例

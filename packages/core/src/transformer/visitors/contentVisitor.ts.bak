@@ -1,7 +1,7 @@
 import { TransformerVisitor } from '../interfaces/transformerVisitor';
 import { TransformContext } from '../interfaces/transformContext';
 import { Content, Document, Element, Node, NodeType } from '../../types/node';
-import { ContentFormat, ContentLink, ContentImage, ContentMetaExtensions } from './contentTypes';
+import { ContentFormat, ContentLink, ContentImage } from './contentTypes';
 
 /**
  * 内容格式处理函数匹配类型
@@ -121,9 +121,9 @@ export class ContentVisitor implements TransformerVisitor {
           end: match.index + 2 + match[1].length - 1
         })
       },
-      // 斜体 - 修改正则表达式避免与加粗标记冲突
+      // 斜体
       {
-        pattern: /(?<!\*)\*([^*]+)\*(?!\*)/g,
+        pattern: /\*([^*]+)\*/g,
         process: (match, content, context) => ({
           type: 'italic',
           text: match[1],
@@ -150,7 +150,7 @@ export class ContentVisitor implements TransformerVisitor {
           url: match[2],
           title: match[3],
           start: match.index + 1,
-          end: match.index + 1 + match[1].length
+          end: match.index + 1 + match[1].length - 1
         })
       },
       // 图片
@@ -158,7 +158,6 @@ export class ContentVisitor implements TransformerVisitor {
         pattern: /!\[([^\]]+)\]\(([^)\s]+)(?:\s+"([^"]+)")?\)/g,
         process: (match, content, context) => ({
           type: 'image',
-          text: match[1],
           alt: match[1],
           src: match[2],
           title: match[3],
@@ -170,22 +169,22 @@ export class ContentVisitor implements TransformerVisitor {
     
     // 初始化HTML实体映射表
     this.htmlEntities = {
-      "&lt;": "<",
-      "&gt;": ">",
-      "&amp;": "&",
-      "&quot;": "\"",
-      "&apos;": "'",
-      "&nbsp;": " ",
-      "&copy;": "©",
-      "&reg;": "®",
-      "&trade;": "™",
-      "&mdash;": "—",
-      "&ndash;": "–",
-      "&lsquo;": "'",
-      "&rsquo;": "'",
-      "&ldquo;": "\"",
-      "&rdquo;": "\"",
-      "&hellip;": "..."
+      '&lt;': '<',
+      '&gt;': '>',
+      '&amp;': '&',
+      '&quot;': '"',
+      '&apos;': '\'',
+      '&nbsp;': ' ',
+      '&copy;': '©',
+      '&reg;': '®',
+      '&trade;': '™',
+      '&mdash;': '—',
+      '&ndash;': '–',
+      '&lsquo;': ''',
+      '&rsquo;': ''',
+      '&ldquo;': '"',
+      '&rdquo;': '"',
+      '&hellip;': '…'
     };
   }
   
@@ -321,7 +320,7 @@ export class ContentVisitor implements TransformerVisitor {
    * @returns 处理后的内容节点
    */
   visitContent(content: Content, context: TransformContext): Content {
-    const meta = content.meta || {} as ContentMetaExtensions;
+    const meta = content.meta || {};
     const value = content.value || '';
     
     // 处理空内容
@@ -340,7 +339,7 @@ export class ContentVisitor implements TransformerVisitor {
     let processedMeta = {
       ...meta,
       isProcessed: true
-    } as ContentMetaExtensions;
+    };
     
     let enableMarkdownFormatting = this.options.enableMarkdownFormatting;
     let decodeHtmlEntities = this.options.decodeHtmlEntities;
@@ -371,7 +370,7 @@ export class ContentVisitor implements TransformerVisitor {
           ...processedMeta,
           containsEntities: true,
           decodedValue: decodedResult.value
-        } as ContentMetaExtensions;
+        };
       }
     }
     
@@ -382,7 +381,7 @@ export class ContentVisitor implements TransformerVisitor {
         processedMeta = {
           ...processedMeta,
           customFormats
-        } as ContentMetaExtensions;
+        };
       }
     }
     
@@ -442,7 +441,7 @@ export class ContentVisitor implements TransformerVisitor {
     }
     
     // 构建元数据
-    const meta: ContentMetaExtensions = {};
+    const meta: Record<string, any> = {};
     
     if (containsMarkdown) {
       meta.containsMarkdown = true;
