@@ -1,6 +1,7 @@
 import { TransformContext } from '../interfaces/transformContext';
 import { ProcessedDocument } from '../../processor/interfaces/processor';
 import { TransformOptions } from '../interfaces/transformOptions';
+import { Document } from '../../types/node';
 
 /**
  * 上下文管理器，负责创建和管理转换上下文
@@ -8,11 +9,11 @@ import { TransformOptions } from '../interfaces/transformOptions';
 export class ContextManager {
   /**
    * 创建根上下文
-   * @param document 处理后的文档
+   * @param document 文档
    * @param options 转换选项
    * @returns 根上下文
    */
-  createRootContext(document: ProcessedDocument, options: TransformOptions): TransformContext {
+  createRootContext(document: Document, options: TransformOptions): TransformContext {
     return {
       document,
       options,

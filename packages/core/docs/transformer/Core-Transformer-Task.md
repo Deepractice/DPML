@@ -2,61 +2,7 @@
 
 本文档描述了Transformer模块的开发任务，严格遵循TDD（测试驱动开发）模式，每个功能点都先设计测试，再实现功能，最后验证。
 
-## 主要任务
 
-### 一、输出适配器（Output Adapters）[已完成]
-
-- [x] 设计并实现 `OutputAdapter` 接口和 `TransformContext` 接口（上下文传递）
-- [x] 实现基本适配器：
-  - [x] 通用适配器 `GenericAdapter`（保持原始结构）
-  - [x] JSON 适配器 `JSONAdapter`（转换为 JSON 字符串）
-  - [x] XML 适配器 `XMLAdapter`（转换为 XML 格式）
-  - [x] Markdown 适配器 `MarkdownAdapter`（转换为 Markdown 格式）
-
-### 二、适配器工厂（Adapter Factory）[已完成]
-
-- [x] 设计并实现 `OutputAdapterFactory` 接口
-- [x] 实现 `DefaultOutputAdapterFactory` 类
-- [x] 适配器的注册、获取和管理
-
-### 三、适配器链（Adapter Chain）[已完成]
-
-- [x] 设计并实现 `AdapterChain` 接口
-- [x] 实现 `DefaultAdapterChain` 类
-- [x] 设计并实现适配器链中的错误处理和结果传递
-
-### 四、适配器选择机制（Adapter Selection Mechanism）[已完成]
-
-- [x] 设计并实现适配器选择器接口（`AdapterSelector`）
-- [x] 实现基于格式、上下文变量、文档元数据和内容类型的适配器选择器
-
-### 五、内置访问者（Built-in Visitors）[已完成]
-
-- [x] 设计并实现 `BaseVisitor` 抽象类和 `NoopVisitor`（访问者基础框架）
-- [x] 实现文档结构转换访问者，用于转换成特定格式的结构
-- [x] 实现元数据提取和增强访问者
-- [x] 实现引用解析和内联访问者
-- [x] 实现语义标记处理访问者
-
-### 六、转换配置（Transform Configuration）[计划中]
-
-- [ ] 设计并实现转换配置模型
-- [ ] 实现基于配置的访问者选择和执行顺序
-- [ ] 实现转换结果缓存机制
-
-### 七、转换管道（Transform Pipeline）[计划中]
-
-- [ ] 设计并实现 `TransformPipeline` 接口
-- [ ] 实现 `DefaultTransformPipeline` 类
-- [ ] 设计并实现管道中转换结果的合并策略
-
-### 八、性能优化与测试（Performance Optimization and Testing）[计划中]
-
-- [ ] 对大型文档的转换性能优化
-- [ ] 内存使用优化
-- [ ] 并发转换支持
-- [ ] 综合测试用例开发
-- [ ] 性能基准测试开发
 
 ## 1. 基础接口与数据结构
 
@@ -191,8 +137,8 @@
 - [x] 实现嵌套元素处理机制
 - [x] 设计特殊元素处理测试用例
 - [x] 实现SpecialElementVisitor
-- [ ] 设计不同类型元素处理测试用例
-- [ ] 实现不同类型元素处理机制
+- [x] 设计不同类型元素处理测试用例
+- [x] 实现不同类型元素处理机制
 
 ### 3.5 内容访问者
 
@@ -267,12 +213,12 @@
 
 ### 5.1 访问者扩展
 
-- [ ] 设计自定义访问者注册测试用例
-- [ ] 实现自定义访问者注册机制
-- [ ] 设计访问者协作测试用例
-- [ ] 实现访问者协作支持
-- [ ] 设计访问者错误隔离测试用例
-- [ ] 实现访问者错误隔离
+- [x] 设计自定义访问者注册测试用例
+- [x] 实现自定义访问者注册机制
+- [x] 设计访问者协作测试用例
+- [x] 实现访问者协作支持
+- [x] 设计访问者错误隔离测试用例
+- [x] 实现访问者错误隔离
 
 ### 5.2 适配器扩展
 

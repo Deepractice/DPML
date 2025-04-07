@@ -47,4 +47,18 @@ export interface Transformer {
    * @param options 配置选项
    */
   configure(options: TransformOptions): void;
+  
+  /**
+   * 通过名称禁用访问者
+   * @param visitorName 访问者名称
+   * @returns 是否成功禁用
+   */
+  disableVisitorByName(visitorName: string): boolean;
+  
+  /**
+   * 通过名称启用访问者
+   * @param visitorName 访问者名称
+   * @returns 是否成功启用
+   */
+  enableVisitorByName(visitorName: string): boolean;
 } 
