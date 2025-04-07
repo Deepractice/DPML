@@ -1,89 +1,105 @@
 import { TagProcessor, TagProcessorRegistry } from '../interfaces/tagProcessor';
 
 /**
- * 默认标签处理器注册表实现
- * 
- * 管理特定标签的处理器集合，实现标签处理器的注册、查询功能
+ * 标签处理器注册表的默认实现，用于管理和检索标签处理器
  */
 export class DefaultTagProcessorRegistry implements TagProcessorRegistry {
   /**
-   * 标签到处理器的映射
-   * @private
+   * 存储标签名称到处理器列表的映射
+   * 特殊键 '*' 用于存储通配符处理器
    */
   private processorMap: Map<string, TagProcessor[]> = new Map();
-  
+
   /**
-   * 构造函数
+   * 创建一个新的标签处理器注册表
    */
-  constructor() {}
-  
+  constructor() {
+    this.clear();
+  }
+
   /**
-   * 注册标签处理器
+   * 为指定的标签注册一个处理器
    * @param tagName 标签名称
-   * @param processor 处理器实例
+   * @param processor 要注册的处理器
    */
   registerProcessor(tagName: string, processor: TagProcessor): void {
-    // 获取该标签的现有处理器列表，如果不存在则创建新列表
     const processors = this.processorMap.get(tagName) || [];
     
-    // 添加新处理器
+    // 添加处理器并按优先级排序（优先级高的排在前面）
     processors.push(processor);
+    processors.sort((a, b) => (b.priority || 0) - (a.priority || 0));
     
-    // 更新映射
     this.processorMap.set(tagName, processors);
   }
-  
+
   /**
-   * 获取标签的所有处理器
+   * 获取指定标签的所有处理器
    * @param tagName 标签名称
-   * @returns 处理器数组
+   * @returns 处理器数组，按优先级排序
    */
   getProcessors(tagName: string): TagProcessor[] {
-    return this.processorMap.get(tagName) || [];
+    // 获取特定标签的处理器
+    const specificProcessors = this.processorMap.get(tagName) || [];
+    
+    // 获取通配符处理器
+    const wildcardProcessors = this.processorMap.get('*') || [];
+    
+    // 合并并按优先级排序
+    return [...specificProcessors, ...wildcardProcessors].sort(
+      (a, b) => (b.priority || 0) - (a.priority || 0)
+    );
   }
-  
+
   /**
-   * 检查是否有处理器可以处理指定标签
+   * 检查是否存在指定标签的处理器
    * @param tagName 标签名称
-   * @returns 如果有处理器返回true，否则返回false
+   * @returns 如果存在处理器则返回true，否则返回false
    */
   hasProcessors(tagName: string): boolean {
-    const processors = this.processorMap.get(tagName);
-    return !!processors && processors.length > 0;
+    // 检查特定标签处理器
+    const hasSpecific = this.processorMap.has(tagName) && 
+                        (this.processorMap.get(tagName)?.length || 0) > 0;
+    
+    // 检查通配符处理器
+    const hasWildcard = this.processorMap.has('*') && 
+                        (this.processorMap.get('*')?.length || 0) > 0;
+    
+    return hasSpecific || hasWildcard;
   }
-  
+
   /**
    * 为多个标签注册同一个处理器
    * @param tagNames 标签名称数组
-   * @param processor 处理器实例
+   * @param processor 要注册的处理器
    */
   registerProcessorForTags(tagNames: string[], processor: TagProcessor): void {
     for (const tagName of tagNames) {
       this.registerProcessor(tagName, processor);
     }
   }
-  
+
   /**
-   * 注册通配符处理器
-   * 这种处理器会处理任何标签
-   * @param processor 处理器实例
+   * 注册一个通配符处理器，适用于所有标签
+   * @param processor 要注册的处理器
    */
   registerWildcardProcessor(processor: TagProcessor): void {
     this.registerProcessor('*', processor);
   }
-  
+
   /**
-   * 移除标签的所有处理器
+   * 移除指定标签的所有处理器
    * @param tagName 标签名称
    */
   removeProcessors(tagName: string): void {
     this.processorMap.delete(tagName);
   }
-  
+
   /**
-   * 清空所有处理器
+   * 清空注册表中的所有处理器
    */
   clear(): void {
     this.processorMap.clear();
+    // 初始化通配符处理器数组
+    this.processorMap.set('*', []);
   }
 } 
