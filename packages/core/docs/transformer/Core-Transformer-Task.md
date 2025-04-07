@@ -30,12 +30,12 @@
 - [x] 设计并实现适配器选择器接口（`AdapterSelector`）
 - [x] 实现基于格式、上下文变量、文档元数据和内容类型的适配器选择器
 
-### 五、内置访问者（Built-in Visitors）[进行中]
+### 五、内置访问者（Built-in Visitors）[已完成]
 
 - [x] 设计并实现 `BaseVisitor` 抽象类和 `NoopVisitor`（访问者基础框架）
 - [x] 实现文档结构转换访问者，用于转换成特定格式的结构
 - [x] 实现元数据提取和增强访问者
-- [ ] 实现引用解析和内联访问者
+- [x] 实现引用解析和内联访问者
 - [ ] 实现语义标记处理访问者
 
 ### 六、转换配置（Transform Configuration）[计划中]
@@ -163,7 +163,12 @@
 - [ ] 设计NoopVisitor测试用例
 - [ ] 实现NoopVisitor
 
-### 3.2 文档结构访问者
+### 3.2 元数据和引用处理
+
+- [x] 设计并实现 元数据提取和增强访问者（MetadataEnhancementVisitor）
+- [x] 设计并实现 引用解析和内联访问者（ReferenceInlineVisitor）
+
+### 3.3 文档结构访问者
 
 - [x] 设计DocumentStructureVisitor测试用例
 - [x] 实现DocumentStructureVisitor
@@ -172,7 +177,7 @@
 - [x] 设计文档输出框架构建测试用例
 - [x] 实现文档输出框架构建
 
-### 3.3 元素访问者
+### 3.4 元素访问者
 
 - [ ] 设计ElementVisitor测试用例
 - [ ] 实现ElementVisitor
@@ -187,7 +192,7 @@
 - [ ] 设计不同类型元素处理测试用例
 - [ ] 实现不同类型元素处理机制
 
-### 3.4 内容访问者
+### 3.5 内容访问者
 
 - [ ] 设计ContentVisitor测试用例
 - [ ] 实现ContentVisitor
@@ -200,7 +205,7 @@
 - [ ] 设计混合格式内容处理测试用例
 - [ ] 实现混合格式内容处理
 
-### 3.5 引用访问者
+### 3.6 引用访问者
 
 - [ ] 设计ReferenceVisitor测试用例
 - [ ] 实现ReferenceVisitor
@@ -211,7 +216,7 @@
 - [ ] 设计引用内容格式化测试用例
 - [ ] 实现引用内容格式化功能
 
-### 3.6 标签处理访问者
+### 3.7 标签处理访问者
 
 - [ ] 设计TagProcessorVisitor测试用例
 - [ ] 实现TagProcessorVisitor

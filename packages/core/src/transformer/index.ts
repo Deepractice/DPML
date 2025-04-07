@@ -32,4 +32,7 @@ export * from './adapters/defaultAdapterSelector';
 
 // 导出默认实现
 export * from './defaultTransformer';
-export * from './defaultTransformerFactory'; 
+export * from './defaultTransformerFactory';
+
+// 导出标签处理器
+export * from './tagProcessors'; 
