@@ -42,5 +42,19 @@ export interface Transformer {
      * @param options 配置选项
      */
     configure(options: TransformOptions): void;
+    /**
+     * 禁用指定名称的访问者
+     *
+     * @param visitorName 访问者名称
+     * @returns 是否成功禁用
+     */
+    disableVisitorByName(visitorName: string): boolean;
+    /**
+     * 启用指定名称的访问者
+     *
+     * @param visitorName 访问者名称
+     * @returns 是否成功启用
+     */
+    enableVisitorByName(visitorName: string): boolean;
 }
 //# sourceMappingURL=transformer.d.ts.map
