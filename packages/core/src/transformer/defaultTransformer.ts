@@ -13,8 +13,17 @@ import { getModeConfig, handleModeError, ModeConfigOptions } from './utils/modeC
 import { getVariables, resolveVariables, applyVariablesToContext } from './utils/variableConfig';
 import { VisitorManager } from './visitor/visitorManager';
 import { TransformerOptions } from './interfaces/transformerOptions';
-import { DefaultOutputProcessor } from './processors/defaultOutputProcessor';
 import { OutputProcessor } from './interfaces/outputProcessor';
+import { DefaultOutputAdapter } from './adapters/defaultOutputAdapter';
+
+/**
+ * 简单的默认输出处理器实现
+ */
+class NoopOutputProcessor implements OutputProcessor {
+  process(data: any, context: TransformContext): any {
+    return data;
+  }
+}
 
 // 定义节点类型枚举
 enum NodeType {
@@ -109,7 +118,7 @@ export class DefaultTransformer implements Transformer {
   constructor(options: TransformerOptions = { mode: 'strict', maxErrorCount: 10 }) {
     this._visitorManager = new VisitorManager(3);
     this.outputAdapter = new DefaultOutputAdapter();
-    this.outputProcessor = new DefaultOutputProcessor();
+    this.outputProcessor = new NoopOutputProcessor();
     this.contextManager = new ContextManager();
     this.options = options;
     
