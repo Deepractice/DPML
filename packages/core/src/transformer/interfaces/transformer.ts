@@ -33,6 +33,15 @@ export interface Transformer {
   transform(document: ProcessedDocument, options?: TransformOptions): any;
   
   /**
+   * 异步转换文档
+   * 
+   * @param document 已处理的文档
+   * @param options 转换选项
+   * @returns Promise<转换结果>
+   */
+  transformAsync(document: ProcessedDocument, options?: TransformOptions): Promise<any>;
+  
+  /**
    * 配置转换器
    * 
    * @param options 配置选项
