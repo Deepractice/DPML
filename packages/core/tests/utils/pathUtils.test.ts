@@ -14,7 +14,7 @@ import {
   getExtension,
   pathToFileUrl,
   PlatformType
-} from '../../src/utils/pathUtils';
+} from '@core/utils/pathUtils';
 
 describe('路径处理工具测试', () => {
   describe('normalizePath', () => {
