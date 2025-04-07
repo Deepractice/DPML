@@ -2,6 +2,9 @@
  * Transformer 接口模块导出
  */
 
+// 测试使用@core别名导入模块
+import { Element } from '@core/types/node';
+
 export * from './transformer';
 export * from './transformerVisitor';
 export * from './transformContext';

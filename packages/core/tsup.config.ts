@@ -20,7 +20,7 @@ export default defineConfig({
   },
   esbuildOptions(options) {
     options.alias = {
-      '@core': path.resolve(process.cwd(), './src')
+      '@core': path.resolve(__dirname, './src')
     };
   }
 }); 
