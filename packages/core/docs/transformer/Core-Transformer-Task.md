@@ -158,10 +158,10 @@
 
 ### 3.1 基础访问者框架
 
-- [ ] 设计BaseVisitor抽象类测试用例
-- [ ] 实现BaseVisitor抽象类
-- [ ] 设计NoopVisitor测试用例
-- [ ] 实现NoopVisitor
+- [x] 设计BaseVisitor抽象类测试用例
+- [x] 实现BaseVisitor抽象类
+- [x] 设计NoopVisitor测试用例
+- [x] 实现NoopVisitor
 
 ### 3.2 元数据和引用处理
 
