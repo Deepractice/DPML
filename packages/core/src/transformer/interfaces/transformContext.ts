@@ -40,4 +40,16 @@ export interface TransformContext {
    * 存储处理过的父节点结果，便于子节点访问
    */
   parentResults: any[];
+
+  /**
+   * 父上下文引用
+   * 在嵌套上下文中，指向创建当前上下文的父上下文
+   */
+  parent?: TransformContext;
+
+  /**
+   * 子上下文集合
+   * 用于存储由当前上下文创建的所有子上下文
+   */
+  nested?: Map<string, TransformContext>;
 } 
