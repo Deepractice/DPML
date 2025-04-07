@@ -8,4 +8,5 @@ export * from './documentStructureVisitor';
 export * from './metadataEnhancementVisitor';
 export * from './referenceInlineVisitor';
 export * from './semanticTagVisitor';
-export * from './elementVisitor'; 
+export * from './elementVisitor';
+export * from './unknownElementVisitor'; 
