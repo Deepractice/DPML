@@ -38,7 +38,9 @@
     "vitest": "^1.4.0"
   },
   "dependencies": {
+    "@types/lodash": "^4.17.16",
     "fast-xml-parser": "^5.2.0",
+    "lodash": "^4.17.21",
     "marked": "^15.0.7"
   }
 }
