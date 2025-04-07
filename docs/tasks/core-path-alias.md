@@ -19,12 +19,12 @@
 - [x] 1.3 修复src/transformer/interfaces/index.ts的重复导出问题
 - [x] 1.4 确保当前相对路径导入下项目能正常构建和通过测试
 
-### 阶段二：配置路径别名
+### 阶段二：配置路径别名（已完成✅）
 
-- [ ] 2.1 在packages/core/tsconfig.json中添加paths配置
-- [ ] 2.2 在packages/core/tsup.config.ts中添加别名解析配置
-- [ ] 2.3 在packages/core/vitest.config.ts中添加别名解析配置
-- [ ] 2.4 验证配置正确性，确保TypeScript能识别别名
+- [x] 2.1 在packages/core/tsconfig.json中添加paths配置
+- [x] 2.2 在packages/core/tsup.config.ts中添加别名解析配置
+- [x] 2.3 在packages/core/vitest.config.ts中添加别名解析配置
+- [x] 2.4 验证配置正确性，确保TypeScript能识别别名
 
 ### 阶段三：替换导入路径
 
