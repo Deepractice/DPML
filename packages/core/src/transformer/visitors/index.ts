@@ -3,4 +3,5 @@
  */
 
 export * from './baseVisitor';
-export * from './noopVisitor'; 
+export * from './noopVisitor';
+export * from './documentStructureVisitor'; 
