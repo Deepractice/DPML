@@ -1,0 +1,1 @@
+{"version":3,"file":"protocolHandler.d.ts","sourceRoot":"","sources":["protocolHandler.ts"],"names":[],"mappings":"AAAA;;;;GAIG;AAEH,OAAO,EAAE,SAAS,EAAE,MAAM,kBAAkB,CAAC;AAE7C;;;GAGG;AACH,MAAM,WAAW,eAAe;IAC9B;;;;OAIG;IACH,SAAS,CAAC,QAAQ,EAAE,MAAM,GAAG,OAAO,CAAC;IAErC;;;;OAIG;IACH,MAAM,CAAC,SAAS,EAAE,SAAS,GAAG,OAAO,CAAC,GAAG,CAAC,CAAC;CAC5C"}

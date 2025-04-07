@@ -1,0 +1,1 @@
+{"version":3,"file":"transformerFactory.d.ts","sourceRoot":"","sources":["transformerFactory.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,WAAW,EAAE,MAAM,eAAe,CAAC;AAC5C,OAAO,EAAE,gBAAgB,EAAE,MAAM,oBAAoB,CAAC;AAEtD;;;;GAIG;AACH,MAAM,WAAW,kBAAkB;IACjC;;;;;OAKG;IACH,iBAAiB,CAAC,OAAO,CAAC,EAAE,gBAAgB,GAAG,WAAW,CAAC;CAC5D"}

@@ -1,0 +1,1 @@
+{"version":3,"file":"memory-usage.test.d.ts","sourceRoot":"","sources":["memory-usage.test.ts"],"names":[],"mappings":"AAIA,OAAO,EAAY,OAAO,EAAgC,MAAM,yBAAyB,CAAC;AAgB1F,OAAO,CAAC,MAAM,CAAC;IACb,IAAI,EAAE,EAAE,CAAC,MAAM,IAAI,CAAC,GAAG,SAAS,CAAC;CAClC;AAcD,OAAO,QAAQ,0CAA0C,CAAC;IACxD,UAAU,iBAAiB;QACzB,KAAK,EAAE,GAAG,CAAC,MAAM,EAAE,OAAO,CAAC,CAAC;KAC7B;CACF"}

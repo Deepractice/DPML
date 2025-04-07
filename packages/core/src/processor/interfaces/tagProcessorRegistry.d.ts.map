@@ -1,0 +1,1 @@
+{"version":3,"file":"tagProcessorRegistry.d.ts","sourceRoot":"","sources":["tagProcessorRegistry.ts"],"names":[],"mappings":"AAAA;;;;GAIG;AAEH,OAAO,EAAE,YAAY,EAAE,MAAM,gBAAgB,CAAC;AAE9C;;;;;GAKG;AACH,MAAM,WAAW,oBAAoB;IACnC;;;;;OAKG;IACH,iBAAiB,CAAC,OAAO,EAAE,MAAM,EAAE,SAAS,EAAE,YAAY,GAAG,IAAI,CAAC;IAElE;;;;;OAKG;IACH,aAAa,CAAC,OAAO,EAAE,MAAM,GAAG,YAAY,EAAE,CAAC;CAChD"}

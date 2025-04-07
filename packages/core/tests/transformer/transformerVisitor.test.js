@@ -1,0 +1,109 @@
+import { describe, it, expect } from 'vitest';
+import { NodeType } from '../../src/types/node';
+describe('TransformerVisitor', () => {
+    // 创建模拟数据
+    const mockDocument = {
+        type: NodeType.DOCUMENT,
+        children: [],
+        position: {
+            start: { line: 1, column: 1, offset: 0 },
+            end: { line: 1, column: 1, offset: 0 }
+        }
+    };
+    const mockElement = {
+        type: NodeType.ELEMENT,
+        tagName: 'test',
+        attributes: {},
+        children: [],
+        position: {
+            start: { line: 1, column: 1, offset: 0 },
+            end: { line: 1, column: 1, offset: 0 }
+        }
+    };
+    const mockContent = {
+        type: NodeType.CONTENT,
+        value: 'Test content',
+        position: {
+            start: { line: 1, column: 1, offset: 0 },
+            end: { line: 1, column: 1, offset: 0 }
+        }
+    };
+    const mockReference = {
+        type: NodeType.REFERENCE,
+        protocol: 'test',
+        path: 'reference/path',
+        position: {
+            start: { line: 1, column: 1, offset: 0 },
+            end: { line: 1, column: 1, offset: 0 }
+        }
+    };
+    const mockOptions = {
+        format: 'json'
+    };
+    const mockContext = {
+        output: {},
+        document: mockDocument,
+        options: mockOptions,
+        variables: {},
+        path: [],
+        parentResults: []
+    };
+    it('应该能创建具有完整访问方法的访问者', () => {
+        const visitor = {
+            visitDocument: (document, context) => ({ type: 'document' }),
+            visitElement: (element, context) => ({ type: 'element', name: element.tagName }),
+            visitContent: (content, context) => ({ type: 'content', value: content.value }),
+            visitReference: (reference, context) => ({ type: 'reference', path: reference.path }),
+            priority: 100
+        };
+        expect(visitor.visitDocument).toBeDefined();
+        expect(visitor.visitElement).toBeDefined();
+        expect(visitor.visitContent).toBeDefined();
+        expect(visitor.visitReference).toBeDefined();
+        expect(visitor.priority).toBe(100);
+        // 测试各方法的返回值
+        expect(visitor.visitDocument(mockDocument, mockContext)).toEqual({ type: 'document' });
+        expect(visitor.visitElement(mockElement, mockContext)).toEqual({ type: 'element', name: 'test' });
+        expect(visitor.visitContent(mockContent, mockContext)).toEqual({ type: 'content', value: 'Test content' });
+        expect(visitor.visitReference(mockReference, mockContext)).toEqual({ type: 'reference', path: 'reference/path' });
+    });
+    it('应该能创建只关注特定节点类型的访问者', () => {
+        const elementVisitor = {
+            visitElement: (element, context) => ({ type: 'element', name: element.tagName }),
+            priority: 80
+        };
+        expect(elementVisitor.visitDocument).toBeUndefined();
+        expect(elementVisitor.visitElement).toBeDefined();
+        expect(elementVisitor.visitContent).toBeUndefined();
+        expect(elementVisitor.visitReference).toBeUndefined();
+        expect(elementVisitor.priority).toBe(80);
+        expect(elementVisitor.visitElement(mockElement, mockContext)).toEqual({ type: 'element', name: 'test' });
+    });
+    it('应该能创建不指定优先级的访问者(使用默认优先级)', () => {
+        const contentVisitor = {
+            visitContent: (content, context) => ({ type: 'content', value: content.value })
+        };
+        expect(contentVisitor.visitContent).toBeDefined();
+        expect(contentVisitor.priority).toBeUndefined();
+        expect(contentVisitor.visitContent(mockContent, mockContext)).toEqual({ type: 'content', value: 'Test content' });
+    });
+    it('应该能创建修改上下文的访问者', () => {
+        const contextModifyingVisitor = {
+            visitDocument: (document, context) => {
+                context.variables['testVar'] = 'modified';
+                return { type: 'document', modified: true };
+            }
+        };
+        const context = {
+            output: {},
+            document: mockDocument,
+            options: mockOptions,
+            variables: {},
+            path: [],
+            parentResults: []
+        };
+        expect(contextModifyingVisitor.visitDocument(mockDocument, context)).toEqual({ type: 'document', modified: true });
+        expect(context.variables['testVar']).toBe('modified');
+    });
+});
+//# sourceMappingURL=transformerVisitor.test.js.map
