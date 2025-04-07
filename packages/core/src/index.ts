@@ -6,8 +6,15 @@
 // 导出类型系统
 export * from './types';
 
-// 导出解析器模块
-export * from './parser';
+// 导出解析器模块，避免重复导出
+export {
+  DpmlAdapter,
+  TagRegistry,
+  TagDefinition,
+  // 从tag-definition重新导出，避免与errors重名
+  ValidationError as ParserValidationError,
+  ValidationWarning
+} from './parser';
 
 // 导出处理器模块
 export * from './processor';

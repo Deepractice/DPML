@@ -10,6 +10,7 @@ build/
 lib/
 *.tsbuildinfo
 *.js.map
+*.d.ts.map
 
 # Test
 coverage/
@@ -83,3 +84,18 @@ docs/api/
 
 # cursor 配置
 .cursorrules
+
+# 编译生成的文件 (包括源码目录中可能生成的)
+**/*.js
+**/*.mjs
+**/*.d.ts
+**/*.map
+
+# 排除脚本文件
+!scripts/**/*.js
+!**/jest.config.js
+!**/rollup.config.js
+!**/webpack.config.js
+!**/vite.config.js
+!**/vitest.config.js
+!**/tsup.config.js

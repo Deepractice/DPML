@@ -6,5 +6,4 @@ export {
   ValidationError, 
   ValidationWarning 
 } from './tag-definition';
-export * from './validator';
-export * from './reference'; 
+export * from './validator'; 
