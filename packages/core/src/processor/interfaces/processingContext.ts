@@ -5,21 +5,7 @@
  */
 
 import { Document, Element } from '../../types/node';
-
-/**
- * 已解析的引用信息
- */
-export interface ResolvedReference {
-  /**
-   * 解析后的内容
-   */
-  content: any;
-  
-  /**
-   * 解析时间
-   */
-  timestamp: number;
-}
+import { ResolvedReference } from './referenceResolver';
 
 /**
  * 处理上下文接口

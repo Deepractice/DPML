@@ -88,9 +88,10 @@ export class DefaultReferenceResolver implements ReferenceResolver {
     
     // 检查缓存
     if (this.useCache && context.resolvedReferences.has(cacheKey)) {
+      const cached = context.resolvedReferences.get(cacheKey)!;
       return {
         reference,
-        value: context.resolvedReferences.get(cacheKey)
+        value: cached.content
       };
     }
     
@@ -111,7 +112,10 @@ export class DefaultReferenceResolver implements ReferenceResolver {
       
       // 存入缓存
       if (this.useCache) {
-        context.resolvedReferences.set(cacheKey, value);
+        context.resolvedReferences.set(cacheKey, {
+          content: value,
+          timestamp: Date.now()
+        });
       }
       
       return {

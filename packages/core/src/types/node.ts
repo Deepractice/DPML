@@ -48,6 +48,11 @@ export interface Element extends Node {
   tagName: string;
   attributes: Record<string, any>;
   children: Node[];
+  /**
+   * 元素元数据
+   * 用于存储处理过程中生成的语义信息和其他元数据
+   */
+  metadata?: Record<string, any>;
 }
 
 /**
@@ -101,7 +106,11 @@ export function isElement(value: any): value is Element {
          value.type === NodeType.ELEMENT &&
          typeof (value as any).tagName === 'string' &&
          typeof (value as any).attributes === 'object' &&
-         Array.isArray((value as any).children);
+         Array.isArray((value as any).children) &&
+         (
+           (value as any).metadata === undefined || 
+           typeof (value as any).metadata === 'object'
+         );
 }
 
 /**

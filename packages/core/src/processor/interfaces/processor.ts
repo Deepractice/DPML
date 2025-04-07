@@ -8,15 +8,18 @@ import { Document } from '../../types/node';
 import { NodeVisitor } from './nodeVisitor';
 import { ProtocolHandler } from './protocolHandler';
 import { ReferenceResolver } from './referenceResolver';
+import { TagProcessor } from './tagProcessor';
+import { TagProcessorRegistry } from './tagProcessorRegistry';
 
 /**
  * 处理器选项接口
  */
 export interface ProcessorOptions {
   /**
-   * 标签注册表
+   * 标签处理器注册表
+   * 用于注册和管理标签处理器
    */
-  tagRegistry?: any; // 后续会替换为实际的TagRegistry类型
+  tagProcessorRegistry?: TagProcessorRegistry;
   
   /**
    * 错误处理器
@@ -55,9 +58,18 @@ export interface ProcessorOptions {
  */
 export interface ProcessedDocument extends Document {
   /**
-   * 处理元数据
+   * 文档级元数据
+   * 包含处理过程中收集的所有文档级信息
+   * 例如：文档类型、版本、处理统计信息、全局配置等
    */
   metadata?: Record<string, any>;
+  
+  /**
+   * 语义结构
+   * 包含经过语义处理后提取的结构化信息
+   * 例如：从prompt文档中提取的模型配置、从agent文档中提取的工具定义等
+   */
+  semantics?: Record<string, any>;
 }
 
 /**
@@ -76,6 +88,13 @@ export interface Processor {
    * @param handler 协议处理器
    */
   registerProtocolHandler(handler: ProtocolHandler): void;
+  
+  /**
+   * 注册标签处理器
+   * @param tagName 标签名
+   * @param processor 标签处理器
+   */
+  registerTagProcessor(tagName: string, processor: TagProcessor): void;
   
   /**
    * 设置引用解析器

@@ -12,11 +12,40 @@ import {
   ProcessedDocument,
   ProtocolHandler,
   ReferenceResolver,
-  ProcessingContext
+  ProcessingContext,
+  TagProcessor,
+  TagProcessorRegistry
 } from './interfaces';
 import { ProcessingContext as ProcessingContextImpl } from './processingContext';
 import { ErrorHandler } from './errors/errorHandler';
 import { ProcessingError, ErrorSeverity } from './errors/processingError';
+
+/**
+ * 默认标签处理器注册表实现
+ */
+class DefaultTagProcessorRegistry implements TagProcessorRegistry {
+  private processors: Map<string, TagProcessor[]> = new Map();
+  
+  /**
+   * 注册标签处理器
+   * @param tagName 标签名
+   * @param processor 处理器
+   */
+  registerProcessor(tagName: string, processor: TagProcessor): void {
+    const existingProcessors = this.processors.get(tagName) || [];
+    existingProcessors.push(processor);
+    this.processors.set(tagName, existingProcessors);
+  }
+  
+  /**
+   * 获取标签处理器
+   * @param tagName 标签名
+   * @returns 处理器数组
+   */
+  getProcessors(tagName: string): TagProcessor[] {
+    return this.processors.get(tagName) || [];
+  }
+}
 
 /**
  * 默认处理器实现
@@ -50,9 +79,9 @@ export class DefaultProcessor implements Processor {
   private options: ProcessorOptions = {};
   
   /**
-   * 标签注册表
+   * 标签处理器注册表
    */
-  private tagRegistry: any;
+  private tagProcessorRegistry: TagProcessorRegistry;
   
   /**
    * 错误处理器
@@ -64,6 +93,9 @@ export class DefaultProcessor implements Processor {
    * @param options 处理器选项
    */
   constructor(options?: ProcessorOptions) {
+    // 初始化标签处理器注册表
+    this.tagProcessorRegistry = new DefaultTagProcessorRegistry();
+    
     // 初始化错误处理器
     this.errorHandler = new ErrorHandler({
       strictMode: options?.strictMode,
@@ -95,6 +127,27 @@ export class DefaultProcessor implements Processor {
    */
   registerProtocolHandler(handler: ProtocolHandler): void {
     this.protocolHandlers.push(handler);
+    
+    if (this.referenceResolver) {
+      this.referenceResolver.registerProtocolHandler(handler);
+    }
+  }
+  
+  /**
+   * 注册标签处理器
+   * @param tagName 标签名
+   * @param processor 标签处理器
+   */
+  registerTagProcessor(tagName: string, processor: TagProcessor): void {
+    this.tagProcessorRegistry.registerProcessor(tagName, processor);
+  }
+  
+  /**
+   * 获取标签处理器注册表
+   * @returns 标签处理器注册表
+   */
+  getTagProcessorRegistry(): TagProcessorRegistry {
+    return this.tagProcessorRegistry;
   }
   
   /**
@@ -112,8 +165,8 @@ export class DefaultProcessor implements Processor {
   configure(options: ProcessorOptions): void {
     this.options = { ...this.options, ...options };
     
-    if (options.tagRegistry) {
-      this.tagRegistry = options.tagRegistry;
+    if (options.tagProcessorRegistry) {
+      this.tagProcessorRegistry = options.tagProcessorRegistry;
     }
     
     if (options.errorHandler) {

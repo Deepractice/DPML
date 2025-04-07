@@ -1,204 +1,146 @@
-# Processor模块开发任务清单（基于TDD）
-## 重要提示：严格遵循TDD
-所有任务必须严格按照以下TDD流程开发：
-1. 先编写测试用例
-2. 运行测试并确认失败
-3. 实现最小代码使测试通过
-4. 重构代码
-5. 确认测试仍然通过
+# DPML Processor 任务列表
 
+## 1. 核心基础设施
 
-## 1. 核心框架与基础设施
+### 1.1 基本数据结构
 
-### 1.1. 设计核心接口与类型
-- [x] 编写NodeVisitor接口测试
-- [x] 编写Processor接口测试
-- [x] 编写ProtocolHandler接口测试
-- [x] 编写ReferenceResolver接口测试
-- [x] 实现接口和类型定义
+- [x] 定义基本的`Element`接口及其实现
+- [x] 开发`NodeProcessor`接口，支持`visit`设计模式
+- [x] 开发`ProcessingContext`，用于在处理过程中传递信息
+- [x] 实现`ProcessedDocument`，表示处理完成的文档
+- [x] 增强`Element`接口，添加`metadata`字段用于存储语义处理结果
+- [x] 增强`ProcessedDocument`接口，添加文档级元数据聚合功能
 
-### 1.2. 实现ProcessingContext
-- [x] 测试上下文创建与存取
-- [x] 测试引用缓存机制
-- [x] 测试变量管理功能
-- [x] 实现ProcessingContext类
+### 1.2 核心接口
 
-### 1.3. 实现DefaultProcessor框架
-- [x] 测试访问者注册和排序机制
-- [x] 测试处理流程骨架
-- [x] 测试节点遍历逻辑
-- [x] 实现DefaultProcessor基础框架
+- [x] 开发`Visitor`接口，支持元素访问
+- [x] 开发`Options`接口，用于配置处理器行为
+- [x] 实现`Processor`接口，作为主处理流程的入口
+- [x] 开发`TagProcessor`接口，支持标签语义处理
+- [x] 开发`TagProcessorRegistry`接口，支持注册和管理标签处理器
 
-## 2. 核心访问者实现
+### 1.3 错误与日志处理
 
-### 2.1. 实现InheritanceVisitor
-- [x] 测试基本继承场景
-- [x] 测试ID引用继承
-- [x] 测试相对路径继承
-- [x] 测试HTTP远程继承
-- [x] 测试继承属性合并规则
-- [x] 测试继承内容合并规则
-- [x] 测试继承错误处理
-- [x] 实现InheritanceVisitor
+- [ ] 实现`ProcessingError`类，用于处理错误
+- [ ] 实现`ErrorCollector`，用于收集处理过程中的错误
+- [ ] 实现`WarningCollector`，用于收集处理过程中的警告
+- [ ] 设计严格模式和宽松模式下的错误处理行为
 
-### 2.2. 实现ReferenceVisitor
-- [x] 测试内容中引用识别功能
-- [x] 测试引用解析与替换
-- [x] 测试Reference节点处理
-- [x] 测试引用错误处理
-- [x] 实现ReferenceVisitor
+## 2. 核心处理器实现
 
-### 2.3. 实现MarkdownContentVisitor
-- [x] 测试Markdown内容处理
-- [x] 测试Markdown格式转换
-- [x] 实现MarkdownContentVisitor
+### 2.1 处理器实现
 
-### 2.4. 实现IdValidationVisitor
-- [x] 测试ID收集功能
-- [x] 测试ID唯一性验证
-- [x] 测试ID冲突错误处理
-- [x] 实现IdValidationVisitor
+- [x] 开发`ProcessorImpl`，实现`Processor`接口
+- [x] 实现访问者排序逻辑
+- [x] 实现处理流程控制
+- [x] 实现元数据管理
+- [ ] 实现错误和警告日志记录功能
+- [x] 实现标签处理器的注册和调用机制
 
-### 2.5. 实现DocumentMetadataVisitor
-- [x] 测试文档元数据收集功能
-- [x] 测试`mode`属性处理逻辑
-- [x] 测试`lang`属性记录功能
-- [x] 测试`schema`属性处理
-- [x] 实现DocumentMetadataVisitor
+### 2.2 引用解析
 
-### 2.6. 实现AttributeValidationVisitor
-- [x] 测试属性类型验证
-- [x] 测试属性值范围验证
-- [x] 测试必需属性验证
-- [x] 测试严格模式与宽松模式的验证差异
-- [x] 实现AttributeValidationVisitor
+- [x] 定义引用解析相关接口
+- [x] 实现基本引用解析器
+- [x] 实现引用解析缓存
+- [x] 增强引用解析器，支持协议处理器扩展
 
-## 3. 引用系统实现
+### 2.3 协议处理器
 
-### 3.1. 实现DefaultReferenceResolver
-- [x] 测试引用解析基础功能
-- [x] 测试协议处理器集成
-- [x] 测试引用缓存机制
-- [x] 测试解析错误处理
-- [x] 实现DefaultReferenceResolver
+- [x] 定义协议处理器接口
+- [x] 实现基本的`id`协议处理器
+- [x] 实现基本的`file`协议处理器
+- [x] 实现基本的`http`协议处理器
+- [x] 实现协议处理器注册机制
 
-### 3.2. 实现基础协议处理器
-- [x] 测试HTTP协议处理器
-- [x] 测试文件协议处理器
-- [x] 测试ID协议处理器
-- [x] 实现基础协议处理器
+## 3. 访问者实现
 
-## 4. 集成测试与端到端测试
+### 3.1 基本访问者
 
-### 4.1. 基本处理流程测试
-- [x] 测试简单文档处理
-- [x] 测试完整处理流程
+- [x] 开发`BaseVisitor`抽象类，提供基本功能
+- [x] 开发`NoopVisitor`，用于测试和扩展
+- [x] 增强访问者基类，支持元数据管理
 
-### 4.2. 复杂功能集成测试
-- [x] 测试继承+引用组合场景
-- [x] 测试多级嵌套处理
-- [x] 测试复杂文档处理
+### 3.2 继承处理
 
-### 4.3. 边界条件测试
-- [x] 测试空文档处理
-- [x] 测试大型文档处理
-- [x] 测试异常情况处理
+- [x] 设计继承处理算法
+- [x] 开发`InheritanceVisitor`，处理元素继承
+- [ ] 改进继承算法，处理复杂继承场景
 
-### 4.4. 特殊场景测试
-- [x] 测试特殊字符内容处理
-- [x] 测试XML转义字符处理
-- [x] 测试标签名大小写敏感性
-- [x] 测试无根元素文档处理
+### 3.3 ID处理
 
-## 5. 扩展点测试与实现
+- [x] 开发`IdCollectionVisitor`，收集所有ID
+- [x] 开发`IdValidationVisitor`，验证ID唯一性
+- [ ] 增强ID验证，支持更多验证规则
 
-### 5.1. 测试访问者扩展能力
-- [x] 测试自定义访问者注册与执行
-- [x] 测试访问者优先级机制
-- [x] 测试多访问者协作
+### 3.4 引用处理
 
-### 5.2. 测试协议处理器扩展
-- [x] 测试自定义协议处理器注册
-- [x] 测试自定义协议解析
+- [x] 开发`ReferenceVisitor`，处理引用
+- [x] 实现引用解析逻辑
+- [x] 实现引用替换逻辑
+- [ ] 增强引用处理，支持循环引用检测
 
-### 5.3. 测试引用解析器扩展
-- [x] 测试自定义引用解析器
-- [x] 测试引用转换功能
+### 3.5 标签处理
 
-## 6. 性能优化与边缘场景
+- [x] 开发`DomainTagVisitor`，用于处理领域特定标签
+- [x] 实现标签处理器调用链机制
+- [ ] 实现条件处理逻辑
+- [ ] 实现标签处理错误恢复机制
 
-### 6.1. 性能测试与优化
-- [x] 测试大文档处理性能
-- [x] 测试引用缓存效果
-- [x] 优化关键路径性能
+## 4. 语义处理层实现
 
-### 6.2. 内存使用优化
-- [x] 测试内存占用情况
-- [x] 优化大文档处理内存使用
+### 4.1 标签处理器基础设施
 
-### 6.3. 错误处理完善
-- [x] 测试各类错误场景
-- [x] 完善错误报告与恢复机制
-- [x] 测试严格模式与宽松模式的错误处理差异
-- [x] 实现基于`mode`属性的错误处理策略
-- [x] 测试错误信息的清晰度和可用性
+- [x] 实现`TagProcessor`接口，定义标签处理器职责
+- [x] 实现`TagProcessorRegistry`，管理标签处理器注册
+- [ ] 实现`AbstractTagProcessor`基类，提供通用功能
+- [x] 开发标签处理器单元测试框架
 
-### 6.4. 跨平台兼容性
-- [x] 测试Windows路径格式处理
-- [x] 测试Unix路径格式处理
-- [x] 实现平台无关的路径处理工具函数
-- [x] 测试跨平台文件引用处理
+### 4.2 语义元数据管理
 
+- [x] 设计元数据结构和访问API
+- [x] 实现元素级元数据存储和获取
+- [x] 实现文档级元数据聚合
+- [ ] 开发元数据序列化和反序列化功能
 
-## 7. 与其他模块集成
+### 4.3 领域特定语义处理
 
-### 7.1. 与Parser集成测试
-- [x] 测试Parser输出到Processor处理流程
+- [x] 为Prompt领域开发标签处理器
+- [ ] 为Agent领域开发标签处理器
+- [ ] 实现跨领域语义关系处理
+- [ ] 实现语义验证规则框架
 
+## 5. 测试与验证
 
-### 7.3. 测试覆盖度量
-- [x] 设置测试覆盖率目标
-- [x] 实现测试覆盖报告生成
-- [x] 确保关键路径100%测试覆盖
-- [x] 监控回归测试质量
+### 5.1 单元测试
 
-## TDD实现范例
+- [x] 开发Processor单元测试
+- [x] 开发Visitor单元测试
+- [x] 开发引用解析单元测试
+- [x] 开发标签处理器单元测试
+- [x] 开发元数据处理单元测试
 
-每个任务遵循以下TDD流程:
+### 5.2 集成测试
 
-1. **编写测试** - 先编写测试，明确功能需求
-2. **运行测试** - 确认测试失败，验证测试有效性
-3. **实现功能** - 编写最小化代码使测试通过
-4. **优化重构** - 保持测试通过的前提下重构代码
-5. **重复循环** - 继续编写下一个测试用例
+- [x] 开发基本处理流程测试
+- [x] 开发继承和引用组合测试
+- [ ] 开发多级继承和引用测试
+- [ ] 开发复杂文档结构测试
+- [ ] 开发语义处理集成测试
+- [ ] 开发跨领域集成测试
 
-### 代码示例: InheritanceVisitor测试与实现
+### 5.3 性能测试
 
-测试代码:
-```typescript
-// tests/visitors/InheritanceVisitor.test.ts
-describe('InheritanceVisitor', () => {
-  it('should not modify elements without extends attribute', () => {
-    const element = {
-      type: 'element',
-      tagName: 'test',
-      attributes: { id: 'test1' },
-      children: []
-    };
-    const context = new ProcessingContext();
-    
-    const visitor = new InheritanceVisitor();
-    const result = await visitor.visitElement(element, context);
-    
-    expect(result).toEqual(element);
-  });
-  
-  it('should merge attributes from base element', () => {
-    // 测试继承属性合并
-  });
-  
-  it('should inherit content when element has no content', () => {
-    // 测试内容继承
-  });
-});
-```
+- [ ] 开发大文档处理性能测试
+- [ ] 开发多引用处理性能测试
+- [ ] 开发深度嵌套文档性能测试
+- [ ] 开发元数据处理性能测试
+
+## 6. 文档
+
+- [x] 编写Processor设计文档
+- [x] 编写Visitor设计文档
+- [x] 编写测试用例文档
+- [x] 更新设计文档，反映标签处理器和语义处理层
+- [ ] 编写API参考文档
+- [ ] 编写标签处理器开发指南
+- [ ] 编写领域扩展开发指南

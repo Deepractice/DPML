@@ -13,6 +13,7 @@ import {
   createDocumentMetadataVisitor,
   DocumentMode
 } from './visitors';
+import { DomainTagVisitor } from './visitors/domainTagVisitor';
 import { createHttpProtocolHandler, createIdProtocolHandler, createFileProtocolHandler } from './protocols';
 
 /**
@@ -28,6 +29,11 @@ export interface ProcessorFactoryOptions extends ProcessorOptions {
    * 是否注册基础协议处理器
    */
   registerBaseProtocolHandlers?: boolean;
+  
+  /**
+   * 是否注册标签处理器访问者
+   */
+  registerTagProcessorVisitor?: boolean;
   
   /**
    * 是否使用严格模式
@@ -67,39 +73,22 @@ export function createProcessor(options?: ProcessorFactoryOptions): DefaultProce
     }));
   }
   
+  // 注册标签处理器访问者
+  if (options?.registerTagProcessorVisitor !== false) {
+    // 创建标签处理器访问者并注册
+    processor.registerVisitor(new DomainTagVisitor(processor.getTagProcessorRegistry()));
+  }
+  
   // 注册基础协议处理器
   if (options?.registerBaseProtocolHandlers !== false) {
-    // 注册HTTP协议处理器
-    referenceResolver.registerProtocolHandler(createHttpProtocolHandler());
+    // 注册ID协议处理器
+    processor.registerProtocolHandler(createIdProtocolHandler());
     
     // 注册文件协议处理器
-    referenceResolver.registerProtocolHandler(createFileProtocolHandler());
+    processor.registerProtocolHandler(createFileProtocolHandler());
     
-    // 创建ID协议处理器，在process方法中设置上下文
-    const idHandler = createIdProtocolHandler();
-    referenceResolver.registerProtocolHandler(idHandler);
-    
-    // 重写原始process方法，添加对ID协议处理器的上下文设置
-    const originalProcess = processor.process.bind(processor);
-    processor.process = async (document, path) => {
-      // 创建处理上下文
-      const context = {
-        document,
-        currentPath: path || '',
-        resolvedReferences: new Map(),
-        parentElements: [],
-        variables: {},
-        idMap: new Map()
-      };
-      
-      // 设置ID协议处理器上下文
-      idHandler.setContext({
-        processingContext: context
-      });
-      
-      // 调用原始process方法
-      return originalProcess(document, path);
-    };
+    // 注册HTTP协议处理器
+    processor.registerProtocolHandler(createHttpProtocolHandler());
   }
   
   return processor;

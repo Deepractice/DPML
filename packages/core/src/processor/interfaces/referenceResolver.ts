@@ -21,6 +21,16 @@ export interface ResolvedReference {
    * 解析后的值
    */
   value: any;
+  
+  /**
+   * 解析内容（兼容旧接口）
+   */
+  content?: any;
+  
+  /**
+   * 解析时间戳（兼容旧接口）
+   */
+  timestamp?: number;
 }
 
 /**
@@ -42,4 +52,10 @@ export interface ReferenceResolver {
    * @returns 协议处理器，未找到则返回undefined
    */
   getProtocolHandler(protocol: string): ProtocolHandler | undefined;
+  
+  /**
+   * 注册协议处理器
+   * @param handler 协议处理器
+   */
+  registerProtocolHandler(handler: ProtocolHandler): void;
 } 
