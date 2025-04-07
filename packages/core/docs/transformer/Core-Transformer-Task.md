@@ -65,15 +65,15 @@
 
 - [x] 设计Transformer接口测试用例
 - [x] 实现Transformer接口
-- [ ] 设计TransformerFactory测试用例
-- [ ] 实现TransformerFactory接口和默认实现
+- [x] 设计TransformerFactory测试用例
+- [x] 实现TransformerFactory接口和默认实现
 
 ### 2.2 DefaultTransformer实现
 
-- [ ] 设计访问者注册和排序测试用例
-- [ ] 实现访问者注册和排序机制
-- [ ] 设计转换过程控制流程测试用例
-- [ ] 实现转换过程控制流程
+- [x] 设计访问者注册和排序测试用例
+- [x] 实现访问者注册和排序机制
+- [x] 设计转换过程控制流程测试用例
+- [x] 实现转换过程控制流程
 - [ ] 设计子节点处理委托测试用例
 - [ ] 实现子节点处理委托机制
 - [ ] 设计转换结果缓存测试用例
