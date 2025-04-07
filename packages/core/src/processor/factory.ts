@@ -4,17 +4,17 @@
  * 提供创建处理器实例的工厂函数
  */
 
-import { ProcessorOptions } from './interfaces';
-import { DefaultProcessor } from './defaultProcessor';
-import { DefaultReferenceResolver } from './defaultReferenceResolver';
+import { ProcessorOptions } from '@core/processor/interfaces';
+import { DefaultProcessor } from '@core/processor/defaultProcessor';
+import { DefaultReferenceResolver } from '@core/processor/defaultReferenceResolver';
 import { 
   createIdValidationVisitor, 
   createReferenceVisitor,
   createDocumentMetadataVisitor,
   DocumentMode
-} from './visitors';
-import { DomainTagVisitor } from './visitors/domainTagVisitor';
-import { createHttpProtocolHandler, createIdProtocolHandler, createFileProtocolHandler } from './protocols';
+} from '@core/processor/visitors';
+import { DomainTagVisitor } from '@core/processor/visitors/domainTagVisitor';
+import { createHttpProtocolHandler, createIdProtocolHandler, createFileProtocolHandler } from '@core/processor/protocols';
 
 /**
  * 处理器工厂选项

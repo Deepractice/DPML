@@ -4,8 +4,8 @@
  * 处理HTTP/HTTPS协议的引用
  */
 
-import { Reference } from '../../types/node';
-import { ProtocolHandler } from '../interfaces';
+import { Reference } from '@core/types/node';
+import { ProtocolHandler } from '@core/processor/interfaces';
 
 /**
  * HTTP协议处理器选项

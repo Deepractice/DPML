@@ -1,9 +1,9 @@
 import { XMLParserAdapter } from './xml/xml-parser-adapter';
 import { XMLToNodeConverter } from './xml/xml-to-node-converter';
 import { ParseOptions, ParseResult, ParseWarning } from './interfaces';
-import { Document, NodeType, SourcePosition, Element, Node } from '../types/node';
-import { ParseError } from '../errors';
-import { ErrorCode, ErrorPosition } from '../errors/types';
+import { Document, NodeType, SourcePosition, Element, Node } from '@core/types/node';
+import { ParseError } from '@core/errors';
+import { ErrorCode, ErrorPosition } from '@core/errors/types';
 import { TagRegistry } from './tag-registry';
 import { Validator } from './validator';
 

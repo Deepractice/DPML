@@ -1,8 +1,8 @@
 /**
  * 处理上下文实现
  */
-import { Document, Element } from '../types/node';
-import { ProcessingContext as ProcessingContextInterface, ResolvedReference } from './interfaces';
+import { Document, Element } from '@core/types/node';
+import { ProcessingContext as ProcessingContextInterface, ResolvedReference } from '@core/processor/interfaces';
 
 /**
  * 处理上下文类

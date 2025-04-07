@@ -4,7 +4,7 @@
  * 定义解析引用的解析器接口
  */
 
-import { Reference } from '../../types/node';
+import { Reference } from '@core/types/node';
 import { ProcessingContext } from './processingContext';
 import { ProtocolHandler } from './protocolHandler';
 

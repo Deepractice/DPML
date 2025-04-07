@@ -1,7 +1,7 @@
 import { XMLParser as FastXMLParser } from 'fast-xml-parser';
 import { XMLNode, XMLParserOptions } from './types';
-import { ParseError } from '../../errors';
-import { ErrorCode } from '../../errors/types';
+import { ParseError } from '@core/errors';
+import { ErrorCode } from '@core/errors/types';
 
 /**
  * XML解析适配器，使用fast-xml-parser库

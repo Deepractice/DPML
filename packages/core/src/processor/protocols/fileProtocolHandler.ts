@@ -4,11 +4,11 @@
  * 处理文件协议的引用
  */
 
-import { Reference } from '../../types/node';
-import { ProtocolHandler } from '../interfaces';
+import { Reference } from '@core/types/node';
+import { ProtocolHandler } from '@core/processor/interfaces';
 import fs from 'fs/promises';
 import path from 'path';
-import { normalizePath, isAbsolutePath, resolveRelativePath } from '../../utils/pathUtils';
+import { normalizePath, isAbsolutePath, resolveRelativePath } from '@core/utils/pathUtils';
 
 /**
  * 文件系统错误类型

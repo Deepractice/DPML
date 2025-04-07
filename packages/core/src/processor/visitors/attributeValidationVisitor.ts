@@ -4,12 +4,12 @@
  * 用于验证元素属性
  */
 
-import { Document, Element } from '../../types/node';
-import { NodeVisitor, ProcessingContext } from '../interfaces';
-import { ValidationError, ErrorCode, ErrorLevel } from '../../errors/types';
-import { TagRegistry } from '../../parser/tag-registry';
-import { ValidationResult, ValidationWarning, ValidationError as ParserValidationError } from '../../parser/tag-definition';
-import { DocumentMode } from './documentMetadataVisitor';
+import { Document, Element } from '@core/types/node';
+import { NodeVisitor, ProcessingContext } from '@core/processor/interfaces';
+import { ValidationError, ErrorCode, ErrorLevel } from '@core/errors/types';
+import { TagRegistry } from '@core/parser/tag-registry';
+import { ValidationResult, ValidationWarning, ValidationError as ParserValidationError } from '@core/parser/tag-definition';
+import { DocumentMode } from '@core/processor/visitors/documentMetadataVisitor';
 
 /**
  * 属性验证访问者选项

@@ -4,8 +4,8 @@
  * 用于处理引用节点和内容中的引用
  */
 
-import { Content, Reference, NodeType } from '../../types/node';
-import { NodeVisitor, ProcessingContext, ReferenceResolver } from '../interfaces';
+import { Content, Reference, NodeType } from '@core/types/node';
+import { NodeVisitor, ProcessingContext, ReferenceResolver } from '@core/processor/interfaces';
 
 /**
  * 引用访问者选项

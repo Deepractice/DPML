@@ -4,9 +4,9 @@
  * 用于验证元素ID的唯一性
  */
 
-import { Document, Element } from '../../types/node';
-import { NodeVisitor, ProcessingContext } from '../interfaces';
-import { ValidationError, ErrorCode, ErrorLevel } from '../../errors/types';
+import { Document, Element } from '@core/types/node';
+import { NodeVisitor, ProcessingContext } from '@core/processor/interfaces';
+import { ValidationError, ErrorCode, ErrorLevel } from '@core/errors/types';
 
 /**
  * ID验证访问者选项

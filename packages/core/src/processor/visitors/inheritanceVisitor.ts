@@ -4,9 +4,9 @@
  * 处理元素的继承(extends属性)功能
  */
 
-import { NodeType, Element, isElement, Reference } from '../../types/node';
-import { NodeVisitor, ProcessingContext, ReferenceResolver } from '../interfaces';
-import { DPMLError, ErrorCode } from '../../errors';
+import { NodeType, Element, isElement, Reference } from '@core/types/node';
+import { NodeVisitor, ProcessingContext, ReferenceResolver } from '@core/processor/interfaces';
+import { DPMLError, ErrorCode } from '@core/errors';
 
 /**
  * 处理元素继承的访问者

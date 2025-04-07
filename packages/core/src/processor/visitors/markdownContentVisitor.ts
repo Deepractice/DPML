@@ -6,9 +6,8 @@
 
 import { marked } from 'marked';
 import type { MarkedOptions } from 'marked';
-import { Content, Node } from '../../types';
-import { NodeVisitor } from '../interfaces';
-import { ProcessingContext } from '../processingContext';
+import { Content, Node } from '@core/types';
+import { NodeVisitor, ProcessingContext } from '@core/processor/interfaces';
 
 /**
  * MarkdownContentVisitor配置选项

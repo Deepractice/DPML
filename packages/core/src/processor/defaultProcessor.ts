@@ -4,7 +4,7 @@
  * 提供处理器的默认实现
  */
 
-import { Document, Element, Content, Reference, Node, NodeType } from '../types/node';
+import { Document, Element, Content, Reference, Node, NodeType } from '@core/types/node';
 import { 
   NodeVisitor, 
   Processor, 
@@ -15,10 +15,10 @@ import {
   ProcessingContext,
   TagProcessor,
   TagProcessorRegistry
-} from './interfaces';
-import { ProcessingContext as ProcessingContextImpl } from './processingContext';
-import { ErrorHandler } from './errors/errorHandler';
-import { ProcessingError, ErrorSeverity } from './errors/processingError';
+} from '@core/processor/interfaces';
+import { ProcessingContext as ProcessingContextImpl } from '@core/processor/processingContext';
+import { ErrorHandler } from '@core/processor/errors/errorHandler';
+import { ProcessingError, ErrorSeverity } from '@core/processor/errors/processingError';
 
 /**
  * 默认标签处理器注册表实现

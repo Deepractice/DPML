@@ -1,5 +1,5 @@
-import { Document } from '../types/node';
-import { ParseError as ParseErrorClass } from '../errors';
+import { Document } from '@core/types/node';
+import { ParseError as ParseErrorClass } from '@core/errors';
 
 /**
  * 解析选项接口

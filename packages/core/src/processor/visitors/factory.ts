@@ -4,14 +4,14 @@
  * 提供创建各类访问者的工厂方法
  */
 
-import { ReferenceResolver } from '../interfaces';
+import { ReferenceResolver } from '@core/processor/interfaces';
 import { InheritanceVisitor } from './inheritanceVisitor';
 import { DocumentMetadataVisitor, DocumentMode } from './documentMetadataVisitor';
 import { ReferenceVisitor, ReferenceVisitorOptions } from './referenceVisitor';
 import { IdValidationVisitor, IdValidationVisitorOptions } from './idValidationVisitor';
 import { MarkdownContentVisitor, MarkdownContentVisitorOptions } from './markdownContentVisitor';
 import { AttributeValidationVisitor, AttributeValidationOptions } from './attributeValidationVisitor';
-import { TagRegistry } from '../../parser/tag-registry';
+import { TagRegistry } from '@core/parser/tag-registry';
 
 /**
  * 创建继承处理访问者

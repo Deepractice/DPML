@@ -4,7 +4,7 @@
  * 提供处理过程中统一的错误类型
  */
 
-import { SourcePosition } from '../../types/node';
+import { SourcePosition } from '@core/types/node';
 
 /**
  * 处理错误严重级别

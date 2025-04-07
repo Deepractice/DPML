@@ -4,9 +4,9 @@
  * 提供引用解析的默认实现
  */
 
-import { Reference } from '../types/node';
-import { ReferenceError, ErrorCode } from '../errors/types';
-import { ProcessingContext, ProtocolHandler, ReferenceResolver, ResolvedReference } from './interfaces';
+import { Reference } from '@core/types/node';
+import { ReferenceError, ErrorCode } from '@core/errors/types';
+import { ProcessingContext, ProtocolHandler, ReferenceResolver, ResolvedReference } from '@core/processor/interfaces';
 
 /**
  * 默认引用解析器选项
@@ -113,6 +113,8 @@ export class DefaultReferenceResolver implements ReferenceResolver {
       // 存入缓存
       if (this.useCache) {
         context.resolvedReferences.set(cacheKey, {
+          reference,
+          value,
           content: value,
           timestamp: Date.now()
         });

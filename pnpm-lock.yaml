@@ -71,6 +71,9 @@ importers:
       serve:
         specifier: ^14.2.2
         version: 14.2.4
+      typescript-transform-paths:
+        specifier: ^3.5.5
+        version: 3.5.5(typescript@5.8.2)
       vitest:
         specifier: ^1.4.0
         version: 1.6.1(@types/node@22.14.0)
@@ -1750,6 +1753,11 @@ packages:
     resolution: {integrity: sha512-RAH822pAdBgcNMAfWnCBU3CFZcfZ/i1eZjwFU/dsLKumyuuP3niueg2UAukXYF0E2AAoc82ZSSf9J0WQBinzHA==}
     engines: {node: '>=12.20'}
 
+  typescript-transform-paths@3.5.5:
+    resolution: {integrity: sha512-RMK86wKe/4+ad+3kMT9SKAs3K0tUHLe7hF+MLbD6VpC9VUmFuKorhf3pHz+qO5GdS4mUp2ncNUo14j6ws9UvBQ==}
+    peerDependencies:
+      typescript: '>=3.6.5'
+
   typescript@5.8.2:
     resolution: {integrity: sha512-aJn6wq13/afZp/jT9QZmwEjDqqvSGp1VT5GVg+f/t6/oVyrgXM6BY1h9BRh/O5p3PlUPAe+WuiEZOmb/49RqoQ==}
     engines: {node: '>=14.17'}
@@ -3375,6 +3383,11 @@ snapshots:
   type-detect@4.1.0: {}
 
   type-fest@2.19.0: {}
+
+  typescript-transform-paths@3.5.5(typescript@5.8.2):
+    dependencies:
+      minimatch: 9.0.5
+      typescript: 5.8.2
 
   typescript@5.8.2: {}
 

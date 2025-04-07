@@ -4,8 +4,8 @@
  * 用于处理领域特定的标签语义
  */
 
-import { Element } from '../../types/node';
-import { NodeVisitor, ProcessingContext, TagProcessorRegistry } from '../interfaces';
+import { Element } from '@core/types/node';
+import { NodeVisitor, ProcessingContext, TagProcessorRegistry } from '@core/processor/interfaces';
 
 /**
  * 领域标签访问者

@@ -4,7 +4,7 @@
  * 提供处理各种错误的统一接口
  */
 
-import { Node, Element, SourcePosition } from '../../types/node';
+import { Node, Element, SourcePosition } from '@core/types/node';
 import { ProcessingError, ErrorSeverity } from './processingError';
 import { ProcessingContext } from '../processingContext';
 

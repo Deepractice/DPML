@@ -4,8 +4,8 @@
  * 用于收集文档元数据
  */
 
-import { Document } from '../../types/node';
-import { NodeVisitor, ProcessingContext } from '../interfaces';
+import { Document } from '@core/types/node';
+import { NodeVisitor, ProcessingContext } from '@core/processor/interfaces';
 
 /**
  * 支持的文档模式

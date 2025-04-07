@@ -4,9 +4,9 @@
  * 处理ID协议的引用
  */
 
-import { Reference } from '../../types/node';
-import { ProcessingContext, ProtocolHandler } from '../interfaces';
-import { ReferenceError, ErrorCode } from '../../errors/types';
+import { Reference } from '@core/types/node';
+import { ProcessingContext, ProtocolHandler } from '@core/processor/interfaces';
+import { ReferenceError, ErrorCode } from '@core/errors/types';
 
 /**
  * ID协议处理器上下文

@@ -5,17 +5,17 @@
  */
 
 // 导出接口
-export * from './interfaces';
+export * from '@core/processor/interfaces';
 
 // 导出实现
-export * from './defaultProcessor';
-export * from './defaultReferenceResolver';
+export * from '@core/processor/defaultProcessor';
+export * from '@core/processor/defaultReferenceResolver';
 
 // 导出访问者
-export * from './visitors';
+export * from '@core/processor/visitors';
 
 // 导出协议处理器
-export * from './protocols';
+export * from '@core/processor/protocols';
 
 // 导出工厂函数
-export * from './factory'; 
+export * from '@core/processor/factory'; 

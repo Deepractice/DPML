@@ -5,12 +5,12 @@
  */
 
 // 导出访问者实现
-export * from './idValidationVisitor';
-export * from './referenceVisitor';
-export * from './documentMetadataVisitor';
-export * from './inheritanceVisitor';
-export * from './markdownContentVisitor';
-export * from './attributeValidationVisitor';
+export * from '@core/processor/visitors/idValidationVisitor';
+export * from '@core/processor/visitors/referenceVisitor';
+export * from '@core/processor/visitors/documentMetadataVisitor';
+export * from '@core/processor/visitors/inheritanceVisitor';
+export * from '@core/processor/visitors/markdownContentVisitor';
+export * from '@core/processor/visitors/attributeValidationVisitor';
 
 // 导出工厂函数
-export * from './factory'; 
+export * from '@core/processor/visitors/factory'; 

@@ -6,9 +6,9 @@ import {
   Element, 
   Content, 
   SourcePosition 
-} from '../../types/node';
-import { ParseError } from '../../errors';
-import { ErrorCode } from '../../errors/types';
+} from '@core/types/node';
+import { ParseError } from '@core/errors';
+import { ErrorCode } from '@core/errors/types';
 
 /**
  * XML节点到DPML节点转换器
