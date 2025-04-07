@@ -37,6 +37,46 @@ export interface TransformOptions {
   cacheSize?: number;
   
   /**
+   * 是否合并多个访问者的返回值
+   * - true：合并所有访问者的返回值
+   * - false：只使用第一个返回非null/undefined的访问者结果
+   */
+  mergeReturnValues?: boolean;
+  
+  /**
+   * 是否对嵌套对象进行深度合并
+   * - true：递归合并所有嵌套对象
+   * - false：只合并顶层属性
+   */
+  deepMerge?: boolean;
+  
+  /**
+   * 是否合并数组
+   * - true：连接不同访问者返回的数组
+   * - false：覆盖先前返回的数组
+   */
+  mergeArrays?: boolean;
+  
+  /**
+   * 冲突解决策略
+   * - first-wins：第一个返回值优先
+   * - last-wins：最后一个返回值优先
+   */
+  conflictStrategy?: 'first-wins' | 'last-wins';
+  
+  /**
+   * 自定义合并函数
+   * 用于自定义处理不同访问者返回值的合并逻辑
+   */
+  customMergeFn?: (key: string, value1: any, value2: any) => any;
+  
+  /**
+   * 错误处理阈值
+   * 访问者连续抛出错误超过该阈值后将被禁用
+   */
+  errorThreshold?: number;
+  
+  /**
    * 其他扩展选项
    * 允许添加自定义选项
    */
