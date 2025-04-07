@@ -118,7 +118,7 @@ export class DefaultTransformer implements Transformer {
    * @returns 转换结果
    * @private
    */
-  private transformNode(node: any, context: TransformContext): any {
+  transformNode(node: any, context: TransformContext): any {
     if (isDocument(node)) {
       return this.transformDocument(node, context);
     } else if (isElement(node)) {
@@ -155,8 +155,27 @@ export class DefaultTransformer implements Transformer {
         const visitorResult = visitor.visitDocument(document, newContext);
         if (visitorResult !== null && visitorResult !== undefined) {
           result = visitorResult;
+          
+          // 更新父结果链
+          newContext.parentResults = [...newContext.parentResults, result];
+          
           break; // 第一个返回非空结果的访问者将决定结果
         }
+      }
+    }
+    
+    // 处理子节点（如果有）
+    if (document.children && document.children.length > 0 && result === null) {
+      // 如果没有访问者处理文档节点，则默认处理其子节点
+      const childResults = document.children.map(child => 
+        this.transformNode(child, newContext)
+      ).filter(res => res !== null && res !== undefined);
+      
+      if (childResults.length > 0) {
+        result = {
+          type: 'document',
+          children: childResults
+        };
       }
     }
     
@@ -185,8 +204,28 @@ export class DefaultTransformer implements Transformer {
         const visitorResult = visitor.visitElement(element, newContext);
         if (visitorResult !== null && visitorResult !== undefined) {
           result = visitorResult;
+          
+          // 更新父结果链
+          newContext.parentResults = [...newContext.parentResults, result];
+          
           break; // 第一个返回非空结果的访问者将决定结果
         }
+      }
+    }
+    
+    // 处理子节点（如果有）
+    if (element.children && element.children.length > 0 && result === null) {
+      // 如果没有访问者处理元素节点，则默认处理其子节点
+      const childResults = element.children.map(child => 
+        this.transformNode(child, newContext)
+      ).filter(res => res !== null && res !== undefined);
+      
+      if (childResults.length > 0) {
+        result = {
+          type: 'element',
+          tagName: element.tagName,
+          children: childResults
+        };
       }
     }
     
@@ -215,6 +254,10 @@ export class DefaultTransformer implements Transformer {
         const visitorResult = visitor.visitContent(content, newContext);
         if (visitorResult !== null && visitorResult !== undefined) {
           result = visitorResult;
+          
+          // 更新父结果链
+          newContext.parentResults = [...newContext.parentResults, result];
+          
           break; // 第一个返回非空结果的访问者将决定结果
         }
       }
@@ -245,11 +288,33 @@ export class DefaultTransformer implements Transformer {
         const visitorResult = visitor.visitReference(reference, newContext);
         if (visitorResult !== null && visitorResult !== undefined) {
           result = visitorResult;
+          
+          // 更新父结果链
+          newContext.parentResults = [...newContext.parentResults, result];
+          
           break; // 第一个返回非空结果的访问者将决定结果
         }
       }
     }
     
     return result;
+  }
+  
+  /**
+   * 处理节点的子节点
+   * 将子节点的转换结果作为数组返回
+   * @param node 包含子节点的节点
+   * @param context 上下文
+   * @returns 子节点转换结果数组
+   * @private
+   */
+  processChildren(node: any, context: TransformContext): any[] {
+    if (!node.children || node.children.length === 0) {
+      return [];
+    }
+    
+    return node.children.map((child: any) => 
+      this.transformNode(child, context)
+    ).filter((result: any) => result !== null && result !== undefined);
   }
 } 

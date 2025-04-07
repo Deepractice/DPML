@@ -185,4 +185,214 @@ describe('DefaultTransformer', () => {
       expect(result).toBe(mockResult);
     });
   });
+
+  // 测试子节点处理委托
+  describe('子节点处理委托', () => {
+    let transformer: DefaultTransformer;
+    
+    beforeEach(() => {
+      transformer = new DefaultTransformer();
+    });
+    
+    it('应该处理包含子节点的文档', () => {
+      // 创建有子节点的文档
+      const docWithChildren: ProcessedDocument = {
+        type: NodeType.DOCUMENT,
+        children: [
+          {
+            type: NodeType.ELEMENT,
+            tagName: 'test',
+            attributes: {},
+            children: [],
+            position: {
+              start: { line: 2, column: 1, offset: 10 },
+              end: { line: 2, column: 10, offset: 20 }
+            }
+          }
+        ],
+        position: {
+          start: { line: 1, column: 1, offset: 0 },
+          end: { line: 3, column: 1, offset: 30 }
+        }
+      };
+
+      // 创建模拟访问者
+      const documentVisitor: TransformerVisitor = {
+        visitDocument: vi.fn().mockImplementation((doc, context) => {
+          // 调用内部transformNode方法处理子节点
+          const childResults = doc.children.map((child: any) => 
+            (transformer as any).transformNode(child, context)
+          );
+          return { type: 'transformed-doc', children: childResults };
+        }),
+        priority: 100
+      };
+
+      const elementVisitor: TransformerVisitor = {
+        visitElement: vi.fn().mockReturnValue({ type: 'transformed-element' }),
+        priority: 100
+      };
+
+      transformer.registerVisitor(documentVisitor);
+      transformer.registerVisitor(elementVisitor);
+
+      // 转换文档
+      const result = transformer.transform(docWithChildren);
+
+      // 验证结果
+      expect(result).toEqual({
+        type: 'transformed-doc',
+        children: [
+          { type: 'transformed-element' }
+        ]
+      });
+
+      // 验证访问者方法调用
+      expect(documentVisitor.visitDocument).toHaveBeenCalled();
+      expect(elementVisitor.visitElement).toHaveBeenCalled();
+    });
+
+    it('应该支持嵌套子节点处理', () => {
+      // 创建具有嵌套子节点的文档
+      const docWithNestedChildren: ProcessedDocument = {
+        type: NodeType.DOCUMENT,
+        children: [
+          {
+            type: NodeType.ELEMENT,
+            tagName: 'parent',
+            attributes: {},
+            children: [
+              {
+                type: NodeType.ELEMENT,
+                tagName: 'child',
+                attributes: {},
+                children: [],
+                position: {
+                  start: { line: 3, column: 1, offset: 20 },
+                  end: { line: 3, column: 10, offset: 30 }
+                }
+              }
+            ],
+            position: {
+              start: { line: 2, column: 1, offset: 10 },
+              end: { line: 4, column: 1, offset: 40 }
+            }
+          }
+        ],
+        position: {
+          start: { line: 1, column: 1, offset: 0 },
+          end: { line: 5, column: 1, offset: 50 }
+        }
+      };
+
+      // 创建递归处理子节点的访问者
+      const documentVisitor: TransformerVisitor = {
+        visitDocument: vi.fn().mockImplementation((doc, context) => {
+          const childResults = doc.children.map((child: any) => 
+            (transformer as any).transformNode(child, context)
+          );
+          return { type: 'doc', children: childResults };
+        }),
+        priority: 100
+      };
+
+      const elementVisitor: TransformerVisitor = {
+        visitElement: vi.fn().mockImplementation((element, context) => {
+          const childResults = element.children.map((child: any) => 
+            (transformer as any).transformNode(child, context)
+          );
+          return { 
+            type: 'element', 
+            name: element.tagName, 
+            children: childResults 
+          };
+        }),
+        priority: 100
+      };
+
+      transformer.registerVisitor(documentVisitor);
+      transformer.registerVisitor(elementVisitor);
+
+      // 转换文档
+      const result = transformer.transform(docWithNestedChildren);
+
+      // 验证结果包含正确的嵌套结构
+      expect(result).toEqual({
+        type: 'doc',
+        children: [
+          {
+            type: 'element',
+            name: 'parent',
+            children: [
+              {
+                type: 'element',
+                name: 'child',
+                children: []
+              }
+            ]
+          }
+        ]
+      });
+
+      // 验证访问者方法被正确调用
+      expect(documentVisitor.visitDocument).toHaveBeenCalled();
+      expect(elementVisitor.visitElement).toHaveBeenCalledTimes(2);
+    });
+
+    it('应该在处理子节点时更新上下文路径', () => {
+      const pathCapture: string[][] = [];
+      
+      // 创建有子节点的文档
+      const docWithChildren: ProcessedDocument = {
+        type: NodeType.DOCUMENT,
+        children: [
+          {
+            type: NodeType.ELEMENT,
+            tagName: 'test',
+            attributes: {},
+            children: [],
+            position: {
+              start: { line: 2, column: 1, offset: 10 },
+              end: { line: 2, column: 10, offset: 20 }
+            }
+          }
+        ],
+        position: {
+          start: { line: 1, column: 1, offset: 0 },
+          end: { line: 3, column: 1, offset: 30 }
+        }
+      };
+
+      // 创建能捕获上下文路径的访问者
+      const documentVisitor: TransformerVisitor = {
+        visitDocument: vi.fn().mockImplementation((doc, context) => {
+          pathCapture.push([...context.path]);
+          const childResults = doc.children.map((child: any) => 
+            (transformer as any).transformNode(child, context)
+          );
+          return { type: 'doc', children: childResults };
+        }),
+        priority: 100
+      };
+
+      const elementVisitor: TransformerVisitor = {
+        visitElement: vi.fn().mockImplementation((element, context) => {
+          pathCapture.push([...context.path]);
+          return { type: 'element', name: element.tagName };
+        }),
+        priority: 100
+      };
+
+      transformer.registerVisitor(documentVisitor);
+      transformer.registerVisitor(elementVisitor);
+
+      // 转换文档
+      transformer.transform(docWithChildren);
+
+      // 验证上下文路径被正确更新
+      expect(pathCapture).toHaveLength(2);
+      expect(pathCapture[0]).toEqual(['document']); // 文档访问路径
+      expect(pathCapture[1]).toEqual(['document', 'element[test]']); // 元素访问路径
+    });
+  });
 }); 
