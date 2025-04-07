@@ -4,4 +4,5 @@
 
 export * from './baseVisitor';
 export * from './noopVisitor';
-export * from './documentStructureVisitor'; 
+export * from './documentStructureVisitor';
+export * from './metadataEnhancementVisitor'; 

@@ -53,6 +53,12 @@ export interface Element extends Node {
    * 用于存储处理过程中生成的语义信息和其他元数据
    */
   metadata?: Record<string, any>;
+  
+  /**
+   * 元素元数据信息
+   * 用于转换和输出过程中的元数据处理
+   */
+  meta?: Record<string, any>;
 }
 
 /**
