@@ -395,4 +395,236 @@ describe('DefaultTransformer', () => {
       expect(pathCapture[1]).toEqual(['document', 'element[test]']); // 元素访问路径
     });
   });
+  
+  // 测试转换结果缓存机制
+  describe('转换结果缓存', () => {
+    let transformer: DefaultTransformer;
+    
+    beforeEach(() => {
+      transformer = new DefaultTransformer();
+    });
+    
+    it('应该缓存节点转换结果', () => {
+      // 创建带有唯一ID的文档节点
+      const nodeId = 'doc-001';
+      const docWithId: ProcessedDocument = {
+        type: NodeType.DOCUMENT,
+        id: nodeId,
+        children: [],
+        position: {
+          start: { line: 1, column: 1, offset: 0 },
+          end: { line: 1, column: 1, offset: 0 }
+        }
+      };
+      
+      // 创建计数访问者，用于验证缓存命中
+      const visitCount = { count: 0 };
+      const countingVisitor: TransformerVisitor = {
+        visitDocument: vi.fn().mockImplementation(() => {
+          visitCount.count++;
+          return { type: 'doc', id: nodeId, transformed: true };
+        }),
+        priority: 100
+      };
+      
+      transformer.registerVisitor(countingVisitor);
+      
+      // 启用缓存
+      transformer.configure({ enableCache: true });
+      
+      // 第一次转换，应该调用访问者
+      const result1 = transformer.transform(docWithId);
+      expect(visitCount.count).toBe(1);
+      expect(result1).toEqual({ type: 'doc', id: nodeId, transformed: true });
+      
+      // 第二次转换相同的节点，应该使用缓存
+      const result2 = transformer.transform(docWithId);
+      expect(visitCount.count).toBe(1); // 访问计数应该没有增加
+      expect(result2).toEqual({ type: 'doc', id: nodeId, transformed: true });
+      
+      // 验证结果是同一个对象（缓存命中）
+      expect(result1).toBe(result2);
+    });
+    
+    it('应该在禁用缓存时不使用缓存', () => {
+      // 创建带有唯一ID的文档节点
+      const nodeId = 'doc-002';
+      const docWithId: ProcessedDocument = {
+        type: NodeType.DOCUMENT,
+        id: nodeId,
+        children: [],
+        position: {
+          start: { line: 1, column: 1, offset: 0 },
+          end: { line: 1, column: 1, offset: 0 }
+        }
+      };
+      
+      // 创建计数访问者，用于验证每次都调用
+      const visitCount = { count: 0 };
+      const countingVisitor: TransformerVisitor = {
+        visitDocument: vi.fn().mockImplementation(() => {
+          visitCount.count++;
+          return { type: 'doc', id: nodeId, transformed: true };
+        }),
+        priority: 100
+      };
+      
+      transformer.registerVisitor(countingVisitor);
+      
+      // 禁用缓存
+      transformer.configure({ enableCache: false });
+      
+      // 第一次转换
+      const result1 = transformer.transform(docWithId);
+      expect(visitCount.count).toBe(1);
+      
+      // 第二次转换相同的节点，应该再次调用访问者
+      const result2 = transformer.transform(docWithId);
+      expect(visitCount.count).toBe(2); // 访问计数应该增加
+      
+      // 结果应该是不同的对象（没有缓存）
+      expect(result1).not.toBe(result2);
+      // 但值应该相同
+      expect(result1).toEqual(result2);
+    });
+    
+    it('应该基于节点ID或内容哈希进行缓存', () => {
+      // 创建两个内容相同但ID不同的节点
+      const doc1: ProcessedDocument = {
+        type: NodeType.DOCUMENT,
+        id: 'doc-003-a',
+        children: [],
+        position: {
+          start: { line: 1, column: 1, offset: 0 },
+          end: { line: 1, column: 1, offset: 0 }
+        }
+      };
+      
+      const doc2: ProcessedDocument = {
+        type: NodeType.DOCUMENT,
+        id: 'doc-003-b', // 不同的ID
+        children: [],
+        position: {
+          start: { line: 1, column: 1, offset: 0 },
+          end: { line: 1, column: 1, offset: 0 }
+        }
+      };
+      
+      // 创建计数访问者
+      const visitCount = { count: 0 };
+      const countingVisitor: TransformerVisitor = {
+        visitDocument: vi.fn().mockImplementation((doc) => {
+          visitCount.count++;
+          return { type: 'doc', id: (doc as any).id, transformed: true };
+        }),
+        priority: 100
+      };
+      
+      transformer.registerVisitor(countingVisitor);
+      
+      // 启用缓存
+      transformer.configure({ enableCache: true });
+      
+      // 转换第一个文档
+      transformer.transform(doc1);
+      expect(visitCount.count).toBe(1);
+      
+      // 转换第二个文档（不同ID）
+      transformer.transform(doc2);
+      expect(visitCount.count).toBe(2); // 应该增加
+    });
+    
+    it('应该在文档变化时无效化缓存', () => {
+      // 创建带有唯一ID的可变文档节点
+      const nodeId = 'doc-004';
+      const mutableDoc: ProcessedDocument = {
+        type: NodeType.DOCUMENT,
+        id: nodeId,
+        children: [],
+        position: {
+          start: { line: 1, column: 1, offset: 0 },
+          end: { line: 1, column: 1, offset: 0 }
+        },
+        meta: { version: 1 } // 元数据，用于检测变化
+      };
+      
+      // 创建计数访问者
+      const visitCount = { count: 0 };
+      const countingVisitor: TransformerVisitor = {
+        visitDocument: vi.fn().mockImplementation((doc) => {
+          visitCount.count++;
+          // 返回包含版本的结果
+          return { 
+            type: 'doc', 
+            id: nodeId, 
+            version: (doc as any).meta.version,
+            transformed: true 
+          };
+        }),
+        priority: 100
+      };
+      
+      transformer.registerVisitor(countingVisitor);
+      
+      // 启用缓存
+      transformer.configure({ enableCache: true });
+      
+      // 第一次转换
+      const result1 = transformer.transform(mutableDoc);
+      expect(visitCount.count).toBe(1);
+      expect(result1.version).toBe(1);
+      
+      // 修改文档
+      mutableDoc.meta = { version: 2 };
+      
+      // 再次转换，由于文档变化，缓存应该失效
+      const result2 = transformer.transform(mutableDoc);
+      expect(visitCount.count).toBe(2); // 访问计数应该增加
+      expect(result2.version).toBe(2); // 结果应该反映新版本
+    });
+    
+    it('应该支持缓存的手动清除', () => {
+      // 创建带有唯一ID的文档节点
+      const nodeId = 'doc-005';
+      const docWithId: ProcessedDocument = {
+        type: NodeType.DOCUMENT,
+        id: nodeId,
+        children: [],
+        position: {
+          start: { line: 1, column: 1, offset: 0 },
+          end: { line: 1, column: 1, offset: 0 }
+        }
+      };
+      
+      // 创建计数访问者
+      const visitCount = { count: 0 };
+      const countingVisitor: TransformerVisitor = {
+        visitDocument: vi.fn().mockImplementation(() => {
+          visitCount.count++;
+          return { type: 'doc', id: nodeId, transformed: true };
+        }),
+        priority: 100
+      };
+      
+      transformer.registerVisitor(countingVisitor);
+      
+      // 启用缓存
+      transformer.configure({ enableCache: true });
+      
+      // 第一次转换
+      transformer.transform(docWithId);
+      expect(visitCount.count).toBe(1);
+      
+      // 第二次转换，应该使用缓存
+      transformer.transform(docWithId);
+      expect(visitCount.count).toBe(1); // 计数不变
+      
+      // 手动清除缓存
+      (transformer as any).clearCache();
+      
+      // 第三次转换，应该重新调用访问者
+      transformer.transform(docWithId);
+      expect(visitCount.count).toBe(2); // 计数增加
+    });
+  });
 }); 

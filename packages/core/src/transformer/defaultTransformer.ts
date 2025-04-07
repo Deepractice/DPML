@@ -7,6 +7,26 @@ import { TransformOptions } from './interfaces/transformOptions';
 import { TransformerVisitor } from './interfaces/transformerVisitor';
 
 /**
+ * 节点缓存项
+ */
+interface CacheItem {
+  /**
+   * 节点的唯一标识符
+   */
+  nodeId: string;
+  
+  /**
+   * 节点的哈希值或内容签名
+   */
+  contentHash?: string;
+  
+  /**
+   * 缓存的转换结果
+   */
+  result: any;
+}
+
+/**
  * 默认转换器实现
  */
 export class DefaultTransformer implements Transformer {
@@ -27,6 +47,12 @@ export class DefaultTransformer implements Transformer {
    * @private
    */
   private options: TransformOptions = {};
+  
+  /**
+   * 缓存映射
+   * @private
+   */
+  private cache: Map<string, CacheItem> = new Map();
   
   /**
    * 默认优先级
@@ -95,6 +121,18 @@ export class DefaultTransformer implements Transformer {
    */
   configure(options: TransformOptions): void {
     this.options = { ...options };
+    
+    // 如果禁用缓存，清除缓存
+    if (options.enableCache === false) {
+      this.clearCache();
+    }
+  }
+  
+  /**
+   * 清除缓存
+   */
+  clearCache(): void {
+    this.cache.clear();
   }
   
   /**
@@ -119,18 +157,144 @@ export class DefaultTransformer implements Transformer {
    * @private
    */
   transformNode(node: any, context: TransformContext): any {
-    if (isDocument(node)) {
-      return this.transformDocument(node, context);
-    } else if (isElement(node)) {
-      return this.transformElement(node, context);
-    } else if (isContent(node)) {
-      return this.transformContent(node, context);
-    } else if (isReference(node)) {
-      return this.transformReference(node, context);
+    // 检查是否启用缓存
+    const enableCache = context.options.enableCache === true;
+    
+    if (enableCache) {
+      // 尝试从缓存获取结果
+      const cachedResult = this.getCachedResult(node);
+      if (cachedResult !== undefined) {
+        return cachedResult;
+      }
     }
     
-    // 不支持的节点类型，直接返回
-    return null;
+    // 没有缓存或缓存未命中，执行转换
+    let result: any;
+    
+    if (isDocument(node)) {
+      result = this.transformDocument(node, context);
+    } else if (isElement(node)) {
+      result = this.transformElement(node, context);
+    } else if (isContent(node)) {
+      result = this.transformContent(node, context);
+    } else if (isReference(node)) {
+      result = this.transformReference(node, context);
+    } else {
+      // 不支持的节点类型，直接返回
+      return null;
+    }
+    
+    // 如果启用缓存，将结果存入缓存
+    if (enableCache && result !== null && result !== undefined) {
+      this.cacheResult(node, result);
+    }
+    
+    return result;
+  }
+  
+  /**
+   * 获取节点的缓存键
+   * @param node 节点
+   * @returns 缓存键
+   * @private
+   */
+  private getCacheKey(node: any): string | undefined {
+    // 如果节点有ID，直接使用
+    if (node.id) {
+      return `id:${node.id}`;
+    }
+    
+    // 生成内容哈希作为键
+    // 简单实现，实际中可能需要更复杂的哈希算法
+    return this.generateContentHash(node);
+  }
+  
+  /**
+   * 生成节点内容哈希
+   * @param node 节点
+   * @returns 内容哈希
+   * @private
+   */
+  private generateContentHash(node: any): string | undefined {
+    if (!node) return undefined;
+    
+    // 根据节点类型和内容生成简单哈希
+    let hashParts: string[] = [];
+    
+    // 添加节点类型
+    hashParts.push(`type:${node.type}`);
+    
+    // 添加标签名（如果是元素）
+    if (node.tagName) {
+      hashParts.push(`tag:${node.tagName}`);
+    }
+    
+    // 添加内容（如果有）
+    if (node.content) {
+      hashParts.push(`content:${node.content}`);
+    }
+    
+    // 添加引用协议（如果是引用）
+    if (node.protocol) {
+      hashParts.push(`protocol:${node.protocol}`);
+    }
+    
+    // 添加位置信息
+    if (node.position) {
+      hashParts.push(`pos:${node.position.start.line}-${node.position.end.line}`);
+    }
+    
+    // 添加元数据的版本信息（如果有）
+    if (node.meta && node.meta.version) {
+      hashParts.push(`ver:${node.meta.version}`);
+    }
+    
+    // 合并所有部分
+    return hashParts.join('|');
+  }
+  
+  /**
+   * 从缓存获取结果
+   * @param node 节点
+   * @returns 缓存的结果或undefined（未命中）
+   * @private
+   */
+  private getCachedResult(node: any): any {
+    const cacheKey = this.getCacheKey(node);
+    if (!cacheKey) return undefined;
+    
+    const cachedItem = this.cache.get(cacheKey);
+    if (!cachedItem) return undefined;
+    
+    // 检查内容哈希是否匹配（确保节点内容未变）
+    const currentContentHash = this.generateContentHash(node);
+    if (cachedItem.contentHash && cachedItem.contentHash !== currentContentHash) {
+      // 内容已变更，缓存无效
+      this.cache.delete(cacheKey);
+      return undefined;
+    }
+    
+    return cachedItem.result;
+  }
+  
+  /**
+   * 缓存转换结果
+   * @param node 节点
+   * @param result 转换结果
+   * @private
+   */
+  private cacheResult(node: any, result: any): void {
+    const cacheKey = this.getCacheKey(node);
+    if (!cacheKey) return;
+    
+    const contentHash = this.generateContentHash(node);
+    
+    // 存储缓存项
+    this.cache.set(cacheKey, {
+      nodeId: cacheKey,
+      contentHash,
+      result
+    });
   }
   
   /**

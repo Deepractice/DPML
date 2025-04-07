@@ -24,6 +24,19 @@ export interface TransformOptions {
   variables?: Record<string, any>;
   
   /**
+   * 是否启用转换结果缓存
+   * - true：启用缓存，相同节点的转换结果将被缓存
+   * - false：禁用缓存，每次都重新计算转换结果
+   */
+  enableCache?: boolean;
+  
+  /**
+   * 缓存大小限制
+   * 当缓存项数量超过此值时，将使用LRU策略清理
+   */
+  cacheSize?: number;
+  
+  /**
    * 其他扩展选项
    * 允许添加自定义选项
    */
