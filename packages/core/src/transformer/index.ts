@@ -5,4 +5,8 @@
  */
 
 // 导出所有接口
-export * from './interfaces'; 
+export * from './interfaces';
+
+// 导出默认实现
+export * from './defaultTransformer';
+export * from './defaultTransformerFactory'; 
