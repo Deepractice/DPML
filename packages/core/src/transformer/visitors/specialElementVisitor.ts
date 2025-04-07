@@ -208,9 +208,16 @@ export class SpecialElementVisitor implements TransformerVisitor {
     }
     
     if (node.type === NodeType.DOCUMENT) {
-      return this.visitDocument(node as Document, context);
+      const document = node as Document;
+      const result = this.visitDocument(document, context);
+      // 由于visitDocument返回Promise<Document>，因此不能直接在同步方法中使用
+      // 这里返回原始文档，实际使用应通过visitAsync方法
+      return document;
     } else if (node.type === NodeType.ELEMENT) {
-      return this.visitElement(node as Element, context);
+      const element = node as Element;
+      // 同样，visitElement返回Promise<Element>，因此不能直接在同步方法中使用
+      // 返回原始元素，实际使用应通过visitAsync方法
+      return element;
     }
     
     // 其他类型节点原样返回

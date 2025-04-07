@@ -67,6 +67,7 @@ export interface Element extends Node {
 export interface Content extends Node {
   type: NodeType.CONTENT;
   value: string;
+  meta?: Record<string, any>;
 }
 
 /**

@@ -10,4 +10,5 @@ export * from './referenceInlineVisitor';
 export * from './semanticTagVisitor';
 export * from './elementVisitor';
 export * from './unknownElementVisitor';
-export * from './specialElementVisitor'; 
+export * from './specialElementVisitor';
+export * from './contentVisitor'; 
