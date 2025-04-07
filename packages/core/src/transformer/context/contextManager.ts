@@ -294,4 +294,54 @@ export class ContextManager {
     
     return merged;
   }
+
+  /**
+   * 深度克隆对象
+   * @param obj 要克隆的对象
+   * @returns 深度克隆后的对象
+   * @private
+   */
+  private deepCloneObject<T>(obj: T): T {
+    // 处理null或undefined
+    if (obj === null || obj === undefined) {
+      return obj;
+    }
+
+    // 处理基本类型
+    if (typeof obj !== 'object') {
+      return obj;
+    }
+
+    // 处理数组
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.deepCloneObject(item)) as unknown as T;
+    }
+
+    // 处理对象
+    const result = {} as T;
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        result[key] = this.deepCloneObject(obj[key]);
+      }
+    }
+    return result;
+  }
+
+  /**
+   * 深度克隆上下文
+   * @param context 原上下文
+   * @returns 深度克隆后的上下文
+   */
+  deepCloneContext(context: TransformContext): TransformContext {
+    return {
+      // document和options通常是只读的，不需要深度克隆
+      document: context.document,
+      options: context.options,
+      // 深度克隆其他属性
+      variables: this.deepCloneObject(context.variables),
+      path: this.deepCloneObject(context.path),
+      parentResults: this.deepCloneObject(context.parentResults),
+      output: this.deepCloneObject(context.output)
+    };
+  }
 } 

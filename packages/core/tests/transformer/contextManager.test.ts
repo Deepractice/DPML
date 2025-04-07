@@ -337,5 +337,101 @@ describe('ContextManager', () => {
       expect(originalContext.parentResults).toEqual([{ type: 'result' }]);
       expect(originalContext.output).toEqual({ key: 'value' });
     });
+    
+    it('应该能深度克隆包含复杂嵌套对象的上下文', () => {
+      const contextManager = new ContextManager();
+      
+      // 创建包含嵌套对象的测试上下文
+      const originalContext: TransformContext = {
+        document: mockDocument,
+        options: mockOptions,
+        output: { 
+          nested: { 
+            deep: { 
+              value: 42,
+              array: [1, 2, { item: 'test' }]
+            }
+          }
+        },
+        variables: { 
+          complex: {
+            data: {
+              items: [
+                { id: 1, name: 'item1' },
+                { id: 2, name: 'item2' }
+              ],
+              metadata: {
+                version: "1.0",
+                author: "测试人员"
+              }
+            }
+          }
+        },
+        path: ['document', 'section'],
+        parentResults: [
+          { 
+            type: 'document',
+            metadata: { title: "测试文档" },
+            children: [
+              { 
+                type: 'section',
+                elements: [{ id: 'elem1' }]
+              }
+            ]
+          }
+        ]
+      };
+      
+      // 执行深度克隆
+      const clonedContext = contextManager.deepCloneContext(originalContext);
+      
+      // 验证是不同的对象
+      expect(clonedContext).not.toBe(originalContext);
+      
+      // 验证document和options是共享引用（不需要深拷贝）
+      expect(clonedContext.document).toBe(originalContext.document);
+      expect(clonedContext.options).toBe(originalContext.options);
+      
+      // 验证output被深拷贝
+      expect(clonedContext.output).toEqual(originalContext.output);
+      expect(clonedContext.output).not.toBe(originalContext.output);
+      expect(clonedContext.output.nested).not.toBe(originalContext.output.nested);
+      expect(clonedContext.output.nested.deep).not.toBe(originalContext.output.nested.deep);
+      expect(clonedContext.output.nested.deep.array).not.toBe(originalContext.output.nested.deep.array);
+      expect(clonedContext.output.nested.deep.array[2]).not.toBe(originalContext.output.nested.deep.array[2]);
+      
+      // 验证variables被深拷贝
+      expect(clonedContext.variables).toEqual(originalContext.variables);
+      expect(clonedContext.variables).not.toBe(originalContext.variables);
+      expect(clonedContext.variables.complex).not.toBe(originalContext.variables.complex);
+      expect(clonedContext.variables.complex.data).not.toBe(originalContext.variables.complex.data);
+      expect(clonedContext.variables.complex.data.items).not.toBe(originalContext.variables.complex.data.items);
+      expect(clonedContext.variables.complex.data.items[0]).not.toBe(originalContext.variables.complex.data.items[0]);
+      expect(clonedContext.variables.complex.data.metadata).not.toBe(originalContext.variables.complex.data.metadata);
+      
+      // 验证parentResults被深拷贝
+      expect(clonedContext.parentResults).toEqual(originalContext.parentResults);
+      expect(clonedContext.parentResults).not.toBe(originalContext.parentResults);
+      expect(clonedContext.parentResults[0]).not.toBe(originalContext.parentResults[0]);
+      expect(clonedContext.parentResults[0].metadata).not.toBe(originalContext.parentResults[0].metadata);
+      expect(clonedContext.parentResults[0].children).not.toBe(originalContext.parentResults[0].children);
+      expect(clonedContext.parentResults[0].children[0]).not.toBe(originalContext.parentResults[0].children[0]);
+      expect(clonedContext.parentResults[0].children[0].elements).not.toBe(originalContext.parentResults[0].children[0].elements);
+      
+      // 验证path被深拷贝
+      expect(clonedContext.path).toEqual(originalContext.path);
+      expect(clonedContext.path).not.toBe(originalContext.path);
+      
+      // 验证修改克隆对象不影响原对象
+      clonedContext.variables.complex.data.items[0].name = 'changed';
+      clonedContext.output.nested.deep.value = 99;
+      clonedContext.parentResults[0].metadata.title = '修改后的标题';
+      clonedContext.path.push('paragraph');
+      
+      expect(originalContext.variables.complex.data.items[0].name).toBe('item1');
+      expect(originalContext.output.nested.deep.value).toBe(42);
+      expect(originalContext.parentResults[0].metadata.title).toBe('测试文档');
+      expect(originalContext.path).toEqual(['document', 'section']);
+    });
   });
 }); 
