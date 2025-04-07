@@ -5,6 +5,7 @@ import { Transformer } from './interfaces/transformer';
 import { TransformContext } from './interfaces/transformContext';
 import { TransformOptions } from './interfaces/transformOptions';
 import { TransformerVisitor } from './interfaces/transformerVisitor';
+import { ContextManager } from './context/contextManager';
 
 /**
  * 节点缓存项
@@ -55,6 +56,12 @@ export class DefaultTransformer implements Transformer {
   private cache: Map<string, CacheItem> = new Map();
   
   /**
+   * 上下文管理器
+   * @private
+   */
+  private contextManager: ContextManager = new ContextManager();
+  
+  /**
    * 默认优先级
    * @private
    */
@@ -94,15 +101,8 @@ export class DefaultTransformer implements Transformer {
     // 确保访问者已排序
     this.sortVisitors();
     
-    // 创建上下文
-    const context: TransformContext = {
-      output: {},
-      document,
-      options: mergedOptions,
-      variables: {},
-      path: [],
-      parentResults: []
-    };
+    // 创建根上下文
+    const context = this.contextManager.createRootContext(document, mergedOptions);
     
     // 转换文档
     let result = this.transformNode(document, context);
@@ -154,7 +154,6 @@ export class DefaultTransformer implements Transformer {
    * @param node 节点
    * @param context 上下文
    * @returns 转换结果
-   * @private
    */
   transformNode(node: any, context: TransformContext): any {
     // 检查是否启用缓存
@@ -306,35 +305,50 @@ export class DefaultTransformer implements Transformer {
    */
   private transformDocument(document: ProcessedDocument, context: TransformContext): any {
     // 更新上下文路径
-    const newContext = {
-      ...context,
-      path: [...context.path, 'document']
-    };
+    const newContext = this.contextManager.createChildContext(
+      context,
+      'document'
+    );
     
     // 应用所有具有visitDocument方法的访问者
     let result = null;
     
     for (const visitor of this.visitors) {
       if (visitor.visitDocument) {
-        const visitorResult = visitor.visitDocument(document, newContext);
+        // 复制上下文，避免干扰其他访问者
+        const visitorContext = this.contextManager.cloneContext(newContext);
+        const visitorResult = visitor.visitDocument(document, visitorContext);
+        
         if (visitorResult !== null && visitorResult !== undefined) {
           result = visitorResult;
-          
-          // 更新父结果链
-          newContext.parentResults = [...newContext.parentResults, result];
-          
           break; // 第一个返回非空结果的访问者将决定结果
         }
       }
     }
     
-    // 处理子节点（如果有）
-    if (document.children && document.children.length > 0 && result === null) {
-      // 如果没有访问者处理文档节点，则默认处理其子节点
-      const childResults = document.children.map(child => 
-        this.transformNode(child, newContext)
-      ).filter(res => res !== null && res !== undefined);
+    // 如果有结果，则处理子节点
+    if (result !== null && document.children && document.children.length > 0) {
+      // 创建包含当前节点结果的上下文
+      const childContext = this.contextManager.addResult(newContext, result);
       
+      // 处理子节点，存储结果
+      const childResults = document.children.map((child: any) => 
+        this.transformNode(child, childContext)
+      ).filter((childResult: any) => childResult !== null && childResult !== undefined);
+      
+      // 如果有子节点结果，并且结果对象有children属性，则添加子节点结果
+      if (childResults.length > 0 && typeof result === 'object') {
+        result.children = childResults;
+      }
+    }
+    // 如果没有访问者处理文档节点，但有子节点
+    else if (result === null && document.children && document.children.length > 0) {
+      // 处理子节点
+      const childResults = document.children.map((child: any) => 
+        this.transformNode(child, newContext)
+      ).filter((childResult: any) => childResult !== null && childResult !== undefined);
+      
+      // 如果子节点有结果，创建默认文档结果
       if (childResults.length > 0) {
         result = {
           type: 'document',
@@ -355,35 +369,50 @@ export class DefaultTransformer implements Transformer {
    */
   private transformElement(element: any, context: TransformContext): any {
     // 更新上下文路径
-    const newContext = {
-      ...context,
-      path: [...context.path, `element[${element.tagName}]`]
-    };
+    const newContext = this.contextManager.createChildContext(
+      context,
+      `element[${element.tagName}]`
+    );
     
     // 应用所有具有visitElement方法的访问者
     let result = null;
     
     for (const visitor of this.visitors) {
       if (visitor.visitElement) {
-        const visitorResult = visitor.visitElement(element, newContext);
+        // 复制上下文，避免干扰其他访问者
+        const visitorContext = this.contextManager.cloneContext(newContext);
+        const visitorResult = visitor.visitElement(element, visitorContext);
+        
         if (visitorResult !== null && visitorResult !== undefined) {
           result = visitorResult;
-          
-          // 更新父结果链
-          newContext.parentResults = [...newContext.parentResults, result];
-          
           break; // 第一个返回非空结果的访问者将决定结果
         }
       }
     }
     
-    // 处理子节点（如果有）
-    if (element.children && element.children.length > 0 && result === null) {
-      // 如果没有访问者处理元素节点，则默认处理其子节点
-      const childResults = element.children.map(child => 
-        this.transformNode(child, newContext)
-      ).filter(res => res !== null && res !== undefined);
+    // 如果有结果，则处理子节点
+    if (result !== null && element.children && element.children.length > 0) {
+      // 创建包含当前节点结果的上下文
+      const childContext = this.contextManager.addResult(newContext, result);
       
+      // 处理子节点，存储结果
+      const childResults = element.children.map((child: any) => 
+        this.transformNode(child, childContext)
+      ).filter((childResult: any) => childResult !== null && childResult !== undefined);
+      
+      // 如果有子节点结果，并且结果对象有children属性，则添加子节点结果
+      if (childResults.length > 0 && typeof result === 'object') {
+        result.children = childResults;
+      }
+    }
+    // 如果没有访问者处理元素节点，但有子节点
+    else if (result === null && element.children && element.children.length > 0) {
+      // 处理子节点
+      const childResults = element.children.map((child: any) => 
+        this.transformNode(child, newContext)
+      ).filter((childResult: any) => childResult !== null && childResult !== undefined);
+      
+      // 如果子节点有结果，创建默认元素结果
       if (childResults.length > 0) {
         result = {
           type: 'element',
@@ -405,23 +434,23 @@ export class DefaultTransformer implements Transformer {
    */
   private transformContent(content: any, context: TransformContext): any {
     // 更新上下文路径
-    const newContext = {
-      ...context,
-      path: [...context.path, 'content']
-    };
+    const newContext = this.contextManager.createChildContext(
+      context,
+      'content'
+    );
     
     // 应用所有具有visitContent方法的访问者
     let result = null;
     
     for (const visitor of this.visitors) {
       if (visitor.visitContent) {
-        const visitorResult = visitor.visitContent(content, newContext);
+        // 复制上下文，避免干扰其他访问者
+        const visitorContext = this.contextManager.cloneContext(newContext);
+        const visitorResult = visitor.visitContent(content, visitorContext);
+        
         if (visitorResult !== null && visitorResult !== undefined) {
           result = visitorResult;
-          
-          // 更新父结果链
-          newContext.parentResults = [...newContext.parentResults, result];
-          
+          // 注意：内容节点没有子节点，不需要更新父结果链
           break; // 第一个返回非空结果的访问者将决定结果
         }
       }
@@ -439,23 +468,23 @@ export class DefaultTransformer implements Transformer {
    */
   private transformReference(reference: any, context: TransformContext): any {
     // 更新上下文路径
-    const newContext = {
-      ...context,
-      path: [...context.path, `reference[${reference.protocol}]`]
-    };
+    const newContext = this.contextManager.createChildContext(
+      context,
+      `reference[${reference.protocol}]`
+    );
     
     // 应用所有具有visitReference方法的访问者
     let result = null;
     
     for (const visitor of this.visitors) {
       if (visitor.visitReference) {
-        const visitorResult = visitor.visitReference(reference, newContext);
+        // 复制上下文，避免干扰其他访问者
+        const visitorContext = this.contextManager.cloneContext(newContext);
+        const visitorResult = visitor.visitReference(reference, visitorContext);
+        
         if (visitorResult !== null && visitorResult !== undefined) {
           result = visitorResult;
-          
-          // 更新父结果链
-          newContext.parentResults = [...newContext.parentResults, result];
-          
+          // 注意：引用节点没有子节点，不需要更新父结果链
           break; // 第一个返回非空结果的访问者将决定结果
         }
       }

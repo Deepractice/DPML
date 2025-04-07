@@ -200,4 +200,98 @@ export class ContextManager {
       output: { ...context.output }
     };
   }
+  
+  /**
+   * 获取指定类型的父结果
+   * @param context 上下文
+   * @param type 结果类型
+   * @returns 匹配的结果或undefined
+   */
+  getParentResultByType(context: TransformContext, type: string): any | undefined {
+    return context.parentResults.find(result => result.type === type);
+  }
+  
+  /**
+   * 获取指定索引的父结果
+   * @param context 上下文
+   * @param index 索引
+   * @returns 结果或undefined
+   */
+  getParentResultByIndex(context: TransformContext, index: number): any | undefined {
+    if (index < 0 || index >= context.parentResults.length) {
+      return undefined;
+    }
+    
+    return context.parentResults[index];
+  }
+  
+  /**
+   * 获取最近的父结果
+   * @param context 上下文
+   * @returns 最近的父结果或undefined
+   */
+  getLatestParentResult(context: TransformContext): any | undefined {
+    if (context.parentResults.length === 0) {
+      return undefined;
+    }
+    
+    return context.parentResults[context.parentResults.length - 1];
+  }
+  
+  /**
+   * 获取所有指定类型的父结果
+   * @param context 上下文
+   * @param type 结果类型
+   * @returns 匹配的结果数组
+   */
+  getAllParentResultsByType(context: TransformContext, type: string): any[] {
+    return context.parentResults.filter(result => result.type === type);
+  }
+  
+  /**
+   * 检查是否有指定类型的父结果
+   * @param context 上下文
+   * @param type 结果类型
+   * @returns 是否存在
+   */
+  hasParentResultOfType(context: TransformContext, type: string): boolean {
+    return context.parentResults.some(result => result.type === type);
+  }
+  
+  /**
+   * 通过路径获取对应父结果
+   * @param context 上下文
+   * @param path 路径
+   * @returns 父结果链
+   */
+  getParentResultsByPath(context: TransformContext): Record<string, any> {
+    const result: Record<string, any> = {};
+    
+    // 将路径和父结果组合
+    for (let i = 0; i < context.path.length && i < context.parentResults.length; i++) {
+      const pathSegment = context.path[i];
+      result[pathSegment] = context.parentResults[i];
+    }
+    
+    return result;
+  }
+  
+  /**
+   * 合并父结果链
+   * @param parentResults1 第一条父结果链
+   * @param parentResults2 第二条父结果链
+   * @returns 合并后的父结果链
+   */
+  mergeParentResults(parentResults1: any[], parentResults2: any[]): any[] {
+    const merged = [...parentResults1];
+    
+    // 合并第二条链的结果，避免重复
+    for (const result of parentResults2) {
+      if (!merged.includes(result)) {
+        merged.push(result);
+      }
+    }
+    
+    return merged;
+  }
 } 
