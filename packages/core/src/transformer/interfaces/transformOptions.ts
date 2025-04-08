@@ -13,9 +13,10 @@ export interface TransformOptions {
   /**
    * 转换模式
    * strict: 严格模式，任何错误都会中断转换
-   * loose: 宽松模式，尝试处理错误并继续转换
+   * lenient: 宽松模式，尝试处理错误并继续转换
+   * ignore: 忽略模式，忽略错误并继续处理
    */
-  mode?: 'strict' | 'loose';
+  mode?: 'strict' | 'loose' | 'lenient' | 'ignore';
   
   /**
    * 全局变量

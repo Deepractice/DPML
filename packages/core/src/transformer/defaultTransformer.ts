@@ -15,6 +15,7 @@ import { VisitorManager } from './visitor/visitorManager';
 import { TransformerOptions } from './interfaces/transformerOptions';
 import { OutputProcessor } from './interfaces/outputProcessor';
 import { DefaultOutputAdapter } from './adapters/defaultOutputAdapter';
+import { OutputAdapterFactory } from './interfaces/outputAdapterFactory';
 
 /**
  * 简单的默认输出处理器实现
@@ -114,8 +115,12 @@ export class DefaultTransformer implements Transformer {
   /**
    * 构造函数
    * @param options 转换器选项
+   * @param adapterFactory 输出适配器工厂
    */
-  constructor(options: TransformerOptions = { mode: 'strict', maxErrorCount: 10 }) {
+  constructor(
+    options: TransformerOptions = { mode: 'strict', maxErrorCount: 10 },
+    private adapterFactory?: OutputAdapterFactory
+  ) {
     this._visitorManager = new VisitorManager(3);
     this.outputAdapter = new DefaultOutputAdapter();
     this.outputProcessor = new NoopOutputProcessor();
