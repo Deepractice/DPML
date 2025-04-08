@@ -103,6 +103,7 @@ export function handleModeError(
   // 根据错误处理策略决定是否继续
   switch (config.errorHandling) {
     case 'throw':
+      // 在严格模式下，直接抛出错误，不捕获
       throw error;
     case 'warn':
       console.warn(`转换警告: ${error.message}`);

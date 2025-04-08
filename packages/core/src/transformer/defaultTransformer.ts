@@ -16,6 +16,8 @@ import { TransformerOptions } from './interfaces/transformerOptions';
 import { OutputProcessor } from './interfaces/outputProcessor';
 import { DefaultOutputAdapter } from './adapters/defaultOutputAdapter';
 import { OutputAdapterFactory } from './interfaces/outputAdapterFactory';
+// 导入合并功能
+import { mergeVisitorResults, MergeOptions } from './utils/mergeUtils';
 
 /**
  * 简单的默认输出处理器实现
@@ -436,55 +438,128 @@ export class DefaultTransformer implements Transformer {
       
       return result;
     }
+
+    // 检查是否启用了返回值合并
+    const shouldMergeResults = context.options.mergeReturnValues === true;
     
-    // 尝试使用访问者处理文档
-    for (const visitor of documentVisitors) {
-      try {
-        // 为每个访问者克隆一个干净的上下文
-        const visitorContext = this.contextManager.cloneContext(newContext);
-        
-        // 调用访问者处理文档
-        const visitResult = visitor.visitDocument!(document, visitorContext);
-        
-        // 访问者成功执行，重置错误计数
-        if (visitor.name) {
-          this._visitorManager.resetErrorCount(visitor.name);
-        }
-        
-        // 一旦有一个访问者返回非空结果，使用该结果并停止处理
-        if (visitResult != null) {
-          // 保存访问者结果到父结果
-          newContext.parentResults.push(visitResult);
+    if (shouldMergeResults) {
+      // 收集所有非空访问者结果
+      const visitorResults: any[] = [];
+      
+      for (const visitor of documentVisitors) {
+        try {
+          // 为每个访问者克隆一个干净的上下文
+          const visitorContext = this.contextManager.cloneContext(newContext);
           
-          // 处理子节点 (如果结果中有children属性)
-          if (visitResult.children && document.children && document.children.length > 0) {
-            const childrenContext = this.contextManager.createChildContext(
-              newContext, 
-              'children'
-            );
-            
-            const childResults = document.children.map(child => 
-              this.transformNode(child, childrenContext)
-            );
-            
-            // 更新子节点结果
-            return {
-              ...visitResult,
-              children: childResults.filter(r => r != null)
-            };
+          // 调用访问者处理文档
+          const visitResult = visitor.visitDocument!(document, visitorContext);
+          
+          // 访问者成功执行，重置错误计数
+          if (visitor.name) {
+            this._visitorManager.resetErrorCount(visitor.name);
           }
           
-          return visitResult;
+          // 收集非空结果
+          if (visitResult != null) {
+            visitorResults.push(visitResult);
+          }
+        } catch (error) {
+          // 处理访问者错误
+          this.handleVisitorError(error, visitor, 'document', document.position);
+          
+          // 在严格模式下，错误应该向上传播
+          if (context.options.mode === 'strict') {
+            throw error;
+          }
+        }
+      }
+      
+      // 如果有非空结果，进行合并
+      if (visitorResults.length > 0) {
+        // 创建合并选项
+        const mergeOptions: MergeOptions = {
+          deepMerge: context.options.deepMerge === true,
+          mergeArrays: context.options.mergeArrays === true,
+          conflictStrategy: context.options.conflictStrategy,
+          customMergeFn: context.options.customMergeFn
+        };
+        
+        // 合并访问者结果
+        const mergedResult = mergeVisitorResults(visitorResults, mergeOptions);
+        
+        // 将合并后的结果添加到父结果
+        newContext.parentResults.push(mergedResult);
+        
+        // 处理子节点 (如果结果中有children属性)
+        if (mergedResult.children !== undefined && document.children && document.children.length > 0) {
+          const childrenContext = this.contextManager.createChildContext(
+            newContext, 
+            'children'
+          );
+          
+          const childResults = document.children.map(child => 
+            this.transformNode(child, childrenContext)
+          );
+          
+          // 更新子节点结果
+          return {
+            ...mergedResult,
+            children: childResults.filter(r => r != null)
+          };
         }
         
-        // 否则继续下一个访问者
-      } catch (error) {
-        // 处理访问者错误
-        this.handleVisitorError(error, visitor, 'document', document.position);
-        
-        // 在严格模式下，错误应该向上传播
-        if (context.options.mode === 'strict') {
-          throw error;
+        return mergedResult;
+      }
+    } else {
+      // 原有逻辑：尝试使用访问者处理文档，返回第一个非空结果
+      for (const visitor of documentVisitors) {
+        try {
+          // 为每个访问者克隆一个干净的上下文
+          const visitorContext = this.contextManager.cloneContext(newContext);
+          
+          // 调用访问者处理文档
+          const visitResult = visitor.visitDocument!(document, visitorContext);
+          
+          // 访问者成功执行，重置错误计数
+          if (visitor.name) {
+            this._visitorManager.resetErrorCount(visitor.name);
+          }
+          
+          // 一旦有一个访问者返回非空结果，使用该结果并停止处理
+          if (visitResult != null) {
+            // 保存访问者结果到父结果
+            newContext.parentResults.push(visitResult);
+            
+            // 处理子节点 (如果结果中有children属性)
+            if (visitResult.children !== undefined && document.children && document.children.length > 0) {
+              const childrenContext = this.contextManager.createChildContext(
+                newContext, 
+                'children'
+              );
+              
+              const childResults = document.children.map(child => 
+                this.transformNode(child, childrenContext)
+              );
+              
+              // 更新子节点结果
+              return {
+                ...visitResult,
+                children: childResults.filter(r => r != null)
+              };
+            }
+            
+            return visitResult;
+          }
+          
+          // 否则继续下一个访问者
+        } catch (error) {
+          // 处理访问者错误
+          this.handleVisitorError(error, visitor, 'document', document.position);
+          
+          // 在严格模式下，错误应该向上传播
+          if (context.options.mode === 'strict') {
+            throw error;
+          }
         }
       }
     }
@@ -521,21 +596,21 @@ export class DefaultTransformer implements Transformer {
    * @private
    */
   private transformElement(element: Element, context: TransformContext): any {
-    // 更新上下文路径
+    // 更新上下文路径，添加标签名到路径
     const newContext = this.contextManager.createChildContext(
       context,
       `element[${element.tagName}]`
     );
     
-    // 获取元素访问者
+    // 获取所有元素访问者
     const elementVisitors = this._visitorManager.getVisitorsByMethod('visitElement');
     
     if (elementVisitors.length === 0) {
       // 如果没有元素访问者，默认返回一个包含子节点的结构
-      const result: { type: string, tagName: string, children: any[] } = {
-        type: 'element',
+      const result: { type: string, tagName: string, children: any[] } = { 
+        type: 'element', 
         tagName: element.tagName,
-        children: []
+        children: [] 
       };
       
       // 处理子节点
@@ -556,62 +631,137 @@ export class DefaultTransformer implements Transformer {
       
       return result;
     }
+
+    // 检查是否启用了返回值合并
+    const shouldMergeResults = context.options.mergeReturnValues === true;
     
-    // 尝试使用访问者处理元素
-    for (const visitor of elementVisitors) {
-      try {
-        // 为每个访问者克隆一个干净的上下文
-        const visitorContext = this.contextManager.cloneContext(newContext);
-        
-        // 调用访问者处理元素
-        const visitResult = visitor.visitElement!(element, visitorContext);
-        
-        // 访问者成功执行，重置错误计数
-        if (visitor.name) {
-          this._visitorManager.resetErrorCount(visitor.name);
-        }
-        
-        // 一旦有一个访问者返回非空结果，使用该结果并停止处理
-        if (visitResult != null) {
-          // 将访问者结果添加到父结果
-          newContext.parentResults.push(visitResult);
+    if (shouldMergeResults) {
+      // 收集所有非空访问者结果
+      const visitorResults: any[] = [];
+      
+      for (const visitor of elementVisitors) {
+        try {
+          // 为每个访问者克隆一个干净的上下文
+          const visitorContext = this.contextManager.cloneContext(newContext);
           
-          // 处理子节点 (如果结果中有children属性和元素有子节点)
-          if (visitResult.children && element.children && element.children.length > 0) {
-            const childrenContext = this.contextManager.createChildContext(
-              newContext, 
-              'children'
-            );
-            
-            const childResults = element.children.map(child => 
-              this.transformNode(child, childrenContext)
-            );
-            
-            // 更新子节点结果
-            return {
-              ...visitResult,
-              children: childResults.filter(r => r != null)
-            };
+          // 调用访问者处理元素
+          const visitResult = visitor.visitElement!(element, visitorContext);
+          
+          // 访问者成功执行，重置错误计数
+          if (visitor.name) {
+            this._visitorManager.resetErrorCount(visitor.name);
           }
           
-          return visitResult;
+          // 收集非空结果
+          if (visitResult != null) {
+            visitorResults.push(visitResult);
+          }
+        } catch (error) {
+          // 处理访问者错误
+          this.handleVisitorError(error, visitor, 'element', element.position);
+          
+          // 在严格模式下，错误应该向上传播
+          if (context.options.mode === 'strict') {
+            throw error;
+          }
         }
-      } catch (error) {
-        // 处理访问者错误
-        this.handleVisitorError(error, visitor, 'element', element.position);
+      }
+      
+      // 如果有非空结果，进行合并
+      if (visitorResults.length > 0) {
+        // 创建合并选项
+        const mergeOptions: MergeOptions = {
+          deepMerge: context.options.deepMerge === true,
+          mergeArrays: context.options.mergeArrays === true,
+          conflictStrategy: context.options.conflictStrategy,
+          customMergeFn: context.options.customMergeFn
+        };
         
-        // 在严格模式下，错误应该向上传播
-        if (context.options.mode === 'strict') {
-          throw error;
+        // 合并访问者结果
+        const mergedResult = mergeVisitorResults(visitorResults, mergeOptions);
+        
+        // 将合并后的结果添加到父结果
+        newContext.parentResults.push(mergedResult);
+        
+        // 处理子节点 (如果结果中有children属性)
+        if (mergedResult.children !== undefined && element.children && element.children.length > 0) {
+          const childrenContext = this.contextManager.createChildContext(
+            newContext, 
+            'children'
+          );
+          
+          const childResults = element.children.map(child => 
+            this.transformNode(child, childrenContext)
+          );
+          
+          // 更新子节点结果
+          return {
+            ...mergedResult,
+            children: childResults.filter(r => r != null)
+          };
+        }
+        
+        return mergedResult;
+      }
+    } else {
+      // 原有逻辑：尝试使用访问者处理元素，返回第一个非空结果
+      for (const visitor of elementVisitors) {
+        try {
+          // 为每个访问者克隆一个干净的上下文
+          const visitorContext = this.contextManager.cloneContext(newContext);
+          
+          // 调用访问者处理元素
+          const visitResult = visitor.visitElement!(element, visitorContext);
+          
+          // 访问者成功执行，重置错误计数
+          if (visitor.name) {
+            this._visitorManager.resetErrorCount(visitor.name);
+          }
+          
+          // 一旦有一个访问者返回非空结果，使用该结果并停止处理
+          if (visitResult != null) {
+            // 保存访问者结果到父结果
+            newContext.parentResults.push(visitResult);
+            
+            // 处理子节点 (如果结果中有children属性)
+            if (visitResult.children !== undefined && element.children && element.children.length > 0) {
+              const childrenContext = this.contextManager.createChildContext(
+                newContext, 
+                'children'
+              );
+              
+              const childResults = element.children.map(child => 
+                this.transformNode(child, childrenContext)
+              );
+              
+              // 更新子节点结果
+              return {
+                ...visitResult,
+                children: childResults.filter(r => r != null)
+              };
+            }
+            
+            return visitResult;
+          }
+          
+          // 否则继续下一个访问者
+        } catch (error) {
+          // 处理访问者错误
+          this.handleVisitorError(error, visitor, 'element', element.position);
+          
+          // 在严格模式下，错误应该向上传播
+          if (context.options.mode === 'strict') {
+            throw error;
+          }
         }
       }
     }
     
     // 如果所有访问者都未返回结果，返回默认结果
-    const defaultResult = {
-      type: 'element',
+    const defaultResult = { 
+      type: 'element', 
       tagName: element.tagName,
-      children: []
+      children: [] 
     };
     
     // 处理子节点
@@ -649,35 +799,102 @@ export class DefaultTransformer implements Transformer {
       'content'
     );
     
-    // 获取内容访问者
+    // 获取所有内容访问者
     const contentVisitors = this._visitorManager.getVisitorsByMethod('visitContent');
     
-    // 尝试使用访问者处理内容
-    for (const visitor of contentVisitors) {
-      try {
-        const visitResult = visitor.visitContent!(content, this.contextManager.cloneContext(newContext));
-        
-        // 访问者成功执行，重置错误计数
-        if (visitor.name) {
-          this._visitorManager.resetErrorCount(visitor.name);
+    if (contentVisitors.length === 0) {
+      // 如果没有内容访问者，返回内容本身
+      return content;
+    }
+
+    // 检查是否启用了返回值合并
+    const shouldMergeResults = context.options.mergeReturnValues === true;
+    
+    if (shouldMergeResults) {
+      // 收集所有非空访问者结果
+      const visitorResults: any[] = [];
+      
+      for (const visitor of contentVisitors) {
+        try {
+          // 为每个访问者克隆一个干净的上下文
+          const visitorContext = this.contextManager.cloneContext(newContext);
+          
+          // 调用访问者处理内容
+          const visitResult = visitor.visitContent!(content, visitorContext);
+          
+          // 访问者成功执行，重置错误计数
+          if (visitor.name) {
+            this._visitorManager.resetErrorCount(visitor.name);
+          }
+          
+          // 收集非空结果
+          if (visitResult != null) {
+            visitorResults.push(visitResult);
+          }
+        } catch (error) {
+          // 处理访问者错误
+          this.handleVisitorError(error, visitor, 'content', content.position);
+          
+          // 在严格模式下，错误应该向上传播
+          if (context.options.mode === 'strict') {
+            throw error;
+          }
         }
+      }
+      
+      // 如果有非空结果，进行合并
+      if (visitorResults.length > 0) {
+        // 创建合并选项
+        const mergeOptions: MergeOptions = {
+          deepMerge: context.options.deepMerge === true,
+          mergeArrays: context.options.mergeArrays === true,
+          conflictStrategy: context.options.conflictStrategy,
+          customMergeFn: context.options.customMergeFn
+        };
         
-        // 一旦有一个访问者返回非空结果，使用该结果并停止处理
-        if (visitResult != null) {
-          return visitResult;
-        }
-      } catch (error) {
-        // 处理访问者错误
-        this.handleVisitorError(error, visitor, 'content', content.position);
+        // 合并访问者结果
+        const mergedResult = mergeVisitorResults(visitorResults, mergeOptions);
         
-        // 在严格模式下，错误应该向上传播
-        if (context.options.mode === 'strict') {
-          throw error;
+        // 将合并后的结果添加到父结果
+        newContext.parentResults.push(mergedResult);
+        return mergedResult;
+      }
+    } else {
+      // 原有逻辑：尝试使用访问者处理内容，返回第一个非空结果
+      for (const visitor of contentVisitors) {
+        try {
+          // 为每个访问者克隆一个干净的上下文
+          const visitorContext = this.contextManager.cloneContext(newContext);
+          
+          // 调用访问者处理内容
+          const visitResult = visitor.visitContent!(content, visitorContext);
+          
+          // 访问者成功执行，重置错误计数
+          if (visitor.name) {
+            this._visitorManager.resetErrorCount(visitor.name);
+          }
+          
+          // 一旦有一个访问者返回非空结果，使用该结果并停止处理
+          if (visitResult != null) {
+            // 保存访问者结果到父结果
+            newContext.parentResults.push(visitResult);
+            return visitResult;
+          }
+          
+          // 否则继续下一个访问者
+        } catch (error) {
+          // 处理访问者错误
+          this.handleVisitorError(error, visitor, 'content', content.position);
+          
+          // 在严格模式下，错误应该向上传播
+          if (context.options.mode === 'strict') {
+            throw error;
+          }
         }
       }
     }
     
-    // 如果所有访问者都未返回结果，返回原始内容
+    // 如果所有访问者都未返回结果，返回内容本身
     return content;
   }
   
@@ -695,35 +912,102 @@ export class DefaultTransformer implements Transformer {
       'reference'
     );
     
-    // 获取引用访问者
+    // 获取所有引用访问者
     const referenceVisitors = this._visitorManager.getVisitorsByMethod('visitReference');
     
-    // 尝试使用访问者处理引用
-    for (const visitor of referenceVisitors) {
-      try {
-        const visitResult = visitor.visitReference!(reference, this.contextManager.cloneContext(newContext));
-        
-        // 访问者成功执行，重置错误计数
-        if (visitor.name) {
-          this._visitorManager.resetErrorCount(visitor.name);
+    if (referenceVisitors.length === 0) {
+      // 如果没有引用访问者，返回引用本身
+      return reference;
+    }
+
+    // 检查是否启用了返回值合并
+    const shouldMergeResults = context.options.mergeReturnValues === true;
+    
+    if (shouldMergeResults) {
+      // 收集所有非空访问者结果
+      const visitorResults: any[] = [];
+      
+      for (const visitor of referenceVisitors) {
+        try {
+          // 为每个访问者克隆一个干净的上下文
+          const visitorContext = this.contextManager.cloneContext(newContext);
+          
+          // 调用访问者处理引用
+          const visitResult = visitor.visitReference!(reference, visitorContext);
+          
+          // 访问者成功执行，重置错误计数
+          if (visitor.name) {
+            this._visitorManager.resetErrorCount(visitor.name);
+          }
+          
+          // 收集非空结果
+          if (visitResult != null) {
+            visitorResults.push(visitResult);
+          }
+        } catch (error) {
+          // 处理访问者错误
+          this.handleVisitorError(error, visitor, 'reference', reference.position);
+          
+          // 在严格模式下，错误应该向上传播
+          if (context.options.mode === 'strict') {
+            throw error;
+          }
         }
+      }
+      
+      // 如果有非空结果，进行合并
+      if (visitorResults.length > 0) {
+        // 创建合并选项
+        const mergeOptions: MergeOptions = {
+          deepMerge: context.options.deepMerge === true,
+          mergeArrays: context.options.mergeArrays === true,
+          conflictStrategy: context.options.conflictStrategy,
+          customMergeFn: context.options.customMergeFn
+        };
         
-        // 一旦有一个访问者返回非空结果，使用该结果并停止处理
-        if (visitResult != null) {
-          return visitResult;
-        }
-      } catch (error) {
-        // 处理访问者错误
-        this.handleVisitorError(error, visitor, 'reference', reference.position);
+        // 合并访问者结果
+        const mergedResult = mergeVisitorResults(visitorResults, mergeOptions);
         
-        // 在严格模式下，错误应该向上传播
-        if (context.options.mode === 'strict') {
-          throw error;
+        // 将合并后的结果添加到父结果
+        newContext.parentResults.push(mergedResult);
+        return mergedResult;
+      }
+    } else {
+      // 原有逻辑：尝试使用访问者处理引用，返回第一个非空结果
+      for (const visitor of referenceVisitors) {
+        try {
+          // 为每个访问者克隆一个干净的上下文
+          const visitorContext = this.contextManager.cloneContext(newContext);
+          
+          // 调用访问者处理引用
+          const visitResult = visitor.visitReference!(reference, visitorContext);
+          
+          // 访问者成功执行，重置错误计数
+          if (visitor.name) {
+            this._visitorManager.resetErrorCount(visitor.name);
+          }
+          
+          // 一旦有一个访问者返回非空结果，使用该结果并停止处理
+          if (visitResult != null) {
+            // 保存访问者结果到父结果
+            newContext.parentResults.push(visitResult);
+            return visitResult;
+          }
+          
+          // 否则继续下一个访问者
+        } catch (error) {
+          // 处理访问者错误
+          this.handleVisitorError(error, visitor, 'reference', reference.position);
+          
+          // 在严格模式下，错误应该向上传播
+          if (context.options.mode === 'strict') {
+            throw error;
+          }
         }
       }
     }
     
-    // 如果所有访问者都未返回结果，返回原始引用
+    // 如果所有访问者都未返回结果，返回引用本身
     return reference;
   }
   
