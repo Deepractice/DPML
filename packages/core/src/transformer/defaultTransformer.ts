@@ -113,6 +113,8 @@ export class DefaultTransformer implements Transformer {
   private cache: Map<string, CacheItem> = new Map();
   
   /**
+   * 输出适配器工厂
+  /**
    * 构造函数
    * @param options 转换器选项
    * @param adapterFactory 输出适配器工厂
@@ -150,6 +152,20 @@ export class DefaultTransformer implements Transformer {
    */
   setOutputAdapter(adapter: OutputAdapter): void {
     this.outputAdapter = adapter;
+  }
+  
+  /**
+   * 设置输出适配器工厂
+   * @param adapterFactory 适配器工厂
+   */
+  setOutputAdapterFactory(adapterFactory: OutputAdapterFactory): void {
+    this.adapterFactory = adapterFactory;
+    
+    // 如果有默认适配器，也可以在这里设置
+    const defaultAdapter = adapterFactory.getAdapter('default');
+    if (defaultAdapter) {
+      this.outputAdapter = defaultAdapter;
+    }
   }
   
   /**
