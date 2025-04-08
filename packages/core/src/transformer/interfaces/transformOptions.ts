@@ -77,6 +77,19 @@ export interface TransformOptions {
   errorThreshold?: number;
   
   /**
+   * 是否跳过嵌套处理
+   * - true：跳过默认的子节点处理逻辑
+   * - false：自动处理子节点
+   */
+  skipNestedProcessing?: boolean;
+  
+  /**
+   * 缓存过期时间（毫秒）
+   * 缓存项超过此时间后将被视为过期
+   */
+  cacheExpiry?: number;
+  
+  /**
    * 其他扩展选项
    * 允许添加自定义选项
    */

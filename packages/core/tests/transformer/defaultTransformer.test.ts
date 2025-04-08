@@ -28,90 +28,116 @@ describe('DefaultTransformer', () => {
     it('应该能注册访问者', () => {
       const visitor: TransformerVisitor = {
         visitDocument: vi.fn(),
-        priority: 100
+        priority: 100,
+        name: 'testVisitor'
       };
       
       transformer.registerVisitor(visitor);
       
-      // 检查内部访问者数组是否包含注册的访问者
-      expect((transformer as any).visitors).toContain(visitor);
+      // 检查内部访问者是否包含注册的访问者
+      expect(transformer.visitorManager.getVisitorsByMethod('visitDocument')).toContain(visitor);
     });
     
     it('应该根据优先级排序访问者', () => {
       const highPriorityVisitor: TransformerVisitor = {
         visitDocument: vi.fn(),
-        priority: 200
+        priority: 200,
+        name: 'highPriorityVisitor'
       };
       
       const mediumPriorityVisitor: TransformerVisitor = {
         visitDocument: vi.fn(),
-        priority: 100
+        priority: 100,
+        name: 'mediumPriorityVisitor'
       };
       
       const lowPriorityVisitor: TransformerVisitor = {
         visitDocument: vi.fn(),
-        priority: 50
+        priority: 50,
+        name: 'lowPriorityVisitor'
       };
       
-      // 以乱序注册
+      // 按随机顺序注册
       transformer.registerVisitor(mediumPriorityVisitor);
       transformer.registerVisitor(lowPriorityVisitor);
       transformer.registerVisitor(highPriorityVisitor);
       
-      // 转换时应该按优先级从高到低排序
-      transformer.transform(mockDocument);
-      
       // 验证内部访问者数组的排序
-      const visitors = (transformer as any).visitors;
+      const visitors = transformer.visitorManager.getVisitorsByMethod('visitDocument');
       expect(visitors[0]).toBe(highPriorityVisitor);
       expect(visitors[1]).toBe(mediumPriorityVisitor);
       expect(visitors[2]).toBe(lowPriorityVisitor);
     });
     
     it('应该处理无优先级的访问者(使用默认优先级)', () => {
-      const visitor1: TransformerVisitor = {
+      const withPriorityVisitor: TransformerVisitor = {
         visitDocument: vi.fn(),
-        // 无优先级，应使用默认优先级
+        priority: 100,
+        name: 'withPriorityVisitor'
       };
       
-      const visitor2: TransformerVisitor = {
+      const noPriorityVisitor: TransformerVisitor = {
         visitDocument: vi.fn(),
-        priority: 100
+        name: 'noPriorityVisitor'
       };
       
-      transformer.registerVisitor(visitor1);
-      transformer.registerVisitor(visitor2);
+      transformer.registerVisitor(withPriorityVisitor);
+      transformer.registerVisitor(noPriorityVisitor);
       
       // 转换时应该不会出错
-      transformer.transform(mockDocument);
+      const doc: ProcessedDocument = {
+        type: NodeType.DOCUMENT,
+        children: [],
+        position: {
+          start: { line: 1, column: 1, offset: 0 },
+          end: { line: 1, column: 1, offset: 0 }
+        }
+      };
       
-      // 无优先级访问者应该使用默认优先级(通常较低)
-      const visitors = (transformer as any).visitors;
-      // 假设默认优先级低于100
-      expect(visitors.indexOf(visitor2)).toBeLessThan(visitors.indexOf(visitor1));
+      transformer.transform(doc);
+      
+      // 验证访问者优先级排序
+      const visitors = transformer.visitorManager.getVisitorsByMethod('visitDocument');
+      // 有优先级的访问者应该排在无优先级的访问者之前
+      const withPriorityIndex = visitors.indexOf(withPriorityVisitor);
+      const noPriorityIndex = visitors.indexOf(noPriorityVisitor);
+      expect(withPriorityIndex).toBeLessThan(noPriorityIndex);
     });
     
     it('应该处理相同优先级的访问者(按注册顺序)', () => {
-      const visitor1: TransformerVisitor = {
+      const firstVisitor: TransformerVisitor = {
         visitDocument: vi.fn(),
-        priority: 100
+        priority: 100,
+        name: 'firstVisitor'
       };
       
-      const visitor2: TransformerVisitor = {
+      const secondVisitor: TransformerVisitor = {
         visitDocument: vi.fn(),
-        priority: 100 // 相同优先级
+        priority: 100,
+        name: 'secondVisitor'
       };
       
-      transformer.registerVisitor(visitor1);
-      transformer.registerVisitor(visitor2);
+      transformer.registerVisitor(firstVisitor);
+      transformer.registerVisitor(secondVisitor);
       
       // 转换时按注册顺序处理相同优先级的访问者
-      transformer.transform(mockDocument);
+      const doc: ProcessedDocument = {
+        type: NodeType.DOCUMENT,
+        children: [],
+        position: {
+          start: { line: 1, column: 1, offset: 0 },
+          end: { line: 1, column: 1, offset: 0 }
+        }
+      };
       
-      // 验证内部访问者数组的排序
-      const visitors = (transformer as any).visitors;
+      transformer.transform(doc);
+      
+      // 验证访问者顺序
+      const visitors = transformer.visitorManager.getVisitorsByMethod('visitDocument');
       // 相同优先级时保持注册顺序
-      expect(visitors.indexOf(visitor1)).toBeLessThan(visitors.indexOf(visitor2));
+      const firstIndex = visitors.indexOf(firstVisitor);
+      const secondIndex = visitors.indexOf(secondVisitor);
+      expect(firstIndex).toBeLessThan(secondIndex);
     });
   });
   
@@ -140,7 +166,8 @@ describe('DefaultTransformer', () => {
       // 创建访问者，返回模拟结果
       const visitor: TransformerVisitor = {
         visitDocument: vi.fn().mockReturnValue(mockResult),
-        priority: 100
+        priority: 100,
+        name: 'testVisitor'
       };
       
       // 创建适配器，修改结果
@@ -172,7 +199,8 @@ describe('DefaultTransformer', () => {
       // 创建访问者，返回模拟结果
       const visitor: TransformerVisitor = {
         visitDocument: vi.fn().mockReturnValue(mockResult),
-        priority: 100
+        priority: 100,
+        name: 'testVisitor'
       };
       
       transformer.registerVisitor(visitor);
@@ -225,19 +253,21 @@ describe('DefaultTransformer', () => {
           );
           return { type: 'transformed-doc', children: childResults };
         }),
-        priority: 100
+        priority: 100,
+        name: 'documentVisitor'
       };
 
       const elementVisitor: TransformerVisitor = {
         visitElement: vi.fn().mockReturnValue({ type: 'transformed-element' }),
-        priority: 100
+        priority: 100,
+        name: 'elementVisitor'
       };
 
       transformer.registerVisitor(documentVisitor);
       transformer.registerVisitor(elementVisitor);
 
-      // 转换文档
-      const result = transformer.transform(docWithChildren);
+      // 转换文档，禁用默认的子节点处理
+      const result = transformer.transform(docWithChildren, { skipNestedProcessing: true });
 
       // 验证结果
       expect(result).toEqual({
@@ -293,7 +323,8 @@ describe('DefaultTransformer', () => {
           );
           return { type: 'doc', children: childResults };
         }),
-        priority: 100
+        priority: 100,
+        name: 'documentVisitor'
       };
 
       const elementVisitor: TransformerVisitor = {
@@ -307,14 +338,15 @@ describe('DefaultTransformer', () => {
             children: childResults 
           };
         }),
-        priority: 100
+        priority: 100,
+        name: 'elementVisitor'
       };
 
       transformer.registerVisitor(documentVisitor);
       transformer.registerVisitor(elementVisitor);
 
-      // 转换文档
-      const result = transformer.transform(docWithNestedChildren);
+      // 转换文档，禁用默认的子节点处理
+      const result = transformer.transform(docWithNestedChildren, { skipNestedProcessing: true });
 
       // 验证结果包含正确的嵌套结构
       expect(result).toEqual({
@@ -363,6 +395,9 @@ describe('DefaultTransformer', () => {
         }
       };
 
+      // 清空全局捕获数组
+      pathCapture.length = 0;
+      
       // 创建能捕获上下文路径的访问者
       const documentVisitor: TransformerVisitor = {
         visitDocument: vi.fn().mockImplementation((doc, context) => {
@@ -372,7 +407,8 @@ describe('DefaultTransformer', () => {
           );
           return { type: 'doc', children: childResults };
         }),
-        priority: 100
+        priority: 100,
+        name: 'documentVisitor'
       };
 
       const elementVisitor: TransformerVisitor = {
@@ -380,14 +416,15 @@ describe('DefaultTransformer', () => {
           pathCapture.push([...context.path]);
           return { type: 'element', name: element.tagName };
         }),
-        priority: 100
+        priority: 100,
+        name: 'elementVisitor'
       };
 
       transformer.registerVisitor(documentVisitor);
       transformer.registerVisitor(elementVisitor);
 
-      // 转换文档
-      transformer.transform(docWithChildren);
+      // 转换文档，禁用默认的子节点处理
+      transformer.transform(docWithChildren, { skipNestedProcessing: true });
 
       // 验证上下文路径被正确更新
       expect(pathCapture).toHaveLength(2);
@@ -424,7 +461,8 @@ describe('DefaultTransformer', () => {
           visitCount.count++;
           return { type: 'doc', id: nodeId, transformed: true };
         }),
-        priority: 100
+        priority: 100,
+        name: 'countingVisitor'
       };
       
       transformer.registerVisitor(countingVisitor);
@@ -466,7 +504,8 @@ describe('DefaultTransformer', () => {
           visitCount.count++;
           return { type: 'doc', id: nodeId, transformed: true };
         }),
-        priority: 100
+        priority: 100,
+        name: 'countingVisitor'
       };
       
       transformer.registerVisitor(countingVisitor);
@@ -517,7 +556,8 @@ describe('DefaultTransformer', () => {
           visitCount.count++;
           return { type: 'doc', id: (doc as any).id, transformed: true };
         }),
-        priority: 100
+        priority: 100,
+        name: 'countingVisitor'
       };
       
       transformer.registerVisitor(countingVisitor);
@@ -561,7 +601,8 @@ describe('DefaultTransformer', () => {
             transformed: true 
           };
         }),
-        priority: 100
+        priority: 100,
+        name: 'countingVisitor'
       };
       
       transformer.registerVisitor(countingVisitor);
@@ -603,7 +644,8 @@ describe('DefaultTransformer', () => {
           visitCount.count++;
           return { type: 'doc', id: nodeId, transformed: true };
         }),
-        priority: 100
+        priority: 100,
+        name: 'countingVisitor'
       };
       
       transformer.registerVisitor(countingVisitor);

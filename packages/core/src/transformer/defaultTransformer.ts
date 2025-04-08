@@ -390,10 +390,19 @@ export class DefaultTransformer implements Transformer {
     // 获取具有visitDocument方法的访问者
     const documentVisitors = this._visitorManager.getVisitorsByMethod('visitDocument');
     
+    // 临时将 transformNode 暴露为公共方法，允许访问者直接调用
+    if (!this.hasOwnProperty('publicTransformNode')) {
+      Object.defineProperty(this, 'publicTransformNode', {
+        value: (node: any, ctx: TransformContext) => this.transformNode(node, ctx),
+        configurable: true
+      });
+    }
+    
     for (const visitor of documentVisitors) {
       try {
         // 复制上下文，避免干扰其他访问者
         const visitorContext = this.contextManager.cloneContext(newContext);
+        
         const visitorResult = visitor.visitDocument?.(result, visitorContext);
         
         // 访问者成功执行，重置错误计数
@@ -415,21 +424,31 @@ export class DefaultTransformer implements Transformer {
     }
     
     // 处理子节点
-    if (result.children && result.children.length > 0) {
-      const childResults = result.children.map(child => 
-        this.transformNode(child, this.contextManager.createChildContext(newContext, child.type))
-      );
+    if (result.children && result.children.length > 0 && !context.options.skipNestedProcessing) {
+      const childResults = result.children.map(child => {
+        // 为子节点创建正确的路径
+        let childPathElement = child.type;
+        
+        // 为元素类型添加标签名标识符
+        if (child.type === 'element' && isElement(child) && child.tagName) {
+          childPathElement = `${child.type}[${child.tagName}]`;
+        }
+        
+        // 创建子节点上下文并处理子节点
+        const childContext = this.contextManager.createChildContext(newContext, childPathElement);
+        return this.transformNode(child, childContext);
+      });
       
       // 更新子节点结果
       result = {
         ...result,
         children: childResults.filter(Boolean)
       };
-      
-      // 合并结果
-      if (context.options.mergeReturnValues && results.length > 0) {
-        return results;
-      }
+    }
+    
+    // 删除临时公开的方法
+    if (this.hasOwnProperty('publicTransformNode')) {
+      delete (this as any).publicTransformNode;
     }
     
     // 如果使用mergeReturnValues并且有结果，则返回结果数组
@@ -449,7 +468,7 @@ export class DefaultTransformer implements Transformer {
    */
   private transformElement(element: Element, context: TransformContext): any {
     // 更新上下文路径
-    const pathSegment = element.tagName || 'element';
+    const pathSegment = element.tagName ? `element[${element.tagName}]` : 'element';
     const newContext = this.contextManager.createChildContext(
       context,
       pathSegment
@@ -460,6 +479,14 @@ export class DefaultTransformer implements Transformer {
     
     // 获取具有visitElement方法的访问者，按照优先级从高到低排序
     const elementVisitors = this._visitorManager.getVisitorsByMethod('visitElement');
+    
+    // 临时将 transformNode 暴露为公共方法，允许访问者直接调用
+    if (!this.hasOwnProperty('publicTransformNode')) {
+      Object.defineProperty(this, 'publicTransformNode', {
+        value: (node: any, ctx: TransformContext) => this.transformNode(node, ctx),
+        configurable: true
+      });
+    }
     
     // 确保按优先级顺序调用访问者
     for (const visitor of elementVisitors) {
@@ -485,16 +512,31 @@ export class DefaultTransformer implements Transformer {
     }
     
     // 如果有子节点，递归处理子节点
-    if (result.children && result.children.length > 0) {
-      const childResults = result.children.map(child => 
-        this.transformNode(child, this.contextManager.createChildContext(newContext, child.type))
-      );
+    if (result.children && result.children.length > 0 && !context.options.skipNestedProcessing) {
+      const childResults = result.children.map(child => {
+        // 为子节点创建正确的路径
+        let childPathElement = child.type;
+        
+        // 为元素类型添加标签名标识符
+        if (child.type === 'element' && isElement(child) && child.tagName) {
+          childPathElement = `${child.type}[${child.tagName}]`;
+        }
+        
+        // 创建子节点上下文并处理子节点
+        const childContext = this.contextManager.createChildContext(newContext, childPathElement);
+        return this.transformNode(child, childContext);
+      });
       
       // 更新子节点结果
       result = {
         ...result,
         children: childResults.filter(Boolean)
       };
+    }
+    
+    // 删除临时公开的方法
+    if (this.hasOwnProperty('publicTransformNode')) {
+      delete (this as any).publicTransformNode;
     }
     
     return result;
