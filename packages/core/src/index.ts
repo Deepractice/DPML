@@ -19,6 +19,28 @@ export {
 // 导出处理器模块
 export * from './processor';
 
+// 导出转换器模块
+export {
+  DefaultTransformer,
+  DefaultTransformerFactory,
+  DefaultOutputAdapterFactory,
+  DefaultOutputAdapter,
+  JsonOutputAdapter,
+  XmlOutputAdapter,
+  MarkdownOutputAdapter
+} from './transformer';
+
+// 从transformer中导出接口
+export type {
+  Transformer,
+  TransformerFactory,
+  TransformerOptions,
+  TransformOptions,
+  TransformerVisitor,
+  OutputAdapter,
+  OutputAdapterFactory
+} from './transformer';
+
 // 导出错误模块
 export * from './errors';
 

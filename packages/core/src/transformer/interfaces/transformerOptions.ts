@@ -7,8 +7,9 @@ export interface TransformerOptions {
    * - strict: 严格模式，出现错误立即抛出异常
    * - lenient: 宽松模式，尝试恢复并继续处理
    * - ignore: 忽略模式，忽略错误并继续处理
+   * - loose: 松散模式，与lenient类似但允许更多的格式变化
    */
-  mode?: 'strict' | 'lenient' | 'ignore';
+  mode?: 'strict' | 'lenient' | 'ignore' | 'loose';
   
   /**
    * 最大错误数量
