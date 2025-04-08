@@ -250,10 +250,19 @@ export class DefaultTransformer implements Transformer {
    * @param options 转换选项
    */
   configure(options: TransformOptions): void {
-    this.options = { ...this.options, ...options };
+    // 合并新选项与现有选项
+    this.options = {
+      ...this.options,
+      ...options
+    };
     
     // 更新模式配置
     this.modeConfig = getModeConfig(this.options);
+    
+    // 如果提供了自定义合并函数，确保它能正确处理
+    if (this.options.customMergeFn) {
+      this.options.mergeReturnValues = true; // 自动启用返回值合并
+    }
   }
   
   /**
@@ -480,9 +489,14 @@ export class DefaultTransformer implements Transformer {
         const mergeOptions: MergeOptions = {
           deepMerge: context.options.deepMerge === true,
           mergeArrays: context.options.mergeArrays === true,
-          conflictStrategy: context.options.conflictStrategy,
+          conflictStrategy: context.options.conflictStrategy || 'last-wins',
           customMergeFn: context.options.customMergeFn
         };
+        
+        // 确保自定义合并函数能够被正确应用
+        if (mergeOptions.customMergeFn && typeof mergeOptions.customMergeFn === 'function') {
+          console.log('使用自定义合并函数:', mergeOptions.customMergeFn.toString().substring(0, 100));
+        }
         
         // 合并访问者结果
         const mergedResult = mergeVisitorResults(visitorResults, mergeOptions);
@@ -530,8 +544,8 @@ export class DefaultTransformer implements Transformer {
             // 保存访问者结果到父结果
             newContext.parentResults.push(visitResult);
             
-            // 处理子节点 (如果结果中有children属性)
-            if (visitResult.children !== undefined && document.children && document.children.length > 0) {
+            // 处理子节点
+            if (document.children && document.children.length > 0) {
               const childrenContext = this.contextManager.createChildContext(
                 newContext, 
                 'children'
@@ -541,11 +555,23 @@ export class DefaultTransformer implements Transformer {
                 this.transformNode(child, childrenContext)
               );
               
-              // 更新子节点结果
-              return {
-                ...visitResult,
-                children: childResults.filter(r => r != null)
-              };
+              // 过滤掉null和undefined结果
+              const filteredResults = childResults.filter(r => r != null);
+              
+              // 如果结果中没有children属性但有子节点处理结果，添加children属性
+              if (visitResult.children === undefined && filteredResults.length > 0) {
+                return {
+                  ...visitResult,
+                  children: filteredResults
+                };
+              } 
+              // 如果结果中有children属性，更新它
+              else if (visitResult.children !== undefined) {
+                return {
+                  ...visitResult,
+                  children: filteredResults
+                };
+              }
             }
             
             return visitResult;
@@ -673,9 +699,14 @@ export class DefaultTransformer implements Transformer {
         const mergeOptions: MergeOptions = {
           deepMerge: context.options.deepMerge === true,
           mergeArrays: context.options.mergeArrays === true,
-          conflictStrategy: context.options.conflictStrategy,
+          conflictStrategy: context.options.conflictStrategy || 'last-wins',
           customMergeFn: context.options.customMergeFn
         };
+        
+        // 确保自定义合并函数能够被正确应用
+        if (mergeOptions.customMergeFn && typeof mergeOptions.customMergeFn === 'function') {
+          console.log('使用自定义合并函数:', mergeOptions.customMergeFn.toString().substring(0, 100));
+        }
         
         // 合并访问者结果
         const mergedResult = mergeVisitorResults(visitorResults, mergeOptions);
@@ -723,8 +754,8 @@ export class DefaultTransformer implements Transformer {
             // 保存访问者结果到父结果
             newContext.parentResults.push(visitResult);
             
-            // 处理子节点 (如果结果中有children属性)
-            if (visitResult.children !== undefined && element.children && element.children.length > 0) {
+            // 处理子节点
+            if (element.children && element.children.length > 0) {
               const childrenContext = this.contextManager.createChildContext(
                 newContext, 
                 'children'
@@ -734,11 +765,23 @@ export class DefaultTransformer implements Transformer {
                 this.transformNode(child, childrenContext)
               );
               
-              // 更新子节点结果
-              return {
-                ...visitResult,
-                children: childResults.filter(r => r != null)
-              };
+              // 过滤掉null和undefined结果
+              const filteredResults = childResults.filter(r => r != null);
+              
+              // 如果结果中没有children属性但有子节点处理结果，添加children属性
+              if (visitResult.children === undefined && filteredResults.length > 0) {
+                return {
+                  ...visitResult,
+                  children: filteredResults
+                };
+              } 
+              // 如果结果中有children属性，更新它
+              else if (visitResult.children !== undefined) {
+                return {
+                  ...visitResult,
+                  children: filteredResults
+                };
+              }
             }
             
             return visitResult;
@@ -848,9 +891,14 @@ export class DefaultTransformer implements Transformer {
         const mergeOptions: MergeOptions = {
           deepMerge: context.options.deepMerge === true,
           mergeArrays: context.options.mergeArrays === true,
-          conflictStrategy: context.options.conflictStrategy,
+          conflictStrategy: context.options.conflictStrategy || 'last-wins',
           customMergeFn: context.options.customMergeFn
         };
+        
+        // 确保自定义合并函数能够被正确应用
+        if (mergeOptions.customMergeFn && typeof mergeOptions.customMergeFn === 'function') {
+          console.log('使用自定义合并函数:', mergeOptions.customMergeFn.toString().substring(0, 100));
+        }
         
         // 合并访问者结果
         const mergedResult = mergeVisitorResults(visitorResults, mergeOptions);
@@ -961,9 +1009,14 @@ export class DefaultTransformer implements Transformer {
         const mergeOptions: MergeOptions = {
           deepMerge: context.options.deepMerge === true,
           mergeArrays: context.options.mergeArrays === true,
-          conflictStrategy: context.options.conflictStrategy,
+          conflictStrategy: context.options.conflictStrategy || 'last-wins',
           customMergeFn: context.options.customMergeFn
         };
+        
+        // 确保自定义合并函数能够被正确应用
+        if (mergeOptions.customMergeFn && typeof mergeOptions.customMergeFn === 'function') {
+          console.log('使用自定义合并函数:', mergeOptions.customMergeFn.toString().substring(0, 100));
+        }
         
         // 合并访问者结果
         const mergedResult = mergeVisitorResults(visitorResults, mergeOptions);

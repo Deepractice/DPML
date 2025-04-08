@@ -57,7 +57,41 @@ export function mergeVisitorResults(results: any[], options: MergeOptions = {}):
     return validResults[0];
   }
   
-  // 合并多个结果
+  // 如果提供了自定义合并函数，直接对整个结果进行特殊处理
+  if (options.customMergeFn && typeof options.customMergeFn === 'function') {
+    // 先尝试让自定义函数处理整个合并操作
+    const firstResult = validResults[0];
+    let mergedResult = firstResult;
+    
+    for (let i = 1; i < validResults.length; i++) {
+      const currentResult = validResults[i];
+      
+      // 对两两结果应用合并
+      for (const key in currentResult) {
+        if (Object.prototype.hasOwnProperty.call(currentResult, key)) {
+          // 在键级别应用自定义合并函数
+          const value1 = key in mergedResult ? mergedResult[key] : undefined;
+          const value2 = currentResult[key];
+          const customResult = options.customMergeFn(key, value1, value2);
+          
+          if (customResult !== undefined) {
+            // 如果是新对象，确保创建一个副本
+            if (mergedResult === firstResult) {
+              mergedResult = { ...firstResult };
+            }
+            mergedResult[key] = customResult;
+          }
+        }
+      }
+    }
+    
+    // 如果有任何自定义合并结果，返回合并后的对象
+    if (mergedResult !== firstResult) {
+      return mergedResult;
+    }
+  }
+  
+  // 回退到标准合并逻辑
   return validResults.reduce((acc, result) => {
     return mergeValues(acc, result, '', options);
   });
@@ -84,7 +118,7 @@ export function mergeValues(value1: any, value2: any, key: string = '', options:
   
   // 处理数组
   if (Array.isArray(value1) && Array.isArray(value2)) {
-    return mergeArrays(value1, value2, options);
+    return mergeArrays(value1, value2, key, options);
   }
   
   // 处理对象
@@ -93,7 +127,7 @@ export function mergeValues(value1: any, value2: any, key: string = '', options:
   }
   
   // 处理原始值冲突
-  return resolveConflict(value1, value2, options);
+  return resolveConflict(value1, value2, options, key);
 }
 
 /**
@@ -101,17 +135,26 @@ export function mergeValues(value1: any, value2: any, key: string = '', options:
  * 
  * @param array1 第一个数组
  * @param array2 第二个数组
+ * @param key 当前处理的键（用于自定义合并函数）
  * @param options 合并选项
  * @returns 合并后的数组
  */
-export function mergeArrays(array1: any[], array2: any[], options: MergeOptions = {}): any[] {
+export function mergeArrays(array1: any[], array2: any[], key: string = '', options: MergeOptions = {}): any[] {
+  // 先尝试使用自定义合并函数
+  if (options.customMergeFn) {
+    const customResult = options.customMergeFn(key, array1, array2);
+    if (customResult !== undefined) {
+      return customResult;
+    }
+  }
+  
   // 如果启用了数组合并，连接数组
   if (options.mergeArrays) {
     return [...array1, ...array2];
   }
   
   // 否则根据冲突策略选择
-  return resolveConflict(array1, array2, options);
+  return resolveConflict(array1, array2, options, key);
 }
 
 /**
@@ -123,6 +166,14 @@ export function mergeArrays(array1: any[], array2: any[], options: MergeOptions 
  * @returns 合并后的对象
  */
 export function mergeObjects(obj1: Record<string, any>, obj2: Record<string, any>, options: MergeOptions = {}): Record<string, any> {
+  // 先尝试使用自定义合并函数处理整个对象
+  if (options.customMergeFn) {
+    const customResult = options.customMergeFn('', obj1, obj2);
+    if (customResult !== undefined) {
+      return customResult;
+    }
+  }
+  
   const result = { ...obj1 };
   
   // 遍历obj2的所有属性
@@ -134,13 +185,22 @@ export function mergeObjects(obj1: Record<string, any>, obj2: Record<string, any
         continue;
       }
       
+      // 先尝试使用自定义合并函数
+      if (options.customMergeFn) {
+        const customResult = options.customMergeFn(key, result[key], obj2[key]);
+        if (customResult !== undefined) {
+          result[key] = customResult;
+          continue;
+        }
+      }
+      
       // 如果两个值都是对象且启用了深度合并
       if (isObject(result[key]) && isObject(obj2[key]) && options.deepMerge) {
         result[key] = mergeObjects(result[key], obj2[key], options);
       } 
       // 如果两个值都是数组
       else if (Array.isArray(result[key]) && Array.isArray(obj2[key])) {
-        result[key] = mergeArrays(result[key], obj2[key], options);
+        result[key] = mergeArrays(result[key], obj2[key], key, options);
       } 
       // 其他情况，处理冲突
       else {
@@ -162,6 +222,14 @@ export function mergeObjects(obj1: Record<string, any>, obj2: Record<string, any
  * @returns 解决冲突后的值
  */
 export function resolveConflict(value1: any, value2: any, options: MergeOptions = {}, key: string = ''): any {
+  // 如果提供了自定义合并函数，优先使用
+  if (options.customMergeFn) {
+    const customResult = options.customMergeFn(key, value1, value2);
+    if (customResult !== undefined) {
+      return customResult;
+    }
+  }
+  
   // 根据冲突策略返回适当的值
   switch (options.conflictStrategy) {
     case 'first-wins':

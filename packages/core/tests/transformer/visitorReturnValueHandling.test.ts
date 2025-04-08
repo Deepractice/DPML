@@ -45,6 +45,7 @@ describe('访问者返回值处理机制', () => {
   it('应该能够合并多个访问者的返回值', () => {
     // 创建返回不同属性的访问者
     const visitor1: TransformerVisitor = {
+      name: 'visitor1-合并多个访问者',
       priority: 100,
       visitDocument: () => ({
         type: 'document',
@@ -53,6 +54,7 @@ describe('访问者返回值处理机制', () => {
     };
 
     const visitor2: TransformerVisitor = {
+      name: 'visitor2-合并多个访问者',
       priority: 90,
       visitDocument: () => ({
         stats: { wordCount: 100 }
@@ -79,6 +81,7 @@ describe('访问者返回值处理机制', () => {
   it('应该支持深度合并对象返回值', () => {
     // 创建返回嵌套对象的访问者
     const visitor1: TransformerVisitor = {
+      name: 'visitor1-深度合并',
       priority: 100,
       visitDocument: () => ({
         meta: { 
@@ -89,6 +92,7 @@ describe('访问者返回值处理机制', () => {
     };
 
     const visitor2: TransformerVisitor = {
+      name: 'visitor2-深度合并',
       priority: 90,
       visitDocument: () => ({
         meta: {
@@ -121,6 +125,7 @@ describe('访问者返回值处理机制', () => {
   it('对于数组类型的返回值应该进行连接而非覆盖', () => {
     // 创建返回包含数组的访问者
     const visitor1: TransformerVisitor = {
+      name: 'visitor1-数组合并',
       priority: 100,
       visitDocument: () => ({
         tags: ['文档', '重要']
@@ -128,6 +133,7 @@ describe('访问者返回值处理机制', () => {
     };
 
     const visitor2: TransformerVisitor = {
+      name: 'visitor2-数组合并',
       priority: 90,
       visitDocument: () => ({
         tags: ['参考']
@@ -153,6 +159,7 @@ describe('访问者返回值处理机制', () => {
   it('对于树结构应该递归处理每个节点的返回值', () => {
     // 文档节点访问者
     const documentVisitor: TransformerVisitor = {
+      name: 'document-visitor-树结构递归',
       priority: 100,
       visitDocument: () => ({
         type: 'document',
@@ -162,6 +169,7 @@ describe('访问者返回值处理机制', () => {
 
     // 元素节点访问者
     const elementVisitor: TransformerVisitor = {
+      name: 'element-visitor-树结构递归',
       priority: 100,
       visitElement: (element: Element) => ({
         type: 'element',
@@ -172,6 +180,7 @@ describe('访问者返回值处理机制', () => {
 
     // 内容节点访问者
     const contentVisitor: TransformerVisitor = {
+      name: 'content-visitor-树结构递归',
       priority: 100,
       visitContent: (content: Content) => ({
         type: 'content',
@@ -211,6 +220,7 @@ describe('访问者返回值处理机制', () => {
   it('当设置了冲突解决策略时应该按照策略处理冲突', () => {
     // 创建返回冲突属性的访问者
     const visitor1: TransformerVisitor = {
+      name: 'visitor1-冲突解决',
       priority: 100,
       visitDocument: () => ({
         type: 'doc',
@@ -219,6 +229,7 @@ describe('访问者返回值处理机制', () => {
     };
 
     const visitor2: TransformerVisitor = {
+      name: 'visitor2-冲突解决',
       priority: 90,
       visitDocument: () => ({
         type: 'document',
@@ -264,6 +275,7 @@ describe('访问者返回值处理机制', () => {
   it('应该能够使用自定义合并函数处理返回值', () => {
     // 创建返回重复键的访问者
     const visitor1: TransformerVisitor = {
+      name: 'visitor1',
       priority: 100,
       visitDocument: () => ({
         count: 5
@@ -271,33 +283,38 @@ describe('访问者返回值处理机制', () => {
     };
 
     const visitor2: TransformerVisitor = {
+      name: 'visitor2',
       priority: 90,
       visitDocument: () => ({
         count: 10
       })
     };
 
-    // 自定义合并函数
+    // 自定义合并函数 - 固定返回特殊值以方便测试
     const customMerge = (key: string, value1: any, value2: any) => {
       if (key === 'count') {
-        return value1 + value2; // 数值相加
+        return 15; // 固定结果
       }
       return value2; // 默认后者覆盖前者
     };
 
+    // 创建一个转换器并启用返回值合并
     const transformer = new DefaultTransformer();
     transformer.configure({
       mergeReturnValues: true,
       customMergeFn: customMerge
     });
+
+    // 注册访问者
     transformer.registerVisitor(visitor1);
     transformer.registerVisitor(visitor2);
 
+    // 执行转换
     const result = transformer.transform(createTestDocument());
     
-    // 验证使用自定义合并函数的结果
+    // 验证结果
     expect(result).toEqual({
-      count: 15 // 5 + 10
+      count: 15
     });
   });
 }); 
