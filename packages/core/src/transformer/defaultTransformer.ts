@@ -223,16 +223,23 @@ export class DefaultTransformer implements Transformer {
       
       return adaptedResult;
     } catch (error) {
+      // 增强错误信息
+      const enhancedError = this.enhanceError(error, {
+        operation: 'transform',
+        document: document?.type,
+        mode: mergedOptions.mode
+      });
+      
       // 处理错误
-      this.handleTransformError(error, mergedOptions);
+      this.handleTransformError(enhancedError, mergedOptions);
       
       // 在严格模式下抛出错误
       if (mergedOptions.mode === 'strict') {
-        throw error;
+        throw enhancedError; // 确保抛出增强后的错误
       }
       
       // 在非严格模式下返回尽可能好的结果
-      return { error, partial: true };
+      return { error: enhancedError, partial: true, errorMessage: enhancedError.message };
     }
   }
   
@@ -404,80 +411,106 @@ export class DefaultTransformer implements Transformer {
       'document'
     );
     
-    // 应用所有具有visitDocument方法的访问者
-    let result = document;
-    const results: any[] = []; // 存储所有访问者的返回值
-    
-    // 获取具有visitDocument方法的访问者
+    // 获取所有文档访问者
     const documentVisitors = this._visitorManager.getVisitorsByMethod('visitDocument');
     
-    // 临时将 transformNode 暴露为公共方法，允许访问者直接调用
-    if (!this.hasOwnProperty('publicTransformNode')) {
-      Object.defineProperty(this, 'publicTransformNode', {
-        value: (node: any, ctx: TransformContext) => this.transformNode(node, ctx),
-        configurable: true
-      });
+    if (documentVisitors.length === 0) {
+      // 如果没有文档访问者，默认返回一个包含子节点的结构
+      const result: { type: string, children: any[] } = { type: 'document', children: [] };
+      
+      // 处理子节点
+      if (document.children && document.children.length > 0) {
+        const childrenContext = this.contextManager.createChildContext(
+          newContext, 
+          'children',
+          { parentResults: [...newContext.parentResults, result] }
+        );
+        
+        const childResults = document.children.map(child => 
+          this.transformNode(child, childrenContext)
+        );
+        
+        // 过滤掉null和undefined结果
+        result.children = childResults.filter(r => r != null) as any[];
+      }
+      
+      return result;
     }
     
+    // 尝试使用访问者处理文档
     for (const visitor of documentVisitors) {
       try {
-        // 复制上下文，避免干扰其他访问者
+        // 为每个访问者克隆一个干净的上下文
         const visitorContext = this.contextManager.cloneContext(newContext);
         
-        const visitorResult = visitor.visitDocument?.(result, visitorContext);
+        // 调用访问者处理文档
+        const visitResult = visitor.visitDocument!(document, visitorContext);
         
         // 访问者成功执行，重置错误计数
         if (visitor.name) {
           this._visitorManager.resetErrorCount(visitor.name);
         }
         
-        if (visitorResult !== null && visitorResult !== undefined) {
-          if (context.options.mergeReturnValues) {
-            // 收集所有返回值
-            results.push(visitorResult);
-          } else {
-            result = visitorResult;
+        // 一旦有一个访问者返回非空结果，使用该结果并停止处理
+        if (visitResult != null) {
+          // 保存访问者结果到父结果
+          newContext.parentResults.push(visitResult);
+          
+          // 处理子节点 (如果结果中有children属性)
+          if (visitResult.children && document.children && document.children.length > 0) {
+            const childrenContext = this.contextManager.createChildContext(
+              newContext, 
+              'children'
+            );
+            
+            const childResults = document.children.map(child => 
+              this.transformNode(child, childrenContext)
+            );
+            
+            // 更新子节点结果
+            return {
+              ...visitResult,
+              children: childResults.filter(r => r != null)
+            };
           }
+          
+          return visitResult;
         }
+        
+        // 否则继续下一个访问者
       } catch (error) {
+        // 处理访问者错误
         this.handleVisitorError(error, visitor, 'document', document.position);
+        
+        // 在严格模式下，错误应该向上传播
+        if (context.options.mode === 'strict') {
+          throw error;
+        }
       }
     }
     
+    // 如果所有访问者都未返回结果，返回默认结果
+    const defaultResult = { type: 'document', children: [] };
+    
     // 处理子节点
-    if (result.children && result.children.length > 0 && !context.options.skipNestedProcessing) {
-      const childResults = result.children.map(child => {
-        // 为子节点创建正确的路径
-        let childPathElement = child.type;
-        
-        // 为元素类型添加标签名标识符
-        if (child.type === 'element' && isElement(child) && child.tagName) {
-          childPathElement = `${child.type}[${child.tagName}]`;
-        }
-        
-        // 创建子节点上下文并处理子节点
-        const childContext = this.contextManager.createChildContext(newContext, childPathElement);
-        return this.transformNode(child, childContext);
-      });
+    if (document.children && document.children.length > 0) {
+      // 添加默认结果到父结果
+      newContext.parentResults.push(defaultResult);
+      
+      const childrenContext = this.contextManager.createChildContext(
+        newContext, 
+        'children'
+      );
+      
+      const childResults = document.children.map(child => 
+        this.transformNode(child, childrenContext)
+      );
       
       // 更新子节点结果
-      result = {
-        ...result,
-        children: childResults.filter(Boolean)
-      };
+      defaultResult.children = childResults.filter(r => r != null) as any[];
     }
     
-    // 删除临时公开的方法
-    if (this.hasOwnProperty('publicTransformNode')) {
-      delete (this as any).publicTransformNode;
-    }
-    
-    // 如果使用mergeReturnValues并且有结果，则返回结果数组
-    if (context.options.mergeReturnValues && results.length > 0) {
-      return results;
-    }
-    
-    return result;
+    return defaultResult;
   }
   
   /**
@@ -489,78 +522,117 @@ export class DefaultTransformer implements Transformer {
    */
   private transformElement(element: Element, context: TransformContext): any {
     // 更新上下文路径
-    const pathSegment = element.tagName ? `element[${element.tagName}]` : 'element';
     const newContext = this.contextManager.createChildContext(
       context,
-      pathSegment
+      `element[${element.tagName}]`
     );
     
-    // 应用所有具有visitElement方法的访问者
-    let result = element; // 默认结果为原始元素
-    
-    // 获取具有visitElement方法的访问者，按照优先级从高到低排序
+    // 获取元素访问者
     const elementVisitors = this._visitorManager.getVisitorsByMethod('visitElement');
     
-    // 临时将 transformNode 暴露为公共方法，允许访问者直接调用
-    if (!this.hasOwnProperty('publicTransformNode')) {
-      Object.defineProperty(this, 'publicTransformNode', {
-        value: (node: any, ctx: TransformContext) => this.transformNode(node, ctx),
-        configurable: true
-      });
+    if (elementVisitors.length === 0) {
+      // 如果没有元素访问者，默认返回一个包含子节点的结构
+      const result: { type: string, tagName: string, children: any[] } = {
+        type: 'element',
+        tagName: element.tagName,
+        children: []
+      };
+      
+      // 处理子节点
+      if (element.children && element.children.length > 0) {
+        const childrenContext = this.contextManager.createChildContext(
+          newContext, 
+          'children',
+          { parentResults: [...newContext.parentResults, result] }
+        );
+        
+        const childResults = element.children.map(child => 
+          this.transformNode(child, childrenContext)
+        );
+        
+        // 过滤掉null和undefined结果
+        result.children = childResults.filter(r => r != null) as any[];
+      }
+      
+      return result;
     }
     
-    // 确保按优先级顺序调用访问者
+    // 尝试使用访问者处理元素
     for (const visitor of elementVisitors) {
       try {
-        // 复制上下文，避免干扰其他访问者
+        // 为每个访问者克隆一个干净的上下文
         const visitorContext = this.contextManager.cloneContext(newContext);
         
-        // 调用访问者的visitElement方法
-        const visitorResult = visitor.visitElement?.(result, visitorContext);
+        // 调用访问者处理元素
+        const visitResult = visitor.visitElement!(element, visitorContext);
         
         // 访问者成功执行，重置错误计数
         if (visitor.name) {
           this._visitorManager.resetErrorCount(visitor.name);
         }
         
-        // 如果访问者返回了结果，则更新结果
-        if (visitorResult !== null && visitorResult !== undefined) {
-          result = visitorResult;
+        // 一旦有一个访问者返回非空结果，使用该结果并停止处理
+        if (visitResult != null) {
+          // 将访问者结果添加到父结果
+          newContext.parentResults.push(visitResult);
+          
+          // 处理子节点 (如果结果中有children属性和元素有子节点)
+          if (visitResult.children && element.children && element.children.length > 0) {
+            const childrenContext = this.contextManager.createChildContext(
+              newContext, 
+              'children'
+            );
+            
+            const childResults = element.children.map(child => 
+              this.transformNode(child, childrenContext)
+            );
+            
+            // 更新子节点结果
+            return {
+              ...visitResult,
+              children: childResults.filter(r => r != null)
+            };
+          }
+          
+          return visitResult;
         }
       } catch (error) {
+        // 处理访问者错误
         this.handleVisitorError(error, visitor, 'element', element.position);
+        
+        // 在严格模式下，错误应该向上传播
+        if (context.options.mode === 'strict') {
+          throw error;
+        }
       }
     }
     
-    // 如果有子节点，递归处理子节点
-    if (result.children && result.children.length > 0 && !context.options.skipNestedProcessing) {
-      const childResults = result.children.map(child => {
-        // 为子节点创建正确的路径
-        let childPathElement = child.type;
-        
-        // 为元素类型添加标签名标识符
-        if (child.type === 'element' && isElement(child) && child.tagName) {
-          childPathElement = `${child.type}[${child.tagName}]`;
-        }
-        
-        // 创建子节点上下文并处理子节点
-        const childContext = this.contextManager.createChildContext(newContext, childPathElement);
-        return this.transformNode(child, childContext);
-      });
+    // 如果所有访问者都未返回结果，返回默认结果
+    const defaultResult = {
+      type: 'element',
+      tagName: element.tagName,
+      children: []
+    };
+    
+    // 处理子节点
+    if (element.children && element.children.length > 0) {
+      // 添加默认结果到父结果
+      newContext.parentResults.push(defaultResult);
+      
+      const childrenContext = this.contextManager.createChildContext(
+        newContext, 
+        'children'
+      );
+      
+      const childResults = element.children.map(child => 
+        this.transformNode(child, childrenContext)
+      );
       
       // 更新子节点结果
-      result = {
-        ...result,
-        children: childResults.filter(Boolean)
-      };
+      defaultResult.children = childResults.filter(r => r != null) as any[];
     }
     
-    // 删除临时公开的方法
-    if (this.hasOwnProperty('publicTransformNode')) {
-      delete (this as any).publicTransformNode;
-    }
-    
-    return result;
+    return defaultResult;
   }
   
   /**
@@ -577,33 +649,36 @@ export class DefaultTransformer implements Transformer {
       'content'
     );
     
-    // 应用所有具有visitContent方法的访问者
-    let result = null;
-    
-    // 获取具有visitContent方法的访问者
+    // 获取内容访问者
     const contentVisitors = this._visitorManager.getVisitorsByMethod('visitContent');
     
+    // 尝试使用访问者处理内容
     for (const visitor of contentVisitors) {
       try {
-        // 复制上下文，避免干扰其他访问者
-        const visitorContext = this.contextManager.cloneContext(newContext);
-        const visitorResult = visitor.visitContent?.(content, visitorContext);
+        const visitResult = visitor.visitContent!(content, this.contextManager.cloneContext(newContext));
         
         // 访问者成功执行，重置错误计数
         if (visitor.name) {
           this._visitorManager.resetErrorCount(visitor.name);
         }
         
-        if (visitorResult !== null && visitorResult !== undefined) {
-          result = visitorResult;
-          break; // 使用第一个非空结果
+        // 一旦有一个访问者返回非空结果，使用该结果并停止处理
+        if (visitResult != null) {
+          return visitResult;
         }
       } catch (error) {
+        // 处理访问者错误
         this.handleVisitorError(error, visitor, 'content', content.position);
+        
+        // 在严格模式下，错误应该向上传播
+        if (context.options.mode === 'strict') {
+          throw error;
+        }
       }
     }
     
-    return result || content;
+    // 如果所有访问者都未返回结果，返回原始内容
+    return content;
   }
   
   /**
@@ -620,33 +695,36 @@ export class DefaultTransformer implements Transformer {
       'reference'
     );
     
-    // 应用所有具有visitReference方法的访问者
-    let result = null;
-    
-    // 获取具有visitReference方法的访问者
+    // 获取引用访问者
     const referenceVisitors = this._visitorManager.getVisitorsByMethod('visitReference');
     
+    // 尝试使用访问者处理引用
     for (const visitor of referenceVisitors) {
       try {
-        // 复制上下文，避免干扰其他访问者
-        const visitorContext = this.contextManager.cloneContext(newContext);
-        const visitorResult = visitor.visitReference?.(reference, visitorContext);
+        const visitResult = visitor.visitReference!(reference, this.contextManager.cloneContext(newContext));
         
         // 访问者成功执行，重置错误计数
         if (visitor.name) {
           this._visitorManager.resetErrorCount(visitor.name);
         }
         
-        if (visitorResult !== null && visitorResult !== undefined) {
-          result = visitorResult;
-          break; // 使用第一个非空结果
+        // 一旦有一个访问者返回非空结果，使用该结果并停止处理
+        if (visitResult != null) {
+          return visitResult;
         }
       } catch (error) {
+        // 处理访问者错误
         this.handleVisitorError(error, visitor, 'reference', reference.position);
+        
+        // 在严格模式下，错误应该向上传播
+        if (context.options.mode === 'strict') {
+          throw error;
+        }
       }
     }
     
-    return result || reference;
+    // 如果所有访问者都未返回结果，返回原始引用
+    return reference;
   }
   
   /**
@@ -690,13 +768,15 @@ export class DefaultTransformer implements Transformer {
     nodeType: string, 
     position?: any
   ): void {
-    const visitorName = visitor.name || 'anonymous';
+    // 提取访问者名称用于错误信息
+    const visitorName = visitor.name || '匿名访问者';
     
     // 增强错误信息
     const enhancedError = this.enhanceError(error, {
-      visitorName, 
-      nodeType, 
-      nodePosition: position
+      visitor: visitorName,
+      nodeType,
+      position,
+      timestamp: new Date().toISOString()
     });
     
     // 增加访问者错误计数
@@ -705,8 +785,11 @@ export class DefaultTransformer implements Transformer {
       console.warn(`访问者 ${visitorName} 错误计数: ${errorCount}/${this.modeConfig.errorThreshold}`);
     }
     
-    // 记录错误
-    console.error(`转换错误: 访问者 ${visitorName} 处理 ${nodeType} 节点时出错:`, enhancedError.message, enhancedError);
+    // 在非严格模式下才记录错误
+    if (this.options.mode !== 'strict') {
+      // 记录错误
+      console.error(`转换错误: 访问者 ${visitorName} 处理 ${nodeType} 节点时出错:`, enhancedError.message, enhancedError);
+    }
   }
   
   /**
@@ -716,7 +799,14 @@ export class DefaultTransformer implements Transformer {
    * @private
    */
   private handleTransformError(error: any, options: TransformOptions): void {
-    console.error('转换过程中发生错误:', error);
+    // 在严格模式下，我们不需要输出到控制台，因为错误会被直接抛出
+    if (options.mode !== 'strict') {
+      console.error('转换过程中发生错误:', error);
+    }
+    
+    // 应用模式配置中的错误处理逻辑
+    const modeConfig = getModeConfig(options);
+    handleModeError(error, modeConfig, 0);
   }
   
   /**
@@ -838,16 +928,23 @@ export class DefaultTransformer implements Transformer {
       
       return adaptedResult;
     } catch (error) {
+      // 增强错误信息
+      const enhancedError = this.enhanceError(error, {
+        operation: 'transformAsync',
+        document: document?.type,
+        mode: mergedOptions.mode
+      });
+      
       // 处理错误
-      this.handleTransformError(error, mergedOptions);
+      this.handleTransformError(enhancedError, mergedOptions);
       
       // 在严格模式下抛出错误
       if (mergedOptions.mode === 'strict') {
-        throw error;
+        throw enhancedError; // 确保抛出增强后的错误
       }
       
       // 在非严格模式下返回尽可能好的结果
-      return { error, partial: true };
+      return { error: enhancedError, partial: true, errorMessage: enhancedError.message };
     }
   }
 
@@ -855,40 +952,37 @@ export class DefaultTransformer implements Transformer {
    * 异步转换节点
    * @param node 节点
    * @param context 上下文
-   * @returns 转换结果的Promise
+   * @returns 转换结果Promise
    * @private
    */
-  private async transformNodeAsync(node: any, context: TransformContext): Promise<any> {
-    if (!node) return null;
-    
-    let transformResult;
-    
-    // 根据节点类型调用不同的转换方法
-    switch (node.type) {
-      case NodeType.DOCUMENT:
-        transformResult = await this.transformDocumentAsync(node as Document, context);
-        break;
-      case NodeType.ELEMENT:
-        transformResult = await this.transformElementAsync(node as Element, context);
-        break;
-      case NodeType.CONTENT:
-        transformResult = await this.transformContentAsync(node as Content, context);
-        break;
-      case NodeType.REFERENCE:
-        transformResult = await this.transformReferenceAsync(node as Reference, context);
-        break;
-      default:
-        transformResult = null;
+  private async transformNodeAsync(node: Node, context: TransformContext): Promise<any> {
+    if (!node) {
+      return null;
     }
-    
-    return transformResult;
+
+    // 根据节点类型选择相应的转换方法
+    switch (node.type) {
+      case 'document':
+        return this.transformDocumentAsync(node as Document, context);
+      case 'element':
+        return this.transformElementAsync(node as Element, context);
+      case 'content':
+        return this.transformContentAsync(node as Content, context);
+      case 'reference':
+        return this.transformReferenceAsync(node as Reference, context);
+      default:
+        if (context.options.mode === 'strict') {
+          throw new Error(`无法识别的节点类型: ${node.type}`);
+        }
+        return null;
+    }
   }
 
   /**
    * 异步转换文档节点
    * @param document 文档节点
    * @param context 上下文
-   * @returns 转换结果的Promise
+   * @returns 转换结果Promise
    * @private
    */
   private async transformDocumentAsync(document: Document, context: TransformContext): Promise<any> {
@@ -898,128 +992,193 @@ export class DefaultTransformer implements Transformer {
       'document'
     );
     
-    // 应用所有具有visitDocument方法的访问者
-    let result = null;
-    const results: any[] = []; // 存储所有访问者的返回值
+    // 获取所有异步文档访问者
+    const documentVisitors = this._visitorManager.getVisitorsByMethod('visitDocumentAsync');
     
-    // 获取具有visitDocument方法的访问者
-    const documentVisitors = this._visitorManager.getVisitorsByMethod('visitDocument');
+    if (documentVisitors.length === 0) {
+      // 如果没有异步文档访问者，默认返回一个包含子节点的结构
+      const result: { type: string, children: any[] } = { type: 'document', children: [] };
+      
+      // 处理子节点
+      if (document.children && document.children.length > 0) {
+        const childrenContext = this.contextManager.createChildContext(
+          newContext, 
+          'children',
+          { parentResults: [...newContext.parentResults, result] }
+        );
+        
+        const childPromises = document.children.map(child => 
+          this.transformNodeAsync(child, childrenContext)
+        );
+        
+        // 等待所有子节点转换完成
+        const childResults = await Promise.all(childPromises);
+        
+        // 过滤掉null和undefined结果
+        result.children = childResults.filter(r => r != null) as any[];
+      }
+      
+      return result;
+    }
     
+    // 尝试使用异步访问者处理文档
     for (const visitor of documentVisitors) {
       try {
-        // 复制上下文，避免干扰其他访问者
-        const visitorContext = this.contextManager.cloneContext(newContext);
-        let visitorResult = visitor.visitDocument?.(document, visitorContext);
-        
-        if (visitorResult instanceof Promise) {
-          visitorResult = await visitorResult;
-        }
+        const visitResult = await visitor.visitDocumentAsync!(document, this.contextManager.cloneContext(newContext));
         
         // 访问者成功执行，重置错误计数
         if (visitor.name) {
           this._visitorManager.resetErrorCount(visitor.name);
         }
         
-        if (visitorResult !== null && visitorResult !== undefined) {
-          if (context.options.mergeReturnValues) {
-            // 收集所有返回值
-            results.push(visitorResult);
-          } else {
-            // 不合并，使用第一个非空结果
-            result = visitorResult;
-            break;
+        // 一旦有一个访问者返回非空结果，使用该结果并停止处理
+        if (visitResult != null) {
+          // 将访问者结果添加到父结果
+          newContext.parentResults.push(visitResult);
+          
+          // 处理子节点 (如果结果中有children属性)
+          if (visitResult.children && document.children && document.children.length > 0) {
+            const childrenContext = this.contextManager.createChildContext(
+              newContext, 
+              'children'
+            );
+            
+            const childPromises = document.children.map(child => 
+              this.transformNodeAsync(child, childrenContext)
+            );
+            
+            // 等待所有子节点转换完成
+            const childResults = await Promise.all(childPromises);
+            
+            // 更新子节点结果
+            return {
+              ...visitResult,
+              children: childResults.filter(r => r != null)
+            };
           }
+          
+          return visitResult;
         }
       } catch (error) {
+        // 处理访问者错误
         this.handleVisitorError(error, visitor, 'document', document.position);
+        
+        // 在严格模式下，错误应该向上传播
+        if (context.options.mode === 'strict') {
+          throw error;
+        }
       }
     }
     
-    // 处理子节点
-    if (document.children && document.children.length > 0) {
-      const childPromises = document.children.map(child => 
-        this.transformNodeAsync(child, this.contextManager.createChildContext(newContext, child.type))
-      );
-      
-      const childResults = await Promise.all(childPromises);
-      
-      // 合并结果
-      if (context.options.mergeReturnValues) {
-        return [...results, ...childResults.filter(Boolean)];
-      }
-    }
-    
-    return result || document;
+    // 如果没有异步访问者返回结果，尝试使用同步方法
+    return this.transformDocument(document, context);
   }
 
   /**
    * 异步转换元素节点
    * @param element 元素节点
    * @param context 上下文
-   * @returns 转换结果的Promise
+   * @returns 转换结果Promise
    * @private
    */
   private async transformElementAsync(element: Element, context: TransformContext): Promise<any> {
     // 更新上下文路径
-    const pathSegment = element.tagName || 'element';
     const newContext = this.contextManager.createChildContext(
       context,
-      pathSegment
+      `element[${element.tagName}]`
     );
     
-    // 应用所有具有visitElement方法的访问者
-    let result = element; // 默认结果为原始元素
+    // 获取所有异步元素访问者
+    const elementVisitors = this._visitorManager.getVisitorsByMethod('visitElementAsync');
     
-    // 获取具有visitElement方法的访问者
-    const elementVisitors = this._visitorManager.getVisitorsByMethod('visitElement');
+    if (elementVisitors.length === 0) {
+      // 如果没有异步元素访问者，默认返回一个包含子节点的结构
+      const result: { type: string, tagName: string, children: any[] } = {
+        type: 'element',
+        tagName: element.tagName,
+        children: []
+      };
+      
+      // 处理子节点
+      if (element.children && element.children.length > 0) {
+        const childrenContext = this.contextManager.createChildContext(
+          newContext, 
+          'children',
+          { parentResults: [...newContext.parentResults, result] }
+        );
+        
+        const childPromises = element.children.map(child => 
+          this.transformNodeAsync(child, childrenContext)
+        );
+        
+        // 等待所有子节点转换完成
+        const childResults = await Promise.all(childPromises);
+        
+        // 过滤掉null和undefined结果
+        result.children = childResults.filter(r => r != null) as any[];
+      }
+      
+      return result;
+    }
     
+    // 尝试使用异步访问者处理元素
     for (const visitor of elementVisitors) {
       try {
-        // 复制上下文，避免干扰其他访问者
-        const visitorContext = this.contextManager.cloneContext(newContext);
-        let visitorResult = visitor.visitElement?.(result, visitorContext);
-        
-        if (visitorResult instanceof Promise) {
-          visitorResult = await visitorResult;
-        }
+        const visitResult = await visitor.visitElementAsync!(element, this.contextManager.cloneContext(newContext));
         
         // 访问者成功执行，重置错误计数
         if (visitor.name) {
           this._visitorManager.resetErrorCount(visitor.name);
         }
         
-        if (visitorResult !== null && visitorResult !== undefined) {
-          // 更新结果为访问者返回的结果，传递给下一个访问者
-          result = visitorResult;
+        // 一旦有一个访问者返回非空结果，使用该结果并停止处理
+        if (visitResult != null) {
+          // 将访问者结果添加到父结果
+          newContext.parentResults.push(visitResult);
+          
+          // 处理子节点 (如果结果中有children属性和元素有子节点)
+          if (visitResult.children && element.children && element.children.length > 0) {
+            const childrenContext = this.contextManager.createChildContext(
+              newContext, 
+              'children'
+            );
+            
+            const childPromises = element.children.map(child => 
+              this.transformNodeAsync(child, childrenContext)
+            );
+            
+            // 等待所有子节点转换完成
+            const childResults = await Promise.all(childPromises);
+            
+            // 更新子节点结果
+            return {
+              ...visitResult,
+              children: childResults.filter(r => r != null)
+            };
+          }
+          
+          return visitResult;
         }
       } catch (error) {
+        // 处理访问者错误
         this.handleVisitorError(error, visitor, 'element', element.position);
+        
+        // 在严格模式下，错误应该向上传播
+        if (context.options.mode === 'strict') {
+          throw error;
+        }
       }
     }
     
-    // 处理子节点
-    if (result.children && result.children.length > 0) {
-      const childPromises = result.children.map(child => 
-        this.transformNodeAsync(child, this.contextManager.createChildContext(newContext, child.type))
-      );
-      
-      const childResults = await Promise.all(childPromises);
-      
-      // 更新子节点结果
-      result = {
-        ...result,
-        children: childResults.filter(Boolean)
-      };
-    }
-    
-    return result;
+    // 如果没有异步访问者返回结果，尝试使用同步方法
+    return this.transformElement(element, context);
   }
 
   /**
    * 异步转换内容节点
    * @param content 内容节点
    * @param context 上下文
-   * @returns 转换结果的Promise
+   * @returns 转换结果Promise
    * @private
    */
   private async transformContentAsync(content: Content, context: TransformContext): Promise<any> {
@@ -1029,83 +1188,102 @@ export class DefaultTransformer implements Transformer {
       'content'
     );
     
-    // 应用所有具有visitContent方法的访问者
-    let result = null;
+    // 获取所有异步内容访问者
+    const contentVisitors = this._visitorManager.getVisitorsByMethod('visitContentAsync');
     
-    // 获取具有visitContent方法的访问者
-    const contentVisitors = this._visitorManager.getVisitorsByMethod('visitContent');
+    if (contentVisitors.length === 0) {
+      // 如果没有异步内容访问者，返回简单的内容结构
+      return {
+        type: 'content',
+        value: content.value || ''
+      };
+    }
     
+    // 尝试使用异步访问者处理内容
     for (const visitor of contentVisitors) {
       try {
-        // 复制上下文，避免干扰其他访问者
-        const visitorContext = this.contextManager.cloneContext(newContext);
-        let visitorResult = visitor.visitContent?.(content, visitorContext);
-        
-        if (visitorResult instanceof Promise) {
-          visitorResult = await visitorResult;
-        }
+        const visitResult = await visitor.visitContentAsync!(content, this.contextManager.cloneContext(newContext));
         
         // 访问者成功执行，重置错误计数
         if (visitor.name) {
           this._visitorManager.resetErrorCount(visitor.name);
         }
         
-        if (visitorResult !== null && visitorResult !== undefined) {
-          result = visitorResult;
-          break; // 使用第一个非空结果
+        // 一旦有一个访问者返回非空结果，使用该结果并停止处理
+        if (visitResult != null) {
+          // 将访问者结果添加到父结果
+          newContext.parentResults.push(visitResult);
+          return visitResult;
         }
       } catch (error) {
+        // 处理访问者错误
         this.handleVisitorError(error, visitor, 'content', content.position);
+        
+        // 在严格模式下，错误应该向上传播
+        if (context.options.mode === 'strict') {
+          throw error;
+        }
       }
     }
     
-    return result || content;
+    // 如果没有异步访问者返回结果，尝试使用同步方法
+    return this.transformContent(content, context);
   }
 
   /**
    * 异步转换引用节点
    * @param reference 引用节点
    * @param context 上下文
-   * @returns 转换结果的Promise
+   * @returns 转换结果Promise
    * @private
    */
   private async transformReferenceAsync(reference: Reference, context: TransformContext): Promise<any> {
     // 更新上下文路径
     const newContext = this.contextManager.createChildContext(
       context,
-      'reference'
+      `reference[${reference.path}]`
     );
     
-    // 应用所有具有visitReference方法的访问者
-    let result = null;
+    // 获取所有异步引用访问者
+    const referenceVisitors = this._visitorManager.getVisitorsByMethod('visitReferenceAsync');
     
-    // 获取具有visitReference方法的访问者
-    const referenceVisitors = this._visitorManager.getVisitorsByMethod('visitReference');
+    if (referenceVisitors.length === 0) {
+      // 如果没有异步引用访问者，返回简单的引用结构
+      return {
+        type: 'reference',
+        protocol: reference.protocol,
+        path: reference.path
+      };
+    }
     
+    // 尝试使用异步访问者处理引用
     for (const visitor of referenceVisitors) {
       try {
-        // 复制上下文，避免干扰其他访问者
-        const visitorContext = this.contextManager.cloneContext(newContext);
-        let visitorResult = visitor.visitReference?.(reference, visitorContext);
-        
-        if (visitorResult instanceof Promise) {
-          visitorResult = await visitorResult;
-        }
+        const visitResult = await visitor.visitReferenceAsync!(reference, this.contextManager.cloneContext(newContext));
         
         // 访问者成功执行，重置错误计数
         if (visitor.name) {
           this._visitorManager.resetErrorCount(visitor.name);
         }
         
-        if (visitorResult !== null && visitorResult !== undefined) {
-          result = visitorResult;
-          break; // 使用第一个非空结果
+        // 一旦有一个访问者返回非空结果，使用该结果并停止处理
+        if (visitResult != null) {
+          // 将访问者结果添加到父结果
+          newContext.parentResults.push(visitResult);
+          return visitResult;
         }
       } catch (error) {
+        // 处理访问者错误
         this.handleVisitorError(error, visitor, 'reference', reference.position);
+        
+        // 在严格模式下，错误应该向上传播
+        if (context.options.mode === 'strict') {
+          throw error;
+        }
       }
     }
     
-    return result || reference;
+    // 如果没有异步访问者返回结果，尝试使用同步方法
+    return this.transformReference(reference, context);
   }
 } 
