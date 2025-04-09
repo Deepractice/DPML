@@ -28,6 +28,20 @@ export interface TransformerOptions {
   cacheExpiry?: number;
   
   /**
+   * 访问者错误阈值
+   * 单个访问者达到此错误次数时将被自动禁用
+   * 默认为3
+   */
+  visitorErrorThreshold?: number;
+  
+  /**
+   * 访问者自动恢复时间（毫秒）
+   * 被禁用的访问者在此时间后自动恢复
+   * 设置为0表示不自动恢复，默认为0
+   */
+  visitorAutoRecoveryTime?: number;
+  
+  /**
    * 自定义选项
    */
   [key: string]: any;

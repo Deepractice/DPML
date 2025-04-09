@@ -242,7 +242,10 @@ export class DefaultProcessor implements Processor {
       for (const visitor of this.visitors) {
         if (visitor.visitDocument) {
           try {
-            result = await visitor.visitDocument(result, context);
+            const newResult = await visitor.visitDocument(result, context);
+            if (newResult) {
+              result = newResult;
+            }
           } catch (error: any) {
             // 处理访问者错误
             this.errorHandler.handleError(
@@ -253,7 +256,8 @@ export class DefaultProcessor implements Processor {
               `VISITOR_ERROR_${visitor.constructor.name || 'Unknown'}`
             );
             
-            // 如果错误处理没有抛出异常，说明我们处于恢复模式，继续处理
+            // 注意：如果启用了错误恢复，handleError不会抛出异常，我们继续处理
+            // 如果未启用错误恢复，handleError会抛出异常并终止处理
           }
         }
       }
@@ -332,7 +336,10 @@ export class DefaultProcessor implements Processor {
           for (const visitor of this.visitors) {
             if (visitor.visitElement) {
               try {
-                result = await visitor.visitElement(result, context);
+                const newResult = await visitor.visitElement(result, context);
+                if (newResult) {
+                  result = newResult;
+                }
               } catch (error: any) {
                 // 基于context和元素的mode属性处理错误
                 this.errorHandler.handleErrorWithContext(
@@ -392,7 +399,10 @@ export class DefaultProcessor implements Processor {
       for (const visitor of this.visitors) {
         if (visitor.visitElement) {
           try {
-            result = await visitor.visitElement(result, context);
+            const newResult = await visitor.visitElement(result, context);
+            if (newResult) {
+              result = newResult;
+            }
           } catch (error: any) {
             // 基于context和元素的mode属性处理错误
             this.errorHandler.handleErrorWithContext(

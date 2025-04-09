@@ -6,7 +6,7 @@ import { TransformContext } from './interfaces/transformContext';
 import { TransformOptions } from './interfaces/transformOptions';
 import { TransformerVisitor } from './interfaces/transformerVisitor';
 import { ContextManager } from './context/contextManager';
-import { Node, Document, Element, Content, Reference } from '../types/node';
+import { Node, Document, Element, Content, Reference, NodeType } from '../types/node';
 // 导入模式配置功能
 import { getModeConfig, handleModeError, ModeConfigOptions } from './utils/modeConfig';
 // 导入变量配置功能
@@ -28,14 +28,6 @@ class NoopOutputProcessor implements OutputProcessor {
   process(data: any, context: TransformContext): any {
     return data;
   }
-}
-
-// 定义节点类型枚举
-enum NodeType {
-  DOCUMENT = 'document',
-  ELEMENT = 'element',
-  CONTENT = 'content',
-  REFERENCE = 'reference'
 }
 
 // 缓存项定义
@@ -313,16 +305,16 @@ export class DefaultTransformer implements Transformer {
     
     // 根据节点类型调用不同的转换方法
     switch (node.type) {
-      case 'document':
+      case NodeType.DOCUMENT:
         transformResult = this.transformDocument(node as Document, context);
         break;
-      case 'element':
+      case NodeType.ELEMENT:
         transformResult = this.transformElement(node as Element, context);
         break;
-      case 'content':
+      case NodeType.CONTENT:
         transformResult = this.transformContent(node as Content, context);
         break;
-      case 'reference':
+      case NodeType.REFERENCE:
         transformResult = this.transformReference(node as Reference, context);
         break;
       default:

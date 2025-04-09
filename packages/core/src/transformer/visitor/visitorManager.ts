@@ -24,20 +24,37 @@ export class VisitorManager {
   private visitorErrorCounts: Map<string, number> = new Map();
   
   /**
+   * 访问者禁用时间戳映射
+   * @private
+   */
+  private visitorDisableTimestamps: Map<string, number> = new Map();
+  
+  /**
    * 错误阈值
    * @private
    */
   private errorThreshold: number;
   
   /**
+   * 自动恢复时间（毫秒）
+   * 如果设置为正数，被禁用的访问者在指定时间后将自动恢复
+   * 默认为0（禁用自动恢复）
+   * @private
+   */
+  private autoRecoveryTime: number;
+  
+  /**
    * 构造函数
    * @param errorThreshold 错误阈值，超过此值将自动禁用访问者
+   * @param autoRecoveryTime 自动恢复时间（毫秒），0表示不自动恢复
    */
-  constructor(errorThreshold: number = 3) {
+  constructor(errorThreshold: number = 3, autoRecoveryTime: number = 0) {
     this.errorThreshold = errorThreshold;
+    this.autoRecoveryTime = autoRecoveryTime;
     this.visitors = [];
     this.disabledVisitors = new Set();
     this.visitorErrorCounts = new Map();
+    this.visitorDisableTimestamps = new Map();
   }
   
   /**
@@ -106,11 +123,17 @@ export class VisitorManager {
    * @returns 具有特定方法的访问者数组
    */
   getVisitorsByMethod(methodName: string): TransformerVisitor[] {
+    // 检查并恢复被自动禁用的访问者
+    this.checkAndRecoverDisabledVisitors();
+    
     // 返回所有具有特定方法且未被禁用的访问者，并且保持优先级排序
-    return this.visitors.filter(visitor => 
-      !this.isVisitorDisabled(visitor.name) && 
-      typeof (visitor as any)[methodName] === 'function'
-    );
+    return this.visitors.filter(visitor => {
+      // 检查访问者是否被禁用
+      const isDisabled = visitor.name ? this.disabledVisitors.has(visitor.name) : false;
+      
+      // 只返回未禁用且具有指定方法的访问者
+      return !isDisabled && typeof (visitor as any)[methodName] === 'function';
+    });
   }
   
   /**
@@ -119,8 +142,13 @@ export class VisitorManager {
    * @returns 可处理特定标签的访问者数组
    */
   getVisitorsByTagName(tagName: string): TransformerVisitor[] {
+    // 检查并恢复被自动禁用的访问者
+    this.checkAndRecoverDisabledVisitors();
+    
     return this.visitors.filter(visitor => {
-      if (this.isVisitorDisabled(visitor.name)) {
+      // 检查访问者是否被禁用
+      const isDisabled = visitor.name ? this.disabledVisitors.has(visitor.name) : false;
+      if (isDisabled) {
         return false;
       }
       
@@ -146,9 +174,10 @@ export class VisitorManager {
   /**
    * 禁用访问者
    * @param visitorName 访问者名称
+   * @param reason 禁用原因
    * @returns 是否成功禁用
    */
-  disableVisitor(visitorName: string): boolean {
+  disableVisitor(visitorName: string, reason: string = '未指定原因'): boolean {
     const visitor = this.getVisitorByName(visitorName);
     if (!visitor) {
       console.warn(`无法禁用未注册的访问者: ${visitorName}`);
@@ -157,7 +186,20 @@ export class VisitorManager {
     
     if (!this.disabledVisitors.has(visitorName)) {
       this.disabledVisitors.add(visitorName);
-      console.warn(`访问者 ${visitorName} 已禁用`);
+      
+      // 记录禁用时间戳
+      this.visitorDisableTimestamps.set(visitorName, Date.now());
+      
+      // 记录禁用消息，包含错误计数和阈值
+      const errorCount = this.getErrorCount(visitorName);
+      console.warn(`访问者 ${visitorName} 已禁用: ${reason}${errorCount > 0 ? `（错误次数：${errorCount}/${this.errorThreshold}）` : ''}`);
+      
+      // 如果启用了自动恢复，记录恢复信息
+      if (this.autoRecoveryTime > 0) {
+        const recoveryTimeInSeconds = this.autoRecoveryTime / 1000;
+        console.warn(`[自动恢复] 访问者 ${visitorName} 将在 ${recoveryTimeInSeconds} 秒后自动恢复`);
+      }
+      
       return true;
     }
     
@@ -180,6 +222,9 @@ export class VisitorManager {
       this.disabledVisitors.delete(visitorName);
       // 重置错误计数
       this.resetErrorCount(visitorName);
+      // 清除禁用时间戳
+      this.visitorDisableTimestamps.delete(visitorName);
+      
       console.log(`访问者 ${visitorName} 已启用`);
       return true;
     }
@@ -188,41 +233,7 @@ export class VisitorManager {
   }
   
   /**
-   * 检查访问者是否被禁用
-   * @param visitorName 访问者名称
-   * @returns 是否被禁用
-   */
-  isVisitorDisabled(visitorName?: string): boolean {
-    if (!visitorName) {
-      return false;
-    }
-    return this.disabledVisitors.has(visitorName);
-  }
-  
-  /**
-   * 增加访问者错误计数
-   * @param visitorName 访问者名称
-   * @returns 当前错误计数
-   */
-  incrementErrorCount(visitorName: string): number {
-    if (!visitorName) {
-      return 0;
-    }
-    
-    const currentCount = this.visitorErrorCounts.get(visitorName) || 0;
-    const newCount = currentCount + 1;
-    this.visitorErrorCounts.set(visitorName, newCount);
-    
-    // 检查是否超过阈值
-    if (newCount >= this.errorThreshold) {
-      this.disableVisitor(visitorName);
-    }
-    
-    return newCount;
-  }
-  
-  /**
-   * 重置访问者错误计数
+   * 重置错误计数
    * @param visitorName 访问者名称
    */
   resetErrorCount(visitorName: string): void {
@@ -232,23 +243,69 @@ export class VisitorManager {
   }
   
   /**
-   * 获取访问者错误计数
+   * 增加错误计数
+   * @param visitorName 访问者名称
+   * @param errorMsg 错误信息
+   * @returns 当前错误计数
+   */
+  incrementErrorCount(visitorName: string, errorMsg: string = ''): number {
+    if (!visitorName) {
+      return 0;
+    }
+    
+    // 获取当前错误计数
+    const currentCount = this.getErrorCount(visitorName);
+    const newCount = currentCount + 1;
+    
+    // 更新错误计数
+    this.visitorErrorCounts.set(visitorName, newCount);
+    
+    // 检查是否超过阈值
+    if (newCount >= this.errorThreshold) {
+      const reason = `错误次数超过阈值 (${newCount}/${this.errorThreshold})${errorMsg ? ': ' + errorMsg : ''}`;
+      this.disableVisitor(visitorName, reason);
+    }
+    
+    return newCount;
+  }
+  
+  /**
+   * 获取错误计数
    * @param visitorName 访问者名称
    * @returns 当前错误计数
    */
   getErrorCount(visitorName: string): number {
-    if (!visitorName) {
-      return 0;
-    }
     return this.visitorErrorCounts.get(visitorName) || 0;
   }
   
   /**
-   * 清除所有访问者
+   * 设置自动恢复时间
+   * @param timeInMs 自动恢复时间（毫秒），0表示不自动恢复
    */
-  clearVisitors(): void {
-    this.visitors = [];
-    this.disabledVisitors.clear();
-    this.visitorErrorCounts.clear();
+  setAutoRecoveryTime(timeInMs: number): void {
+    this.autoRecoveryTime = timeInMs;
   }
-} 
+  
+  /**
+   * 检查是否有被禁用的访问者可以自动恢复
+   * @private
+   */
+  private checkAndRecoverDisabledVisitors(): void {
+    // 如果未启用自动恢复，直接返回
+    if (this.autoRecoveryTime <= 0) {
+      return;
+    }
+    
+    const now = Date.now();
+    
+    // 检查所有被禁用的访问者
+    for (const visitorName of this.disabledVisitors) {
+      const disableTime = this.visitorDisableTimestamps.get(visitorName);
+      if (disableTime && (now - disableTime) >= this.autoRecoveryTime) {
+        // 已经超过了自动恢复时间，恢复此访问者
+        this.enableVisitor(visitorName);
+        console.info(`访问者 ${visitorName} 已自动恢复`);
+      }
+    }
+  }
+}

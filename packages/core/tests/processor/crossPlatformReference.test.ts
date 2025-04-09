@@ -56,7 +56,6 @@ describe('跨平台文件引用处理', () => {
   
   afterEach(() => {
     // 恢复原始函数
-    vi.mocked(pathUtils.convertPathForPlatform).mockRestore();
     vi.restoreAllMocks();
   });
   

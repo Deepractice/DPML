@@ -52,8 +52,14 @@ export function normalizePath(filePath: string): string {
   // 替换反斜杠为正斜杠 (统一为UNIX格式，再让path.normalize根据平台转换)
   filePath = filePath.replace(/\\/g, '/');
   
-  // 使用path.normalize根据当前平台转换路径分隔符
-  return path.normalize(filePath);
+  try {
+    // 使用path.normalize根据当前平台转换路径分隔符
+    return path.normalize(filePath);
+  } catch (error) {
+    // 如果normalize失败，返回原始转换后的路径
+    console.warn('路径规范化失败:', error);
+    return filePath;
+  }
 }
 
 /**
@@ -132,8 +138,14 @@ export function resolveRelativePath(basePath: string, relativePath: string): str
     ? basePath 
     : path.dirname(normalizePath(basePath));
   
-  // 解析路径
-  return normalizePath(path.join(baseDir, relativePath));
+  try {
+    // 解析路径
+    return normalizePath(path.join(baseDir, relativePath));
+  } catch (error) {
+    // 如果path.join失败，使用简单的路径拼接
+    console.warn('路径解析失败:', error);
+    return normalizePath(`${baseDir}/${relativePath}`);
+  }
 }
 
 /**
