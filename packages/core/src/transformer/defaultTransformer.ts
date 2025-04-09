@@ -18,6 +18,8 @@ import { DefaultOutputAdapter } from './adapters/defaultOutputAdapter';
 import { OutputAdapterFactory } from './interfaces/outputAdapterFactory';
 // 导入合并功能
 import { mergeVisitorResults, MergeOptions } from './utils/mergeUtils';
+// 导入新的错误格式化工具
+import { formatError, logVisitorError, logTransformError } from './utils/errorFormatter';
 
 /**
  * 简单的默认输出处理器实现
@@ -921,27 +923,29 @@ export class DefaultTransformer implements Transformer {
     nodeType: string, 
     position?: any
   ): void {
-    // 提取访问者名称用于错误信息
-    const visitorName = visitor.name || '匿名访问者';
+    // 获取模式配置
+    const modeConfig = getModeConfig(this.options);
     
-    // 增强错误信息
-    const enhancedError = this.enhanceError(error, {
-      visitor: visitorName,
+    // 使用新的错误格式化工具处理错误
+    const formattedError = logVisitorError(
+      error,
+      visitor,
       nodeType,
       position,
-      timestamp: new Date().toISOString()
-    });
+      modeConfig
+    );
     
     // 增加访问者错误计数
     if (visitor.name) {
       const errorCount = this._visitorManager.incrementErrorCount(visitor.name);
-      console.warn(`访问者 ${visitorName} 错误计数: ${errorCount}/${this.modeConfig.errorThreshold}`);
-    }
-    
-    // 在非严格模式下才记录错误
-    if (this.options.mode !== 'strict') {
-      // 记录错误
-      console.error(`转换错误: 访问者 ${visitorName} 处理 ${nodeType} 节点时出错:`, enhancedError.message, enhancedError);
+      
+      // 如果在宽松模式下且接近阈值，添加警告
+      if (this.options.mode !== 'strict' && modeConfig.errorThreshold > 0) {
+        const remainingErrors = modeConfig.errorThreshold - errorCount;
+        if (remainingErrors > 0 && remainingErrors <= 2) { // 如果还剩1-2次就会被禁用
+          console.warn(`警告: 访问者 ${visitor.name} 再出错${remainingErrors}次将被自动禁用`);
+        }
+      }
     }
   }
   
@@ -952,14 +956,18 @@ export class DefaultTransformer implements Transformer {
    * @private
    */
   private handleTransformError(error: any, options: TransformOptions): void {
-    // 在严格模式下，我们不需要输出到控制台，因为错误会被直接抛出
-    if (options.mode !== 'strict') {
-      console.error('转换过程中发生错误:', error);
-    }
-    
-    // 应用模式配置中的错误处理逻辑
+    // 获取模式配置
     const modeConfig = getModeConfig(options);
-    handleModeError(error, modeConfig, 0);
+    
+    // 使用新的错误格式化工具处理错误
+    const formattedError = logTransformError(
+      error,
+      '文档转换',
+      modeConfig
+    );
+    
+    // 调用模式配置中的错误处理逻辑
+    handleModeError(formattedError, modeConfig, 0);
   }
   
   /**
@@ -970,16 +978,8 @@ export class DefaultTransformer implements Transformer {
    * @private
    */
   private enhanceError(error: any, info: any): Error {
-    if (error instanceof Error) {
-      (error as any).visitorInfo = info;
-      return error;
-    }
-    
-    const newError = new Error(error?.message || String(error));
-    (newError as any).visitorInfo = info;
-    (newError as any).originalError = error;
-    
-    return newError;
+    // 使用新的错误格式化工具
+    return formatError(error, info);
   }
   
   /**
@@ -1081,23 +1081,41 @@ export class DefaultTransformer implements Transformer {
       
       return adaptedResult;
     } catch (error) {
-      // 增强错误信息
-      const enhancedError = this.enhanceError(error, {
-        operation: 'transformAsync',
+      // 获取模式配置
+      const modeConfig = getModeConfig(mergedOptions);
+      
+      // 增强错误信息并记录
+      const formattedError = logTransformError(
+        error,
+        '异步转换',
+        modeConfig
+      );
+      
+      // 在错误对象上添加更多上下文信息
+      (formattedError as any).context = {
+        ...(formattedError as any).context,
         document: document?.type,
-        mode: mergedOptions.mode
-      });
+        mode: mergedOptions.mode,
+        async: true,
+        timestamp: new Date().toISOString()
+      };
       
       // 处理错误
-      this.handleTransformError(enhancedError, mergedOptions);
+      this.handleTransformError(formattedError, mergedOptions);
       
       // 在严格模式下抛出错误
       if (mergedOptions.mode === 'strict') {
-        throw enhancedError; // 确保抛出增强后的错误
+        throw formattedError;
       }
       
       // 在非严格模式下返回尽可能好的结果
-      return { error: enhancedError, partial: true, errorMessage: enhancedError.message };
+      return {
+        error: true,
+        errorType: 'transform_error',
+        errorMessage: formattedError.message,
+        originalDocument: document,
+        timestamp: new Date().toISOString()
+      };
     }
   }
 
@@ -1213,12 +1231,27 @@ export class DefaultTransformer implements Transformer {
           return visitResult;
         }
       } catch (error) {
-        // 处理访问者错误
-        this.handleVisitorError(error, visitor, 'document', document.position);
+        // 获取模式配置
+        const modeConfig = getModeConfig(context.options);
+        
+        // 格式化并记录错误
+        const formattedError = logVisitorError(error, visitor, 'document', document.position, modeConfig);
         
         // 在严格模式下，错误应该向上传播
         if (context.options.mode === 'strict') {
-          throw error;
+          throw formattedError;
+        }
+        
+        // 在宽松模式下，如果是visitDocumentAsync方法错误，提供标准的错误结果结构
+        if (visitor.visitDocumentAsync) {
+          return {
+            error: true,
+            errorType: 'visitor_error',
+            errorVisitor: visitor.name,
+            errorMessage: formattedError.message,
+            originalDocument: document,
+            timestamp: new Date().toISOString()
+          };
         }
       }
     }
