@@ -4,7 +4,7 @@ import * as path from 'path';
 export default defineConfig({
   entry: ['src/index.ts'],
   format: ['cjs', 'esm'],
-  dts: false,
+  dts: true,
   sourcemap: true,
   clean: true,
   minify: false,

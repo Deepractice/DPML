@@ -57,5 +57,5 @@ export interface ProcessingContext {
    * ID到元素的映射
    * 用于快速查找元素
    */
-  idMap?: Map<string, Element>;
+  idMap: Map<string, Element>;
 } 

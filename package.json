@@ -8,7 +8,8 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "test": "turbo run test",
-    "clean": "turbo run clean && rm -rf node_modules"
+    "clean": "turbo run clean && rm -rf node_modules",
+    "example:parsing": "node -r @swc-node/register examples/core/basic/parsing.ts"
   },
   "keywords": [
     "dpml",
@@ -20,6 +21,8 @@
   "license": "MIT",
   "packageManager": "pnpm@10.7.0",
   "devDependencies": {
+    "@swc-node/register": "^1.10.10",
+    "@swc/core": "^1.11.18",
     "@types/node": "^22.14.0",
     "@typescript-eslint/eslint-plugin": "8.29.0",
     "@typescript-eslint/parser": "8.29.0",

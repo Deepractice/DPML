@@ -22,19 +22,13 @@ export * from './processor';
 // 导出转换器模块
 export {
   DefaultTransformer,
-  DefaultTransformerFactory,
-  DefaultOutputAdapterFactory,
-  DefaultOutputAdapter,
-  JsonOutputAdapter,
-  XmlOutputAdapter,
-  MarkdownOutputAdapter
+  DefaultTransformerFactory
 } from './transformer';
 
 // 从transformer中导出接口
 export type {
   Transformer,
   TransformerFactory,
-  TransformerOptions,
   TransformOptions,
   TransformerVisitor,
   OutputAdapter,
@@ -45,4 +39,11 @@ export type {
 export * from './errors';
 
 // 导出常量
-export * from './constants'; 
+export * from './constants';
+
+// 导出API函数
+export {
+  parse,
+  process,
+  Warning
+} from './api'; 

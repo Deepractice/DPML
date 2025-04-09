@@ -6,9 +6,15 @@
 
 import { Document, Element } from '@core/types/node';
 import { NodeVisitor, ProcessingContext } from '@core/processor/interfaces';
-import { DefaultValidationError, ErrorCode, ErrorLevel } from '@core/errors/types';
+import { 
+  DefaultValidationError, 
+  ErrorCode, 
+  ErrorLevel, 
+  ValidationResult, 
+  ValidationWarning,
+  ValidationErrorImpl
+} from '@core/errors/types';
 import { TagRegistry } from '@core/parser/tag-registry';
-import { ValidationResult, ValidationWarning } from '@core/parser/tag-definition';
 import { DocumentMode } from '@core/processor/visitors/documentMetadataVisitor';
 
 /**
@@ -260,7 +266,7 @@ export class AttributeValidationVisitor implements NodeVisitor {
    * @returns 处理后的元素节点
    */
   private handleValidationError(
-    error: DefaultValidationError,
+    error: ValidationErrorImpl,
     context: ProcessingContext,
     element?: Element
   ): Element | never {

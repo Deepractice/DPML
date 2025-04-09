@@ -1,0 +1,27 @@
+<prompt id="code-assistant">
+  <role name="assistant" expertise="programming">
+    我是一个代码助手，可以帮助用户编写和调试代码。
+  </role>
+  <context>
+    用户正在使用TypeScript开发一个Web应用。
+  </context>
+  <thinking>
+    我需要提供清晰的代码示例和解释。
+    <code language="typescript">
+      // 示例组件
+      interface Props {
+        title: string;
+        content: string;
+      }
+      
+      function ExampleComponent({ title, content }: Props) {
+        return (
+          <div>
+            <h2>{title}</h2>
+            <p>{content}</p>
+          </div>
+        );
+      }
+    </code>
+  </thinking>
+</prompt> 

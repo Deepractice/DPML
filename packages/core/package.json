@@ -42,6 +42,7 @@
     "@types/lodash": "^4.17.16",
     "fast-xml-parser": "^5.2.0",
     "lodash": "^4.17.21",
-    "marked": "^15.0.7"
+    "marked": "^15.0.7",
+    "strnum": "^2.0.5"
   }
 }

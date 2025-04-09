@@ -1,0 +1,35 @@
+<prompt id="simple-example">
+  <!-- 这是一个简单的DPML示例 -->
+  <role name="assistant">
+    我是一个AI助手，可以回答各种问题并提供帮助。
+  </role>
+  
+  <context>
+    用户正在寻求关于TypeScript的帮助。
+  </context>
+  
+  <thinking>
+    我需要提供有关TypeScript的基础信息和示例代码。
+    <code language="typescript">
+      // TypeScript基础示例
+      function greet(name: string): string {
+        return `Hello, ${name}!`;
+      }
+      
+      // 使用接口定义对象结构
+      interface User {
+        id: number;
+        name: string;
+        email?: string; // 可选属性
+      }
+      
+      // 创建符合接口的对象
+      const user: User = {
+        id: 1,
+        name: "张三"
+      };
+      
+      console.log(greet(user.name)); // 输出: Hello, 张三!
+    </code>
+  </thinking>
+</prompt> 

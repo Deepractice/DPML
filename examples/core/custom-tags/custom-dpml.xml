@@ -1,0 +1,39 @@
+<prompt id="custom-tags-demo">
+  <role name="assistant">
+    我是一个支持自定义卡片和表格的AI助手。
+  </role>
+  
+  <context>
+    以下是使用自定义标签的示例。
+  </context>
+  
+  <!-- 使用自定义卡片标签 -->
+  <card type="info" title="提示信息">
+    这是一个信息卡片，用于展示重要提示。
+    <image src="info-icon.png" alt="信息图标" width="24" height="24" />
+  </card>
+  
+  <card type="warning" title="注意事项">
+    这是一个警告卡片，提醒用户注意潜在问题。
+  </card>
+  
+  <!-- 使用自定义数据表格标签 -->
+  <data-table columns="姓名,年龄,职业" sortable="true" pagination="true" pageSize="10">
+    <data-row values="张三,28,工程师" />
+    <data-row values="李四,32,设计师" />
+    <data-row values="王五,45,经理" />
+  </data-table>
+  
+  <thinking>
+    我需要演示如何使用自定义标签来增强提示的表现力。
+    <code language="typescript">
+      // 处理自定义卡片的代码示例
+      function renderCard(type: string, title: string, content: string) {
+        return `<div class="card card-${type}">
+          <h3>${title}</h3>
+          <div class="card-content">${content}</div>
+        </div>`;
+      }
+    </code>
+  </thinking>
+</prompt> 
