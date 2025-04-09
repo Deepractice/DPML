@@ -48,11 +48,11 @@ pnpm install
 
 ```bash
 # 例如运行基础解析示例
-ts-node examples/core/basic/parsing.ts
+pnpm swc examples/core/basic/parsing.ts
 
 # 运行自定义标签示例
-ts-node examples/core/custom-tags/tag-definition.ts
+pnpm swc examples/core/custom-tags/tag-definition.ts
 
 # 运行完整工作流示例
-ts-node examples/core/complete-workflow/prompt-processing.ts
+pnpm swc examples/core/complete-workflow/prompt-processing.ts
 ``` 

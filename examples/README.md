@@ -35,5 +35,5 @@ pnpm install
 
 ```bash
 # 例如运行基础解析示例
-ts-node examples/core/basic/parsing.ts
+pnpm swc examples/core/basic/parsing.ts
 ``` 
