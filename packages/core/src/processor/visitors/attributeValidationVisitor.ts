@@ -6,9 +6,9 @@
 
 import { Document, Element } from '@core/types/node';
 import { NodeVisitor, ProcessingContext } from '@core/processor/interfaces';
-import { ValidationError, ErrorCode, ErrorLevel } from '@core/errors/types';
+import { DefaultValidationError, ErrorCode, ErrorLevel } from '@core/errors/types';
 import { TagRegistry } from '@core/parser/tag-registry';
-import { ValidationResult, ValidationWarning, ValidationError as ParserValidationError } from '@core/parser/tag-definition';
+import { ValidationResult, ValidationWarning } from '@core/parser/tag-definition';
 import { DocumentMode } from '@core/processor/visitors/documentMetadataVisitor';
 
 /**
@@ -88,7 +88,7 @@ export class AttributeValidationVisitor implements NodeVisitor {
     
     // 如果标签未定义但需要验证未知标签
     if (!tagDefinition && this.validateUnknownTags) {
-      const error = new ValidationError({
+      const error = new DefaultValidationError({
         code: ErrorCode.INVALID_NESTING,
         message: `未知标签: ${element.tagName}`,
         level: ErrorLevel.ERROR,
@@ -100,11 +100,11 @@ export class AttributeValidationVisitor implements NodeVisitor {
     
     // 确保标签定义存在
     if (tagDefinition) {
-      // 验证必需属性
+      // 验证必需属性 - 传统方式
       if (tagDefinition.requiredAttributes) {
         for (const requiredAttr of tagDefinition.requiredAttributes) {
           if (!(requiredAttr in element.attributes)) {
-            const error = new ValidationError({
+            const error = new DefaultValidationError({
               code: ErrorCode.MISSING_REQUIRED_ATTRIBUTE,
               message: `缺少必需的属性: ${requiredAttr}`,
               level: this.isStrictMode(context) ? ErrorLevel.ERROR : ErrorLevel.WARNING,
@@ -116,11 +116,50 @@ export class AttributeValidationVisitor implements NodeVisitor {
         }
       }
       
-      // 验证未知属性
+      // 验证属性 - 支持数组和对象两种格式
       if (tagDefinition.attributes) {
+        const attributes = tagDefinition.attributes;
+        
+        // 检查必需属性 - 对象格式
+        if (typeof attributes === 'object' && !Array.isArray(attributes)) {
+          for (const attrName in attributes) {
+            const attrDef = attributes[attrName];
+            
+            if (
+              (typeof attrDef === 'object' && attrDef.required === true) ||
+              attrDef === true
+            ) {
+              if (!(attrName in element.attributes)) {
+                const error = new DefaultValidationError({
+                  code: ErrorCode.MISSING_REQUIRED_ATTRIBUTE,
+                  message: `缺少必需的属性: ${attrName}`,
+                  level: this.isStrictMode(context) ? ErrorLevel.ERROR : ErrorLevel.WARNING,
+                  position: this.getPosition(element)
+                });
+                
+                return this.handleValidationError(error, context, element);
+              }
+            }
+          }
+        }
+        
+        // 验证未知属性
         for (const attr in element.attributes) {
-          if (!tagDefinition.attributes.includes(attr) && !attr.startsWith('x-')) {
-            const warning = new ValidationError({
+          // 跳过x-前缀的扩展属性
+          if (attr.startsWith('x-')) continue;
+          
+          let isKnownAttribute = false;
+          
+          if (Array.isArray(attributes)) {
+            // 数组格式
+            isKnownAttribute = attributes.includes(attr);
+          } else {
+            // 对象格式
+            isKnownAttribute = attr in attributes;
+          }
+          
+          if (!isKnownAttribute) {
+            const warning = new DefaultValidationError({
               code: ErrorCode.INVALID_ATTRIBUTE,
               message: `未知属性: ${attr}`,
               level: ErrorLevel.WARNING,
@@ -140,7 +179,7 @@ export class AttributeValidationVisitor implements NodeVisitor {
           if (!validationResult.valid && validationResult.errors) {
             // 处理验证错误
             for (const error of validationResult.errors) {
-              const validationError = new ValidationError({
+              const validationError = new DefaultValidationError({
                 code: error.code || ErrorCode.INVALID_ATTRIBUTE,
                 message: error.message,
                 level: this.isStrictMode(context) ? ErrorLevel.ERROR : ErrorLevel.WARNING,
@@ -154,7 +193,7 @@ export class AttributeValidationVisitor implements NodeVisitor {
           // 处理验证警告
           if (validationResult.warnings) {
             for (const warning of validationResult.warnings) {
-              const validationWarning = new ValidationError({
+              const validationWarning = new DefaultValidationError({
                 code: warning.code || 'warning',
                 message: warning.message,
                 level: ErrorLevel.WARNING,
@@ -165,7 +204,7 @@ export class AttributeValidationVisitor implements NodeVisitor {
             }
           }
         } catch (error) {
-          const validationError = new ValidationError({
+          const validationError = new DefaultValidationError({
             code: ErrorCode.UNKNOWN_ERROR,
             message: `自定义验证器错误: ${(error as Error).message}`,
             level: this.isStrictMode(context) ? ErrorLevel.ERROR : ErrorLevel.WARNING,
@@ -221,7 +260,7 @@ export class AttributeValidationVisitor implements NodeVisitor {
    * @returns 处理后的元素节点
    */
   private handleValidationError(
-    error: ValidationError,
+    error: DefaultValidationError,
     context: ProcessingContext,
     element?: Element
   ): Element | never {

@@ -1,5 +1,6 @@
 import { Document } from '@core/types/node';
 import { ParseError as ParseErrorClass } from '@core/errors';
+import { ValidationError as ValidationErrorInterface } from '../errors/types';
 
 /**
  * 解析选项接口
@@ -106,46 +107,6 @@ export interface ParseResult {
 }
 
 /**
- * 验证结果接口
- */
-export interface ValidationResult {
-  /**
-   * 验证是否通过
-   */
-  valid: boolean;
-  
-  /**
-   * 验证错误
-   */
-  errors?: ValidationError[];
-  
-  /**
-   * 验证警告
-   */
-  warnings?: ValidationWarning[];
-}
-
-/**
- * 验证错误接口
- */
-export interface ValidationError {
-  /**
-   * 错误码
-   */
-  code: string;
-  
-  /**
-   * 错误消息
-   */
-  message: string;
-  
-  /**
-   * 错误位置
-   */
-  position?: any;
-}
-
-/**
  * 验证警告接口
  */
 export interface ValidationWarning {
@@ -163,6 +124,26 @@ export interface ValidationWarning {
    * 警告位置
    */
   position?: any;
+}
+
+/**
+ * 验证结果接口
+ */
+export interface ValidationResult {
+  /**
+   * 验证是否通过
+   */
+  valid: boolean;
+  
+  /**
+   * 验证错误
+   */
+  errors?: ValidationErrorInterface[];
+  
+  /**
+   * 验证警告
+   */
+  warnings?: ValidationWarning[];
 }
 
 /**

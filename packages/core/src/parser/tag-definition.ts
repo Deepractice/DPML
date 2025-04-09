@@ -2,16 +2,55 @@
  * 标签定义接口
  * 定义标签的属性规范、嵌套规则和验证规则
  */
+
+/**
+ * 属性定义接口
+ * 定义单个属性的类型、是否必需等元数据
+ */
+export interface AttributeDefinition {
+  /**
+   * 属性类型
+   */
+  type?: string;
+
+  /**
+   * 是否必需
+   */
+  required?: boolean;
+
+  /**
+   * 默认值
+   */
+  default?: any;
+
+  /**
+   * 属性验证函数
+   */
+  validate?: (value: any) => boolean | string;
+}
+
 export interface TagDefinition {
   /**
-   * 允许的属性列表
-   * 如果未定义或为空数组，则标签不允许有属性
+   * 标签名称
+   * 通常在注册时提供，但也可以作为定义的一部分
    */
-  attributes?: string[];
+  name?: string;
+  
+  /**
+   * 允许的属性
+   * 可以是以下几种形式：
+   * 1. 字符串数组（旧版本兼容）：attributes: ['id', 'class']
+   * 2. 对象形式（推荐）：attributes: { id: { type: 'string', required: true } }
+   * 3. 简化布尔对象：attributes: { id: true } 等同于 { id: { required: false } }
+   */
+  attributes?: string[] | {
+    [attributeName: string]: AttributeDefinition | boolean;
+  };
   
   /**
    * 必需的属性列表
-   * 如果未定义或为空数组，则标签没有必需属性
+   * 为兼容旧版本而保留，建议使用attributes对象形式并设置required: true
+   * @deprecated 推荐在attributes对象中设置required: true
    */
   requiredAttributes?: string[];
   
@@ -28,6 +67,11 @@ export interface TagDefinition {
   selfClosing?: boolean;
   
   /**
+   * 内容格式，如markdown、html等
+   */
+  contentFormat?: string;
+  
+  /**
    * 标签验证器函数
    * 可用于实现更复杂的验证逻辑
    */
@@ -35,44 +79,9 @@ export interface TagDefinition {
 }
 
 /**
- * 验证结果接口
+ * 引入ValidationError而不是重复定义
  */
-export interface ValidationResult {
-  /**
-   * 验证是否通过
-   */
-  valid: boolean;
-  
-  /**
-   * 验证错误信息
-   */
-  errors?: ValidationError[];
-  
-  /**
-   * 验证警告信息
-   */
-  warnings?: ValidationWarning[];
-}
-
-/**
- * 验证错误接口
- */
-export interface ValidationError {
-  /**
-   * 错误码
-   */
-  code: string;
-  
-  /**
-   * 错误消息
-   */
-  message: string;
-  
-  /**
-   * 出错位置
-   */
-  position?: any;
-}
+import { ValidationError as ValidationErrorInterface } from '../errors/types';
 
 /**
  * 验证警告接口
@@ -92,4 +101,24 @@ export interface ValidationWarning {
    * 警告位置
    */
   position?: any;
+}
+
+/**
+ * 验证结果接口
+ */
+export interface ValidationResult {
+  /**
+   * 验证是否通过
+   */
+  valid: boolean;
+  
+  /**
+   * 验证错误信息
+   */
+  errors?: ValidationErrorInterface[];
+  
+  /**
+   * 验证警告信息
+   */
+  warnings?: ValidationWarning[];
 } 

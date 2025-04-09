@@ -1,5 +1,5 @@
 import { TagRegistry } from './tag-registry';
-import { ValidationResult, ValidationError, ValidationWarning } from './tag-definition';
+import { ValidationResult, ValidationError, ValidationWarning, TagDefinition } from './tag-definition';
 import { Node, NodeType, Element, Document, isElement } from '@core/types/node';
 import { SourcePosition } from '@core/types/node';
 import { ErrorCode } from '@core/errors/types';
@@ -133,11 +133,11 @@ export class Validator {
    * @param tagDefinition 标签定义
    * @returns 验证结果
    */
-  validateAttributes(element: Element, tagDefinition: any): ValidationResult {
+  validateAttributes(element: Element, tagDefinition: TagDefinition): ValidationResult {
     const errors: ValidationError[] = [];
     const warnings: ValidationWarning[] = [];
     
-    // 检查必需属性
+    // 处理旧版本的必需属性列表
     if (tagDefinition.requiredAttributes) {
       for (const requiredAttr of tagDefinition.requiredAttributes) {
         if (!(requiredAttr in element.attributes)) {
@@ -150,15 +150,52 @@ export class Validator {
       }
     }
     
-    // 检查未知属性
+    // 检查属性是否有效以及是否必需
     if (tagDefinition.attributes) {
+      const attributes = tagDefinition.attributes;
+      
+      // 检查未知属性 - 处理数组格式和对象格式
       for (const attr in element.attributes) {
-        if (!tagDefinition.attributes.includes(attr) && !attr.startsWith('x-')) {
-          warnings.push(this.createWarning(
-            'unknown-attribute',
-            `未知属性: ${attr}`,
-            element.position
-          ));
+        // 跳过x-前缀的扩展属性
+        if (attr.startsWith('x-')) continue;
+        
+        // 检查属性是否在允许列表中
+        if (Array.isArray(attributes)) {
+          // 数组格式
+          if (!attributes.includes(attr)) {
+            warnings.push(this.createWarning(
+              'unknown-attribute',
+              `未知属性: ${attr}`,
+              element.position
+            ));
+          }
+        } else {
+          // 对象格式
+          if (!(attr in attributes)) {
+            warnings.push(this.createWarning(
+              'unknown-attribute',
+              `未知属性: ${attr}`,
+              element.position
+            ));
+          }
+        }
+      }
+      
+      // 检查必需属性 - 仅处理对象格式
+      if (typeof attributes === 'object' && !Array.isArray(attributes)) {
+        for (const attrName in attributes) {
+          const attrDef = attributes[attrName];
+          
+          // 检查布尔值格式和对象格式
+          if (typeof attrDef === 'object' && attrDef.required === true) {
+            if (!(attrName in element.attributes)) {
+              errors.push(this.createError(
+                ErrorCode.MISSING_REQUIRED_ATTRIBUTE,
+                `缺少必需的属性: ${attrName}`,
+                element.position
+              ));
+            }
+          }
         }
       }
     }

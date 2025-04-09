@@ -1,5 +1,5 @@
 import { expect, describe, it } from 'vitest';
-import { TagDefinition, ValidationResult } from '../../src/parser/tag-definition';
+import { TagDefinition, ValidationResult, AttributeDefinition } from '../../src/parser/tag-definition';
 
 describe('TagDefinition', () => {
   describe('接口定义', () => {
@@ -15,6 +15,53 @@ describe('TagDefinition', () => {
       expect(tagDef.requiredAttributes).toHaveLength(1);
       expect(tagDef.allowedChildren).toHaveLength(3);
       expect(tagDef.selfClosing).toBe(false);
+    });
+    
+    it('应该支持对象格式的属性定义', () => {
+      const tagDef: TagDefinition = {
+        name: 'test-tag',
+        attributes: {
+          id: {
+            type: 'string',
+            required: true
+          },
+          class: {
+            type: 'string',
+            required: false
+          },
+          count: {
+            type: 'number',
+            default: 0
+          }
+        },
+        allowedChildren: ['child-1', 'child-2'],
+        contentFormat: 'markdown'
+      };
+      
+      expect(tagDef.name).toBe('test-tag');
+      expect(typeof tagDef.attributes).toBe('object');
+      expect(Array.isArray(tagDef.attributes)).toBe(false);
+      
+      const attrs = tagDef.attributes as Record<string, AttributeDefinition>;
+      expect(attrs.id.required).toBe(true);
+      expect(attrs.class.required).toBe(false);
+      expect(attrs.count.default).toBe(0);
+      
+      expect(tagDef.allowedChildren).toHaveLength(2);
+      expect(tagDef.contentFormat).toBe('markdown');
+    });
+    
+    it('应该支持布尔值简化的属性定义', () => {
+      const tagDef: TagDefinition = {
+        attributes: {
+          id: true,    // 简化的必需属性
+          class: false // 简化的可选属性
+        }
+      };
+      
+      const attrs = tagDef.attributes as Record<string, boolean>;
+      expect(attrs.id).toBe(true);
+      expect(attrs.class).toBe(false);
     });
     
     it('应该支持可选属性', () => {

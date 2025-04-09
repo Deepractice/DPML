@@ -65,9 +65,23 @@ const registry = new TagRegistry();
 
 // 定义标签
 const promptTagDef: TagDefinition = {
-  attributes: ['id', 'version', 'extends'],
-  requiredAttributes: ['id'],
+  name: 'prompt',
+  attributes: {
+    id: {
+      type: 'string',
+      required: true
+    },
+    version: {
+      type: 'string',
+      required: false
+    },
+    extends: {
+      type: 'string',
+      required: false
+    }
+  },
   allowedChildren: ['role', 'context', 'thinking', 'executing'],
+  contentFormat: 'markdown',
   validate: (element, context) => {
     // 自定义验证逻辑
     return { valid: true };
@@ -425,8 +439,20 @@ const registry = new TagRegistry();
 
 // 注册自定义标签
 registry.registerTagDefinition('my-tag', {
-  attributes: ['id', 'type'],
-  requiredAttributes: ['id'],
+  attributes: {
+    id: {
+      type: 'string',
+      required: true
+    },
+    type: {
+      type: 'string',
+      required: false,
+      validate: (value) => {
+        return ['a', 'b', 'c'].includes(value) || 
+          `无效的type属性值: ${value}，应为a, b或c`;
+      }
+    }
+  },
   allowedChildren: ['sub-tag', 'content'],
   validate: (element, context) => {
     // 验证逻辑
