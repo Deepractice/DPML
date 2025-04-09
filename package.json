@@ -9,9 +9,7 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "clean": "turbo run clean && rm -rf node_modules",
-    "example:core:parsing": "node -r @swc-node/register examples/core/basic/parsing.ts",
-    "example:core:processing": "node -r @swc-node/register examples/core/processing/semantic-processing.ts",
-    "example:core:custom-processor": "node -r @swc-node/register examples/core/processing/custom-tag-processor.ts"
+    "swc": "node -r @swc-node/register"
   },
   "keywords": [
     "dpml",

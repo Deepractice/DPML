@@ -21,56 +21,6 @@
     我需要提供关于TypeScript类型系统的简明解释，并给出实用的代码示例。
     应该涵盖基本类型、接口、泛型等概念，但保持简洁明了。
     
-    <code language="typescript">
-      // TypeScript类型系统示例
-      
-      // 基本类型
-      let isDone: boolean = false;
-      let count: number = 10;
-      let name: string = "TypeScript";
-      
-      // 数组
-      let list: number[] = [1, 2, 3];
-      let names: Array<string> = ["Alice", "Bob"];
-      
-      // 元组
-      let tuple: [string, number] = ["hello", 10];
-      
-      // 枚举
-      enum Color {Red, Green, Blue}
-      let color: Color = Color.Green;
-      
-      // 接口
-      interface User {
-        id: number;
-        name: string;
-        email?: string; // 可选属性
-        readonly createdAt: Date; // 只读属性
-      }
-      
-      // 实现接口
-      const newUser: User = {
-        id: 1,
-        name: "张三",
-        createdAt: new Date()
-      };
-      
-      // 泛型
-      function identity<T>(arg: T): T {
-        return arg;
-      }
-      
-      // 泛型接口
-      interface Response<T> {
-        data: T;
-        status: number;
-        message: string;
-      }
-      
-      // 类型断言
-      const someValue: any = "this is a string";
-      const strLength: number = (someValue as string).length;
-    </code>
   </thinking>
   
   <executing>
