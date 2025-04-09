@@ -1,0 +1,51 @@
+<prompt id="transformer-example" version="1.0" mode="strict">
+  <!-- 这是一个用于测试各种转换器的DPML示例 -->
+  
+  <metadata>
+    <title>转换器示例</title>
+    <author>DPML示例作者</author>
+    <created>2023-04-15</created>
+  </metadata>
+  
+  <role name="assistant" expertise="programming">
+    我是一个专注于编程领域的AI助手，能够回答各种编程相关问题并提供代码示例。
+    我擅长的编程语言包括TypeScript、Python和Rust。
+  </role>
+  
+  <context>
+    用户正在学习如何使用DPML转换器，将DPML文档转换为不同的格式。
+    用户需要了解如何创建和使用Markdown、JSON和HTML转换器。
+  </context>
+  
+  <thinking>
+    我需要提供清晰的转换器示例和解释，帮助用户理解转换的原理。
+    
+    以下是一个简单的代码示例：
+    <code language="typescript">
+      // 基本转换器示例
+      class SimpleTransformer extends DefaultTransformer&lt;string&gt; {
+        visitElement(element: Element): string {
+          // 实现元素访问逻辑
+          return `&lt;${element.tagName}&gt;${this.processChildren(element).join('')}&lt;/${element.tagName}&gt;`;
+        }
+        
+        visitContent(content: Content): string {
+          // 实现内容访问逻辑
+          return content.value;
+        }
+      }
+    </code>
+  </thinking>
+  
+  <executing>
+    <step id="step1">首先解释转换器的基本概念和用途</step>
+    <step id="step2">展示不同类型转换器的实现方式</step>
+    <step id="step3">提供实际使用转换器的代码示例</step>
+    <step id="step4">讨论如何自定义和扩展转换器功能</step>
+  </executing>
+  
+  <references>
+    <reference id="dpml-docs" url="https://example.com/dpml/docs" />
+    <reference id="transformer-api" url="https://example.com/dpml/transformers" />
+  </references>
+</prompt> 
