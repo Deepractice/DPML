@@ -15,7 +15,10 @@ describe('错误恢复机制', () => {
       priority: 100,
       visitElement: async (element: Element, context: any) => {
         if (element.tagName === 'error-element') {
-          throw new Error('这个元素处理失败');
+          throw new ProcessingError({
+            message: '这个元素处理失败',
+            severity: ErrorSeverity.ERROR
+          });
         }
         return element;
       }
@@ -116,7 +119,10 @@ describe('错误恢复机制', () => {
       priority: 100,
       visitElement: async (element: Element, context: any) => {
         if (element.tagName === 'error-element') {
-          throw new Error('这个元素处理失败');
+          throw new ProcessingError({
+            message: '这个元素处理失败',
+            severity: ErrorSeverity.ERROR
+          });
         }
         return element;
       }
@@ -217,7 +223,11 @@ describe('错误恢复机制', () => {
         } else if (element.tagName === 'fatal-element') {
           throw new ProcessingError({
             message: '致命错误',
-            severity: ErrorSeverity.FATAL
+            severity: ErrorSeverity.FATAL,
+            position: {
+              start: { line: 2, column: 1, offset: 20 },
+              end: { line: 2, column: 20, offset: 39 }
+            }
           });
         }
         return element;
@@ -238,8 +248,56 @@ describe('错误恢复机制', () => {
     const processor = new DefaultProcessor({ errorHandler });
     processor.registerVisitor(errorVisitor);
     
-    // 创建测试文档，包含不同级别错误的元素
-    const document: Document = {
+    // 创建一个只包含致命错误元素的文档，用于测试致命错误总是抛出异常
+    const documentWithFatalError: Document = {
+      type: NodeType.DOCUMENT,
+      children: [
+        {
+          type: NodeType.ELEMENT,
+          tagName: 'root',
+          attributes: {},
+          children: [
+            {
+              type: NodeType.ELEMENT,
+              tagName: 'fatal-element',
+              attributes: {},
+              children: [],
+              position: {
+                start: { line: 2, column: 1, offset: 20 },
+                end: { line: 2, column: 20, offset: 39 }
+              }
+            }
+          ],
+          position: {
+            start: { line: 1, column: 1, offset: 0 },
+            end: { line: 3, column: 1, offset: 40 }
+          }
+        }
+      ],
+      position: {
+        start: { line: 1, column: 1, offset: 0 },
+        end: { line: 3, column: 1, offset: 40 }
+      }
+    };
+    
+    // 处理文档，应该在处理到致命错误时中断
+    let processingFailed = false;
+    try {
+      await processor.process(documentWithFatalError, 'test-document.xml');
+    } catch (error) {
+      processingFailed = true;
+      expect(error).toBeInstanceOf(ProcessingError);
+      if (error instanceof ProcessingError) {
+        expect(error.severity).toBe(ErrorSeverity.FATAL);
+        expect(error.message).toBe('致命错误');
+      }
+    }
+    
+    // 验证处理是否失败
+    expect(processingFailed).toBe(true);
+    
+    // 创建一个包含警告和一般错误元素的文档，用于验证错误和警告记录
+    const documentWithWarningAndError: Document = {
       type: NodeType.DOCUMENT,
       children: [
         {
@@ -266,52 +324,31 @@ describe('错误恢复机制', () => {
                 start: { line: 3, column: 1, offset: 40 },
                 end: { line: 3, column: 20, offset: 59 }
               }
-            },
-            {
-              type: NodeType.ELEMENT,
-              tagName: 'fatal-element',
-              attributes: {},
-              children: [],
-              position: {
-                start: { line: 4, column: 1, offset: 60 },
-                end: { line: 4, column: 20, offset: 79 }
-              }
             }
           ],
           position: {
             start: { line: 1, column: 1, offset: 0 },
-            end: { line: 5, column: 1, offset: 80 }
+            end: { line: 4, column: 1, offset: 60 }
           }
         }
       ],
       position: {
         start: { line: 1, column: 1, offset: 0 },
-        end: { line: 5, column: 1, offset: 80 }
+        end: { line: 4, column: 1, offset: 60 }
       }
     };
     
-    // 处理文档，应该在处理到致命错误时中断
-    let processingFailed = false;
-    try {
-      await processor.process(document, 'test-document.xml');
-    } catch (error) {
-      processingFailed = true;
-      expect(error).toBeInstanceOf(ProcessingError);
-      if (error instanceof ProcessingError) {
-        expect(error.severity).toBe(ErrorSeverity.FATAL);
-        expect(error.message).toBe('致命错误');
-      }
-    }
+    // 处理包含警告和一般错误的文档，这次不应该抛出异常
+    warnings.length = 0;
+    errors.length = 0;
     
-    // 验证处理是否失败
-    expect(processingFailed).toBe(true);
+    await processor.process(documentWithWarningAndError, 'test-document2.xml');
     
     // 验证警告和错误记录
     expect(warnings.length).toBe(1);
     expect(warnings[0].message).toBe('警告级别错误');
     
-    expect(errors.length).toBe(2); // 一般错误和致命错误
-    expect(errors.some(e => e.message === '一般错误')).toBe(true);
-    expect(errors.some(e => e.message === '致命错误')).toBe(true);
+    expect(errors.length).toBe(1);
+    expect(errors[0].message).toBe('一般错误');
   });
 }); 

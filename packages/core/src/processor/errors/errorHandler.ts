@@ -141,14 +141,67 @@ export class ErrorHandler {
     severity?: ErrorSeverity,
     code?: string
   ): void {
-    // 确定错误严重级别
-    const effectiveSeverity = severity || ErrorSeverity.ERROR;
-    
     // 获取节点位置
     let position: SourcePosition | undefined;
     if (node && 'position' in node) {
       position = node.position;
     }
+    
+    // 如果已经是ProcessingError且是致命错误，立即抛出
+    if (error instanceof ProcessingError && error.severity === ErrorSeverity.FATAL) {
+      // 如果是致命错误，首先调用onError回调，然后总是抛出
+      this.onError?.(error);
+      throw error;
+    }
+    
+    // 如果已经是ProcessingError，保留其严重级别
+    if (error instanceof ProcessingError) {
+      const processingError = error;
+      // 如果明确提供了严重级别，则覆盖
+      if (severity) {
+        processingError.severity = severity;
+      }
+      
+      // 更新其他属性
+      if (position && !processingError.position) {
+        processingError.position = position;
+      }
+      if (this.currentFilePath && !processingError.filePath) {
+        processingError.filePath = this.currentFilePath;
+      }
+      if (code && !processingError.code) {
+        processingError.code = code;
+      }
+      
+      // 根据严格模式和错误级别决定如何处理
+      if (this.strictMode && processingError.severity === ErrorSeverity.ERROR) {
+        // 严格模式下，将错误级别的错误升级为致命错误
+        processingError.asFatal();
+      }
+      
+      // 根据错误级别处理
+      if (processingError.severity === ErrorSeverity.WARNING) {
+        // 如果是警告，调用警告回调
+        this.onWarning?.(processingError);
+      } else if (processingError.severity === ErrorSeverity.ERROR) {
+        // 如果是错误，调用错误回调
+        this.onError?.(processingError);
+        
+        // 如果未启用错误恢复，抛出错误
+        if (!this.errorRecovery) {
+          throw processingError;
+        }
+      } else if (processingError.severity === ErrorSeverity.FATAL) {
+        // 如果是致命错误，无论是否错误恢复都抛出
+        this.onError?.(processingError);
+        throw processingError;
+      }
+      
+      return;
+    }
+    
+    // 确定错误严重级别
+    const effectiveSeverity = severity || ErrorSeverity.ERROR;
     
     // 获取错误消息
     const message = typeof error === 'string' ? error : error.message;
@@ -181,8 +234,8 @@ export class ErrorHandler {
       if (!this.errorRecovery) {
         throw processingError;
       }
-    } else {
-      // 如果是致命错误，总是抛出
+    } else if (processingError.severity === ErrorSeverity.FATAL) {
+      // 如果是致命错误，无论是否错误恢复都抛出
       this.onError?.(processingError);
       throw processingError;
     }
@@ -225,8 +278,14 @@ export class ErrorHandler {
     // 获取当前模式
     const isStrict = this.getModeFromContext(context, node.type === 'element' ? node as Element : undefined);
     
-    // 根据当前模式决定错误严重级别
-    const severity = isStrict ? ErrorSeverity.ERROR : ErrorSeverity.WARNING;
+    // 如果是ProcessingError并且已经有严重性设置，使用它
+    let severity: ErrorSeverity;
+    if (error instanceof ProcessingError) {
+      severity = error.severity;
+    } else {
+      // 根据当前模式决定错误严重级别
+      severity = isStrict ? ErrorSeverity.ERROR : ErrorSeverity.WARNING;
+    }
     
     // 处理错误
     this.handleError(error, node, context, severity, code);
@@ -262,9 +321,20 @@ export class ErrorHandler {
     context?: ProcessingContext,
     code?: string
   ): never {
-    // 调用handleError但指定致命级别，此函数总是抛出错误
-    this.handleError(error, node, context, ErrorSeverity.FATAL, code);
-    // 这行代码永远不会执行，但TypeScript需要它
-    throw new Error('Fatal error');
+    // 这个方法总是抛出异常，所以返回类型是never
+    
+    // 使用handleError，但强制设置严重级别为FATAL
+    try {
+      this.handleError(error, node, context, ErrorSeverity.FATAL, code);
+    } catch (e) {
+      // 确保抛出
+      throw e;
+    }
+    
+    // 正常情况下这行代码永远不会执行，因为上面应该抛出异常
+    // 但为了类型安全，确保始终抛出异常
+    throw typeof error === 'string' 
+      ? new ProcessingError({ message: error, severity: ErrorSeverity.FATAL, code })
+      : error;
   }
 } 
