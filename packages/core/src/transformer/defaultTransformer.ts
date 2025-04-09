@@ -127,14 +127,38 @@ export class DefaultTransformer implements Transformer {
     options: TransformerOptions = { mode: 'strict', maxErrorCount: 10 },
     private adapterFactory?: OutputAdapterFactory
   ) {
-    this._visitorManager = new VisitorManager(3);
-    this.outputAdapter = new DefaultOutputAdapter();
-    this.outputProcessor = new NoopOutputProcessor();
+    // 初始化选项
+    this.options = { 
+      ...options,
+      visitorErrorThreshold: options.visitorErrorThreshold || 3,
+      visitorAutoRecoveryTime: options.visitorAutoRecoveryTime || 0
+    };
+    
+    // 初始化访问者管理器
+    this._visitorManager = new VisitorManager(
+      this.options.visitorErrorThreshold,
+      this.options.visitorAutoRecoveryTime
+    );
+    
+    // 初始化上下文管理器
     this.contextManager = new ContextManager();
-    this.options = options;
+    
+    // 初始化输出适配器
+    this.outputAdapter = new DefaultOutputAdapter();
+    
+    // 初始化输出处理器
+    this.outputProcessor = new NoopOutputProcessor();
+    
+    // 初始化缓存
+    this.cache = new Map();
+    
+    // 初始化适配器
+    if (adapterFactory) {
+      this.adapterFactory = adapterFactory;
+    }
     
     // 初始化模式配置
-    this.modeConfig = getModeConfig(this.options);
+    this.modeConfig = getModeConfig(options);
   }
   
   /**
@@ -248,24 +272,25 @@ export class DefaultTransformer implements Transformer {
   }
   
   /**
-   * 配置转换器选项
-   * 
+   * 配置转换器
    * @param options 转换选项
    */
   configure(options: TransformOptions): void {
-    // 合并新选项与现有选项
-    this.options = {
-      ...this.options,
-      ...options
-    };
-    
-    // 如果提供了自定义合并函数，自动启用返回值合并
-    if (options.customMergeFn && typeof options.customMergeFn === 'function') {
-      this.options.mergeReturnValues = true;
-    }
+    // 合并选项
+    this.options = { ...this.options, ...options };
     
     // 更新模式配置
     this.modeConfig = getModeConfig(this.options);
+    
+    // 更新访问者错误阈值
+    if (typeof options.visitorErrorThreshold === 'number') {
+      (this._visitorManager as any).errorThreshold = options.visitorErrorThreshold;
+    }
+    
+    // 更新访问者自动恢复时间
+    if (typeof options.visitorAutoRecoveryTime === 'number') {
+      this._visitorManager.setAutoRecoveryTime(options.visitorAutoRecoveryTime);
+    }
   }
   
   /**
@@ -937,7 +962,10 @@ export class DefaultTransformer implements Transformer {
     
     // 增加访问者错误计数
     if (visitor.name) {
-      const errorCount = this._visitorManager.incrementErrorCount(visitor.name);
+      // 提取错误消息作为错误信息
+      const errorMsg = formattedError.message || String(error);
+      
+      const errorCount = this._visitorManager.incrementErrorCount(visitor.name, errorMsg);
       
       // 如果在宽松模式下且接近阈值，添加警告
       if (this.options.mode !== 'strict' && modeConfig.errorThreshold > 0) {
@@ -1346,12 +1374,27 @@ export class DefaultTransformer implements Transformer {
           return visitResult;
         }
       } catch (error) {
-        // 处理访问者错误
-        this.handleVisitorError(error, visitor, 'element', element.position);
+        // 获取模式配置
+        const modeConfig = getModeConfig(context.options);
+        
+        // 格式化并记录错误
+        const formattedError = logVisitorError(error, visitor, 'element', element.position, modeConfig);
         
         // 在严格模式下，错误应该向上传播
         if (context.options.mode === 'strict') {
-          throw error;
+          throw formattedError;
+        }
+        
+        // 在宽松模式下，如果是visitElementAsync方法错误，提供标准的错误结果结构
+        if (visitor.visitElementAsync) {
+          return {
+            error: true,
+            errorType: 'visitor_error',
+            errorVisitor: visitor.name,
+            errorMessage: formattedError.message,
+            originalElement: element,
+            timestamp: new Date().toISOString()
+          };
         }
       }
     }
@@ -1402,12 +1445,27 @@ export class DefaultTransformer implements Transformer {
           return visitResult;
         }
       } catch (error) {
-        // 处理访问者错误
-        this.handleVisitorError(error, visitor, 'content', content.position);
+        // 获取模式配置
+        const modeConfig = getModeConfig(context.options);
+        
+        // 格式化并记录错误
+        const formattedError = logVisitorError(error, visitor, 'content', content.position, modeConfig);
         
         // 在严格模式下，错误应该向上传播
         if (context.options.mode === 'strict') {
-          throw error;
+          throw formattedError;
+        }
+        
+        // 在宽松模式下，如果是visitContentAsync方法错误，提供标准的错误结果结构
+        if (visitor.visitContentAsync) {
+          return {
+            error: true,
+            errorType: 'visitor_error',
+            errorVisitor: visitor.name,
+            errorMessage: formattedError.message,
+            originalContent: content,
+            timestamp: new Date().toISOString()
+          };
         }
       }
     }
@@ -1459,12 +1517,27 @@ export class DefaultTransformer implements Transformer {
           return visitResult;
         }
       } catch (error) {
-        // 处理访问者错误
-        this.handleVisitorError(error, visitor, 'reference', reference.position);
+        // 获取模式配置
+        const modeConfig = getModeConfig(context.options);
+        
+        // 格式化并记录错误
+        const formattedError = logVisitorError(error, visitor, 'reference', reference.position, modeConfig);
         
         // 在严格模式下，错误应该向上传播
         if (context.options.mode === 'strict') {
-          throw error;
+          throw formattedError;
+        }
+        
+        // 在宽松模式下，如果是visitReferenceAsync方法错误，提供标准的错误结果结构
+        if (visitor.visitReferenceAsync) {
+          return {
+            error: true,
+            errorType: 'visitor_error',
+            errorVisitor: visitor.name,
+            errorMessage: formattedError.message,
+            originalReference: reference,
+            timestamp: new Date().toISOString()
+          };
         }
       }
     }
