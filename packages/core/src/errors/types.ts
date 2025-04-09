@@ -134,11 +134,7 @@ export class ParseError extends DPMLError {
 
 /**
  * 验证错误数据接口
- * 用于定义验证错误的标准数据结构
- * 
- * 注意：这是一个数据接口，不是错误类。
- * DefaultValidationError类是一个可抛出的错误对象。
- * 这个接口用于Tag验证等场景中传递验证错误信息。
+ * 定义验证错误的标准数据结构，用于在验证和处理过程中传递错误信息
  */
 export interface ValidationError {
   /**
@@ -158,16 +154,18 @@ export interface ValidationError {
 }
 
 /**
- * 验证错误接口
+ * 验证错误选项接口
+ * 用于创建验证错误实例
  */
 export interface ValidationErrorOptions extends ErrorOptions {
   // 验证特定属性可以在这里扩展
 }
 
 /**
- * 验证错误类
+ * 验证错误实现类
+ * 实现了可抛出的错误类，同时支持转换为ValidationError接口格式
  */
-export class DefaultValidationError extends DPMLError {
+export class ValidationErrorImpl extends DPMLError {
   constructor(options: ValidationErrorOptions) {
     super(options);
   }
@@ -184,10 +182,10 @@ export class DefaultValidationError extends DPMLError {
   }
   
   /**
-   * 从ValidationError创建DefaultValidationError实例
+   * 从ValidationError创建ValidationErrorImpl实例
    */
-  static fromValidationData(data: ValidationError, level: ErrorLevel = ErrorLevel.ERROR): DefaultValidationError {
-    return new DefaultValidationError({
+  static fromValidationData(data: ValidationError, level: ErrorLevel = ErrorLevel.ERROR): ValidationErrorImpl {
+    return new ValidationErrorImpl({
       code: data.code,
       message: data.message,
       level,
@@ -196,11 +194,58 @@ export class DefaultValidationError extends DPMLError {
   }
 }
 
-// 为了保持向后兼容，导出旧的类名
+// 为了保持向后兼容，导出类型别名和类别名
 /**
- * @deprecated 使用 DefaultValidationError 替代
+ * @deprecated 使用 ValidationErrorImpl 替代
  */
-export const ValidationError = DefaultValidationError;
+export const DefaultValidationError = ValidationErrorImpl;
+
+/**
+ * @deprecated 使用 ValidationErrorImpl 替代
+ */
+export const ValidationError = ValidationErrorImpl;
+
+/**
+ * 验证警告接口
+ * 用于在验证过程中传递警告信息
+ */
+export interface ValidationWarning {
+  /**
+   * 警告码
+   */
+  code: string;
+  
+  /**
+   * 警告消息
+   */
+  message: string;
+  
+  /**
+   * 警告位置
+   */
+  position?: any;
+}
+
+/**
+ * 验证结果接口
+ * 用于表示验证的最终结果，包含错误和警告
+ */
+export interface ValidationResult {
+  /**
+   * 验证是否通过
+   */
+  valid: boolean;
+  
+  /**
+   * 验证错误信息
+   */
+  errors?: ValidationError[];
+  
+  /**
+   * 验证警告信息
+   */
+  warnings?: ValidationWarning[];
+}
 
 /**
  * 引用错误接口

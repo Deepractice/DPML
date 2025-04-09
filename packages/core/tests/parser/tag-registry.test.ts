@@ -96,4 +96,59 @@ describe('TagRegistry', () => {
       expect(tagNames).toHaveLength(0);
     });
   });
+});
+
+describe('辅助方法', () => {
+  it('getBaseAttributes应该返回包含基础属性的对象', () => {
+    const baseAttributes = TagRegistry.getBaseAttributes();
+    
+    expect(baseAttributes).toHaveProperty('id', true);
+    expect(baseAttributes).toHaveProperty('class', true);
+    expect(baseAttributes).toHaveProperty('style', true);
+    expect(baseAttributes).toHaveProperty('datatest', true);
+    
+    expect(Object.keys(baseAttributes).length).toBe(4);
+  });
+  
+  it('createTagDefinition应该创建包含基础属性的标签定义', () => {
+    const tagDef = TagRegistry.createTagDefinition({
+      attributes: {
+        custom: true
+      },
+      allowedChildren: ['child'],
+      selfClosing: true
+    });
+    
+    expect(tagDef.attributes).toHaveProperty('id', true);
+    expect(tagDef.attributes).toHaveProperty('class', true);
+    expect(tagDef.attributes).toHaveProperty('style', true);
+    expect(tagDef.attributes).toHaveProperty('datatest', true);
+    expect(tagDef.attributes).toHaveProperty('custom', true);
+    
+    expect(tagDef.allowedChildren).toEqual(['child']);
+    expect(tagDef.selfClosing).toBe(true);
+  });
+  
+  it('createTagDefinition应该允许覆盖基础属性设置', () => {
+    const tagDef = TagRegistry.createTagDefinition({
+      attributes: {
+        id: { type: 'string', required: true }
+      }
+    });
+    
+    expect(tagDef.attributes).toHaveProperty('id');
+    expect((tagDef.attributes as any).id.required).toBe(true);
+  });
+  
+  it('createTagDefinition应该保留其他标签定义属性', () => {
+    const validateFn = (element: any) => ({ valid: true });
+    
+    const tagDef = TagRegistry.createTagDefinition({
+      contentFormat: 'markdown',
+      validate: validateFn
+    });
+    
+    expect(tagDef.contentFormat).toBe('markdown');
+    expect(tagDef.validate).toBe(validateFn);
+  });
 }); 

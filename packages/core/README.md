@@ -63,7 +63,16 @@ import { TagRegistry, TagDefinition } from '@dpml/core';
 // 获取标签注册表
 const registry = new TagRegistry();
 
-// 定义标签
+// 基础标签属性工具
+const baseTagAttributes = TagRegistry.getBaseAttributes(); // 包含id, version, extends等通用属性
+console.log(baseTagAttributes);
+// 输出: {
+//   id: { type: 'string', required: false },
+//   version: { type: 'string', required: false },
+//   extends: { type: 'string', required: false }
+// }
+
+// 方式1: 直接定义标签（包含所有属性）
 const promptTagDef: TagDefinition = {
   name: 'prompt',
   attributes: {
@@ -87,6 +96,32 @@ const promptTagDef: TagDefinition = {
     return { valid: true };
   }
 };
+
+// 方式2: 使用辅助函数创建（自动包含通用属性）
+const promptTagDef2 = TagRegistry.createTagDefinition({
+  // 只需添加特有属性，通用属性(id,version,extends)已包含
+  attributes: {
+    lang: { type: 'string', required: false },
+    model: { type: 'string', required: false }
+  },
+  // 自定义验证函数可以覆盖或扩展基础验证
+  validate: (element, context) => {
+    // 自定义验证逻辑
+    return { valid: true };
+  },
+  allowedChildren: ['role', 'context', 'thinking', 'executing']
+});
+
+// 方式3: 覆盖基础属性的默认设置
+const strictTagDef = TagRegistry.createTagDefinition({
+  attributes: {
+    // 覆盖id属性，设为必填
+    id: { type: 'string', required: true },
+    // 添加特有属性
+    custom: { type: 'string', required: false }
+  },
+  allowedChildren: ['child']
+});
 
 // 注册标签
 registry.registerTagDefinition('prompt', promptTagDef);
@@ -395,6 +430,53 @@ class InheritanceProcessor implements TagProcessor {
 }
 ```
 
+### 基础标签属性和简化标签定义
+
+DPML中的所有标签都支持一组基础属性，包括：
+- `id`: 唯一标识符
+- `class`: 类名，用于样式和分组
+- `style`: 行内样式
+- `datatest`: 测试标识符
+
+`TagRegistry`提供了便捷方法来管理这些基础属性并简化标签定义过程：
+
+```typescript
+// 获取所有基础属性
+const baseAttrs = TagRegistry.getBaseAttributes();
+// 返回 { id: true, class: true, style: true, datatest: true }
+
+// 创建包含基础属性的标签定义
+const myTagAttributes = {
+  type: true,  // 自定义属性
+  format: true // 自定义属性
+};
+
+// 自定义属性将与基础属性合并
+const myTagDef = TagRegistry.createTagDefinition({
+  name: 'myTag',
+  attributes: myTagAttributes,
+  allowedChildren: ['text', 'code']
+});
+
+// 简化标签注册过程
+const registry = new TagRegistry();
+
+// 旧方式：分两步完成
+registry.registerTagDefinition('myTag', myTagDef);
+
+// 新方式：使用便捷方法直接注册
+registry.registerTag('myTag', {
+  attributes: {
+    type: true,
+    format: true
+  },
+  allowedChildren: ['text', 'code'],
+  selfClosing: false
+});
+```
+
+这种方式不仅简化了标签定义和注册过程，还确保了所有标签一致地实现基础属性。
+
 ## 示例
 
 ### 完整处理流程
@@ -437,13 +519,10 @@ import { TagRegistry } from '@dpml/core';
 // 获取标签注册表
 const registry = new TagRegistry();
 
-// 注册自定义标签
-registry.registerTagDefinition('my-tag', {
+// 使用辅助函数注册自定义标签（自动包含id,version,extends等通用属性）
+registry.registerTagDefinition('my-tag', TagRegistry.createTagDefinition({
   attributes: {
-    id: {
-      type: 'string',
-      required: true
-    },
+    // 特定属性
     type: {
       type: 'string',
       required: false,
@@ -456,7 +535,7 @@ registry.registerTagDefinition('my-tag', {
   allowedChildren: ['sub-tag', 'content'],
   validate: (element, context) => {
     // 验证逻辑
-    const valid = true;
+    let valid = true;
     const errors = [];
     
     if (element.attributes.type && !['a', 'b', 'c'].includes(element.attributes.type)) {
@@ -469,15 +548,21 @@ registry.registerTagDefinition('my-tag', {
     
     return { valid, errors };
   }
+}));
+
+// 直接注册（手动指定所有属性，包括通用属性）
+registry.registerTagDefinition('custom-tag', {
+  attributes: {
+    // 通用属性需手动添加
+    id: { type: 'string', required: true },
+    version: { type: 'string', required: false },
+    extends: { type: 'string', required: false },
+    // 特定属性
+    format: { type: 'string', required: true }
+  },
+  allowedChildren: ['child-tag']
 });
 ```
 
----
-
-## 贡献指南
-
-欢迎贡献代码、报告问题或提出建议。请参阅我们的[贡献指南](CONTRIBUTING.md)。
-
-## 许可证
-
-[MIT](LICENSE) 
+> 注意：属性定义推荐使用对象格式（如上例所示），而非数组格式。对象格式提供了更好的类型定义和验证能力。
+> 虽然系统同时支持数组格式(`attributes: ['id', 'version']`)以保持向后兼容性，但建议在新代码中使用对象格式。

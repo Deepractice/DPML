@@ -1,8 +1,8 @@
 import { TagRegistry } from './tag-registry';
-import { ValidationResult, ValidationError, ValidationWarning, TagDefinition } from './tag-definition';
+import { TagDefinition } from './tag-definition';
 import { Node, NodeType, Element, Document, isElement } from '@core/types/node';
 import { SourcePosition } from '@core/types/node';
-import { ErrorCode } from '@core/errors/types';
+import { ErrorCode, ValidationError, ValidationResult, ValidationWarning } from '@core/errors/types';
 
 /**
  * 验证器类
