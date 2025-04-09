@@ -4,7 +4,7 @@
  * 提供Agent相关功能
  */
 
-export const version = \"0.1.0\";
+export const version = '0.1.0';
 
 /**
  * Agent模块的初始占位函数
@@ -12,7 +12,7 @@ export const version = \"0.1.0\";
  */
 export function createAgent() {
   return {
-    status: \"created\",
+    status: 'created',
     version
   };
 }

@@ -4,7 +4,7 @@
  * 提供工作流相关功能
  */
 
-export const version = \"0.1.0\";
+export const version = '0.1.0';
 
 /**
  * 工作流模块的初始占位函数
@@ -12,7 +12,7 @@ export const version = \"0.1.0\";
  */
 export function initialize() {
   return {
-    status: \"initialized\",
+    status: 'initialized',
     version
   };
 }
