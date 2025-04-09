@@ -57,11 +57,11 @@ export function mergeVisitorResults(results: any[], options: MergeOptions = {}):
     return validResults[0];
   }
   
-  // 如果提供了自定义合并函数，直接对整个结果进行特殊处理
+  // 如果提供了自定义合并函数，应用到每个键值对
   if (options.customMergeFn && typeof options.customMergeFn === 'function') {
-    // 先尝试让自定义函数处理整个合并操作
+    // 以第一个结果为基础
     const firstResult = validResults[0];
-    let mergedResult = firstResult;
+    let mergedResult = { ...firstResult };
     
     for (let i = 1; i < validResults.length; i++) {
       const currentResult = validResults[i];
@@ -74,21 +74,21 @@ export function mergeVisitorResults(results: any[], options: MergeOptions = {}):
           const value2 = currentResult[key];
           const customResult = options.customMergeFn(key, value1, value2);
           
+          // 如果自定义函数返回了有效值，使用该值
           if (customResult !== undefined) {
-            // 如果是新对象，确保创建一个副本
-            if (mergedResult === firstResult) {
-              mergedResult = { ...firstResult };
-            }
             mergedResult[key] = customResult;
+          }
+          // 否则使用默认合并逻辑
+          else if (value1 !== undefined) {
+            mergedResult[key] = mergeValues(value1, value2, key, options);
+          } else {
+            mergedResult[key] = value2;
           }
         }
       }
     }
     
-    // 如果有任何自定义合并结果，返回合并后的对象
-    if (mergedResult !== firstResult) {
-      return mergedResult;
-    }
+    return mergedResult;
   }
   
   // 回退到标准合并逻辑
@@ -150,7 +150,16 @@ export function mergeArrays(array1: any[], array2: any[], key: string = '', opti
   
   // 如果启用了数组合并，连接数组
   if (options.mergeArrays) {
-    return [...array1, ...array2];
+    // 对于对象数组，可以考虑进行深度合并（如果需要）
+    if (options.deepMerge && array1.length > 0 && array2.length > 0 && 
+        isObject(array1[0]) && isObject(array2[0])) {
+      // 这里可以实现对象数组的深度合并（如需要）
+      // 目前简单连接数组
+      return [...array1, ...array2];
+    } else {
+      // 对于非对象数组，或不需要深度合并，直接连接
+      return [...array1, ...array2];
+    }
   }
   
   // 否则根据冲突策略选择

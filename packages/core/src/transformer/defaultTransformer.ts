@@ -246,7 +246,8 @@ export class DefaultTransformer implements Transformer {
   }
   
   /**
-   * 配置转换器
+   * 配置转换器选项
+   * 
    * @param options 转换选项
    */
   configure(options: TransformOptions): void {
@@ -256,13 +257,13 @@ export class DefaultTransformer implements Transformer {
       ...options
     };
     
+    // 如果提供了自定义合并函数，自动启用返回值合并
+    if (options.customMergeFn && typeof options.customMergeFn === 'function') {
+      this.options.mergeReturnValues = true;
+    }
+    
     // 更新模式配置
     this.modeConfig = getModeConfig(this.options);
-    
-    // 如果提供了自定义合并函数，确保它能正确处理
-    if (this.options.customMergeFn) {
-      this.options.mergeReturnValues = true; // 自动启用返回值合并
-    }
   }
   
   /**
@@ -418,23 +419,20 @@ export class DefaultTransformer implements Transformer {
   private transformDocument(document: Document, context: TransformContext): any {
     const documentType = document.type || 'document';
     
-    // 检查是否有文档访问者
+    // 更新上下文路径
+    const path = `${documentType}[${(document as any).id || 0}]`;
+    context.path.push(path);
+    
+    // 获取可处理文档的访问者
     const visitors = this.visitorManager.getVisitorsByMethod('visitDocument');
-    if (visitors.length === 0) {
-      console.warn(`No document visitors found for type: ${documentType}`);
-    }
     
-    const options = getModeConfig(this.options);
-    const shouldMergeResults = this.options.mergeReturnValues === true;
-    
-    let defaultResult: any = {
+    // 创建默认的文档结果结构
+    const defaultResult = {
       type: documentType,
-      children: [] as any, // 声明为any类型
-      attributes: (document as any).attributes ? { ...(document as any).attributes } : {}
+      children: []
     };
     
-    // 访问document并处理结果
-    let result: any = null;
+    let result = null;
     
     // 检查是否启用了返回值合并
     if (this.options.mergeReturnValues === true) {
@@ -470,11 +468,6 @@ export class DefaultTransformer implements Transformer {
           customMergeFn: this.options.customMergeFn
         };
         
-        // 确保自定义合并函数能够被正确应用
-        if (mergeOptions.customMergeFn && typeof mergeOptions.customMergeFn === 'function') {
-          console.log('使用自定义合并函数:', mergeOptions.customMergeFn.toString().substring(0, 100));
-        }
-        
         // 合并访问者结果
         result = mergeVisitorResults(visitorResults, mergeOptions);
         
@@ -482,12 +475,20 @@ export class DefaultTransformer implements Transformer {
         context.parentResults.push(result);
       }
     } else {
+      // 标准执行模式：找到第一个返回非空结果的访问者
       for (const visitor of visitors) {
         try {
           const visitorContext = this.contextManager.cloneContext(context);
           result = visitor.visitDocument?.(document, visitorContext);
           
-          if (result !== null) {
+          // 访问者成功执行，重置错误计数
+          if (visitor.name) {
+            this._visitorManager.resetErrorCount(visitor.name);
+          }
+          
+          if (result !== null && result !== undefined) {
+            // 将结果添加到父结果
+            context.parentResults.push(result);
             break;
           }
         } catch (error) {
@@ -497,7 +498,7 @@ export class DefaultTransformer implements Transformer {
     }
 
     // 如果没有访问者返回结果，返回默认结果
-    if (result === null) {
+    if (result === null || result === undefined) {
       return defaultResult;
     }
 
@@ -517,10 +518,8 @@ export class DefaultTransformer implements Transformer {
         }
       }
       
-      // 如果开启合并返回值，应用自定义合并函数或默认合并
-      if (this.options.mergeReturnValues) {
-        result.children = childResults.filter(r => r !== null) as any[];
-      }
+      // 添加子节点结果
+      result.children = childResults.filter(r => r !== null) as unknown[];
     }
 
     return result;
@@ -535,23 +534,24 @@ export class DefaultTransformer implements Transformer {
    */
   private transformElement(element: Element, context: TransformContext): any {
     const elementType = element.type || 'element';
-    const tagName = element.tagName || '';
+    const tagName = element.tagName || 'unknown';
     
-    // 检查是否有元素访问者
+    // 更新上下文路径
+    const path = `${elementType}[${(element as any).id || tagName}]`;
+    context.path.push(path);
+    
+    // 获取可处理元素的访问者
     const visitors = this.visitorManager.getVisitorsByMethod('visitElement');
-    if (visitors.length === 0) {
-      console.warn(`No element visitors found for tag: ${tagName}`);
-    }
     
-    let defaultResult: any = {
+    // 创建默认的元素结果结构
+    const defaultResult = {
       type: elementType,
-      tagName,
-      children: [] as any, // 声明为any类型
+      name: tagName,
+      children: [],
       attributes: element.attributes ? { ...element.attributes } : {}
     };
     
-    // 访问element并处理结果
-    let result: any = null;
+    let result = null;
     
     // 检查是否启用了返回值合并
     if (this.options.mergeReturnValues === true) {
@@ -587,11 +587,6 @@ export class DefaultTransformer implements Transformer {
           customMergeFn: this.options.customMergeFn
         };
         
-        // 确保自定义合并函数能够被正确应用
-        if (mergeOptions.customMergeFn && typeof mergeOptions.customMergeFn === 'function') {
-          console.log('使用自定义合并函数:', mergeOptions.customMergeFn.toString().substring(0, 100));
-        }
-        
         // 合并访问者结果
         result = mergeVisitorResults(visitorResults, mergeOptions);
         
@@ -599,12 +594,20 @@ export class DefaultTransformer implements Transformer {
         context.parentResults.push(result);
       }
     } else {
+      // 标准执行模式：找到第一个返回非空结果的访问者
       for (const visitor of visitors) {
         try {
           const visitorContext = this.contextManager.cloneContext(context);
           result = visitor.visitElement?.(element, visitorContext);
           
-          if (result !== null) {
+          // 访问者成功执行，重置错误计数
+          if (visitor.name) {
+            this._visitorManager.resetErrorCount(visitor.name);
+          }
+          
+          if (result !== null && result !== undefined) {
+            // 将结果添加到父结果
+            context.parentResults.push(result);
             break;
           }
         } catch (error) {
@@ -614,7 +617,7 @@ export class DefaultTransformer implements Transformer {
     }
     
     // 如果没有访问者返回结果，返回默认结果
-    if (result === null) {
+    if (result === null || result === undefined) {
       return defaultResult;
     }
     
@@ -634,10 +637,8 @@ export class DefaultTransformer implements Transformer {
         }
       }
       
-      // 如果开启合并返回值，应用自定义合并函数或默认合并
-      if (this.options.mergeReturnValues) {
-        result.children = childResults.filter(r => r !== null) as any[];
-      }
+      // 添加子节点结果
+      result.children = childResults.filter(r => r !== null) as unknown[];
     }
     
     return result;

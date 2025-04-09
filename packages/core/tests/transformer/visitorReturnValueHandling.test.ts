@@ -163,7 +163,8 @@ describe('访问者返回值处理机制', () => {
       priority: 100,
       visitDocument: () => ({
         type: 'document',
-        title: '测试文档'
+        title: '测试文档',
+        children: [] // 添加children数组以支持子节点处理
       })
     };
 
@@ -174,7 +175,8 @@ describe('访问者返回值处理机制', () => {
       visitElement: (element: Element) => ({
         type: 'element',
         name: element.tagName,
-        customAttr: 'test'
+        customAttr: 'test',
+        children: [] // 添加children数组以支持子节点处理
       })
     };
 
