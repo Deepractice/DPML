@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      fast-xml-parser:
+        specifier: ^5.2.0
+        version: 5.2.0
     devDependencies:
       '@swc-node/register':
         specifier: ^1.10.10

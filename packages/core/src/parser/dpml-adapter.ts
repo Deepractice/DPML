@@ -84,17 +84,39 @@ export class DpmlAdapter {
       // 步骤2: 将XML节点转换为DPML节点
       const dpmlNode = this.nodeConverter.convert(xmlNode);
       
-      // 步骤3: 创建Document节点作为根节点
-      const document: Document = {
-        type: NodeType.DOCUMENT,
-        position: dpmlNode.position,
-        children: [dpmlNode]
-      };
+      // 步骤3: 确保生成正确的Document结构
+      let document: Document;
+      if (dpmlNode.type === NodeType.DOCUMENT) {
+        document = dpmlNode as Document;
+        
+        // 如果Document没有子节点，但原始XML是有效的，则添加为子节点
+        if ((!document.children || document.children.length === 0) && xmlNode) {
+          const element = this.nodeConverter.convert(xmlNode);
+          document.children = [element];
+        }
+      } else {
+        // 如果返回的不是Document，创建一个包含它的Document
+        document = {
+          type: NodeType.DOCUMENT,
+          position: dpmlNode.position,
+          children: [dpmlNode]
+        };
+      }
       
       // 步骤4: 处理元素节点，执行额外的DPML特定处理
-      if (document.children.length > 0) {
+      if (document.children && document.children.length > 0) {
         this.processElements(document);
       }
+      
+      // 输出调试信息，帮助分析
+      console.log('DEBUG: 解析后的文档结构:', JSON.stringify({
+        type: document.type,
+        childCount: document.children.length,
+        firstChild: document.children.length > 0 ? {
+          type: document.children[0].type,
+          tagName: (document.children[0] as Element).tagName
+        } : null
+      }, null, 2));
       
       // 步骤5: 如果启用了验证，执行验证
       if ((options?.validate || this.validator) && document.children.length > 0) {

@@ -35,8 +35,9 @@ export class XMLToNodeConverter {
     }
 
     // 根据XML节点名称决定转换为哪种DPML节点
-    if (xmlNode.name.toLowerCase() === 'document') {
-      return this.convertToDocument(xmlNode);
+    const nodeName = xmlNode.name.toLowerCase();
+    if (nodeName === 'document' || nodeName === 'prompt') {
+      return this.convertToElement(xmlNode);
     } else {
       return this.convertToElement(xmlNode);
     }

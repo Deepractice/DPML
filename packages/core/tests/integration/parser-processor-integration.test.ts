@@ -1,12 +1,12 @@
 /**
  * Parser与Processor集成测试
  */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DefaultProcessor } from '../../src/processor/defaultProcessor';
 import { DefaultReferenceResolver } from '../../src/processor/defaultReferenceResolver';
-import { DPMLAdapter } from '../../src/parser/dpml-adapter';
+import { DpmlAdapter } from '../../src/parser/dpml-adapter';
 import { TagRegistry } from '../../src/parser/tag-registry';
-import { NodeType } from '../../src/types/node';
+import { NodeType, Element } from '../../src/types/node';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -40,7 +40,7 @@ vi.mock('fs/promises', () => ({
 }));
 
 describe('Parser与Processor集成测试', () => {
-  let parser: DPMLAdapter;
+  let parser: DpmlAdapter;
   let processor: DefaultProcessor;
   
   beforeEach(() => {
@@ -77,7 +77,7 @@ describe('Parser与Processor集成测试', () => {
     });
     
     // 创建解析器
-    parser = new DPMLAdapter({
+    parser = new DpmlAdapter({
       tagRegistry
     });
     
@@ -198,5 +198,53 @@ describe('Parser与Processor集成测试', () => {
     const warnings = processor.getWarnings();
     
     expect(errorCaught || errors.length > 0 || warnings.length > 0).toBe(true);
+  });
+  
+  it('应该能处理任意根标签的XML文档', async () => {
+    // 模拟不同根标签的XML
+    vi.mocked(fs.readFile).mockImplementationOnce(async () => {
+      return `
+        <custom-root id="test-root">
+          <section id="test-section">
+            <title>自定义根标签测试</title>
+            <content>测试处理器是否能正确处理任意根标签的XML</content>
+          </section>
+        </custom-root>
+      `;
+    });
+    
+    // 解析文件
+    const document = await parser.parseFile('test-custom-root.xml');
+    
+    // 验证解析结果
+    expect(document).toBeDefined();
+    expect(document.type).toBe(NodeType.DOCUMENT);
+    expect(document.children.length).toBeGreaterThan(0);
+    
+    // 验证根标签
+    const rootElement = document.children[0] as Element;
+    expect(rootElement.type).toBe(NodeType.ELEMENT);
+    expect(rootElement.tagName).toBe('custom-root');
+    expect(rootElement.attributes.id).toBe('test-root');
+    
+    // 用处理器处理解析后的文档
+    const processedDocument = await processor.process(document, 'test-custom-root.xml');
+    
+    // 验证处理结果
+    expect(processedDocument).toBeDefined();
+    expect(processedDocument.type).toBe(NodeType.DOCUMENT);
+    expect(processedDocument.children.length).toBeGreaterThan(0);
+    
+    // 验证处理后的根标签仍然保持不变
+    const processedRoot = processedDocument.children[0] as Element;
+    expect(processedRoot.tagName).toBe('custom-root');
+    
+    // 验证子元素也被正确处理
+    const sectionElement = processedRoot.children.find(child => 
+      child.type === NodeType.ELEMENT && (child as Element).tagName === 'section'
+    ) as Element;
+    
+    expect(sectionElement).toBeDefined();
+    expect(sectionElement.attributes.id).toBe('test-section');
   });
 }); 
