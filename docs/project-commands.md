@@ -51,13 +51,13 @@ pnpm core:dev
 
 ```bash
 # 查看git状态
-pnpm root git status
+pnpm r git status
 
 # 列出目录内容
-pnpm root ls -la
+pnpm r ls -la
 
 # 添加并提交文件
-pnpm root git add . && pnpm root git commit -m "message"
+pnpm r git add . && pnpm r git commit -m "message"
 ```
 
 ### 特定包命令

@@ -11,7 +11,7 @@
     "clean": "turbo run clean && rm -rf node_modules",
     "swc": "node -r @swc-node/register",
     
-    "root": "pnpm -w exec --",
+    "r": "pnpm -w exec --",
     "prompt": "pnpm --filter @dpml/prompt exec --",
     "core": "pnpm --filter @dpml/core exec --",
     "agent": "pnpm --filter @dpml/agent exec --",
