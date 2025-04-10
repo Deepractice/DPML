@@ -209,7 +209,7 @@ export class PromptTransformer extends DefaultTransformer {
    */
   getLang(promptElement: Element): string {
     // 如果在转换器选项中设置了语言，优先使用
-    if (this.lang && this.lang !== 'en') {
+    if (this.lang !== undefined) {
       return this.lang;
     }
     
