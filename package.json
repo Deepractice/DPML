@@ -9,7 +9,8 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "clean": "turbo run clean && rm -rf node_modules",
-    "swc": "node -r @swc-node/register"
+    "swc": "node -r @swc-node/register",
+    "run": "chmod +x ./scripts/run.sh && ./scripts/run.sh"
   },
   "keywords": [
     "dpml",
