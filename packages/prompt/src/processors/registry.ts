@@ -8,6 +8,7 @@ import { ContextTagProcessor } from '@prompt/processors/contextTagProcessor';
 import { ThinkingTagProcessor } from '@prompt/processors/thinkingTagProcessor';
 import { ExecutingTagProcessor } from '@prompt/processors/executingTagProcessor';
 import { TestingTagProcessor } from '@prompt/processors/testingTagProcessor';
+import { ProtocolTagProcessor } from '@prompt/processors/protocolTagProcessor';
 
 /**
  * 提示包处理器注册表实现
@@ -62,6 +63,9 @@ export function createPromptProcessorRegistry(): TagProcessorRegistry {
   
   // 注册 testing 标签处理器
   registry.registerProcessor('testing', new TestingTagProcessor());
+  
+  // 注册 protocol 标签处理器
+  registry.registerProcessor('protocol', new ProtocolTagProcessor());
   
   return registry;
 }
