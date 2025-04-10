@@ -9,6 +9,7 @@ export {};
 export * from '@prompt/processors/promptTagProcessor';
 export * from '@prompt/processors/roleTagProcessor';
 export * from '@prompt/processors/contextTagProcessor';
+export * from '@prompt/processors/thinkingTagProcessor';
 
 // 导出处理器注册表
 export * from '@prompt/processors/registry'; 

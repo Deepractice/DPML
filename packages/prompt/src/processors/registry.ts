@@ -5,6 +5,7 @@ import { TagProcessor, TagProcessorRegistry } from '@dpml/core';
 import { PromptTagProcessor } from '@prompt/processors/promptTagProcessor';
 import { RoleTagProcessor } from '@prompt/processors/roleTagProcessor';
 import { ContextTagProcessor } from '@prompt/processors/contextTagProcessor';
+import { ThinkingTagProcessor } from '@prompt/processors/thinkingTagProcessor';
 
 /**
  * 提示包处理器注册表实现
@@ -50,6 +51,9 @@ export function createPromptProcessorRegistry(): TagProcessorRegistry {
   
   // 注册 context 标签处理器
   registry.registerProcessor('context', new ContextTagProcessor());
+  
+  // 注册 thinking 标签处理器
+  registry.registerProcessor('thinking', new ThinkingTagProcessor());
   
   return registry;
 }
