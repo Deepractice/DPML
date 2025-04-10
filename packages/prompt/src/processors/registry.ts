@@ -3,6 +3,7 @@
  */
 import { TagProcessor, TagProcessorRegistry } from '@dpml/core';
 import { PromptTagProcessor } from '@prompt/processors/promptTagProcessor';
+import { RoleTagProcessor } from '@prompt/processors/roleTagProcessor';
 
 /**
  * 提示包处理器注册表实现
@@ -42,6 +43,9 @@ export function createPromptProcessorRegistry(): TagProcessorRegistry {
   
   // 注册 prompt 标签处理器
   registry.registerProcessor('prompt', new PromptTagProcessor());
+  
+  // 注册 role 标签处理器
+  registry.registerProcessor('role', new RoleTagProcessor());
   
   return registry;
 }
