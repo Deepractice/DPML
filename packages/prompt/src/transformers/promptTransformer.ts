@@ -398,12 +398,18 @@ export class PromptTransformer extends DefaultTransformer {
     
     // 添加内容(应用前缀、后缀和包装器)
     let formattedContent = content;
-    if (template.prefix) {
-      formattedContent = template.prefix + formattedContent;
+    
+    // 检查内容是否已经包含前缀，如果包含则不添加
+    if (template.prefix && typeof template.prefix === 'string') {
+      if (!content.startsWith(template.prefix)) {
+        formattedContent = template.prefix + formattedContent;
+      }
     }
+    
     if (template.suffix) {
       formattedContent += template.suffix;
     }
+    
     if (template.wrapper && typeof template.wrapper === 'function') {
       formattedContent = template.wrapper(formattedContent);
     }
