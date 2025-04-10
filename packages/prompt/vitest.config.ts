@@ -6,7 +6,9 @@ export default defineConfig({
     alias: {
       '@prompt': path.resolve(__dirname, './src'),
       '@dpml/core': path.resolve(__dirname, '../core/src'),
-      '@core': path.resolve(__dirname, '../core/src')
+      '@core': path.resolve(__dirname, '../core/src'),
+      '@dpml/core/types/node': path.resolve(__dirname, '../core/src/types/node'),
+      '@dpml/core/errors/types': path.resolve(__dirname, '../core/src/errors/types')
     }
   },
   test: {
