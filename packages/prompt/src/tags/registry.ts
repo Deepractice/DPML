@@ -21,14 +21,14 @@ export function createPromptTagRegistry(): TagRegistry {
   const registry = new TagRegistry();
   
   // 注册所有核心标签
-  registry.register(promptTagDefinition);
-  registry.register(roleTagDefinition);
-  registry.register(contextTagDefinition);
-  registry.register(thinkingTagDefinition);
-  registry.register(executingTagDefinition);
-  registry.register(testingTagDefinition);
-  registry.register(protocolTagDefinition);
-  registry.register(customTagDefinition);
+  registry.registerTagDefinition('prompt', promptTagDefinition);
+  registry.registerTagDefinition('role', roleTagDefinition);
+  registry.registerTagDefinition('context', contextTagDefinition);
+  registry.registerTagDefinition('thinking', thinkingTagDefinition);
+  registry.registerTagDefinition('executing', executingTagDefinition);
+  registry.registerTagDefinition('testing', testingTagDefinition);
+  registry.registerTagDefinition('protocol', protocolTagDefinition);
+  registry.registerTagDefinition('custom', customTagDefinition);
   
   return registry;
 }

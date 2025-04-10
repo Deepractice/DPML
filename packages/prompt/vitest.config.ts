@@ -5,7 +5,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@prompt': path.resolve(__dirname, './src'),
-      '@dpml/core': path.resolve(__dirname, '../core/src')
+      '@dpml/core': path.resolve(__dirname, '../core/src'),
+      '@core': path.resolve(__dirname, '../core/src')
     }
   },
   test: {

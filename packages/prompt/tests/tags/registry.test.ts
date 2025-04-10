@@ -28,14 +28,14 @@ describe('PromptTagRegistry', () => {
       expect(promptTagRegistry).toBeInstanceOf(TagRegistry);
       
       // 检查核心标签是否被正确注册
-      expect(promptTagRegistry.has('prompt')).toBe(true);
-      expect(promptTagRegistry.has('role')).toBe(true);
-      expect(promptTagRegistry.has('context')).toBe(true);
-      expect(promptTagRegistry.has('thinking')).toBe(true);
-      expect(promptTagRegistry.has('executing')).toBe(true);
-      expect(promptTagRegistry.has('testing')).toBe(true);
-      expect(promptTagRegistry.has('protocol')).toBe(true);
-      expect(promptTagRegistry.has('custom')).toBe(true);
+      expect(promptTagRegistry.isTagRegistered('prompt')).toBe(true);
+      expect(promptTagRegistry.isTagRegistered('role')).toBe(true);
+      expect(promptTagRegistry.isTagRegistered('context')).toBe(true);
+      expect(promptTagRegistry.isTagRegistered('thinking')).toBe(true);
+      expect(promptTagRegistry.isTagRegistered('executing')).toBe(true);
+      expect(promptTagRegistry.isTagRegistered('testing')).toBe(true);
+      expect(promptTagRegistry.isTagRegistered('protocol')).toBe(true);
+      expect(promptTagRegistry.isTagRegistered('custom')).toBe(true);
     });
     
     it('应该通过工厂函数创建新的注册表实例', () => {
@@ -47,26 +47,26 @@ describe('PromptTagRegistry', () => {
       expect(registry).not.toBe(promptTagRegistry); // 不应该是同一个实例
       
       // 检查新实例是否包含所有标签
-      expect(registry.has('prompt')).toBe(true);
-      expect(registry.has('role')).toBe(true);
-      expect(registry.has('context')).toBe(true);
-      expect(registry.has('thinking')).toBe(true);
-      expect(registry.has('executing')).toBe(true);
-      expect(registry.has('testing')).toBe(true);
-      expect(registry.has('protocol')).toBe(true);
-      expect(registry.has('custom')).toBe(true);
+      expect(registry.isTagRegistered('prompt')).toBe(true);
+      expect(registry.isTagRegistered('role')).toBe(true);
+      expect(registry.isTagRegistered('context')).toBe(true);
+      expect(registry.isTagRegistered('thinking')).toBe(true);
+      expect(registry.isTagRegistered('executing')).toBe(true);
+      expect(registry.isTagRegistered('testing')).toBe(true);
+      expect(registry.isTagRegistered('protocol')).toBe(true);
+      expect(registry.isTagRegistered('custom')).toBe(true);
     });
     
     it('应该能获取正确的标签定义', () => {
       // 获取标签定义
-      const promptDef = promptTagRegistry.get('prompt');
-      const roleDef = promptTagRegistry.get('role');
-      const contextDef = promptTagRegistry.get('context');
-      const thinkingDef = promptTagRegistry.get('thinking');
-      const executingDef = promptTagRegistry.get('executing');
-      const testingDef = promptTagRegistry.get('testing');
-      const protocolDef = promptTagRegistry.get('protocol');
-      const customDef = promptTagRegistry.get('custom');
+      const promptDef = promptTagRegistry.getTagDefinition('prompt');
+      const roleDef = promptTagRegistry.getTagDefinition('role');
+      const contextDef = promptTagRegistry.getTagDefinition('context');
+      const thinkingDef = promptTagRegistry.getTagDefinition('thinking');
+      const executingDef = promptTagRegistry.getTagDefinition('executing');
+      const testingDef = promptTagRegistry.getTagDefinition('testing');
+      const protocolDef = promptTagRegistry.getTagDefinition('protocol');
+      const customDef = promptTagRegistry.getTagDefinition('custom');
       
       // 验证标签定义内容
       expect(promptDef).toEqual(promptTagDefinition);
