@@ -16,10 +16,18 @@ import { processPrompt } from '../../src/api/processPrompt';
 import { PromptOptions } from '../../src/types';
 
 // Mock核心包功能
-vi.mock('@dpml/core', () => ({
-  parse: vi.fn(),
-  process: vi.fn()
-}));
+vi.mock('@dpml/core', async () => {
+  const actual = await vi.importActual('@dpml/core');
+  return {
+    // 模拟的函数
+    parse: vi.fn(),
+    process: vi.fn(),
+    
+    // 使用真实实现的错误类和常量
+    DPMLError: actual.DPMLError,
+    ErrorLevel: actual.ErrorLevel
+  };
+});
 
 vi.mock('fs', () => ({
   promises: {
