@@ -21,4 +21,7 @@ export * from './processors/thinkingTagProcessor';
 export * from './processors/executingTagProcessor';
 export * from './processors/testingTagProcessor';
 export * from './processors/protocolTagProcessor';
-export * from './processors/customTagProcessor'; 
+export * from './processors/customTagProcessor';
+
+// 错误处理
+export * from './errors'; 
