@@ -6,6 +6,14 @@ import * as path from 'path';
 import * as process from 'process';
 import { parse, process as coreProcess } from '@dpml/core';
 import { PromptOptions, ProcessedPrompt } from '../types';
+import { 
+  handlePromptError,
+  PromptError, 
+  PromptErrorCode,
+  ParseError,
+  ProcessingError
+} from '../errors';
+import { ErrorLevel } from '@dpml/core';
 
 /**
  * 处理 DPML 提示文本
@@ -13,33 +21,43 @@ import { PromptOptions, ProcessedPrompt } from '../types';
  * @param text DPML 提示文本或文件路径
  * @param options 处理选项
  * @returns 处理后的提示结果
+ * @throws {PromptError} 处理过程中的错误
  */
 export async function processPrompt(text: string, options: PromptOptions = {}): Promise<ProcessedPrompt> {
+  // 检查输入是否为空
+  if (!text || text.trim() === '') {
+    throw new PromptError({
+      code: PromptErrorCode.UNKNOWN_ERROR,
+      message: '输入为空',
+      level: ErrorLevel.ERROR
+    });
+  }
+  
+  // 确定输入是文本还是文件路径
+  let dpmlText = text;
+  
+  // 如果输入像路径，尝试读取文件
+  if ((text.trim().startsWith('/') || 
+       text.trim().startsWith('./') || 
+       text.trim().startsWith('../') || 
+       /^[a-zA-Z]:\\/.test(text.trim()) || 
+       text.trim().endsWith('.dpml')) && 
+      !text.trim().includes('\n')) {
+    try {
+      const currentDir = typeof process !== 'undefined' ? process.cwd() : '.';
+      const resolvedPath = path.resolve(options.basePath || currentDir, text);
+      dpmlText = await fs.promises.readFile(resolvedPath, 'utf-8');
+    } catch (err) {
+      throw new PromptError({
+        code: PromptErrorCode.UNKNOWN_ERROR,
+        message: `读取文件失败: ${err instanceof Error ? err.message : String(err)}`,
+        level: ErrorLevel.ERROR,
+        cause: err instanceof Error ? err : undefined
+      });
+    }
+  }
+  
   try {
-    // 检查输入是否为空
-    if (!text || text.trim() === '') {
-      throw new Error('输入为空');
-    }
-    
-    // 确定输入是文本还是文件路径
-    let dpmlText = text;
-    
-    // 如果输入像路径，尝试读取文件
-    if ((text.trim().startsWith('/') || 
-         text.trim().startsWith('./') || 
-         text.trim().startsWith('../') || 
-         /^[a-zA-Z]:\\/.test(text.trim()) || 
-         text.trim().endsWith('.dpml')) && 
-        !text.trim().includes('\n')) {
-      try {
-        const currentDir = typeof process !== 'undefined' ? process.cwd() : '.';
-        const resolvedPath = path.resolve(options.basePath || currentDir, text);
-        dpmlText = await fs.promises.readFile(resolvedPath, 'utf-8');
-      } catch (err) {
-        throw new Error(`读取文件失败: ${(err as Error).message}`);
-      }
-    }
-    
     // 解析DPML文本
     const parseResult = await parse(dpmlText);
     
@@ -79,12 +97,12 @@ export async function processPrompt(text: string, options: PromptOptions = {}): 
     }
     
     return result;
-  } catch (err) {
-    // 统一处理错误
-    if (err instanceof Error) {
-      throw err;
-    } else {
-      throw new Error('提示处理过程中发生未知错误');
+  } catch (parseErr) {
+    // 处理解析错误
+    if (parseErr instanceof Error) {
+      // 将核心错误转换为提示模块错误
+      throw ParseError.fromSyntaxError(parseErr);
     }
+    throw parseErr;
   }
 } 

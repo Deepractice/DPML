@@ -4,6 +4,12 @@
 import { ProcessedPrompt, TransformOptions } from '../types';
 import { PromptTransformer, PromptTransformerOptions } from '../transformers/promptTransformer';
 import { Document, NodeType } from '@dpml/core/src/types/node';
+import { 
+  handlePromptError, 
+  TransformError, 
+  PromptErrorCode 
+} from '../errors';
+import { ErrorLevel } from '@dpml/core';
 
 /**
  * 将处理后的提示转换为文本
@@ -11,29 +17,30 @@ import { Document, NodeType } from '@dpml/core/src/types/node';
  * @param prompt 处理后的提示
  * @param options 转换选项
  * @returns 转换后的文本
+ * @throws {TransformError} 转换过程中的错误
  */
 export function transformPrompt(prompt: ProcessedPrompt, options: TransformOptions = {}): string {
+  // 检查输入是否有效
+  if (!prompt || !prompt.tags) {
+    throw TransformError.createInvalidInputError('无效的提示输入');
+  }
+  
+  // 转换TransformOptions到PromptTransformerOptions
+  const transformerOptions: PromptTransformerOptions = {
+    // 格式模板转换
+    formatTemplates: options.format,
+    
+    // 应用语言指令选项
+    addLanguageDirective: options.addLanguageDirective,
+    
+    // 应用标签顺序
+    tagOrder: options.tagOrder,
+    
+    // 使用提示元数据中的语言（如果有）
+    lang: prompt.metadata?.lang
+  };
+  
   try {
-    // 检查输入是否有效
-    if (!prompt || !prompt.tags) {
-      throw new Error('无效的提示输入');
-    }
-    
-    // 转换TransformOptions到PromptTransformerOptions
-    const transformerOptions: PromptTransformerOptions = {
-      // 格式模板转换
-      formatTemplates: options.format,
-      
-      // 应用语言指令选项
-      addLanguageDirective: options.addLanguageDirective,
-      
-      // 应用标签顺序
-      tagOrder: options.tagOrder,
-      
-      // 使用提示元数据中的语言（如果有）
-      lang: prompt.metadata?.lang
-    };
-    
     // 创建转换器
     const transformer = new PromptTransformer(transformerOptions);
     
@@ -55,12 +62,14 @@ export function transformPrompt(prompt: ProcessedPrompt, options: TransformOptio
     };
     
     return transformer.transform(adaptedDocument);
-  } catch (err) {
-    // 统一处理错误
-    if (err instanceof Error) {
-      throw err;
-    } else {
-      throw new Error('提示转换过程中发生未知错误');
+  } catch (transformErr) {
+    // 处理转换器特定错误
+    if (transformErr instanceof Error) {
+      throw TransformError.createFormatterError(
+        'PromptTransformer', 
+        transformErr
+      );
     }
+    throw transformErr;
   }
 } 
