@@ -2,7 +2,7 @@
  * 处理器注册表
  */
 import { TagProcessor, TagProcessorRegistry } from '@dpml/core';
-import { PromptTagProcessor } from './promptTagProcessor';
+import { PromptTagProcessor } from '@prompt/processors/promptTagProcessor';
 
 /**
  * 提示包处理器注册表实现

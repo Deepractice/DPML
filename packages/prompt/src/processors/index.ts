@@ -6,7 +6,7 @@
 export {};
 
 // 导出标签处理器
-export * from './promptTagProcessor';
+export * from '@prompt/processors/promptTagProcessor';
 
 // 导出处理器注册表
-export * from './registry'; 
+export * from '@prompt/processors/registry'; 

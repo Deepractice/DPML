@@ -1,7 +1,7 @@
 import { Element, NodeType, Content, Document } from '@dpml/core';
 import { ProcessingContext } from '@dpml/core';
 import { describe, it, expect, vi } from 'vitest';
-import { PromptTagProcessor } from '../../src/processors/promptTagProcessor';
+import { PromptTagProcessor } from '@prompt/processors/promptTagProcessor';
 
 describe('PromptTagProcessor', () => {
   // 创建一个模拟的 ProcessingContext

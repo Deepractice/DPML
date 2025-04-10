@@ -4,7 +4,7 @@ import {
   PromptTagProcessorRegistry, 
   promptProcessorRegistry, 
   PromptTagProcessor 
-} from '../../src/processors';
+} from '@prompt/processors';
 
 describe('PromptTagProcessorRegistry', () => {
   it('应该能正确注册和获取处理器', () => {
