@@ -14,6 +14,7 @@
   - 项目技术栈文档 (`/docs/technical-stack.md`)
   - 架构设计文档 (`/docs/architecture-domain-based.md`)
   - DPML元规范 (`/docs/DPML-Reference.md`)
+  - 项目编码规范 (`/docs/monorepo-coding-standards.md`)
 - **技术栈**
   - TypeScript 5.x
   - Vitest/Jest测试框架
@@ -39,6 +40,7 @@
   - Prompt设计文档 (`/packages/prompt/docs/Prompt-Design.md`) 
   - Core包标签注册API参考 (`/packages/core/README.md`)
   - 测试用例文档 (`/packages/prompt/docs/Prompt-UserCase.md`)
+  - 项目编码规范 (`/docs/monorepo-coding-standards.md`)
 - **相关代码**
   - Core包中的TagRegistry实现
   - Core包中的TagDefinition接口
@@ -63,6 +65,7 @@
   - Core包TagProcessor接口文档
   - Prompt设计文档中<prompt>标签定义部分
   - 测试用例UT-PP-001至UT-PP-003
+  - 项目编码规范 (`/docs/monorepo-coding-standards.md`)
 - **相关代码**
   - Core包中的TagProcessor实现示例
   - 已完成的标签定义和注册代码
@@ -86,6 +89,7 @@
   - Prompt设计文档中<role>标签定义部分
   - Core包处理器API参考
   - 测试用例UT-RP-001至UT-RP-002
+  - 项目编码规范 (`/docs/monorepo-coding-standards.md`)
 - **相关代码**
   - 已实现的PromptTagProcessor代码
   - Core包中的内容处理相关实现
@@ -108,6 +112,7 @@
   - Prompt设计文档中<context>标签定义部分
   - Core包处理器API参考
   - 测试用例UT-CP-001至UT-CP-002
+  - 项目编码规范 (`/docs/monorepo-coding-standards.md`)
 - **相关代码**
   - 已实现的标签处理器代码
   - Core包中的内容处理相关实现
@@ -130,6 +135,7 @@
   - Prompt设计文档中<thinking>标签定义部分
   - 测试用例UT-TP-001至UT-TP-002
   - Prompt设计原则文档 (`/packages/prompt/docs/Prompt_Design_Principles.md`)
+  - 项目编码规范 (`/docs/monorepo-coding-standards.md`)
 - **相关代码**
   - 已实现的标签处理器代码
   - Core包中的内容处理相关实现
@@ -152,6 +158,7 @@
   - Prompt设计文档中<executing>标签定义部分
   - 测试用例UT-EP-001至UT-EP-002
   - Prompt设计原则文档中执行流程模式部分
+  - 项目编码规范 (`/docs/monorepo-coding-standards.md`)
 - **相关代码**
   - 已实现的标签处理器代码
   - Core包中的内容处理相关实现
@@ -174,6 +181,7 @@
   - Prompt设计文档中<testing>标签定义部分
   - 测试用例UT-TTP-001至UT-TTP-002
   - Prompt设计原则文档中自验证模式部分
+  - 项目编码规范 (`/docs/monorepo-coding-standards.md`)
 - **相关代码**
   - 已实现的标签处理器代码
   - Core包中的内容处理相关实现
@@ -196,6 +204,7 @@
   - Prompt设计文档中<protocol>标签定义部分
   - 测试用例UT-PRP-001至UT-PRP-002
   - Prompt设计原则文档中交互协议模式部分
+  - 项目编码规范 (`/docs/monorepo-coding-standards.md`)
 - **相关代码**
   - 已实现的标签处理器代码
   - Core包中的内容处理相关实现
@@ -218,6 +227,7 @@
   - Prompt设计文档中<custom>标签定义部分
   - 测试用例UT-CTP-001至UT-CTP-002
   - DPML元规范文档中自定义扩展部分
+  - 项目编码规范 (`/docs/monorepo-coding-standards.md`)
 - **相关代码**
   - 已实现的标签处理器代码
   - Core包中的内容处理相关实现
@@ -240,6 +250,7 @@
   - DPML元规范文档中标签继承机制部分
   - 测试用例UT-I-001至UT-I-009
   - Core包中ReferenceResolver接口文档
+  - 项目编码规范 (`/docs/monorepo-coding-standards.md`)
 - **相关代码**
   - Core包中的继承相关实现示例
   - 已实现的标签处理器代码
@@ -264,6 +275,7 @@
   - Core包中Transformer相关API文档
   - 测试用例UT-PT-001至UT-PT-005
   - Prompt设计文档中转换规则部分
+  - 项目编码规范 (`/docs/monorepo-coding-standards.md`)
 - **相关代码**
   - Core包中的DefaultTransformer实现
   - 已实现的标签处理器代码
@@ -287,6 +299,7 @@
 - **信息资源**
   - 测试用例UT-FC-001至UT-FC-006
   - Prompt设计文档中格式配置部分
+  - 项目编码规范 (`/docs/monorepo-coding-standards.md`)
 - **相关代码**
   - 已实现的基础转换功能
   - Core包中的配置处理相关实现
@@ -311,6 +324,7 @@
   - 测试用例UT-ML-001至UT-ML-006
   - Prompt设计文档中多语言支持部分
   - 各语言特定格式规范文档
+  - 项目编码规范 (`/docs/monorepo-coding-standards.md`)
 - **相关代码**
   - 已实现的格式配置功能
   - Core包中的语言处理相关功能
@@ -335,6 +349,7 @@
   - 测试用例UT-API-001至UT-API-005
   - Prompt设计文档中API部分
   - Core包中的API设计模式参考
+  - 项目编码规范 (`/docs/monorepo-coding-standards.md`)
 - **相关代码**
   - 已实现的所有底层功能
   - Core包中的API实现示例
@@ -359,6 +374,7 @@
   - 测试用例UT-PRP-001至UT-PRP-004和UT-TRP-001至UT-TRP-004
   - Prompt设计文档中API部分
   - Core包中的处理和转换API参考
+  - 项目编码规范 (`/docs/monorepo-coding-standards.md`)
 - **相关代码**
   - 已实现的generatePrompt功能
   - Core包中的处理器和转换器实现
@@ -383,6 +399,7 @@
   - 测试用例UT-ERR-001至UT-ERR-007
   - Core包中的错误处理机制文档
   - DPML元规范中的错误处理部分
+  - 项目编码规范 (`/docs/monorepo-coding-standards.md`)
 - **相关代码**
   - Core包中的DPMLError实现
   - 已实现的各功能模块
@@ -407,6 +424,7 @@
   - 测试用例IT-P-001至IT-P-007
   - Core包集成测试示例
   - 项目技术栈文档中的测试部分
+  - 项目编码规范 (`/docs/monorepo-coding-standards.md`)
 - **相关代码**
   - 所有已实现的功能模块
   - Core包中的测试工具
@@ -431,6 +449,7 @@
   - 测试用例PT-P-001至PT-P-005
   - 项目技术栈文档中的性能目标部分
   - 性能测试工具文档
+  - 项目编码规范 (`/docs/monorepo-coding-standards.md`)
 - **相关代码**
   - 所有已实现的功能模块
   - 性能测试基准示例
@@ -455,6 +474,7 @@
   - 测试用例UC-P-001至UC-P-006
   - Prompt-UserCase.md中的用例描述
   - Prompt设计原则文档中的用例部分
+  - 项目编码规范 (`/docs/monorepo-coding-standards.md`)
 - **相关代码**
   - 所有已实现的功能模块
   - 示例提示模板
@@ -479,6 +499,7 @@
   - 测试用例CT-P-001至CT-P-005
   - 项目技术栈文档中的兼容性目标部分
   - 各环境配置文档
+  - 项目编码规范 (`/docs/monorepo-coding-standards.md`)
 - **相关代码**
   - 所有已实现的功能模块
   - 兼容性测试辅助工具
@@ -503,6 +524,7 @@
   - Prompt设计文档
   - Core包文档示例
   - 项目技术栈文档中的文档工具部分
+  - 项目编码规范 (`/docs/monorepo-coding-standards.md`)
 - **相关代码**
   - 所有已实现的功能模块
   - 示例代码
