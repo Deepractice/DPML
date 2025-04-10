@@ -1,23 +1,22 @@
 /**
- * @dpml/prompt - DPML提示词处理引擎
+ * @dpml/prompt 入口文件
+ * 
+ * 导出所有公共API和类型
  */
 
-// 重新导出关键类型和接口
-export * from './types';
+// 核心API
+export * from './api';
 
-// 标签定义
-export * from './tags';
+// 转换器
+export * from './transformers/promptTransformer';
+export * from './transformers/formatConfig';
 
-// 处理器
-export * from './processors';
-
-// 转换器 
-export * from './transformers';
-
-// 工具函数
-export * from './utils';
-
-// 主要API
-export { processPrompt } from './api/processPrompt';
-export { transformPrompt } from './api/transformPrompt';
-export { generatePrompt } from './api/generatePrompt'; 
+// 标签处理器
+export * from './processors/promptTagProcessor';
+export * from './processors/roleTagProcessor';
+export * from './processors/contextTagProcessor';
+export * from './processors/thinkingTagProcessor';
+export * from './processors/executingTagProcessor';
+export * from './processors/testingTagProcessor';
+export * from './processors/protocolTagProcessor';
+export * from './processors/customTagProcessor'; 
