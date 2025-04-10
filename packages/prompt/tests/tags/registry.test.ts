@@ -58,7 +58,7 @@ describe('PromptTagRegistry', () => {
     });
     
     it('应该能获取正确的标签定义', () => {
-      // 获取标签定义
+      // 获取标签定义 - 使用 getTagDefinition 方法替代 get
       const promptDef = promptTagRegistry.getTagDefinition('prompt');
       const roleDef = promptTagRegistry.getTagDefinition('role');
       const contextDef = promptTagRegistry.getTagDefinition('context');

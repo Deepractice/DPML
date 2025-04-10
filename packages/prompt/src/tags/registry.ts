@@ -2,7 +2,6 @@
  * 标签注册表
  */
 import { TagRegistry } from '@dpml/core';
-import { EnhancedTagRegistry } from './enhanced-registry';
 import {
   promptTagDefinition,
   roleTagDefinition,
@@ -17,9 +16,9 @@ import {
 /**
  * 创建并初始化提示标签注册表
  */
-export function createPromptTagRegistry(): EnhancedTagRegistry {
+export function createPromptTagRegistry(): TagRegistry {
   // 创建注册表实例
-  const registry = new EnhancedTagRegistry();
+  const registry = new TagRegistry();
   
   // 注册所有核心标签
   registry.registerTagDefinition('prompt', promptTagDefinition);
