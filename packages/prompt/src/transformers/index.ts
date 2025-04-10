@@ -2,5 +2,5 @@
  * 转换器模块
  */
 
-// 暂时导出空对象，后续实现
-export {}; 
+export { PromptTransformer } from './promptTransformer';
+export type { PromptTransformerOptions, FormatTemplate, FormatTemplates } from './promptTransformer'; 
