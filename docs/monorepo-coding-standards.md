@@ -71,6 +71,24 @@ DPML项目采用基于微软TypeScript风格的文件命名约定，确保代码
    - tsconfig.json中的paths配置应谨慎使用，不应破坏包的封装性
    - 别名仅用于当前包内部的模块组织，不用于跨包引用
 
+4. **包内部路径别名**
+   - 包内部使用 `@包名/` 前缀代替相对路径导入：`import { Foo } from '@prompt/utils/helper'` 
+   - 在每个包的 tsconfig.json, vitest.config.ts, tsup.config.ts 中配置路径别名
+   - 路径别名应映射到包的 src 目录：`@prompt -> ./src`
+   - 好处包括：
+     - 提高代码可读性，避免复杂的相对路径计算 (`../../` 等)
+     - 文件移动时不需要修改导入路径
+     - 清晰标识导入来源，便于区分包内部模块和外部依赖
+     - 降低因路径计算错误导致的导入问题
+   - 示例：
+     ```typescript
+     // 推荐 (使用路径别名)
+     import { SomeProcessor } from '@prompt/processors/someProcessor';
+     
+     // 不推荐 (使用相对路径)
+     import { SomeProcessor } from '../../processors/someProcessor';
+     ```
+
 ## API使用规范
 
 1. **以文档为准**
