@@ -19,6 +19,41 @@
    - 实现可以变化，但API契约应保持稳定
    - 所有跨包交互必须通过公开声明的接口
 
+## 文件命名规范
+
+DPML项目采用基于微软TypeScript风格的文件命名约定，确保代码库的一致性和可读性。
+
+1. **基本原则**
+   - 文件命名应与其导出的主要内容相匹配
+   - 根据内容类型选择适当的命名风格
+   - 在整个项目中保持一致性
+
+2. **命名风格按内容类型区分**
+   - **类/接口/类型/枚举/装饰器文件**：使用PascalCase
+     - 例：`TagRegistry.ts`, `PromptProcessor.ts`, `ElementType.ts`
+   
+   - **函数/工具/模块文件**：使用camelCase
+     - 例：`utils.ts`, `formatHelpers.ts`, `stringValidation.ts`
+
+3. **特殊文件命名**
+   - **测试文件**：与被测试文件使用相同的命名风格，添加`.test`或`.spec`后缀
+     - 例：`TagRegistry.test.ts`, `utils.test.ts`
+   
+   - **类型定义文件**：使用与实现相同的命名风格，添加`.d.ts`后缀
+     - 例：`index.d.ts`, `api.d.ts`
+   
+   - **索引文件**：统一使用`index.ts`
+     - 用于重新导出模块内容，提供公共API
+
+4. **目录命名**
+   - 源码目录使用camelCase：`src/`, `utils/`, `helpers/`
+   - 按功能或领域组织的目录使用camelCase：`tags/`, `processors/`, `transformers/`
+   - 避免使用短横线或下划线命名目录
+
+5. **组件与模块文件**
+   - 单个React/UI组件文件使用PascalCase：`Button.tsx`, `Dialog.tsx`
+   - 配置文件使用camelCase：`tsconfig.json`, `vitest.config.ts`
+
 ## 导入规范
 
 1. **包名导入**
