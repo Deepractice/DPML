@@ -6,6 +6,8 @@
 
 // 核心API
 export * from './api';
+export * from './api/processPrompt';
+export * from './api/transformPrompt';
 
 // 转换器
 export * from './transformers/promptTransformer';

@@ -2,6 +2,8 @@
  * 转换提示 API
  */
 import { ProcessedPrompt, TransformOptions } from '../types';
+import { PromptTransformer, PromptTransformerOptions } from '../transformers/promptTransformer';
+import { Document, NodeType } from '@dpml/core/src/types/node';
 
 /**
  * 将处理后的提示转换为文本
@@ -10,7 +12,55 @@ import { ProcessedPrompt, TransformOptions } from '../types';
  * @param options 转换选项
  * @returns 转换后的文本
  */
-export function transformPrompt(prompt: ProcessedPrompt, options?: TransformOptions): string {
-  // 暂时返回空字符串，后续实现
-  return '';
+export function transformPrompt(prompt: ProcessedPrompt, options: TransformOptions = {}): string {
+  try {
+    // 检查输入是否有效
+    if (!prompt || !prompt.tags) {
+      throw new Error('无效的提示输入');
+    }
+    
+    // 转换TransformOptions到PromptTransformerOptions
+    const transformerOptions: PromptTransformerOptions = {
+      // 格式模板转换
+      formatTemplates: options.format,
+      
+      // 应用语言指令选项
+      addLanguageDirective: options.addLanguageDirective,
+      
+      // 应用标签顺序
+      tagOrder: options.tagOrder,
+      
+      // 使用提示元数据中的语言（如果有）
+      lang: prompt.metadata?.lang
+    };
+    
+    // 创建转换器
+    const transformer = new PromptTransformer(transformerOptions);
+    
+    // 转换为文本 - 需要将ProcessedPrompt适配为Document
+    // 使用原始文档如果存在
+    if (prompt.rawDocument) {
+      return transformer.transform(prompt.rawDocument);
+    }
+    
+    // 否则尝试构建一个简化的Document用于转换
+    // 这是不完整的适配，实际项目中应更完整地处理
+    const adaptedDocument: Document = {
+      type: NodeType.DOCUMENT,
+      position: { 
+        start: { line: 0, column: 0, offset: 0 },
+        end: { line: 0, column: 0, offset: 0 }
+      },
+      children: []
+    };
+    
+    return transformer.transform(adaptedDocument);
+  } catch (err) {
+    // 统一处理错误
+    if (err instanceof Error) {
+      throw err;
+    } else {
+      throw new Error('提示转换过程中发生未知错误');
+    }
+  }
 } 
