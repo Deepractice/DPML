@@ -314,7 +314,7 @@
 - 语言特定格式被正确应用
 - 中文格式规则被正确应用
 
-## 14. API功能实现
+## 14. API功能实现 ✅
 
 ### 目标(O)
 - 实现核心API函数generatePrompt，提供简单易用的接口
@@ -339,7 +339,7 @@
 - 配置选项正确影响生成结果
 - 错误处理机制工作正常
 
-## 15. processPrompt 和 transformPrompt 实现
+## 15. processPrompt 和 transformPrompt 实现 ✅
 
 ### 目标(O)
 - 实现processPrompt和transformPrompt函数，提供更细粒度的API控制
@@ -348,7 +348,7 @@
 - **信息资源**
   - 测试用例UT-PRP-001至UT-PRP-004和UT-TRP-001至UT-TRP-004
   - Prompt设计文档中API部分
-  - Core包中的处理和转换API参考
+  - Core包中 README.md 的处理和转换API参考
   - 项目编码规范 (`$dpml/docs/monorepo-coding-standards.md`)
 - **相关代码**
   - 已实现的generatePrompt功能
