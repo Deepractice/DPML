@@ -13,6 +13,7 @@ export * from '@prompt/processors/thinkingTagProcessor';
 export * from '@prompt/processors/executingTagProcessor';
 export * from '@prompt/processors/testingTagProcessor';
 export * from '@prompt/processors/protocolTagProcessor';
+export * from '@prompt/processors/customTagProcessor';
 
 // 导出处理器注册表
 export * from '@prompt/processors/registry'; 

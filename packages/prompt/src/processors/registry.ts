@@ -9,6 +9,7 @@ import { ThinkingTagProcessor } from '@prompt/processors/thinkingTagProcessor';
 import { ExecutingTagProcessor } from '@prompt/processors/executingTagProcessor';
 import { TestingTagProcessor } from '@prompt/processors/testingTagProcessor';
 import { ProtocolTagProcessor } from '@prompt/processors/protocolTagProcessor';
+import { CustomTagProcessor } from '@prompt/processors/customTagProcessor';
 
 /**
  * 提示包处理器注册表实现
@@ -66,6 +67,9 @@ export function createPromptProcessorRegistry(): TagProcessorRegistry {
   
   // 注册 protocol 标签处理器
   registry.registerProcessor('protocol', new ProtocolTagProcessor());
+  
+  // 注册 custom 标签处理器
+  registry.registerProcessor('custom', new CustomTagProcessor());
   
   return registry;
 }
