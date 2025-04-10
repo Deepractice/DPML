@@ -9,7 +9,18 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "clean": "turbo run clean && rm -rf node_modules",
-    "swc": "node -r @swc-node/register"
+    "swc": "node -r @swc-node/register",
+    
+    "root": "pnpm -w exec --",
+    "prompt": "pnpm --filter @dpml/prompt exec --",
+    "core": "pnpm --filter @dpml/core exec --",
+    "agent": "pnpm --filter @dpml/agent exec --",
+    "workflow": "pnpm --filter @dpml/workflow exec --",
+    
+    "prompt:test": "pnpm --filter @dpml/prompt test",
+    "core:test": "pnpm --filter @dpml/core test",
+    "prompt:dev": "pnpm --filter @dpml/prompt dev",
+    "core:dev": "pnpm --filter @dpml/core dev"
   },
   "keywords": [
     "dpml",
