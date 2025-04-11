@@ -130,7 +130,7 @@
 - API类型和模型名称验证正常工作
 - 正确记录extends属性值（继承逻辑由Core包处理）
 
-## 5. PromptTagProcessor 实现
+## 5. PromptTagProcessor 实现 ✅
 
 ### 目标(O)
 - 实现PromptTagProcessor类，处理`<prompt>`标签
@@ -614,21 +614,25 @@
 ### 目标(O)
 - 明确标签继承机制的职责分工
 - 确保各领域包正确理解并遵循继承机制设计
+- 统一标签处理器实现方式，确保代码一致性
 
 ### 环境(E)
 - **信息资源**
   - Core包标签继承设计文档 (`$dpml/packages/core/docs/inheritance-mechanism.md`)
   - Core包处理器设计文档 (`$dpml/packages/core/docs/processor/Core-Processor-Design.md`)
+  - Core包的AbstractTagProcessor实现 (`$dpml/packages/core/src/processor/tagProcessors/abstractTagProcessor.ts`)
   - Agent设计文档 (`$dpml/packages/agent/docs/agent-design.md`)
   - 项目编码规范 (`$dpml/docs/monorepo-coding-standards.md`)
 - **相关代码**
   - Core包中的InheritanceVisitor实现
   - Core包中的DomainTagVisitor实现
+  - Core包中的AbstractTagProcessor实现
   - 各领域包的TagProcessor实现
 - **约束条件**
   - 确保职责边界清晰
   - 避免重复实现继承逻辑
   - 遵循DRY原则
+  - 使用统一的元数据存储方式
 
 ### 成功标准(S)
 - 明确说明Core包和领域包在标签继承中的职责分工：
@@ -637,7 +641,115 @@
     - 不负责实现或处理继承逻辑
     - 不需要记录或处理extends属性
     - 专注于处理领域特定属性和语义
+- 提供正确的TagProcessor实现模式：
+  - 所有TagProcessor应继承自AbstractTagProcessor基类
+  - 子类应实现必要的抽象方法和属性
+  - 元数据应使用`element.metadata[this.tagName]`存储，而非`element.metadata.semantic`
+- 提供明确的实现示例，包括：
+  - AbstractTagProcessor的继承方式
+  - 正确的元数据存储方式
+  - 处理特定属性的最佳实践
 - 开发人员理解并正确实现各自职责
 - 避免重复实现继承逻辑
-- 所有文档和代码保持一致的职责描述
-- 各领域包的TagProcessor通过忽略extends属性，专注于领域特定逻辑 
+- 所有文档和代码保持一致的职责描述和实现方式
+
+### 实现指南
+
+#### 正确的TagProcessor实现方式
+
+1. 继承AbstractTagProcessor基类：
+
+```typescript
+import { Element, ProcessingContext } from '@dpml/core';
+import { AbstractTagProcessor } from '@dpml/core';
+
+export class AgentTagProcessor extends AbstractTagProcessor {
+  /**
+   * 处理器名称
+   */
+  readonly processorName = 'AgentTagProcessor';
+  
+  /**
+   * 标签名称
+   */
+  readonly tagName = 'agent';
+  
+  /**
+   * 处理器优先级
+   */
+  priority = 10;
+  
+  /**
+   * 处理特定属性
+   * @param attributes 除id和extends外的属性
+   * @param element 原始元素
+   * @param context 处理上下文
+   * @returns 特定的元数据对象
+   */
+  protected processSpecificAttributes(
+    attributes: Record<string, any>,
+    element: Element,
+    context: ProcessingContext
+  ): Record<string, any> {
+    // 提取agent特定属性
+    const version = attributes.version;
+    const type = attributes.type;
+    
+    // 收集子标签信息（如工具、内存配置等）
+    const tools = this.extractTools(element);
+    const memory = this.extractMemoryConfig(element);
+    
+    // 返回agent特定的元数据
+    return {
+      version,
+      type,
+      tools,
+      memory,
+      attributes  // 保存其他属性
+    };
+  }
+  
+  /**
+   * 提取工具配置（示例方法）
+   */
+  private extractTools(element: Element): any[] {
+    const toolElements = this.findChildrenByTagName(element, 'tool');
+    return toolElements.map(tool => ({
+      name: tool.attributes.name,
+      type: tool.attributes.type
+    }));
+  }
+  
+  /**
+   * 提取内存配置（示例方法）
+   */
+  private extractMemoryConfig(element: Element): any {
+    const memoryElement = this.findFirstChildByTagName(element, 'memory');
+    if (!memoryElement) return null;
+    
+    return {
+      type: memoryElement.attributes.type,
+      capacity: memoryElement.attributes.capacity
+    };
+  }
+}
+```
+
+2. 元数据存储方式：
+   - AbstractTagProcessor基类会自动使用`element.metadata[this.tagName]`存储元数据
+   - 不要使用`element.metadata.semantic`
+   - 返回的元数据会按照正确格式存储
+
+3. 注意事项：
+   - 不需要手动处理extends属性，它已被InheritanceVisitor处理
+   - 不需要手动处理id属性，AbstractTagProcessor已处理
+   - 专注于处理特定领域的属性和语义
+   - 使用基类提供的辅助方法（如findChildrenByTagName）处理子元素
+
+4. 标准处理流程：
+   - InheritanceVisitor首先处理标签继承（高优先级）
+   - 处理完成后，标签的属性已包含父标签合并后的属性
+   - 然后DomainTagVisitor调用各TagProcessor处理特定语义
+   - TagProcessor只需处理已合并后的属性，无需关心继承关系
+
+通过遵循以上指南，可以确保标签处理器实现的一致性和正确性，同时避免重复实现继承逻辑，提高代码质量和可维护性。 
