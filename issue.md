@@ -1,53 +1,40 @@
-# 设计文档中关于标签继承机制描述的问题
+# Issue: @dpml/prompt包导入@dpml/core内部模块路径导致依赖错误
 
 ## 问题描述
 
-在`Agent-OES-task.md`文档中，关于标签处理器(TagProcessor)的任务描述容易导致对继承机制实现职责的误解。具体来说，文档中多处提到TagProcessor需要实现继承机制，但实际上标签继承应该是由Core包统一处理的核心功能，而不是每个标签处理器的职责。
+在实现@dpml/agent包的PromptTagProcessor时，发现@dpml/prompt包存在不当导入问题。该包试图直接导入@dpml/core包的内部模块路径`@dpml/core/src/types/node`，而不是使用公开的API。这种做法违反了包设计的最佳实践，并导致@dpml/agent包在运行某些测试时出现依赖错误。
 
-### 问题位置
+## 复现步骤
 
-1. 第3节"AgentTagProcessor 实现"的成功标准中：
-   > - 继承机制正确工作，能够继承和覆盖父定义
+1. 在@dpml/agent包中创建PromptTagProcessor
+2. 导入@dpml/prompt包并使用其API
+3. 运行@dpml/agent包中的测试
 
-2. 第4节"LLMTagProcessor 实现"的成功标准中：
-   > - 继承机制正确应用于LLM配置
+## 错误信息
 
-3. 第5节"PromptTagProcessor 实现"的成功标准中：
-   > - 继承机制正确应用于提示词标签
+```
+Error: Cannot find module '@dpml/core/src/types/node'
+Require stack:
+- /Users/sean/WorkSpaces/TypeScriptProjects/dpml/packages/prompt/dist/index.js
+```
 
-## 影响
+## 根本原因分析
 
-这些描述容易让开发者产生误解，以为需要在TagProcessor中实现完整的标签继承逻辑，导致：
+@dpml/prompt包在其实现中试图直接访问@dpml/core包的内部模块路径`@dpml/core/src/types/node`，而不是使用@dpml/core包的公共API。在monorepo架构中，各包应该通过明确定义的公共API进行交互，而不是依赖其他包的内部实现细节。
 
-1. 重复实现已有功能，增加不必要的代码复杂度
-2. 可能与Core包的继承机制产生冲突
-3. 增加开发和测试工作量
-4. 违背"不重复造轮子"的设计原则
+## 建议解决方案
 
-## 修改建议
+1. 修改@dpml/prompt包，使其只依赖@dpml/core包的公共API
+2. 确保所有导入使用顶级导出，例如`import { Node } from '@dpml/core'`而不是`import { Node } from '@dpml/core/src/types/node'`
+3. 更新@dpml/prompt包的package.json，确保正确声明对@dpml/core的依赖
+4. 考虑添加构建时检查，防止包之间的不当导入
 
-建议修改相关描述，明确TagProcessor对继承机制的职责仅限于：
+## 影响范围
 
-1. 记录extends属性值到元数据中
-2. 不需要实现实际的继承逻辑（合并属性和内容）
+1. @dpml/agent包无法正常运行完整测试
+2. 可能影响其他依赖@dpml/prompt包的模块
+3. 可能影响整个DPML项目的构建和发布流程
 
-### 建议修改后的描述
+## 优先级
 
-对于第4节"LLMTagProcessor 实现"的成功标准，可以修改为：
-
-- 通过UT-LP-001至UT-LP-006测试用例
-- 正确提取和验证LLM配置属性
-- API密钥环境变量名被安全处理，不记录或暴露实际密钥值
-- API类型和模型名称验证正常工作
-- 正确记录extends属性值（继承逻辑由Core包处理）
-
-同样的模式可应用于其他TagProcessor的描述。
-
-## 其他建议
-
-可以在文档中添加一个关于继承机制职责分工的说明部分，明确Core包和各领域包在标签继承中的角色：
-
-- Core包：负责标签继承的核心逻辑，包括属性合并、内容覆盖等
-- 领域包标签处理器：只负责提取与记录extends属性值，不实现继承逻辑
-
-这样可以避免后续开发中的类似误解。 
+中高 - 这个问题阻碍了@dpml/agent包的开发进度，但有临时规避方案（仅运行特定测试文件） 
