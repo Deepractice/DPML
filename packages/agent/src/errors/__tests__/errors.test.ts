@@ -295,11 +295,13 @@ describe('降级机制测试(UT-ERR-008)', () => {
 
 describe('速率限制处理测试(UT-ERR-005)', () => {
   beforeEach(() => {
-    vi.useFakeTimers();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
   });
   
   afterEach(() => {
     vi.useRealTimers();
+    vi.clearAllTimers();
+    vi.clearAllMocks();
   });
   
   it('非速率限制错误应立即抛出', async () => {
@@ -334,38 +336,48 @@ describe('速率限制处理测试(UT-ERR-005)', () => {
     
     const promise = handleRateLimit(fn);
     
-    // 等待异步调用
+    // 立即运行所有定时器
     await vi.runAllTimersAsync();
-    await Promise.resolve();
-    
-    // 前进5秒
-    vi.advanceTimersByTime(6000);
     
     const result = await promise;
     expect(result).toBe('成功');
     expect(fn).toHaveBeenCalledTimes(2);
   });
   
-  it('超过最大重试次数应抛出错误', async () => {
-    const fn = vi.fn().mockRejectedValue(
+  it('超过最大重试次数应抛出错误', { timeout: 1000 }, async () => {
+    // 模拟setTimeout直接调用回调
+    vi.spyOn(global, 'setTimeout').mockImplementation((callback) => {
+      if (typeof callback === 'function') {
+        callback();
+      }
+      return 1 as any;
+    });
+    
+    // 使用spy来检查函数调用
+    const fn = vi.fn();
+    
+    // 第一次和第二次都返回速率限制错误
+    fn.mockRejectedValueOnce(
       new ApiError({
         code: AgentErrorCode.API_RATE_LIMIT_ERROR,
         message: '速率限制',
-        rateLimitReset: Date.now() + 1000
+        retryable: true
+      })
+    ).mockRejectedValueOnce(
+      new ApiError({
+        code: AgentErrorCode.API_RATE_LIMIT_ERROR,
+        message: '速率限制',
+        retryable: true
       })
     );
     
-    const promise = handleRateLimit(fn, { maxRetries: 1 });
+    // 设置最大重试次数为1
+    await expect(handleRateLimit(fn, { maxRetries: 1 }))
+      .rejects
+      .toThrow('速率限制');
     
-    // 等待异步调用并前进1秒
-    await vi.runAllTimersAsync();
-    vi.advanceTimersByTime(2000);
-    
-    // 再次运行定时器
-    await vi.runAllTimersAsync();
-    
-    await expect(promise).rejects.toThrow('速率限制');
-    expect(fn).toHaveBeenCalledTimes(2); // 初始 + 1次重试
+    // 验证函数被调用了2次
+    expect(fn).toHaveBeenCalledTimes(2);
   });
 });
 
