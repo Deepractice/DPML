@@ -1,41 +1,24 @@
 # @dpml/agent 设计文档
 
-## 1. 设计目标与原则
+## 1. 概述
 
-### 1.1 核心目标
+@dpml/agent包提供一个声明式框架，用于定义和构建基于LLM的智能代理。该包通过XML格式的定义文件，使开发者能够以声明式方式配置代理行为，简化智能代理的开发过程。
 
-`@dpml/agent`作为DPML生态系统的核心包，旨在提供:
+### 1.1 目标与愿景
 
-1. **声明式代理定义**：使用XML标记语言定义AI代理的行为
-2. **统一LLM交互**：抽象大语言模型交互接口，支持多种模型和提供商
-3. **完整的生命周期管理**：定义、初始化、运行、终止代理的基本流程
-4. **基础上下文管理**：通过抽象记忆接口管理对话上下文和会话状态
+- 提供简洁、声明式的代理定义方式
+- 支持多种LLM后端和接口
+- 实现配置与实现的有效分离
+- 支持多轮对话和上下文管理
+- 提供扩展机制支持高级功能
 
 ### 1.2 设计原则
 
-1. **领域边界清晰**：专注于代理定义和运行时环境，与其他领域保持明确边界
-2. **声明式定义**：采用DPML标记语言进行代理定义，实现配置与实现分离
-3. **状态与行为分离**：采用清晰的状态管理模式，实现状态和行为逻辑解耦
-4. **LLM交互抽象**：提供统一的LLM交互接口，支持多种模型和提供商
-5. **记忆与上下文抽象**：将记忆管理抽象为独立接口，实现灵活的上下文管理
-6. **可观察性设计**：全面的事件系统和日志机制，便于监控和调试
-7. **错误处理策略**：健壮的错误处理机制，支持优雅降级和自恢复
-8. **安全设计原则**：强调安全性，保护系统和用户
-9. **开发友好性**：优先考虑开发者体验，降低使用门槛
-10. **扩展性机制**：提供多种扩展点，支持自定义和第三方扩展
-11. **标签与属性极简主义**：遵循"少即是多"的设计哲学，保持标签和属性的最小必要集
-12. **统一基础设施原则**：优先使用@dpml/core提供的基础设施，确保跨包统一性
-13. **渐进式复杂度设计**：每个组件既是一个默认实现，又是更复杂系统的入口点
-14. **面向终端用户优先**：无论是API设计还是错误处理，都以终端用户的使用体验为优先考量
-
-### 1.3 解决的问题
-
-1. 开发基于LLM的智能代理缺乏标准化结构和框架
-2. LLM应用开发涉及大量重复代码和配置
-3. 不同代理实现之间难以复用组件和模式
-4. 缺乏声明式方式描述代理能力和行为
-5. 多模型支持和集成需要大量重复工作
-6. 缺乏统一的上下文管理机制
+- **领域边界明确**：与@dpml/core和@dpml/prompt包形成清晰的分层架构
+- **声明式优先**：通过声明式方式定义代理，降低使用门槛
+- **关注点分离**：代理定义、LLM集成、记忆管理等职责明确分离
+- **扩展性**：灵活的架构支持未来功能扩展
+- **渐进增强**：基础功能简单可用，高级功能渐进实现
 
 ## 2. 系统架构
 
@@ -73,14 +56,29 @@ classDiagram
     Agent --> DPMLCore: uses
 ```
 
-### 2.2 模块职责
+### 2.2 包依赖关系
 
-#### 2.2.1 核心模块职责
+@dpml/agent包建立在DPML的分层架构之上：
+
+```mermaid
+graph TD
+    Core[DPML Core] --> Prompt[DPML Prompt]
+    Core --> Agent[DPML Agent]
+    Prompt --> Agent
+```
+
+- **@dpml/core**：提供基础设施，包括文档模型、解析、处理和转换功能
+- **@dpml/prompt**：提供提示词处理能力
+- **@dpml/agent**：基于上述两个包构建代理功能
+
+### 2.3 模块职责
+
+#### 2.3.1 核心模块职责
 
 - **AgentFactory**: 
   - 创建Agent实例
-  - 解析代理定义
   - 配置代理组件
+  - 协调标签处理
 
 - **Agent**: 
   - 管理代理生命周期
@@ -98,41 +96,33 @@ classDiagram
   - 提供记忆存储和检索接口
   - 支持基本的上下文窗口管理
 
-#### 2.2.2 职责边界
+#### 2.3.2 职责边界
 
 | 职责 | Core包 | Prompt包 | Agent包 | 应用层 |
 |------|-------|---------|--------|--------|
-| XML解析 | ✅ | ❌ | ❌ | ❌ |
+| XML解析与文档模型 | ✅ | ❌ | ❌ | ❌ |
 | 提示词处理 | ❌ | ✅ | ❌ | ❌ |
-| 代理定义和运行时 | ❌ | ❌ | ✅ | ❌ |
+| 代理标签处理 | ❌ | ❌ | ✅ | ❌ |
+| 代理运行时和状态管理 | ❌ | ❌ | ✅ | ❌ |
 | 上下文管理 | ❌ | ❌ | ✅ | ❌ |
 | 应用特定逻辑 | ❌ | ❌ | ❌ | ✅ |
 
 ## 3. 核心概念
 
-### 3.1 代理文档模型
+### 3.1 代理文档结构
 
-代理文档由一系列结构化标签组成，每个标签代表代理的一个功能组件。顶层结构如下：
+代理文档使用@dpml/core提供的文档模型，通过XML格式定义代理。顶层结构如下：
 
-```mermaid
-classDiagram
-    class AgentDocument {
-        +root: AgentElement
-    }
-    class AgentElement {
-        +tagName: string
-        +attributes: Record~string, any~
-        +children: Array~ContentNode | AgentElement~
-    }
-    class ContentNode {
-        +value: string
-        +format: "markdown" | "text" | "code"
-    }
-    
-    AgentDocument *-- AgentElement
-    AgentElement *-- ContentNode
-    AgentElement *-- AgentElement
+```xml
+<agent id="example-agent" version="1.0">
+  <llm api-type="openai" model="gpt-4-turbo" />
+  <prompt>
+    你是一个有帮助的智能助手。
+  </prompt>
+</agent>
 ```
+
+Agent包不重新定义文档模型，而是直接使用Core包提供的Node、Element、Document等类型。特定标签的语义和处理逻辑由Agent包的标签处理器提供。
 
 ### 3.2 核心标签体系
 
@@ -324,7 +314,7 @@ function buildLLMContext(memoryItems: MemoryItem[], systemPrompt: string): LLMCo
 
 ### 6.1 代理继承原理
 
-代理定义支持通过`extends`属性继承其他代理的内容和属性：
+代理定义支持通过`extends`属性继承其他代理的内容和属性，这一功能利用@dpml/core的继承处理机制实现：
 
 ```xml
 <!-- 基础代理定义 -->
@@ -350,6 +340,8 @@ function buildLLMContext(memoryItems: MemoryItem[], systemPrompt: string): LLMCo
 
 ### 6.2 继承规则
 
+Agent包利用Core包提供的继承处理机制，遵循以下规则：
+
 1. **属性继承**：子标签可以继承父标签的属性，子标签的同名属性会覆盖父标签
 2. **子标签继承**：
    - 如果子代理定义了父代理没有的子标签，则添加该子标签
@@ -374,329 +366,305 @@ function buildLLMContext(memoryItems: MemoryItem[], systemPrompt: string): LLMCo
 </agent>
 ```
 
-## 7. 转换器设计
+## 7. 标签处理器设计
 
-### 7.1 AgentProcessor
+### 7.1 标签处理架构
 
-AgentProcessor负责处理Agent定义，将XML结构转换为可执行的Agent配置：
+Agent包利用@dpml/core提供的处理器架构，实现特定于代理的标签处理逻辑：
+
+```mermaid
+graph TD
+    Core[Core TagProcessor] --> AgentTag[AgentTagProcessor]
+    Core --> LLMTag[LLMTagProcessor]
+    Core --> Delegation[Delegation to Prompt]
+    Delegation --> PromptTag[PromptTagProcessor]
+```
+
+每个标签处理器负责：
+- 验证标签的属性和结构
+- 处理标签的继承和引用
+- 实现标签特定的转换逻辑
+
+### 7.2 AgentTagProcessor
+
+AgentTagProcessor负责处理`<agent>`标签：
 
 ```typescript
-export class AgentProcessor {
-  constructor(options?: AgentProcessorOptions) {
-    // 初始化处理器
-  }
+export class AgentTagProcessor extends BaseTagProcessor {
+  readonly tagName = 'agent';
   
-  // 处理代理定义
-  async process(definition: string): Promise<AgentConfig> {
-    // 解析XML为AST
-    const ast = await parseXML(definition);
+  async process(element: Element, context: ProcessingContext): Promise<Element> {
+    // 验证必需属性
+    this.validateRequiredAttributes(element, ['id']);
     
-    // 处理AST，解析引用和继承
-    const processedDoc = await processDocument(ast);
+    // 处理继承
+    if (element.attributes.extends) {
+      element = await this.processExtends(element, context);
+    }
     
-    // 转换为Agent配置
-    return this.transformToAgentConfig(processedDoc);
-  }
-  
-  // 转换为Agent配置
-  private transformToAgentConfig(doc: ProcessedDocument): AgentConfig {
-    const agentElement = doc.root;
+    // 处理子标签
+    for (const child of element.children) {
+      if (isElement(child)) {
+        const processor = context.getTagProcessor(child.tagName);
+        if (processor) {
+          await processor.process(child, context);
+        }
+      }
+    }
     
-    // 提取代理基本信息
-    const id = agentElement.getAttribute('id');
-    const version = agentElement.getAttribute('version') || '1.0';
-    
-    // 处理LLM配置
-    const llmElement = agentElement.getChild('llm');
-    const llmConfig = this.processLLMConfig(llmElement);
-    
-    // 处理提示词
-    const promptElement = agentElement.getChild('prompt');
-    const promptConfig = this.processPromptConfig(promptElement);
-    
-    // 返回完整配置
-    return {
-      id,
-      version,
-      llm: llmConfig,
-      prompt: promptConfig
-    };
-  }
-  
-  // 处理LLM配置
-  private processLLMConfig(element: Element): LLMConfig {
-    return {
-      apiType: element.getAttribute('api-type') || 'openai',
-      apiUrl: element.getAttribute('api-url'),
-      model: element.getAttribute('model'),
-      keyEnv: element.getAttribute('key-env')
-    };
+    return element;
   }
   
   // 其他处理方法...
 }
 ```
 
-### 7.2 处理流程
+### 7.3 LLMTagProcessor
 
-整体处理流程遵循以下步骤：
-
-1. 解析代理定义文件为XML AST
-2. 处理AST，解析引用和继承
-3. 转换处理后的文档为Agent配置对象
-4. 使用配置对象创建Agent实例及其组件
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant AgentFactory
-    participant CoreParser
-    participant AgentProcessor
-    participant PromptProcessor
-    
-    Client->>AgentFactory: createAgent(definition)
-    AgentFactory->>CoreParser: parse(definition)
-    CoreParser-->>AgentFactory: ast
-    AgentFactory->>AgentProcessor: process(ast)
-    AgentProcessor->>PromptProcessor: processPrompt(promptElement)
-    PromptProcessor-->>AgentProcessor: promptConfig
-    AgentProcessor-->>AgentFactory: agentConfig
-    AgentFactory->>AgentFactory: createComponents(agentConfig)
-    AgentFactory-->>Client: agent
-```
-
-## 8. 与Core包的关系
-
-### 8.1 依赖关系
-
-Agent包依赖Core包提供的基础设施：
-
-1. 使用Core的Parser解析DPML文本
-2. 使用Core的Processor处理AST和继承
-3. 使用Core的错误处理机制
-4. 遵循Core的扩展模式
-
-### 8.2 标签处理器实现
-
-Agent包为每个标签实现专用的处理器，处理特定语义逻辑：
+LLMTagProcessor负责处理`<llm>`标签：
 
 ```typescript
-// 示例：llm标签处理器
-class LLMTagProcessor implements TagProcessor {
-  canProcess(element: Element): boolean {
-    return element.tagName === 'llm';
-  }
+export class LLMTagProcessor extends BaseTagProcessor {
+  readonly tagName = 'llm';
   
   async process(element: Element, context: ProcessingContext): Promise<Element> {
-    // 初始化元数据
-    element.metadata = element.metadata || {};
-    element.metadata.llmInfo = {};
+    // 验证属性
+    this.validateRequiredAttributes(element, ['api-type', 'model']);
     
-    // 验证必要属性
-    if (!element.attributes.model) {
-      context.reportError(new DPMLError(
-        'MISSING_ATTRIBUTE',
-        'LLM标签缺少必要的model属性',
-        element.location
-      ));
-    }
-    
-    if (!element.attributes['api-url']) {
-      context.reportError(new DPMLError(
-        'MISSING_ATTRIBUTE',
-        'LLM标签缺少必要的api-url属性',
-        element.location
-      ));
-    }
-    
-    // 提取LLM信息
-    element.metadata.llmInfo = {
-      apiType: element.attributes['api-type'] || 'openai',
-      apiUrl: element.attributes['api-url'],
-      model: element.attributes.model,
-      keyEnv: element.attributes['key-env']
-    };
+    // 处理特定逻辑
+    // ...
     
     return element;
   }
 }
 ```
 
-### 8.3 与Prompt包的集成
+### 7.4 标签转换
 
-Agent包集成Prompt包处理提示词：
+Agent包实现AgentTransformer，继承自@dpml/core的DefaultTransformer，负责将处理后的文档转换为代理配置：
 
 ```typescript
-class PromptTagProcessor implements TagProcessor {
-  private promptProcessor: PromptProcessor;
-  
-  constructor() {
-    this.promptProcessor = new PromptProcessor();
+export class AgentTransformer extends DefaultTransformer<AgentConfig> {
+  constructor(options?: AgentTransformerOptions) {
+    super();
+    this.registerVisitors();
   }
   
-  canProcess(element: Element): boolean {
-    return element.tagName === 'prompt';
+  private registerVisitors() {
+    this.registerVisitor(new AgentElementVisitor(this));
+    this.registerVisitor(new LLMElementVisitor(this));
+    // 其他访问者...
   }
   
-  async process(element: Element, context: ProcessingContext): Promise<Element> {
-    // 提取提示词内容
-    const content = extractTextContent(element);
+  transform(doc: ProcessedDocument): AgentConfig {
+    return this.visit(doc) as AgentConfig;
+  }
+}
+
+class AgentElementVisitor implements TransformerVisitor {
+  name = 'AgentElementVisitor';
+  priority = 10;
+  
+  constructor(private transformer: AgentTransformer) {}
+  
+  visitElement(element: Element, context: TransformContext): Partial<AgentConfig> {
+    if (element.tagName !== 'agent') return {};
     
-    // 如果内容是DPML格式，直接委托给Prompt包处理
-    if (isDPMLFormat(content)) {
-      try {
-        // 委托Prompt包处理
-        const processedPrompt = await this.promptProcessor.process(content);
-        element.metadata = element.metadata || {};
-        element.metadata.processedPrompt = processedPrompt;
-      } catch (error) {
-        context.reportError(error);
-      }
-    } else {
-      // 简单文本内容，包装为最简单的DPML格式
-      const wrappedContent = `<prompt>${content}</prompt>`;
-      try {
-        // 委托Prompt包处理
-        const processedPrompt = await this.promptProcessor.process(wrappedContent);
-        element.metadata = element.metadata || {};
-        element.metadata.processedPrompt = processedPrompt;
-      } catch (error) {
-        context.reportError(error);
-      }
-    }
-    
-    return element;
+    return {
+      id: element.attributes.id,
+      version: element.attributes.version || '1.0',
+      // 其他属性...
+    };
   }
+}
+```
+
+## 8. 代理创建流程
+
+### 8.1 创建流程
+
+创建代理的过程使用@dpml/core的解析、处理和转换功能：
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Factory as AgentFactory
+    participant Core as CoreAPI
+    participant Processor as AgentTagProcessor
+    participant Transformer as AgentTransformer
+    
+    Client->>Factory: createAgent(definition)
+    Factory->>Core: parse(definition)
+    Core-->>Factory: document
+    Factory->>Core: process(document)
+    Core->>Processor: process(agentElement)
+    Processor->>Core: processedElement
+    Core-->>Factory: processedDocument
+    Factory->>Transformer: transform(processedDocument)
+    Transformer-->>Factory: agentConfig
+    Factory->>Factory: instantiateAgent(agentConfig)
+    Factory-->>Client: agent
+```
+
+### 8.2 实现代码
+
+```typescript
+export async function createAgent(definition: string): Promise<Agent> {
+  // 使用@dpml/core的API
+  const document = await parse(definition);
+  const processedDocument = await process(document);
+  
+  // 使用Agent包的转换器
+  const transformer = new AgentTransformer();
+  const config = transformer.transform(processedDocument);
+  
+  // 创建代理实例
+  return instantiateAgent(config);
+}
+
+function instantiateAgent(config: AgentConfig): Agent {
+  // 创建LLM连接器
+  const llmConnector = createLLMConnector(config.llm);
+  
+  // 创建记忆系统
+  const memorySystem = new SimpleContextMemory();
+  
+  // 创建并返回代理实例
+  return new AgentImpl({
+    id: config.id,
+    version: config.version,
+    llmConnector,
+    memorySystem,
+    prompt: config.prompt
+  });
 }
 ```
 
 ## 9. API设计
 
-### 9.1 核心API
+### 9.1 公共API
 
-Agent包提供简洁的主要API：
+Agent包提供以下核心API：
 
 ```typescript
-// 创建代理
-function createAgent(
-  definition: string | AgentConfig,
-  options?: AgentOptions
-): Promise<Agent>;
+/**
+ * 创建代理实例
+ */
+function createAgent(definition: string): Promise<Agent>;
 
-// 运行代理
+/**
+ * 代理接口
+ */
 interface Agent {
-  // 同步运行，返回最终结果
+  /**
+   * 代理标识符
+   */
+  readonly id: string;
+  
+  /**
+   * 代理版本
+   */
+  readonly version: string;
+  
+  /**
+   * 运行代理
+   */
   run(input: RunInput): Promise<RunOutput>;
   
-  // 流式运行，返回可迭代的输出块
+  /**
+   * 流式运行代理
+   */
   runStream(input: RunInput): AsyncIterable<OutputChunk>;
-  
-  // 事件监听
-  on(event: AgentEvent, handler: EventHandler): void;
-  
-  // 状态管理
-  getState(): AgentState;
-}
-```
-
-### 9.2 配置项
-
-提供灵活的配置选项：
-
-```typescript
-interface AgentOptions {
-  // LLM配置
-  llm?: {
-    apiType?: string;
-    apiUrl?: string;
-    model?: string;
-    keyEnv?: string;
-    // 其他LLM相关选项
-  };
-  
-  // 记忆系统
-  memory?: MemorySystem;
-  
-  // 日志和调试
-  logger?: {
-    level?: 'debug' | 'info' | 'warn' | 'error';
-    targets?: string[];
-  };
-  
-  // 运行选项
-  runtime?: {
-    maxTokens?: number;
-    timeout?: number;
-    retryStrategy?: RetryStrategy;
-  };
 }
 
-// 运行输入
+/**
+ * 运行输入
+ */
 interface RunInput {
-  // 用户输入
+  /**
+   * 用户输入文本
+   */
   input: string;
   
-  // 会话标识符
+  /**
+   * 会话ID，用于多轮对话
+   */
   sessionId?: string;
   
-  // 上下文信息
-  context?: Record<string, any>;
-  
-  // 流式处理选项
-  stream?: boolean;
+  /**
+   * 额外元数据
+   */
+  metadata?: Record<string, any>;
 }
+
+/**
+ * 运行输出
+ */
+interface RunOutput {
+  /**
+   * 代理输出文本
+   */
+  output: string;
+  
+  /**
+   * 使用的令牌数量
+   */
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
+  
+  /**
+   * 元数据
+   */
+  metadata?: Record<string, any>;
+}
+
+/**
+ * 输出块
+ */
+type OutputChunk = {
+  /**
+   * 块类型
+   */
+  type: 'thinking' | 'output' | 'error';
+  
+  /**
+   * 块内容
+   */
+  content: string;
+  
+  /**
+   * 块元数据
+   */
+  metadata?: Record<string, any>;
+};
 ```
 
-
-## 10. 完整处理流程示例
-
-以下是使用Agent包处理代理定义和运行代理的完整示例：
+### 9.2 使用示例
 
 ```typescript
-import { createAgent } from '@dpml/agent';
-
+// 创建并使用代理
 async function main() {
   try {
-    // 代理定义
-    const definition = `
-      <agent id="research-assistant" version="1.0">
-        <llm 
-          api-type="openai" 
-          api-url="https://api.openai.com/v1"
-          model="gpt-4-turbo" 
-          key-env="OPENAI_API_KEY"
-        />
-        
+    // 创建代理
+    const agent = await createAgent(`
+      <agent id="conversation-agent" version="1.0">
+        <llm api-type="openai" model="gpt-4-turbo" key-env="OPENAI_API_KEY" />
         <prompt>
-          你是一个研究助手，擅长查找信息和回答问题。
-          请简洁明了地回答用户查询。
+          你是一个有帮助的对话助手，擅长回答问题并提供信息。
         </prompt>
       </agent>
-    `;
+    `);
     
-    // 创建代理
-    const agent = await createAgent(definition, {
-      // 可选配置
-      logger: {
-        level: 'info',
-        targets: ['console']
-      },
-      // 可选自定义记忆系统
-      memory: new CustomMemorySystem()
-    });
-    
-    // 监听事件
-    agent.on('thinking:start', () => {
-      console.log('代理正在思考...');
-    });
-    
-    // 多轮对话示例
-    const sessionId = "session-123";
+    // 使用会话ID跟踪对话
+    const sessionId = 'user-123';
     
     // 第一轮对话
     const result1 = await agent.run({
-      input: '请简单介绍一下人工智能的历史',
-      sessionId // 使用相同会话ID保持上下文
+      input: '中国历史上有哪些重要的朝代？',
+      sessionId
     });
     
     console.log('代理回复:', result1.output);
@@ -893,13 +861,11 @@ Agent包遵循语义化版本规范：
 
 核心设计原则包括领域边界清晰、声明式定义、状态与行为分离等，这些原则共同保证了系统的可维护性、可扩展性和开发友好性。
 
-当前版本专注于实现最基础的agent、llm、prompt三个核心标签，同时通过抽象接口实现基础上下文管理，为未来的能力和高级记忆系统扩展奠定基础。标签系统相关的详细规范请参考各自的设计文档：
+Agent包构建在@dpml/core和@dpml/prompt包的基础上，充分利用这些包提供的解析、处理和转换功能，避免重复实现基础设施。标签系统相关的详细规范请参考各自的设计文档：
 - [agent-tag-design.md](./agent-tag-design.md)
 - [llm-tag-design.md](./llm-tag-design.md)
 - [prompt-tag-design.md](./prompt-tag-design.md)
 
 API设计着重简洁性和灵活性，提供了一系列核心方法和配置选项，支持同步和流式处理模式。事件系统使开发者能够监控代理的运行状态和行为，实现可观察性和可调试性。
 
-记忆系统通过抽象接口实现关注点分离，确保上下文管理与LLM调用逻辑解耦，既保持当前设计简洁，又为未来功能扩展留下空间。
-
-@dpml/agent是DPML生态系统的核心组件，与其他包（如@dpml/core、@dpml/prompt）协同工作，共同提供LLM应用开发框架。未来的发展将进一步增强系统的功能和稳定性，为开发者提供更强大的智能代理构建工具。 
+记忆系统通过抽象接口实现关注点分离，确保上下文管理与LLM调用逻辑解耦，既保持当前设计简洁，又为未来功能扩展留下空间。 
