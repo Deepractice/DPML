@@ -1,18 +1,14 @@
 /**
- * 标签定义和注册模块
+ * 标签模块导出
  */
 
-// 导出标签注册函数
-export { registerAgentTags } from './registerTags';
-
 // 导出标签定义
-export { agentTagDefinition } from './definitions/agentTag';
-export { llmTagDefinition } from './definitions/llmTag';
-export { promptTagDefinition } from './definitions/promptTag';
-
-// 导出标签验证函数
-export { validateAgentTag } from './definitions/agentTag';
-export { validateLLMTag } from './definitions/llmTag';
+export * from './definitions/agentTag';
+export * from './definitions/llmTag';
+export * from './definitions/promptTag';
 
 // 导出标签处理器
-export * from './processors'; 
+export * from './processors';
+
+// 导出注册函数
+export { registerTags } from './registerTags'; 

@@ -36,14 +36,15 @@ export const llmTagDefinition = {
   name: 'llm',
   allowedParents: ['agent'], // 只能在agent标签内
   allowedChildren: [], // 无子标签
-  requiredAttributes: ['api-type', 'model'], // 必需属性
-  optionalAttributes: ['api-url', 'key-env', 'temperature'], // 可选属性
+  requiredAttributes: ['model'], // 必需属性
+  optionalAttributes: ['api-type', 'api-url', 'key-env', 'temperature', 'extends'], // 可选属性
   attributeTypes: {
     'api-type': 'string',
     'model': 'string',
     'api-url': 'string',
     'key-env': 'string',
-    'temperature': 'number'
+    'temperature': 'number',
+    'extends': 'string'
   },
   validator: validateLLMTag
 }; 

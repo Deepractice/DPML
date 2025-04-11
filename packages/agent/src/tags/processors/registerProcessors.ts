@@ -1,21 +1,21 @@
 /**
- * 注册处理器函数
+ * 注册标签处理器
  * 
- * 用于将agent包的标签处理器注册到标签处理器注册表中
+ * 将各个标签处理器注册到处理器注册表，以便在处理过程中被调用
  */
 
 import { TagProcessorRegistry } from '@dpml/core';
 import { AgentTagProcessor } from './AgentTagProcessor';
+import { LLMTagProcessor } from './LLMTagProcessor';
 
 /**
- * 注册Agent包的标签处理器到处理器注册表
- * @param registry 标签处理器注册表
+ * 注册标签处理器
+ * @param registry 处理器注册表
  */
-export function registerAgentTagProcessors(registry: TagProcessorRegistry): void {
-  // 注册agent标签处理器
+export function registerProcessors(registry: TagProcessorRegistry): void {
+  // 注册Agent标签处理器
   registry.registerProcessor('agent', new AgentTagProcessor());
   
-  // 未来会在此注册更多处理器
-  // registry.registerProcessor('llm', new LLMTagProcessor());
-  // registry.registerProcessor('prompt', new PromptTagProcessor());
+  // 注册LLM标签处理器
+  registry.registerProcessor('llm', new LLMTagProcessor());
 } 

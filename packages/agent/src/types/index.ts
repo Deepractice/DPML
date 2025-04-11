@@ -5,17 +5,72 @@
 
 // 标签相关类型
 export interface AgentTagAttributes {
+  /**
+   * 代理标识符
+   */
   id: string;
+  
+  /**
+   * 版本号
+   */
   version?: string;
+  
+  /**
+   * 继承的代理ID
+   */
   extends?: string;
+  
+  /**
+   * 代理类型
+   */
+  type?: string;
+  
+  /**
+   * 描述
+   */
+  description?: string;
+  
+  /**
+   * 其他属性
+   */
+  [key: string]: string | undefined;
 }
 
 export interface LLMTagAttributes {
-  'api-type': string;
-  model: string;
+  /**
+   * API类型，例如：openai、anthropic
+   */
+  'api-type'?: string;
+  
+  /**
+   * API端点URL
+   */
   'api-url'?: string;
+  
+  /**
+   * 模型名称
+   */
+  'model': string;
+  
+  /**
+   * 存储API密钥的环境变量名
+   */
   'key-env'?: string;
-  temperature?: number;
+  
+  /**
+   * 温度参数
+   */
+  'temperature'?: string;
+  
+  /**
+   * 继承的LLM配置ID
+   */
+  'extends'?: string;
+  
+  /**
+   * 其他属性
+   */
+  [key: string]: string | undefined;
 }
 
 export interface PromptTagAttributes {
