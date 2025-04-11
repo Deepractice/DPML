@@ -1,11 +1,12 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "rootDir": "./src",
     "outDir": "./dist",
-    "declaration": true,
-    "declarationDir": "./dist"
+    "rootDir": "./src",
+    "paths": {
+      "@agent/*": ["./src/*"]
+    }
   },
   "include": ["src/**/*"],
-  "exclude": ["**/*.test.ts", "**/*.spec.ts", "node_modules", "dist", "tests"]
+  "exclude": ["node_modules", "dist", "tests"]
 } 

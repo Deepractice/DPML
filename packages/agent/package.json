@@ -2,9 +2,20 @@
   "name": "@dpml/agent",
   "version": "1.0.0",
   "description": "DPML Agent framework",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint --ext .ts src",
+    "clean": "rimraf dist"
   },
   "keywords": [
     "dpml",
@@ -13,5 +24,15 @@
   ],
   "author": "",
   "license": "ISC",
+  "dependencies": {
+    "@dpml/core": "workspace:*",
+    "@dpml/prompt": "workspace:*"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.5",
+    "tsup": "^8.0.2",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.1"
+  },
   "packageManager": "pnpm@10.7.0"
 } 
