@@ -21,6 +21,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:perf": "vitest run test/performance",
     "lint": "eslint --ext .ts src",
     "clean": "rimraf dist"
   },

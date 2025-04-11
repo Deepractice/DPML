@@ -46,6 +46,12 @@ export interface CompletionOptions {
   stream?: boolean;
   
   /**
+   * 是否使用缓存
+   * 默认为true，如果设置为false则不使用缓存
+   */
+  useCache?: boolean;
+  
+  /**
    * 重试配置
    */
   retry?: {
@@ -64,6 +70,11 @@ export interface CompletionOptions {
      */
     maxDelay: number;
   };
+  
+  /**
+   * 取消信号
+   */
+  signal?: AbortSignal;
 }
 
 /**

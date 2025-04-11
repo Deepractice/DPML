@@ -84,4 +84,25 @@ export interface AgentMemoryOptions {
    * 超过此数量会触发记忆压缩
    */
   maxItems?: number;
+  
+  /**
+   * 最大会话数量
+   * 超过此数量时，最旧的会话会被清除
+   * 默认值：100
+   */
+  maxSessions?: number;
+  
+  /**
+   * 记忆压缩阈值
+   * 当记忆条目数超过此阈值时触发压缩
+   * 默认值：maxItems的80%或100
+   */
+  compressionThreshold?: number;
+  
+  /**
+   * 压缩比例
+   * 压缩后保留的条目数与阈值的比例
+   * 默认值：0.6
+   */
+  compressionRatio?: number;
 } 

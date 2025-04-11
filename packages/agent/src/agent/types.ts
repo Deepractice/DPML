@@ -127,29 +127,14 @@ export interface AgentOutputChunk {
  */
 export interface AgentExecutionConfig {
   /**
-   * 默认的LLM模型
+   * 默认模型
    */
   defaultModel: string;
   
   /**
-   * API类型 (openai, anthropic等)
+   * API类型
    */
   apiType: string;
-  
-  /**
-   * 自定义API URL
-   */
-  apiUrl?: string;
-  
-  /**
-   * 温度参数(0-1)
-   */
-  temperature?: number;
-  
-  /**
-   * 最大输出token数量
-   */
-  maxOutputTokens?: number;
   
   /**
    * 系统提示词
@@ -157,24 +142,28 @@ export interface AgentExecutionConfig {
   systemPrompt: string;
   
   /**
-   * 默认超时时间（毫秒）
+   * 最大响应token数
+   * 默认为1000
    */
-  defaultTimeoutMs?: number;
+  maxResponseTokens?: number;
   
   /**
-   * 重试配置
+   * 温度参数(0-1)
+   * 默认为0.7
    */
-  retry?: {
-    /**
-     * 最大重试次数
-     */
-    maxRetries: number;
-    
-    /**
-     * 初始重试延迟(毫秒)
-     */
-    initialDelay: number;
-  };
+  temperature?: number;
+  
+  /**
+   * 最大并发请求数
+   * 默认为5
+   */
+  maxConcurrentRequests?: number;
+  
+  /**
+   * 默认请求超时时间(毫秒)
+   * 默认为60000 (1分钟)
+   */
+  defaultTimeout?: number;
 }
 
 /**
@@ -286,23 +275,52 @@ export interface AgentConfig extends AgentFactoryConfig {
 }
 
 /**
- * Agent请求
+ * 代理请求参数
  */
 export interface AgentRequest {
   /**
-   * 请求文本
+   * 输入文本
    */
   text: string;
   
   /**
-   * 会话ID（可选）
+   * 会话ID(可选)
+   * 如果未提供，将创建新会话
    */
   sessionId?: string;
   
   /**
-   * 模型（可选，覆盖默认模型）
+   * 模型名称(可选)
+   * 如果未提供，将使用配置的默认模型
    */
   model?: string;
+  
+  /**
+   * 最大输出token数(可选)
+   */
+  maxTokens?: number;
+  
+  /**
+   * 温度参数(0-1)
+   */
+  temperature?: number;
+  
+  /**
+   * 是否允许使用缓存
+   * 默认为true
+   */
+  allowCache?: boolean;
+  
+  /**
+   * 上下文最大消息数量
+   * 如果设置，将只保留最近的n条消息用于输入
+   */
+  maxContextMessages?: number;
+  
+  /**
+   * 请求超时时间(毫秒)
+   */
+  timeout?: number;
 }
 
 /**

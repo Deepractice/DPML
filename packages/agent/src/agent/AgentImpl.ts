@@ -1,5 +1,6 @@
 /**
  * Agent实现类
+ * 优化版本：添加并发控制和轻量级状态管理
  */
 import { v4 as uuidv4 } from 'uuid';
 import { Agent, AgentConfig, AgentRequest, AgentResponse, AgentResult } from './types';
@@ -20,6 +21,20 @@ interface AgentImplOptions extends AgentConfig {
 }
 
 /**
+ * 代理执行计数器和指标
+ */
+interface AgentMetrics {
+  requestsProcessed: number;
+  tokensUsed: {
+    prompt: number;
+    completion: number;
+    total: number;
+  };
+  averageResponseTime: number;
+  totalProcessingTime: number;
+}
+
+/**
  * 导出的Agent实现类
  * 真正的实现将在其他文件中完成
  */
@@ -32,6 +47,49 @@ export class AgentImpl implements Agent {
   private eventSystem: EventSystem;
   private config: AgentConfig;
   private abortControllers: Map<string, AbortController>;
+  
+  /**
+   * 活跃请求计数
+   */
+  private activeRequestCount: number = 0;
+  
+  /**
+   * 最大并发请求数
+   */
+  private maxConcurrentRequests: number = 5;
+  
+  /**
+   * 请求队列
+   */
+  private requestQueue: Array<() => Promise<void>> = [];
+  
+  /**
+   * 会话状态缓存
+   * 用于减少频繁的状态访问
+   */
+  private sessionStateCache: Map<string, {
+    state: any,
+    timestamp: number
+  }> = new Map();
+  
+  /**
+   * 缓存生存时间(毫秒)
+   */
+  private stateCacheTTL: number = 2000;
+  
+  /**
+   * 性能指标
+   */
+  private metrics: AgentMetrics = {
+    requestsProcessed: 0,
+    tokensUsed: {
+      prompt: 0,
+      completion: 0,
+      total: 0
+    },
+    averageResponseTime: 0,
+    totalProcessingTime: 0
+  };
 
   /**
    * 构造函数
@@ -50,6 +108,27 @@ export class AgentImpl implements Agent {
       executionConfig: options.executionConfig
     };
     this.abortControllers = new Map();
+    
+    // 设置并发请求数量
+    if (options.executionConfig?.maxConcurrentRequests) {
+      this.maxConcurrentRequests = options.executionConfig.maxConcurrentRequests;
+    }
+    
+    // 定期清理过期的状态缓存
+    setInterval(() => this.cleanupStateCache(), 30000);
+  }
+  
+  /**
+   * 清理过期的状态缓存
+   * @private
+   */
+  private cleanupStateCache(): void {
+    const now = Date.now();
+    for (const [key, item] of this.sessionStateCache.entries()) {
+      if (now - item.timestamp > this.stateCacheTTL) {
+        this.sessionStateCache.delete(key);
+      }
+    }
   }
 
   /**
@@ -66,6 +145,83 @@ export class AgentImpl implements Agent {
    */
   getVersion(): string {
     return this.version;
+  }
+  
+  /**
+   * 获取代理指标
+   * @returns 代理指标数据
+   */
+  getMetrics(): AgentMetrics {
+    return { ...this.metrics };
+  }
+  
+  /**
+   * 更新指标
+   * @param processingTime 处理时间(毫秒)
+   * @param usage token使用情况
+   * @private
+   */
+  private updateMetrics(processingTime: number, usage?: { promptTokens: number, completionTokens: number, totalTokens: number }): void {
+    // 增加处理请求数
+    this.metrics.requestsProcessed++;
+    
+    // 更新处理时间
+    this.metrics.totalProcessingTime += processingTime;
+    this.metrics.averageResponseTime = this.metrics.totalProcessingTime / this.metrics.requestsProcessed;
+    
+    // 更新token使用情况
+    if (usage) {
+      this.metrics.tokensUsed.prompt += usage.promptTokens;
+      this.metrics.tokensUsed.completion += usage.completionTokens;
+      this.metrics.tokensUsed.total += usage.totalTokens;
+    }
+  }
+  
+  /**
+   * 添加请求到队列并在可能时执行
+   * @param fn 请求函数
+   * @private
+   */
+  private async enqueueRequest<T>(fn: () => Promise<T>): Promise<T> {
+    if (this.activeRequestCount < this.maxConcurrentRequests) {
+      this.activeRequestCount++;
+      try {
+        return await fn();
+      } finally {
+        this.activeRequestCount--;
+        this.processQueue();
+      }
+    }
+    
+    // 创建一个Promise，将其解析函数存储在队列中
+    return new Promise<T>((resolve, reject) => {
+      this.requestQueue.push(async () => {
+        try {
+          resolve(await fn());
+        } catch (err) {
+          reject(err);
+        }
+      });
+    });
+  }
+  
+  /**
+   * 处理请求队列
+   * @private
+   */
+  private processQueue(): void {
+    if (this.requestQueue.length === 0 || this.activeRequestCount >= this.maxConcurrentRequests) {
+      return;
+    }
+    
+    const nextRequest = this.requestQueue.shift();
+    if (nextRequest) {
+      this.activeRequestCount++;
+      nextRequest().finally(() => {
+        this.activeRequestCount--;
+        this.processQueue();
+      });
+    }
   }
 
   /**
@@ -86,7 +242,23 @@ export class AgentImpl implements Agent {
       }
     }
     
-    return this.stateManager.getState(sessionId);
+    // 检查缓存
+    const now = Date.now();
+    const cached = this.sessionStateCache.get(sessionId);
+    if (cached && (now - cached.timestamp <= this.stateCacheTTL)) {
+      return cached.state;
+    }
+    
+    // 获取最新状态
+    const state = await this.stateManager.getState(sessionId);
+    
+    // 更新缓存
+    this.sessionStateCache.set(sessionId, {
+      state,
+      timestamp: now
+    });
+    
+    return state;
   }
 
   /**
@@ -95,6 +267,17 @@ export class AgentImpl implements Agent {
    * @returns 执行结果
    */
   async execute(request: AgentRequest): Promise<AgentResult> {
+    // 使用并发队列控制并发执行数量
+    return this.enqueueRequest(() => this.executeInternal(request));
+  }
+  
+  /**
+   * 内部执行方法
+   * @param request Agent请求
+   * @returns 执行结果
+   * @private
+   */
+  private async executeInternal(request: AgentRequest): Promise<AgentResult> {
     const sessionId = request.sessionId || uuidv4();
     const startTime = Date.now();
     
@@ -130,6 +313,9 @@ export class AgentImpl implements Agent {
         status: AgentStatus.RESPONDING
       });
       
+      // 更新状态缓存
+      this.invalidateStateCache(sessionId);
+      
       // 发送响应事件
       this.eventSystem.emit('agent:responding', {
         agentId: this.id,
@@ -150,22 +336,21 @@ export class AgentImpl implements Agent {
         messages: state?.messages || []
       });
       
+      // 优化消息格式转换，减少内存复制
+      const formattedMessages = this.formatMessages(state?.messages || [], request);
+      
       // 准备请求选项
       const requestOptions: CompletionOptions = {
-        messages: state?.messages.map(msg => ({
-          role: msg.role,
-          content: msg.content
-        })) || [],
+        messages: formattedMessages,
         model: request.model || this.config.executionConfig.defaultModel,
-        signal: abortController.signal
+        signal: abortController.signal,
+        maxTokens: request.maxTokens || this.config.executionConfig.maxResponseTokens,
+        temperature: request.temperature || this.config.executionConfig.temperature
       };
       
-      // 添加系统提示词
-      if (this.config.executionConfig.systemPrompt) {
-        requestOptions.messages.unshift({
-          role: 'system',
-          content: this.config.executionConfig.systemPrompt
-        });
+      // 如果频繁调用相同内容，允许使用缓存提高性能
+      if (request.allowCache !== false) {
+        requestOptions.useCache = true;
       }
       
       // 执行LLM调用
@@ -198,6 +383,9 @@ export class AgentImpl implements Agent {
         status: AgentStatus.DONE
       });
       
+      // 更新状态缓存
+      this.invalidateStateCache(sessionId);
+      
       // 发送完成事件
       this.eventSystem.emit('agent:done', {
         agentId: this.id,
@@ -210,11 +398,14 @@ export class AgentImpl implements Agent {
       // 计算处理时间
       const processingTimeMs = Date.now() - startTime;
       
+      // 更新指标
+      this.updateMetrics(processingTimeMs, result.usage);
+      
       return {
         success: true,
         sessionId,
         text: result.content,
-        finishReason: 'done',
+        finishReason: result.finishReason || 'done',
         processingTimeMs,
         usage: result.usage
       };
@@ -223,6 +414,9 @@ export class AgentImpl implements Agent {
       await this.stateManager.updateState(sessionId, {
         status: AgentStatus.ERROR
       });
+      
+      // 更新状态缓存
+      this.invalidateStateCache(sessionId);
       
       // 发送错误事件
       this.eventSystem.emit('agent:error', {
@@ -236,6 +430,9 @@ export class AgentImpl implements Agent {
       
       // 计算处理时间
       const processingTimeMs = Date.now() - startTime;
+      
+      // 更新指标
+      this.updateMetrics(processingTimeMs);
       
       // 构建错误消息
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -250,178 +447,324 @@ export class AgentImpl implements Agent {
       };
     }
   }
-
+  
   /**
-   * 流式执行Agent请求
-   * @param request Agent请求
+   * 格式化消息，优化内存使用
+   * @param messages 原始消息
+   * @param request 请求对象
+   * @returns 格式化后的消息
+   * @private
    */
-  async *executeStream(request: AgentRequest): AsyncGenerator<AgentResponse> {
-    const sessionId = request.sessionId || uuidv4();
+  private formatMessages(messages: Message[], request: AgentRequest): Array<{role: string, content: string}> {
+    // 创建一个新数组，避免修改原始消息
+    const formattedMessages: Array<{role: string, content: string}> = [];
     
-    try {
-      // 更新状态为思考中
-      await this.stateManager.updateState(sessionId, {
-        status: AgentStatus.THINKING
+    // 添加系统提示词
+    if (this.config.executionConfig.systemPrompt) {
+      formattedMessages.push({
+        role: 'system',
+        content: this.config.executionConfig.systemPrompt
       });
-      
-      // 发送思考事件
-      this.eventSystem.emit('agent:thinking', {
-        agentId: this.id,
-        sessionId
-      });
-      
-      // 添加用户消息到状态
-      await this.stateManager.addMessage(sessionId, {
-        id: uuidv4(),
-        role: 'user',
-        content: request.text,
-        createdAt: Date.now()
-      });
-      
-      // 存储用户消息到记忆
-      await this.memory.store(sessionId, {
-        text: request.text,
-        role: 'user',
-        timestamp: Date.now()
-      });
-      
-      // 更新状态为响应中
-      await this.stateManager.updateState(sessionId, {
-        status: AgentStatus.RESPONDING
-      });
-      
-      // 发送响应事件
-      this.eventSystem.emit('agent:responding', {
-        agentId: this.id,
-        sessionId
-      });
-      
-      // 准备上下文和系统提示
-      const state = await this.stateManager.getState(sessionId);
-      
-      // 创建中止控制器
-      const abortController = new AbortController();
-      this.abortControllers.set(sessionId, abortController);
-      
-      // 准备请求选项
-      const requestOptions: CompletionOptions = {
-        messages: state?.messages.map(msg => ({
+    }
+    
+    // 添加上下文消息，但进行长度限制
+    if (request.maxContextMessages) {
+      // 限制上下文消息数量，保留最近的n条
+      const recentMessages = messages.slice(-request.maxContextMessages);
+      for (const msg of recentMessages) {
+        formattedMessages.push({
           role: msg.role,
           content: msg.content
-        })) || [],
-        model: request.model || this.config.executionConfig.defaultModel,
-        signal: abortController.signal,
-        stream: true
-      };
-      
-      // 添加系统提示词
-      if (this.config.executionConfig.systemPrompt) {
-        requestOptions.messages.unshift({
-          role: 'system',
-          content: this.config.executionConfig.systemPrompt
         });
       }
-      
-      // 执行LLM流式调用
-      const stream = this.llmConnector.completeStream(requestOptions);
-      
-      let fullText = '';
+    } else {
+      // 使用所有消息
+      for (const msg of messages) {
+        formattedMessages.push({
+          role: msg.role,
+          content: msg.content
+        });
+      }
+    }
+    
+    return formattedMessages;
+  }
+  
+  /**
+   * 使状态缓存失效
+   * @param sessionId 会话ID
+   * @private
+   */
+  private invalidateStateCache(sessionId: string): void {
+    this.sessionStateCache.delete(sessionId);
+  }
+
+  /**
+   * 执行Agent流式请求
+   * @param request Agent请求
+   * @returns 流式执行结果
+   */
+  async *executeStream(request: AgentRequest): AsyncGenerator<AgentResponse> {
+    // 使用并发队列和流式请求
+    const stream = await this.enqueueRequest(async () => {
+      const sessionId = request.sessionId || uuidv4();
       const startTime = Date.now();
       
-      for await (const chunk of stream) {
-        fullText += chunk.content;
+      try {
+        // 更新状态为思考中
+        await this.stateManager.updateState(sessionId, {
+          status: AgentStatus.THINKING
+        });
         
-        yield {
-          text: chunk.content,
-          timestamp: new Date().toISOString()
+        // 发送思考事件
+        this.eventSystem.emit('agent:thinking', {
+          agentId: this.id,
+          sessionId
+        });
+        
+        // 添加用户消息到状态
+        await this.stateManager.addMessage(sessionId, {
+          id: uuidv4(),
+          role: 'user',
+          content: request.text,
+          createdAt: Date.now()
+        });
+        
+        // 存储用户消息到记忆
+        await this.memory.store(sessionId, {
+          text: request.text,
+          role: 'user',
+          timestamp: Date.now()
+        });
+        
+        // 更新状态为响应中
+        await this.stateManager.updateState(sessionId, {
+          status: AgentStatus.RESPONDING
+        });
+        
+        // 更新状态缓存
+        this.invalidateStateCache(sessionId);
+        
+        // 发送响应事件
+        this.eventSystem.emit('agent:responding', {
+          agentId: this.id,
+          sessionId
+        });
+        
+        // 准备上下文和系统提示
+        const state = await this.stateManager.getState(sessionId);
+        
+        // 创建中止控制器
+        const abortController = new AbortController();
+        this.abortControllers.set(sessionId, abortController);
+        
+        // 发送LLM前事件
+        this.eventSystem.emit('agent:llm:before', {
+          agentId: this.id,
+          sessionId,
+          messages: state?.messages || []
+        });
+        
+        // 优化消息格式转换
+        const formattedMessages = this.formatMessages(state?.messages || [], request);
+        
+        // 准备请求选项
+        const requestOptions: CompletionOptions = {
+          messages: formattedMessages,
+          model: request.model || this.config.executionConfig.defaultModel,
+          signal: abortController.signal,
+          stream: true,
+          maxTokens: request.maxTokens || this.config.executionConfig.maxResponseTokens,
+          temperature: request.temperature || this.config.executionConfig.temperature
         };
+        
+        // 流式请求不使用缓存
+        requestOptions.useCache = false;
+        
+        // 创建转换流返回
+        return {
+          sessionId,
+          stream: this.llmConnector.completeStream(requestOptions),
+          startTime,
+          fullContent: '',
+          tokens: 0
+        };
+      } catch (error) {
+        // 错误初始化处理
+        await this.stateManager.updateState(sessionId, {
+          status: AgentStatus.ERROR
+        });
+        
+        // 更新状态缓存
+        this.invalidateStateCache(sessionId);
+        
+        // 发送错误事件
+        this.eventSystem.emit('agent:error', {
+          agentId: this.id,
+          sessionId,
+          error: error instanceof Error ? error : new Error(String(error))
+        });
+        
+        // 清除中止控制器
+        this.abortControllers.delete(sessionId);
+        
+        // 抛出错误
+        throw error;
       }
-      
-      // 添加助手消息到状态
-      await this.stateManager.addMessage(sessionId, {
-        id: uuidv4(),
-        role: 'assistant',
-        content: fullText,
-        createdAt: Date.now()
-      });
-      
-      // 存储助手消息到记忆
-      await this.memory.store(sessionId, {
-        text: fullText,
-        role: 'assistant',
-        timestamp: Date.now()
-      });
-      
-      // 更新状态为完成
-      await this.stateManager.updateState(sessionId, {
-        status: AgentStatus.DONE
-      });
-      
-      // 发送完成事件
-      this.eventSystem.emit('agent:done', {
-        agentId: this.id,
-        sessionId
-      });
-      
-      // 清除中止控制器
-      this.abortControllers.delete(sessionId);
+    });
+    
+    // 处理流式响应
+    try {
+      for await (const chunk of stream.stream) {
+        // 更新完整内容
+        stream.fullContent += chunk.content;
+        
+        // 更新token计数
+        stream.tokens++;
+        
+        // 产生响应块
+        yield {
+          sessionId: stream.sessionId,
+          text: chunk.content,
+          isLast: chunk.isLast,
+          finishReason: chunk.finishReason
+        };
+        
+        // 如果是最后一块，处理完成逻辑
+        if (chunk.isLast) {
+          // 添加助手消息到状态
+          await this.stateManager.addMessage(stream.sessionId, {
+            id: uuidv4(),
+            role: 'assistant',
+            content: stream.fullContent,
+            createdAt: Date.now()
+          });
+          
+          // 存储助手消息到记忆
+          await this.memory.store(stream.sessionId, {
+            text: stream.fullContent,
+            role: 'assistant',
+            timestamp: Date.now()
+          });
+          
+          // 更新状态为完成
+          await this.stateManager.updateState(stream.sessionId, {
+            status: AgentStatus.DONE
+          });
+          
+          // 更新状态缓存
+          this.invalidateStateCache(stream.sessionId);
+          
+          // 发送完成事件
+          this.eventSystem.emit('agent:done', {
+            agentId: this.id,
+            sessionId: stream.sessionId
+          });
+          
+          // 清除中止控制器
+          this.abortControllers.delete(stream.sessionId);
+          
+          // 计算处理时间
+          const processingTimeMs = Date.now() - stream.startTime;
+          
+          // 更新指标
+          this.updateMetrics(processingTimeMs, {
+            promptTokens: 0, // 暂无法获取精确值
+            completionTokens: stream.tokens,
+            totalTokens: stream.tokens
+          });
+        }
+      }
     } catch (error) {
       // 错误处理
-      await this.stateManager.updateState(sessionId, {
+      await this.stateManager.updateState(stream.sessionId, {
         status: AgentStatus.ERROR
       });
+      
+      // 更新状态缓存
+      this.invalidateStateCache(stream.sessionId);
       
       // 发送错误事件
       this.eventSystem.emit('agent:error', {
         agentId: this.id,
-        sessionId,
+        sessionId: stream.sessionId,
         error: error instanceof Error ? error : new Error(String(error))
       });
       
       // 清除中止控制器
-      this.abortControllers.delete(sessionId);
+      this.abortControllers.delete(stream.sessionId);
       
-      throw error;
+      // 计算处理时间
+      const processingTimeMs = Date.now() - stream.startTime;
+      
+      // 更新指标
+      this.updateMetrics(processingTimeMs);
+      
+      // 构建错误消息
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      
+      // 产生错误响应
+      yield {
+        sessionId: stream.sessionId,
+        text: errorMessage,
+        isLast: true,
+        finishReason: 'error',
+        error: errorMessage
+      };
     }
   }
 
   /**
-   * 中断Agent执行
+   * 中断执行
    * @param sessionId 会话ID
    */
   async interrupt(sessionId: string): Promise<void> {
-    const abortController = this.abortControllers.get(sessionId);
-    
-    if (abortController) {
-      abortController.abort();
+    // 获取中止控制器
+    const controller = this.abortControllers.get(sessionId);
+    if (controller) {
+      // 中止请求
+      controller.abort();
       this.abortControllers.delete(sessionId);
-      
-      // 更新状态为中断
-      await this.stateManager.updateState(sessionId, {
-        status: AgentStatus.PAUSED
-      });
-      
-      // 发送中断事件
-      this.eventSystem.emit('agent:interrupted', {
-        agentId: this.id,
-        sessionId
-      });
     }
+    
+    // 更新状态为中断
+    await this.stateManager.updateState(sessionId, {
+      status: AgentStatus.INTERRUPTED
+    });
+    
+    // 更新状态缓存
+    this.invalidateStateCache(sessionId);
+    
+    // 发送中断事件
+    this.eventSystem.emit('agent:interrupted', {
+      agentId: this.id,
+      sessionId
+    });
+    
+    // 中断LLM请求
+    await this.llmConnector.abortRequest();
   }
 
   /**
-   * 重置Agent状态
+   * 重置代理
    * @param sessionId 会话ID
    */
   async reset(sessionId: string): Promise<void> {
+    // 中断当前请求
+    const controller = this.abortControllers.get(sessionId);
+    if (controller) {
+      controller.abort();
+      this.abortControllers.delete(sessionId);
+    }
+    
     // 重置状态
-    await this.stateManager.resetState(sessionId);
+    await this.stateManager.initState(sessionId);
     
     // 清除记忆
     await this.memory.clear(sessionId);
     
-    // 清除中止控制器
-    this.abortControllers.delete(sessionId);
+    // 更新状态缓存
+    this.invalidateStateCache(sessionId);
     
     // 发送重置事件
     this.eventSystem.emit('agent:reset', {
