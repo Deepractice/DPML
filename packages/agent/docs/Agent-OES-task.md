@@ -100,7 +100,7 @@
 - 子标签收集与验证功能正常工作，特别是llm和prompt子标签
 - 正确记录extends属性值（继承逻辑由Core包处理）
 
-## 4. LLMTagProcessor 实现
+## 4. LLMTagProcessor 实现 ✅
 
 ### 目标(O)
 - 实现LLMTagProcessor类，处理`<llm>`标签的LLM配置和API设置
