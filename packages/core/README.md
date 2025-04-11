@@ -366,26 +366,27 @@ class RoleTagProcessor implements TagProcessor {
   }
   
   async process(element: Element, context: ProcessingContext): Promise<Element> {
-    // 提取角色信息
-    const roleInfo = {
-      name: element.attributes.name,
-      expertise: element.attributes.expertise,
-      description: this.extractDescription(element)
+    // 初始化元数据
+    element.metadata = element.metadata || {};
+    
+    // 注意：不需要处理extends属性，已由InheritanceVisitor处理
+    // 只提取领域特定属性
+    const { name, type, ...otherAttrs } = element.attributes;
+    
+    // 添加领域特定元数据
+    element.metadata['role'] = {
+      type: 'role',
+      name,
+      roleType: type,
+      // 不包含extends属性
+      attributes: otherAttrs
     };
     
-    // 添加到元数据
-    element.metadata = element.metadata || {};
-    element.metadata.roleInfo = roleInfo;
+    // 处理状态标记
+    element.metadata.processed = true;
+    element.metadata.processorName = 'RoleTagProcessor';
     
     return element;
-  }
-  
-  private extractDescription(element: Element): string {
-    // 从子内容节点提取描述文本
-    return element.children
-      .filter(child => isContent(child))
-      .map(child => (child as Content).value)
-      .join('');
   }
 }
 ```
@@ -599,7 +600,7 @@ class CorrectRoleTagProcessor implements TagProcessor {
     const { name, type, ...otherAttrs } = element.attributes;
     
     // 添加领域特定元数据
-    element.metadata.semantic = {
+    element.metadata['role'] = {
       type: 'role',
       name,
       roleType: type,

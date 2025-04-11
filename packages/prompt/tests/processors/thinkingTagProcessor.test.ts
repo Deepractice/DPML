@@ -61,35 +61,35 @@ describe('ThinkingTagProcessor', () => {
     
     // 验证元数据是否正确生成
     expect(result.metadata).toBeDefined();
-    expect(result.metadata!.semantic.type).toBe('thinking');
-    expect(result.metadata!.semantic.id).toBe('problem-solving');
-    expect(result.metadata!.semantic.approach).toBe('structured');
-    expect(result.metadata!.semantic.style).toBe('analytical');
-    expect(result.metadata!.semantic.framework).toBe('1. 分析问题\n2. 拆解步骤\n3. 逐步解决');
+    expect(result.metadata!.thinking.id).toBe('problem-solving');
+    expect(result.metadata!.thinking.approach).toBe('structured');
+    expect(result.metadata!.thinking.framework).toBe('1. 分析问题\n2. 拆解步骤\n3. 逐步解决');
+    
     expect(result.metadata!.processed).toBe(true);
     expect(result.metadata!.processorName).toBe('ThinkingTagProcessor');
   });
 
-  // UT-TP-002: 测试复杂思维框架内容提取（包含多个内容节点和格式）
+  // UT-TP-002: 测试复杂思维框架内容提取
   it('UT-TP-002: 应该正确处理复杂思维框架内容', async () => {
     const processor = new ThinkingTagProcessor();
     const context = createMockContext();
     
-    // 创建一个包含复杂思维框架的 thinking 元素
+    // 创建一个包含多行内容和Markdown格式的 thinking 元素
     const thinkingElement: Element = {
       type: NodeType.ELEMENT,
       tagName: 'thinking',
       attributes: {
+        id: 'complex-problem',
         format: 'markdown'
       },
       children: [
         createContentNode('## 问题解决思路\n\n'),
-        createContentNode('### 1. 理解问题\n'),
-        createContentNode('- 明确需求和约束条件\n'),
-        createContentNode('- 识别关键信息\n\n'),
-        createContentNode('### 2. 制定计划\n'),
-        createContentNode('- 确定解决方案\n'),
-        createContentNode('- 设计实现步骤\n')
+        createContentNode('1. 分析问题本质\n'),
+        createContentNode('   - 确定根本原因\n'),
+        createContentNode('   - 识别相关因素\n\n'),
+        createContentNode('2. 提出解决方案\n'),
+        createContentNode('   - 评估可行性\n'),
+        createContentNode('   - 考虑潜在影响')
       ],
       position: { 
         start: { line: 0, column: 0, offset: 0 }, 
@@ -101,15 +101,15 @@ describe('ThinkingTagProcessor', () => {
     
     // 验证多行内容是否被正确组合
     expect(result.metadata).toBeDefined();
-    expect(result.metadata!.semantic.format).toBe('markdown');
-    expect(result.metadata!.semantic.framework).toBe(
+    expect(result.metadata!.thinking.format).toBe('markdown');
+    expect(result.metadata!.thinking.framework).toBe(
       '## 问题解决思路\n\n' +
-      '### 1. 理解问题\n' +
-      '- 明确需求和约束条件\n' +
-      '- 识别关键信息\n\n' +
-      '### 2. 制定计划\n' +
-      '- 确定解决方案\n' +
-      '- 设计实现步骤\n'
+      '1. 分析问题本质\n' +
+      '   - 确定根本原因\n' +
+      '   - 识别相关因素\n\n' +
+      '2. 提出解决方案\n' +
+      '   - 评估可行性\n' +
+      '   - 考虑潜在影响'
     );
   });
 

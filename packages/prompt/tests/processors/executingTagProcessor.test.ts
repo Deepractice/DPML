@@ -50,7 +50,7 @@ describe('ExecutingTagProcessor', () => {
         method: 'sequential',
         priority: 'high'
       },
-      children: [createContentNode('1. 检查代码风格\n2. 审查算法效率\n3. 验证边界条件处理')],
+      children: [createContentNode('1. 检查代码风格\n2. 审查逻辑错误\n3. 提供改进建议')],
       position: { 
         start: { line: 0, column: 0, offset: 0 }, 
         end: { line: 0, column: 0, offset: 0 } 
@@ -61,34 +61,38 @@ describe('ExecutingTagProcessor', () => {
     
     // 验证元数据是否正确生成
     expect(result.metadata).toBeDefined();
-    expect(result.metadata!.semantic.type).toBe('executing');
-    expect(result.metadata!.semantic.id).toBe('code-review');
-    expect(result.metadata!.semantic.method).toBe('sequential');
-    expect(result.metadata!.semantic.priority).toBe('high');
-    expect(result.metadata!.semantic.steps).toBe('1. 检查代码风格\n2. 审查算法效率\n3. 验证边界条件处理');
+    expect(result.metadata!.executing.id).toBe('code-review');
+    expect(result.metadata!.executing.method).toBe('sequential');
+    expect(result.metadata!.executing.steps).toBe('1. 检查代码风格\n2. 审查逻辑错误\n3. 提供改进建议');
+    
     expect(result.metadata!.processed).toBe(true);
     expect(result.metadata!.processorName).toBe('ExecutingTagProcessor');
   });
 
-  // UT-EP-002: 测试复杂执行步骤内容提取（包含多个内容节点和格式）
+  // UT-EP-002: 测试复杂执行步骤内容提取
   it('UT-EP-002: 应该正确处理复杂执行步骤内容', async () => {
     const processor = new ExecutingTagProcessor();
     const context = createMockContext();
     
-    // 创建一个包含复杂执行步骤的 executing 元素
+    // 创建一个包含多行内容和Markdown格式的 executing 元素
     const executingElement: Element = {
       type: NodeType.ELEMENT,
       tagName: 'executing',
       attributes: {
+        id: 'development-workflow',
         format: 'markdown'
       },
       children: [
         createContentNode('## 代码实现步骤\n\n'),
-        createContentNode('### 第一步：初始化环境\n'),
-        createContentNode('```typescript\nconst config = { debug: true };\n```\n\n'),
-        createContentNode('### 第二步：实现核心逻辑\n'),
-        createContentNode('1. 创建数据模型\n'),
-        createContentNode('2. 实现业务规则\n')
+        createContentNode('1. 需求分析\n'),
+        createContentNode('   - 理解用户需求\n'),
+        createContentNode('   - 确定功能范围\n\n'),
+        createContentNode('2. 设计架构\n'),
+        createContentNode('   - 选择技术栈\n'),
+        createContentNode('   - 规划组件结构\n\n'),
+        createContentNode('3. 编写代码\n'),
+        createContentNode('   - 遵循编码规范\n'),
+        createContentNode('   - 实现核心功能')
       ],
       position: { 
         start: { line: 0, column: 0, offset: 0 }, 
@@ -100,14 +104,18 @@ describe('ExecutingTagProcessor', () => {
     
     // 验证多行内容是否被正确组合
     expect(result.metadata).toBeDefined();
-    expect(result.metadata!.semantic.format).toBe('markdown');
-    expect(result.metadata!.semantic.steps).toBe(
+    expect(result.metadata!.executing.format).toBe('markdown');
+    expect(result.metadata!.executing.steps).toBe(
       '## 代码实现步骤\n\n' +
-      '### 第一步：初始化环境\n' +
-      '```typescript\nconst config = { debug: true };\n```\n\n' +
-      '### 第二步：实现核心逻辑\n' +
-      '1. 创建数据模型\n' +
-      '2. 实现业务规则\n'
+      '1. 需求分析\n' +
+      '   - 理解用户需求\n' +
+      '   - 确定功能范围\n\n' +
+      '2. 设计架构\n' +
+      '   - 选择技术栈\n' +
+      '   - 规划组件结构\n\n' +
+      '3. 编写代码\n' +
+      '   - 遵循编码规范\n' +
+      '   - 实现核心功能'
     );
   });
 

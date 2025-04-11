@@ -408,7 +408,7 @@ class CorrectTagProcessor implements TagProcessor {
     // extends属性不需要特别提取，已由InheritanceVisitor处理
     
     // 添加领域特定元数据
-    element.metadata.semantic = {
+    element.metadata[element.tagName] = {
       type: 'example',
       id,
       name,

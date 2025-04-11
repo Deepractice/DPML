@@ -6,8 +6,7 @@
  * 支持模型验证和API类型验证
  */
 
-import { Element, ProcessingContext, ValidationError, ValidationWarning } from '@dpml/core';
-import { AbstractTagProcessor } from '@dpml/core/src/processor/tagProcessors/abstractTagProcessor';
+import { Element, ProcessingContext, ValidationError, ValidationWarning, AbstractTagProcessor } from '@dpml/core';
 import { LLMTagAttributes } from '../../types';
 
 /**

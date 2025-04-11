@@ -163,7 +163,7 @@ async process(element: Element, context: ProcessingContext): Promise<Element> {
   }
   
   // 元数据记录extends属性
-  element.metadata.semantic = {
+  element.metadata[element.tagName] = {
     extends: extendsProp,
     // 其他属性...
   };
@@ -180,7 +180,7 @@ async process(element: Element, context: ProcessingContext): Promise<Element> {
   const { id, name, version, ...otherAttrs } = element.attributes;
   
   // 元数据不需要记录extends
-  element.metadata.semantic = {
+  element.metadata[element.tagName] = {
     id,
     name,
     // 领域特定属性...

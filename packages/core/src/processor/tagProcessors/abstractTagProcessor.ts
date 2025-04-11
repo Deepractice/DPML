@@ -58,16 +58,15 @@ export abstract class AbstractTagProcessor implements TagProcessor {
     // 处理特定属性（交由子类实现）
     const specificMetadata = await this.processSpecificAttributes(otherAttrs, element, context);
     
-    // 创建标准元数据结构
-    element.metadata.semantic = {
-      type: this.tagName,
+    // 创建标准元数据结构，使用标签名作为键
+    element.metadata[this.tagName] = {
       id,
       ...specificMetadata
     };
     
     // 保留extends属性在元数据中，但不处理继承逻辑（由InheritanceVisitor负责）
     if (extendsProp) {
-      element.metadata.semantic.extends = extendsProp;
+      element.metadata[this.tagName].extends = extendsProp;
     }
     
     // 处理验证

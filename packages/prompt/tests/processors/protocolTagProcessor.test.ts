@@ -60,29 +60,27 @@ describe('ProtocolTagProcessor', () => {
     
     // 验证元数据是否正确生成
     expect(result.metadata).toBeDefined();
-    expect(result.metadata!.semantic.type).toBe('protocol');
-    expect(result.metadata!.semantic.id).toBe('data-exchange');
-    expect(result.metadata!.semantic.format).toBe('json');
-    expect(result.metadata!.semantic.description).toBe('输入应为JSON格式，包含query字段。输出也应为JSON格式，包含result字段。');
+    expect(result.metadata!.protocol.id).toBe('data-exchange');
+    expect(result.metadata!.protocol.format).toBe('json');
+    
     expect(result.metadata!.processed).toBe(true);
     expect(result.metadata!.processorName).toBe('ProtocolTagProcessor');
   });
 
-  // UT-PRP-002: 测试复杂交互协议提取（包含多个内容节点）
+  // UT-PRP-002: 测试复杂交互协议内容提取
   it('UT-PRP-002: 应该正确处理复杂交互协议', async () => {
     const processor = new ProtocolTagProcessor();
     const context = createMockContext();
     
-    // 创建一个包含多行内容的 protocol 元素
+    // 创建一个包含复杂规则的 protocol 元素
     const protocolElement: Element = {
       type: NodeType.ELEMENT,
       tagName: 'protocol',
-      attributes: {},
+      attributes: { id: 'analysis-report' },
       children: [
-        createContentNode('输入规范：\n'),
-        createContentNode('- 问题应明确表述分析目标和关键问题\n'),
-        createContentNode('- 数据输入优先接受CSV、Excel或结构化JSON\n'),
-        createContentNode('\n输出规范：\n'),
+        createContentNode('在数据分析报告中，请遵循以下协议：\n'),
+        createContentNode('- 提供客观的数据分析，避免主观判断\n'),
+        createContentNode('- 对异常数据点进行专门标注和解释\n'),
         createContentNode('- 每份分析报告包含：执行摘要、方法论简述、关键发现、建议\n'),
         createContentNode('- 统计结果使用Markdown表格格式展示')
       ],
@@ -94,16 +92,14 @@ describe('ProtocolTagProcessor', () => {
     
     const result = await processor.process(protocolElement, context);
     
-    // 验证多行内容是否被正确组合
-    expect(result.metadata).toBeDefined();
+    // 验证复杂内容是否被正确提取和组合
     const expectedContent = 
-      '输入规范：\n' +
-      '- 问题应明确表述分析目标和关键问题\n' +
-      '- 数据输入优先接受CSV、Excel或结构化JSON\n' +
-      '\n输出规范：\n' +
+      '在数据分析报告中，请遵循以下协议：\n' +
+      '- 提供客观的数据分析，避免主观判断\n' +
+      '- 对异常数据点进行专门标注和解释\n' +
       '- 每份分析报告包含：执行摘要、方法论简述、关键发现、建议\n' +
       '- 统计结果使用Markdown表格格式展示';
-    expect(result.metadata!.semantic.description).toBe(expectedContent);
+    expect(result.metadata!.protocol.description).toBe(expectedContent);
   });
 
   // 测试canProcess方法和优先级

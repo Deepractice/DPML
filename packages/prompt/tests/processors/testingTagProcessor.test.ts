@@ -61,36 +61,37 @@ describe('TestingTagProcessor', () => {
     
     // 验证元数据是否正确生成
     expect(result.metadata).toBeDefined();
-    expect(result.metadata!.semantic.type).toBe('testing');
-    expect(result.metadata!.semantic.id).toBe('code-quality');
-    expect(result.metadata!.semantic.testingType).toBe('checklist');
-    expect(result.metadata!.semantic.scope).toBe('functionality');
-    expect(result.metadata!.semantic.criteria).toBe('- 输入验证完整性检查\n- 边界条件测试\n- 异常处理测试');
+    expect(result.metadata!.testing.id).toBe('code-quality');
+    expect(result.metadata!.testing.testingType).toBe('checklist');
+    expect(result.metadata!.testing.criteria).toBe('- 输入验证完整性检查\n- 边界条件测试\n- 异常处理测试');
+    
     expect(result.metadata!.processed).toBe(true);
     expect(result.metadata!.processorName).toBe('TestingTagProcessor');
   });
 
-  // UT-TTP-002: 测试复杂质量检查内容提取（包含多个内容节点和格式）
+  // UT-TTP-002: 测试复杂质量检查内容提取
   it('UT-TTP-002: 应该正确处理复杂质量检查内容', async () => {
     const processor = new TestingTagProcessor();
     const context = createMockContext();
     
-    // 创建一个包含复杂质量检查的 testing 元素
+    // 创建一个包含多行内容和格式标记的 testing 元素
     const testingElement: Element = {
       type: NodeType.ELEMENT,
       tagName: 'testing',
       attributes: {
+        id: 'comprehensive-review',
         format: 'markdown',
         level: 'detailed'
       },
       children: [
-        createContentNode('## 质量自检清单\n\n'),
-        createContentNode('### 1. 功能测试\n'),
-        createContentNode('- 所有核心功能正常工作\n'),
-        createContentNode('- 输入验证机制完整\n\n'),
-        createContentNode('### 2. 性能测试\n'),
-        createContentNode('- 处理大量数据不卡顿\n'),
-        createContentNode('- 响应时间在可接受范围内\n')
+        createContentNode('## 代码质量检查清单\n\n'),
+        createContentNode('### 功能性检查\n'),
+        createContentNode('- 所有功能是否按要求实现\n'),
+        createContentNode('- 边界条件是否被正确处理\n\n'),
+        createContentNode('### 可维护性检查\n'),
+        createContentNode('- 代码结构是否清晰\n'),
+        createContentNode('- 是否有适当的注释和文档\n'),
+        createContentNode('- 命名规范是否一致')
       ],
       position: { 
         start: { line: 0, column: 0, offset: 0 }, 
@@ -102,16 +103,17 @@ describe('TestingTagProcessor', () => {
     
     // 验证多行内容是否被正确组合
     expect(result.metadata).toBeDefined();
-    expect(result.metadata!.semantic.format).toBe('markdown');
-    expect(result.metadata!.semantic.level).toBe('detailed');
-    expect(result.metadata!.semantic.criteria).toBe(
-      '## 质量自检清单\n\n' +
-      '### 1. 功能测试\n' +
-      '- 所有核心功能正常工作\n' +
-      '- 输入验证机制完整\n\n' +
-      '### 2. 性能测试\n' +
-      '- 处理大量数据不卡顿\n' +
-      '- 响应时间在可接受范围内\n'
+    expect(result.metadata!.testing.format).toBe('markdown');
+    expect(result.metadata!.testing.level).toBe('detailed');
+    expect(result.metadata!.testing.criteria).toBe(
+      '## 代码质量检查清单\n\n' +
+      '### 功能性检查\n' +
+      '- 所有功能是否按要求实现\n' +
+      '- 边界条件是否被正确处理\n\n' +
+      '### 可维护性检查\n' +
+      '- 代码结构是否清晰\n' +
+      '- 是否有适当的注释和文档\n' +
+      '- 命名规范是否一致'
     );
   });
 

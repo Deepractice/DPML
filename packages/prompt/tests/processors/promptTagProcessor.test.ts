@@ -117,16 +117,15 @@ describe('PromptTagProcessor', () => {
     
     // 验证元数据是否正确生成
     expect(result.metadata).toBeDefined();
-    expect(result.metadata!.semantic.type).toBe('prompt');
-    expect(result.metadata!.semantic.id).toBe('test-prompt');
-    expect(result.metadata!.semantic.version).toBe('1.0');
-    expect(result.metadata!.semantic.extends).toBe('base-prompt');
+    expect(result.metadata!.prompt.id).toBe('test-prompt');
+    expect(result.metadata!.prompt.version).toBe('1.0');
+    expect(result.metadata!.prompt.extends).toBe('base-prompt');
     
     // 验证子标签收集
-    expect(result.metadata!.semantic.children).toBeDefined();
-    expect(result.metadata!.semantic.children.length).toBe(2);
-    expect(result.metadata!.semantic.children[0].tagName).toBe('role');
-    expect(result.metadata!.semantic.children[1].tagName).toBe('context');
+    expect(result.metadata!.prompt.children).toBeDefined();
+    expect(result.metadata!.prompt.children.length).toBe(2);
+    expect(result.metadata!.prompt.children[0].tagName).toBe('role');
+    expect(result.metadata!.prompt.children[1].tagName).toBe('context');
     
     expect(result.metadata!.processed).toBe(true);
     expect(result.metadata!.processorName).toBe('PromptTagProcessor');
@@ -155,7 +154,7 @@ describe('PromptTagProcessor', () => {
     
     // 验证语言属性是否正确处理
     expect(result.metadata).toBeDefined();
-    expect(result.metadata!.semantic.lang).toBe('zh-CN');
+    expect(result.metadata!.prompt.lang).toBe('zh-CN');
     
     // 验证语言设置是否添加到上下文变量中，以便影响后续处理
     expect(context.variables.lang).toBe('zh-CN');

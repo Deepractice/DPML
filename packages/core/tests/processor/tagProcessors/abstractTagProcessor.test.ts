@@ -125,10 +125,9 @@ describe('AbstractTagProcessor', () => {
     
     // 验证元数据是否正确生成
     expect(result.metadata).toBeDefined();
-    expect(result.metadata!.semantic.type).toBe('test');
-    expect(result.metadata!.semantic.id).toBe('test1');
-    expect(result.metadata!.semantic.extends).toBe('id:base');
-    expect(result.metadata!.semantic.testAttrs).toEqual({
+    expect(result.metadata!.test.id).toBe('test1');
+    expect(result.metadata!.test.extends).toBe('id:base');
+    expect(result.metadata!.test.testAttrs).toEqual({
       name: 'Test Element',
       value: '42'
     });
