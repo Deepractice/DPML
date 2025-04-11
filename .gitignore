@@ -86,7 +86,6 @@ docs/api/
 .cursorrules
 
 # 编译生成的文件 (包括源码目录中可能生成的)
-**/*.js
 **/*.mjs
 **/*.d.ts
 **/*.map
