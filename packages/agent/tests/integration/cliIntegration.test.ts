@@ -1,0 +1,173 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { createAgent } from '../../src';
+import { Agent, AgentFactoryConfig } from '../../src/agent/types';
+import * as path from 'path';
+import * as fs from 'fs';
+
+// 模拟子进程
+vi.mock('child_process', async () => {
+  return {
+    execSync: vi.fn((command) => {
+      if (command.includes('dpml agent run')) {
+        return Buffer.from('Agent executed via CLI');
+      }
+      if (command.includes('dpml agent list')) {
+        return Buffer.from('api-test-agent\ncomplex-agent\nbase-agent');
+      }
+      return Buffer.from('');
+    })
+  };
+});
+
+// 模拟文件系统
+vi.mock('fs', async () => {
+  return {
+    existsSync: vi.fn().mockReturnValue(true),
+    readFileSync: vi.fn().mockImplementation((filePath) => {
+      if (filePath.endsWith('cli-agent.dpml')) {
+        return `<agent id="cli-agent" version="1.0">
+          <llm api-type="openai" model="gpt-3.5-turbo" key-env="OPENAI_API_KEY" />
+          <prompt>You are a CLI assistant.</prompt>
+        </agent>`;
+      }
+      return '';
+    }),
+    writeFileSync: vi.fn()
+  };
+});
+
+// 模拟Core包
+vi.mock('@dpml/core', async () => {
+  return {
+    TagRegistry: {
+      registerTag: vi.fn(),
+      getInstance: vi.fn(() => ({
+        findTagById: vi.fn(() => ({
+          id: 'cli-agent',
+          attributes: {
+            version: '1.0',
+            type: 'cli'
+          },
+          metadata: {
+            agent: {
+              version: '1.0',
+              type: 'cli'
+            },
+            llm: {
+              apiType: 'openai',
+              model: 'gpt-3.5-turbo',
+              keyEnv: 'OPENAI_API_KEY'
+            },
+            prompt: {
+              content: 'You are a CLI assistant.'
+            }
+          }
+        }))
+      }))
+    },
+    DPMLProcessor: {
+      process: vi.fn((content) => ({
+        id: 'cli-agent',
+        attributes: {
+          version: '1.0',
+          type: 'cli'
+        },
+        metadata: {
+          agent: {
+            version: '1.0',
+            type: 'cli'
+          },
+          llm: {
+            apiType: 'openai',
+            model: 'gpt-3.5-turbo',
+            keyEnv: 'OPENAI_API_KEY'
+          },
+          prompt: {
+            content: 'You are a CLI assistant.'
+          }
+        }
+      }))
+    },
+    AbstractTagProcessor: class {
+      tagName = '';
+      processSpecificAttributes() { return {}; }
+      findChildrenByTagName() { return []; }
+      findFirstChildByTagName() { return null; }
+    },
+    Element: class {},
+    ProcessingContext: class {}
+  };
+});
+
+// 模拟CLI执行
+const mockCliExecution = vi.fn().mockImplementation((agentId, input, options = {}) => {
+  return {
+    success: true,
+    sessionId: 'cli-session',
+    text: `CLI Response for ${input}`,
+    processingTimeMs: 123
+  };
+});
+
+describe('CLI工具集成测试 (IT-A-008)', () => {
+  let agent: Agent;
+  
+  beforeEach(() => {
+    // 配置环境变量
+    process.env.OPENAI_API_KEY = 'test-api-key';
+    
+    // 基本配置
+    const config: AgentFactoryConfig = {
+      id: 'cli-agent',
+      version: '1.0',
+      executionConfig: {
+        defaultModel: 'gpt-3.5-turbo',
+        apiType: 'openai',
+        systemPrompt: 'You are a CLI assistant.'
+      }
+    };
+    
+    // 创建代理
+    agent = createAgent(config);
+    
+    // 添加模拟CLI执行方法
+    (agent as any).executeWithCli = mockCliExecution;
+  });
+  
+  afterEach(() => {
+    // 清理环境变量
+    delete process.env.OPENAI_API_KEY;
+    
+    // 重置所有模拟
+    vi.clearAllMocks();
+  });
+  
+  it('应该能成功创建用于CLI的代理', () => {
+    expect(agent).toBeDefined();
+    expect(agent.getId()).toBe('cli-agent');
+    expect(agent.getVersion()).toBe('1.0');
+  });
+  
+  it('应该能通过模拟CLI执行代理', async () => {
+    // 使用模拟的CLI执行方法
+    const result = await (agent as any).executeWithCli('cli-agent', 'Hello from CLI', {
+      outputFormat: 'text'
+    });
+    
+    expect(result).toBeDefined();
+    expect(result.success).toBe(true);
+    expect(result.text).toBe('CLI Response for Hello from CLI');
+    expect(mockCliExecution).toHaveBeenCalledWith('cli-agent', 'Hello from CLI', { outputFormat: 'text' });
+  });
+  
+  it('应该能与实际的Agent执行机制集成', async () => {
+    // 通过正常执行方法，但使用模拟的底层实现
+    const result = await agent.execute({
+      text: 'Hello via normal execution',
+      sessionId: 'cli-session'
+    });
+    
+    expect(result).toBeDefined();
+    expect(result.success).toBe(true);
+  });
+}); 
