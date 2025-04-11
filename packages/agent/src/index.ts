@@ -21,6 +21,9 @@ export * from './connector';
 // 导出状态管理模块
 export * from './state';
 
+// 导出记忆系统模块
+export * from './memory';
+
 /**
  * Agent模块的初始占位函数
  * 将在后续实现实际功能
