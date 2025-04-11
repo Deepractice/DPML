@@ -51,6 +51,19 @@ export class LLMConnectorFactory {
     if (this.connectorCache.has(cacheKey)) {
       return this.connectorCache.get(cacheKey)!;
     }
+
+    // 先验证API类型
+    switch (config.apiType.toLowerCase()) {
+      case 'openai':
+      case 'anthropic':
+        // 支持的类型，继续处理
+        break;
+      default:
+        throw new LLMConnectorError(
+          `不支持的API类型: ${config.apiType}`,
+          LLMErrorType.BAD_REQUEST
+        );
+    }
     
     // 解析API密钥
     const apiKey = this.resolveApiKey(config);
@@ -58,26 +71,16 @@ export class LLMConnectorFactory {
     // 根据API类型创建适当的连接器
     let connector: LLMConnector;
     
-    switch (config.apiType.toLowerCase()) {
-      case 'openai':
-        connector = new OpenAIConnector(apiKey, config.apiUrl);
-        break;
-        
-      case 'anthropic':
-        connector = new AnthropicConnector(
-          apiKey, 
-          config.apiUrl, 
-          config.apiVersion || '2023-06-01'
-        );
-        break;
-        
-      // 未来可以添加更多连接器类型
-      
-      default:
-        throw new LLMConnectorError(
-          `不支持的API类型: ${config.apiType}`,
-          LLMErrorType.BAD_REQUEST
-        );
+    // 创建相应的连接器
+    if (config.apiType.toLowerCase() === 'openai') {
+      connector = new OpenAIConnector(apiKey, config.apiUrl);
+    } else {
+      // 此时只可能是anthropic
+      connector = new AnthropicConnector(
+        apiKey, 
+        config.apiUrl, 
+        config.apiVersion || '2023-06-01'
+      );
     }
     
     // 缓存连接器实例

@@ -267,7 +267,7 @@ export abstract class AbstractLLMConnector implements LLMConnector {
     // 处理标准错误
     if (error instanceof Error) {
       // AbortError处理
-      if (error.name === 'AbortError') {
+      if (error.name === 'AbortError' || error.message.includes('abort') || error.message.includes('AbortError')) {
         return new LLMConnectorError(
           '请求被中断', 
           LLMErrorType.ABORTED,

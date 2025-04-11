@@ -191,6 +191,9 @@ describe('AbstractLLMConnector', () => {
   
   describe('completeStream方法', () => {
     it('应处理流式响应', async () => {
+      // 切换到真实计时器
+      vi.useRealTimers();
+      
       const options: CompletionOptions = {
         messages: [{ role: 'user', content: 'Hello' }],
         model: 'test-model'
@@ -198,12 +201,16 @@ describe('AbstractLLMConnector', () => {
       
       const chunks: string[] = [];
       
+      // 使用普通的流式处理方式
       for await (const chunk of connector.completeStream(options)) {
         chunks.push(chunk.content);
       }
       
       expect(chunks.join('')).toBe('This is a test response');
-    });
+      
+      // 测试后切回到假计时器
+      vi.useFakeTimers();
+    }, 10000); // 增加超时时间
     
     it('应处理中止请求', async () => {
       const options: CompletionOptions = {

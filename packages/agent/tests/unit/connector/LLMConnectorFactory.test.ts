@@ -115,6 +115,7 @@ describe('LLMConnectorFactory', () => {
         LLMConnectorFactory.createConnector(config);
       } catch (error) {
         expect((error as LLMConnectorError).type).toBe(LLMErrorType.BAD_REQUEST);
+        expect((error as LLMConnectorError).message).toContain('不支持的API类型');
       }
     });
     
