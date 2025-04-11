@@ -3,7 +3,7 @@
  */
 import { ProcessedPrompt, TransformOptions } from '../types';
 import { PromptTransformer, PromptTransformerOptions } from '../transformers/promptTransformer';
-import { Document, NodeType } from '@dpml/core/src/types/node';
+import { Document, NodeType } from '@dpml/core';
 import { 
   handlePromptError, 
   TransformError, 

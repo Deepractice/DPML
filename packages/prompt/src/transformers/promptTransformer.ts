@@ -3,11 +3,18 @@
  * 
  * 将DPML结构转换为纯文本提示的基本转换器
  */
-import { DefaultTransformer } from '@dpml/core';
-import { TransformerVisitor } from '@dpml/core/src/transformer/interfaces/transformerVisitor';
+import { 
+  DefaultTransformer,
+  TransformerVisitor,
+  Node,
+  Element,
+  Content,
+  Document,
+  NodeType,
+  ProcessedDocument
+} from '@dpml/core';
+// 从正确路径导入TransformContext
 import { TransformContext } from '@dpml/core/src/transformer/interfaces/transformContext';
-import { Node, Element, Content, Document, NodeType } from '@dpml/core/src/types/node';
-import { ProcessedDocument } from '@dpml/core/src/processor/interfaces/processor';
 import { 
   FormatTemplate, 
   FormatTemplates, 

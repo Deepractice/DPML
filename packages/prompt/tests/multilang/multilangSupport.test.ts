@@ -11,8 +11,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { parse, process } from '@dpml/core';
-import { Element, NodeType } from '@dpml/core/src/types/node';
+import { parse, process, Element, NodeType } from '@dpml/core';
 import { PromptTransformer } from '../../src/transformers/promptTransformer';
 
 // 测试用例，确保正确根据语言属性找到prompt元素
