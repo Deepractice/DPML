@@ -144,6 +144,10 @@ importers:
       '@dpml/core':
         specifier: workspace:*
         version: link:../core
+    devDependencies:
+      tsup:
+        specifier: ^8.0.2
+        version: 8.4.0(@swc/core@1.11.18)(postcss@8.5.3)(typescript@5.8.2)
 
 packages:
 

@@ -15,6 +15,9 @@ export * from './types';
 // 导出API密钥管理模块
 export * from './apiKey';
 
+// 导出LLM连接器模块
+export * from './connector';
+
 /**
  * Agent模块的初始占位函数
  * 将在后续实现实际功能
