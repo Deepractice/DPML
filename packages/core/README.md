@@ -392,8 +392,6 @@ class RoleTagProcessor implements TagProcessor {
 
 ### 继承处理器
 
-实现标签继承机制：
-
 ```typescript
 // 示例：处理继承关系
 class InheritanceProcessor implements TagProcessor {
@@ -566,3 +564,56 @@ registry.registerTagDefinition('custom-tag', {
 
 > 注意：属性定义推荐使用对象格式（如上例所示），而非数组格式。对象格式提供了更好的类型定义和验证能力。
 > 虽然系统同时支持数组格式(`attributes: ['id', 'version']`)以保持向后兼容性，但建议在新代码中使用对象格式。
+
+### 继承机制与处理流程
+
+Core包内置了强大的继承处理机制，通过`InheritanceVisitor`实现。重要说明：
+
+1. **继承处理职责分工**：
+   - `InheritanceVisitor`（优先级100）：完全负责处理标签继承逻辑
+     - 解析extends属性引用的元素
+     - 合并属性（子标签优先）
+     - 合并内容（当子标签无内容时使用父标签内容）
+   - 领域包`TagProcessor`（优先级更低）：
+     - 不需要处理继承逻辑（已由InheritanceVisitor处理）
+     - 应忽略extends属性，专注于特定领域的语义处理
+
+2. **处理顺序**：
+   - 解析基础AST（Parser）
+   - 处理继承关系（InheritanceVisitor，优先级100）
+   - 处理领域标签语义（DomainTagVisitor调用TagProcessor，优先级60）
+
+```typescript
+// 示例：正确的TagProcessor实现 - 不处理extends属性
+class CorrectRoleTagProcessor implements TagProcessor {
+  canProcess(element: Element): boolean {
+    return element.tagName === 'role';
+  }
+  
+  async process(element: Element, context: ProcessingContext): Promise<Element> {
+    // 初始化元数据
+    element.metadata = element.metadata || {};
+    
+    // 注意：不需要处理extends属性，已由InheritanceVisitor处理
+    // 只提取领域特定属性
+    const { name, type, ...otherAttrs } = element.attributes;
+    
+    // 添加领域特定元数据
+    element.metadata.semantic = {
+      type: 'role',
+      name,
+      roleType: type,
+      // 不包含extends属性
+      attributes: otherAttrs
+    };
+    
+    // 处理状态标记
+    element.metadata.processed = true;
+    element.metadata.processorName = 'RoleTagProcessor';
+    
+    return element;
+  }
+}
+```
+
+有关继承机制的详细信息，请参阅[继承机制专题文档](../docs/inheritance-mechanism.md)。

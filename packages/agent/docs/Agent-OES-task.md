@@ -98,7 +98,7 @@
 - 通过UT-AP-001至UT-AP-003测试用例
 - 正确提取和处理agent标签的基本属性(id, version)
 - 子标签收集与验证功能正常工作，特别是llm和prompt子标签
-- 继承机制正确工作，能够继承和覆盖父定义
+- 正确记录extends属性值（继承逻辑由Core包处理）
 
 ## 4. LLMTagProcessor 实现
 
@@ -128,7 +128,7 @@
 - 正确提取和验证LLM配置属性
 - API密钥环境变量名被安全处理，不记录或暴露实际密钥值
 - API类型和模型名称验证正常工作
-- 继承机制正确应用于LLM配置
+- 正确记录extends属性值（继承逻辑由Core包处理）
 
 ## 5. PromptTagProcessor 实现
 
@@ -157,7 +157,7 @@
 - 通过UT-APP-001至UT-APP-003测试用例
 - 成功委托@dpml/prompt包处理提示词内容
 - 提示词内容被正确提取和处理
-- 继承机制正确应用于提示词标签
+- 正确记录extends属性值（继承逻辑由Core包处理）
 
 ## 6. API密钥管理实现
 
@@ -607,4 +607,37 @@
 - 示例代码演示常见使用场景
 - 提供错误处理和问题排查指南
 - 包含安全和性能最佳实践
-- 文档风格与Core包和Prompt包一致 
+- 文档风格与Core包和Prompt包一致
+
+## 19. 标签继承机制职责说明
+
+### 目标(O)
+- 明确标签继承机制的职责分工
+- 确保各领域包正确理解并遵循继承机制设计
+
+### 环境(E)
+- **信息资源**
+  - Core包标签继承设计文档 (`$dpml/packages/core/docs/inheritance-mechanism.md`)
+  - Core包处理器设计文档 (`$dpml/packages/core/docs/processor/Core-Processor-Design.md`)
+  - Agent设计文档 (`$dpml/packages/agent/docs/agent-design.md`)
+  - 项目编码规范 (`$dpml/docs/monorepo-coding-standards.md`)
+- **相关代码**
+  - Core包中的InheritanceVisitor实现
+  - Core包中的DomainTagVisitor实现
+  - 各领域包的TagProcessor实现
+- **约束条件**
+  - 确保职责边界清晰
+  - 避免重复实现继承逻辑
+  - 遵循DRY原则
+
+### 成功标准(S)
+- 明确说明Core包和领域包在标签继承中的职责分工：
+  - Core包（InheritanceVisitor）：完全负责标签继承的核心逻辑，包括属性合并、内容覆盖等
+  - 领域包TagProcessor：
+    - 不负责实现或处理继承逻辑
+    - 不需要记录或处理extends属性
+    - 专注于处理领域特定属性和语义
+- 开发人员理解并正确实现各自职责
+- 避免重复实现继承逻辑
+- 所有文档和代码保持一致的职责描述
+- 各领域包的TagProcessor通过忽略extends属性，专注于领域特定逻辑 

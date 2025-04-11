@@ -6,7 +6,8 @@
  * 支持模型验证和API类型验证
  */
 
-import { Element, ProcessingContext, TagProcessor, ValidationError, ValidationWarning } from '@dpml/core';
+import { Element, ProcessingContext, ValidationError, ValidationWarning } from '@dpml/core';
+import { AbstractTagProcessor } from '@dpml/core/src/processor/tagProcessors/abstractTagProcessor';
 import { LLMTagAttributes } from '../../types';
 
 /**
@@ -27,58 +28,85 @@ function isValidUrl(url: string): boolean {
 }
 
 /**
- * 扩展处理上下文接口，包含ids映射
- */
-interface ExtendedProcessingContext extends ProcessingContext {
-  ids?: Map<string, Element>;
-}
-
-/**
  * LLM标签处理器
  * 
  * 处理llm标签，提取其LLM配置和API设置属性
  */
-export class LLMTagProcessor implements TagProcessor {
+export class LLMTagProcessor extends AbstractTagProcessor {
+  /**
+   * 处理器名称
+   */
+  readonly processorName = 'LLMTagProcessor';
+  
+  /**
+   * 标签名称
+   */
+  readonly tagName = 'llm';
+  
   /**
    * 处理器优先级
    */
   priority = 5;
   
   /**
-   * 判断是否可以处理该元素
-   * @param element 元素
-   * @returns 如果是llm标签返回true
+   * 处理特定属性
+   * @param attributes 除id和extends外的属性
+   * @param element 原始元素
+   * @param context 处理上下文
+   * @returns 特定的元数据对象
    */
-  canProcess(element: Element): boolean {
-    return element.tagName === 'llm';
+  protected processSpecificAttributes(
+    attributes: Record<string, any>,
+    element: Element,
+    context: ProcessingContext
+  ): Record<string, any> {
+    // 提取LLM特定属性
+    const apiType = attributes['api-type'] || 'openai';
+    const apiUrl = attributes['api-url'];
+    const model = attributes['model'];
+    const keyEnv = attributes['key-env'];
+    const tempStr = attributes['temperature'];
+    
+    // 处理temperature属性，转换为数值
+    let temperature: number | undefined;
+    if (tempStr !== undefined) {
+      temperature = parseFloat(tempStr);
+      if (isNaN(temperature)) {
+        temperature = undefined;
+      }
+    }
+    
+    // 返回LLM特定的元数据
+    return {
+      apiType,
+      apiUrl,
+      model,
+      keyEnv,
+      temperature,
+      attributes
+    };
   }
   
   /**
-   * 处理llm标签
-   * @param element llm元素
+   * 验证元素
+   * @param element 待验证的元素
    * @param context 处理上下文
-   * @returns 处理后的元素
+   * @returns 验证结果
    */
-  async process(element: Element, context: ExtendedProcessingContext): Promise<Element> {
-    // 确保元素有metadata对象
-    if (!element.metadata) {
-      element.metadata = {};
-    }
-    
-    // 提取llm标签的属性
-    const { 
-      'api-type': apiType = 'openai', 
-      'api-url': apiUrl, 
-      'model': model, 
-      'key-env': keyEnv,
-      'temperature': tempStr,
-      'extends': extendsProp,
-      ...otherAttrs 
-    } = element.attributes as unknown as LLMTagAttributes;
-    
-    // 验证必需属性
+  protected validate(element: Element, context: ProcessingContext): {
+    errors?: ValidationError[],
+    warnings?: ValidationWarning[]
+  } {
     const errors: ValidationError[] = [];
     const warnings: ValidationWarning[] = [];
+    
+    // 提取LLM特定属性
+    const attributes = element.attributes as unknown as LLMTagAttributes;
+    const apiType = attributes['api-type'] || 'openai';
+    const apiUrl = attributes['api-url'];
+    const model = attributes['model'];
+    const keyEnv = attributes['key-env'];
+    const tempStr = attributes['temperature'];
     
     // 验证model属性
     if (!model) {
@@ -112,43 +140,14 @@ export class LLMTagProcessor implements TagProcessor {
       });
     }
     
-    // 处理temperature属性，转换为数值
-    let temperature: number | undefined;
-    if (tempStr !== undefined) {
-      temperature = parseFloat(tempStr);
-      if (isNaN(temperature)) {
-        warnings.push({
-          code: 'INVALID_TEMPERATURE',
-          message: `temperature值无效，应为数字: ${tempStr}`
-        });
-        temperature = undefined;
-      }
+    // 验证temperature值是否有效
+    if (tempStr !== undefined && isNaN(parseFloat(tempStr))) {
+      warnings.push({
+        code: 'INVALID_TEMPERATURE',
+        message: `temperature值无效，应为数字: ${tempStr}`
+      });
     }
     
-    // 创建LLM元数据
-    element.metadata.llm = {
-      apiType,
-      apiUrl,
-      model,
-      keyEnv,
-      temperature,
-      extends: extendsProp, // 仅记录extends属性，不处理继承逻辑
-      attributes: otherAttrs
-    };
-    
-    // 添加验证错误和警告到元数据
-    if (errors.length > 0) {
-      element.metadata.validationErrors = errors;
-    }
-    
-    if (warnings.length > 0) {
-      element.metadata.validationWarnings = warnings;
-    }
-    
-    // 标记为已处理
-    element.metadata.processed = true;
-    element.metadata.processorName = 'LLMTagProcessor';
-    
-    return element;
+    return { errors, warnings };
   }
 } 

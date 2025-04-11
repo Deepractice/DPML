@@ -5,7 +5,7 @@
  * 支持ID验证、版本处理和子标签收集
  */
 
-import { Element, NodeType, Content, ProcessingContext, TagProcessor, ValidationError, isElement } from '@dpml/core';
+import { Element, ProcessingContext, ValidationError, ValidationWarning, isElement, AbstractTagProcessor } from '@dpml/core';
 import { AgentTagAttributes } from '../../types';
 
 /**
@@ -13,43 +13,64 @@ import { AgentTagAttributes } from '../../types';
  * 
  * 处理agent标签作为根标签，提取其基本属性，并收集必要的子标签
  */
-export class AgentTagProcessor implements TagProcessor {
+export class AgentTagProcessor extends AbstractTagProcessor {
+  /**
+   * 处理器名称
+   */
+  readonly processorName = 'AgentTagProcessor';
+  
+  /**
+   * 标签名称
+   */
+  readonly tagName = 'agent';
+  
   /**
    * 处理器优先级 - 高优先级确保先处理根标签
    */
   priority = 10;
   
   /**
-   * 判断是否可以处理该元素
-   * @param element 元素
-   * @returns 如果是agent标签返回true
-   */
-  canProcess(element: Element): boolean {
-    return element.tagName === 'agent';
-  }
-  
-  /**
-   * 处理agent标签
-   * @param element agent元素
+   * 处理特定属性
+   * @param attributes 除id和extends外的属性
+   * @param element 原始元素
    * @param context 处理上下文
-   * @returns 处理后的元素
+   * @returns 特定的元数据对象
    */
-  async process(element: Element, context: ProcessingContext): Promise<Element> {
-    // 确保元素有metadata对象
-    if (!element.metadata) {
-      element.metadata = {};
-    }
-    
-    // 提取agent标签的基本属性
-    const { id, version, extends: extendsProp, ...otherAttrs } = element.attributes as unknown as AgentTagAttributes;
+  protected processSpecificAttributes(
+    attributes: Record<string, any>,
+    element: Element,
+    context: ProcessingContext
+  ): Record<string, any> {
+    // 处理版本属性，提供默认值
+    const version = attributes.version || '1.0';
     
     // 收集子标签信息
     const llmElement = this.findFirstChildByTagName(element, 'llm');
     const promptElement = this.findFirstChildByTagName(element, 'prompt');
     
-    // 验证必需子标签
+    // 返回agent特定的元数据
+    return {
+      version,
+      attributes,
+      hasLLM: !!llmElement,
+      hasPrompt: !!promptElement
+    };
+  }
+  
+  /**
+   * 验证元素
+   * @param element 待验证的元素
+   * @param context 处理上下文
+   * @returns 验证结果
+   */
+  protected validate(element: Element, context: ProcessingContext): {
+    errors?: ValidationError[],
+    warnings?: ValidationWarning[]
+  } {
     const errors: ValidationError[] = [];
     
+    // 验证必需子标签
+    const llmElement = this.findFirstChildByTagName(element, 'llm');
     if (!llmElement) {
       errors.push({
         code: 'MISSING_REQUIRED_CHILD',
@@ -57,6 +78,7 @@ export class AgentTagProcessor implements TagProcessor {
       });
     }
     
+    const promptElement = this.findFirstChildByTagName(element, 'prompt');
     if (!promptElement) {
       errors.push({
         code: 'MISSING_REQUIRED_CHILD',
@@ -64,40 +86,6 @@ export class AgentTagProcessor implements TagProcessor {
       });
     }
     
-    // 如果有验证错误，将其添加到元数据中
-    if (errors.length > 0) {
-      element.metadata.validationErrors = errors;
-    }
-    
-    // 创建agent元数据
-    element.metadata.agent = {
-      id,
-      version: version || '1.0', // 版本默认为1.0
-      extends: extendsProp,
-      attributes: otherAttrs,
-      hasLLM: !!llmElement,
-      hasPrompt: !!promptElement
-    };
-    
-    // 在元数据中标记已被处理
-    element.metadata.processed = true;
-    element.metadata.processorName = 'AgentTagProcessor';
-    
-    return element;
-  }
-  
-  /**
-   * 查找第一个指定标签名的子元素
-   * @param element 父元素
-   * @param tagName 标签名
-   * @returns 找到的元素或undefined
-   */
-  private findFirstChildByTagName(element: Element, tagName: string): Element | undefined {
-    for (const child of element.children) {
-      if (isElement(child) && child.tagName === tagName) {
-        return child as Element;
-      }
-    }
-    return undefined;
+    return { errors };
   }
 } 

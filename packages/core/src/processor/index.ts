@@ -17,5 +17,8 @@ export * from '@core/processor/visitors';
 // 导出协议处理器
 export * from '@core/processor/protocols';
 
+// 导出标签处理器
+export * from '@core/processor/tagProcessors/abstractTagProcessor';
+
 // 导出工厂函数
 export * from '@core/processor/factory'; 

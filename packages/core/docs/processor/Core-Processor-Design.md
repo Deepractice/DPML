@@ -347,6 +347,85 @@ class AgentTagProcessor implements TagProcessor {
 }
 ```
 
+### 4.5 继承机制与处理顺序
+
+DPML的继承机制是由Core包统一提供和处理的，重要的是理解在文档处理流程中的职责分工：
+
+#### 4.5.1 处理顺序
+
+在Processor处理过程中，访问者按优先级顺序执行（从高到低）：
+
+1. **InheritanceVisitor** (优先级100)
+   - 负责处理标签的extends属性
+   - 解析引用的父标签
+   - 合并属性和内容
+   - 在元素到达DomainTagVisitor前，继承逻辑已完成处理
+
+2. **DomainTagVisitor** (优先级60)
+   - 负责调用领域特定的TagProcessor
+   - 此时标签已经经过了InheritanceVisitor处理
+   - 标签继承关系已被处理完毕
+
+#### 4.5.2 职责分工
+
+明确的职责分工是确保代码质量和避免重复实现的关键：
+
+- **InheritanceVisitor 负责**:
+  - 处理标签的继承逻辑
+  - 解析extends属性引用的标签
+  - 合并继承标签的属性（子标签属性优先）
+  - 合并继承标签的内容（当子标签无内容时）
+  - 处理多级继承链和循环继承检测
+
+- **TagProcessor 负责**:
+  - 处理领域特定的标签语义
+  - 验证领域特定的属性和关系
+  - 提取领域特定的信息
+  - 生成领域特定的元数据
+  - **不需要处理extends属性**，因为已由InheritanceVisitor处理
+
+#### 4.5.3 TagProcessor最佳实践
+
+实现TagProcessor时，应遵循以下最佳实践：
+
+1. **忽略extends属性**：不需要在TagProcessor中处理extends属性，因为它已经被InheritanceVisitor处理
+2. **专注领域逻辑**：TagProcessor应专注于特定领域的语义处理
+3. **假设继承已完成**：编写TagProcessor时，假设标签的继承关系已被处理
+
+```typescript
+// 正确的TagProcessor实现示例 - 忽略extends属性
+class CorrectTagProcessor implements TagProcessor {
+  canProcess(element: Element): boolean {
+    return element.tagName === 'example';
+  }
+  
+  async process(element: Element, context: ProcessingContext): Promise<Element> {
+    // 初始化元数据
+    element.metadata = element.metadata || {};
+    
+    // 注意：不处理extends属性，只关注领域特定属性
+    const { id, name, version, ...otherAttrs } = element.attributes;
+    // extends属性不需要特别提取，已由InheritanceVisitor处理
+    
+    // 添加领域特定元数据
+    element.metadata.semantic = {
+      type: 'example',
+      id,
+      name,
+      version: version || '1.0',
+      // 注意：不包含extends属性
+      attributes: otherAttrs
+    };
+    
+    // 标记处理状态
+    element.metadata.processed = true;
+    element.metadata.processorName = 'ExampleTagProcessor';
+    
+    return element;
+  }
+}
+```
+
 ## 5. 扩展机制
 
 Processor模块提供四个主要扩展点：
