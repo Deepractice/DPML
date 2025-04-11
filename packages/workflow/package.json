@@ -3,9 +3,17 @@
   "version": "1.0.0",
   "description": "DPML Workflow framework for multi-agent collaboration",
   "main": "dist/index.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
-    "build": "tsc",
+    "build": "tsup src/index.ts --format cjs,esm --dts",
     "test": "jest",
     "lint": "eslint src --ext .ts"
   },
@@ -22,5 +30,8 @@
   "dependencies": {
     "@dpml/agent": "workspace:*",
     "@dpml/core": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.2"
   }
 } 
