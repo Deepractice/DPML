@@ -61,12 +61,16 @@ classDiagram
         +getConversationMemory(sessionId: string): Promise<MemoryItem[]>
         +clear(sessionId: string): Promise<void>
     }
+    class DPMLPrompt {
+    }
+    class DPMLCore {
+    }
     
     AgentFactory --> Agent: creates
     Agent --> LLMConnector: uses
     Agent --> MemorySystem: uses
-    Agent ..> "DPML Prompt" : uses
-    Agent ..> "DPML Core" : uses
+    Agent --> DPMLPrompt: uses
+    Agent --> DPMLCore: uses
 ```
 
 ### 2.2 模块职责
