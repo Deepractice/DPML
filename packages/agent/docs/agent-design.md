@@ -65,8 +65,8 @@ classDiagram
     AgentFactory --> Agent: creates
     Agent --> LLMConnector: uses
     Agent --> MemorySystem: uses
-    Agent ..> "@dpml/prompt": uses
-    Agent ..> "@dpml/core": uses
+    Agent ..> "DPML Prompt" : uses
+    Agent ..> "DPML Core" : uses
 ```
 
 ### 2.2 模块职责
@@ -642,6 +642,7 @@ interface RunInput {
   stream?: boolean;
 }
 ```
+
 
 ## 10. 完整处理流程示例
 

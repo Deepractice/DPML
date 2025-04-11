@@ -48,9 +48,9 @@ classDiagram
     
     PromptProcessor --> PromptRegistry: uses
     PromptTransformer --> PromptRegistry: uses
-    PromptProcessor ..> "@dpml/core/Parser": uses
-    PromptProcessor ..> "@dpml/core/Processor": uses
-    PromptTransformer ..> "@dpml/core/Transformer": extends
+    PromptProcessor ..> "DPML Core Parser" : uses
+    PromptProcessor ..> "DPML Core Processor" : uses
+    PromptTransformer ..> "DPML Core Transformer" : extends
 ```
 
 ### 2.2 模块职责
