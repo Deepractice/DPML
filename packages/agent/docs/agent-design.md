@@ -167,45 +167,120 @@ interface AgentState {
 
 ### 3.5 记忆系统抽象
 
-虽然当前版本不使用专门的标签定义记忆配置，但系统通过抽象接口实现基础的上下文管理：
+Agent包提供灵活的记忆系统抽象，用于管理代理的上下文和长期记忆：
 
 ```typescript
-// 记忆项接口
-interface MemoryItem {
-  id: string;
-  content: string;
-  role: 'user' | 'assistant' | 'system';
-  timestamp: number;
+/**
+ * 记忆系统抽象接口
+ * 提供通用的记忆管理能力，不限定具体实现方式
+ */
+interface MemorySystem {
+  /**
+   * 存储记忆
+   * @param key 记忆标识
+   * @param value 记忆内容
+   * @param options 存储选项
+   */
+  store(key: string, value: any, options?: StoreOptions): Promise<void>;
+  
+  /**
+   * 检索记忆
+   * @param query 检索条件
+   * @param options 检索选项
+   */
+  retrieve(query: MemoryQuery, options?: RetrieveOptions): Promise<any>;
+  
+  /**
+   * 清除记忆
+   * @param filter 清除条件
+   */
+  clear(filter?: ClearFilter): Promise<void>;
+}
+
+/**
+ * 记忆存储选项
+ */
+interface StoreOptions {
+  // 记忆类型
+  type?: 'conversation' | 'knowledge' | 'state' | string;
+  
+  // 记忆持久性
+  persistence?: 'session' | 'temporary' | 'permanent';
+  
+  // 元数据
   metadata?: Record<string, any>;
 }
 
-// 记忆系统接口
-interface MemorySystem {
-  // 添加新记忆项
-  add(item: MemoryItem): Promise<void>;
+/**
+ * 记忆检索查询
+ */
+type MemoryQuery = {
+  // 可以是简单的会话ID
+  sessionId?: string;
   
-  // 获取会话记忆（用于构建上下文）
-  getConversationMemory(sessionId: string, limit?: number): Promise<MemoryItem[]>;
+  // 或是复杂的结构化查询
+  filter?: Record<string, any>;
   
-  // 清除指定会话的记忆
-  clear(sessionId: string): Promise<void>;
+  // 或是向量搜索查询
+  vector?: number[];
+  similarity?: number;
+  
+  // 或是时间范围查询
+  timeRange?: {
+    from?: Date | number;
+    to?: Date | number;
+  };
+};
+
+/**
+ * 记忆检索选项
+ */
+interface RetrieveOptions {
+  // 结果数量限制
+  limit?: number;
+  
+  // 排序选项
+  sort?: {
+    field: string;
+    order: 'asc' | 'desc';
+  };
+  
+  // 投影（指定返回哪些字段）
+  projection?: string[];
 }
+
+/**
+ * 记忆清除过滤器
+ */
+type ClearFilter = {
+  sessionId?: string;
+  type?: string | string[];
+  before?: Date | number;
+  filter?: Record<string, any>;
+};
 ```
 
-这种抽象设计使得上下文管理与模型调用分离，提高系统模块化程度，同时为未来高级记忆功能留下扩展空间。
+这种灵活的抽象允许实现各种不同类型的记忆系统，包括但不限于：
+- 简单的会话历史记忆
+- 结构化知识存储
+- 向量嵌入记忆
+- 图结构记忆
 
 ## 4. 标签定义概述
 
-每个核心标签都在独立文档中有详细规范，以下仅提供概述：
+每个核心标签都在独立文档中有详细规范，以下提供基本概述并区分Core包提供的通用属性和标签特有属性：
 
 ### 4.1 `<agent>` 标签
 
 作为根标签，定义整个代理的基本属性和元数据。
 
-#### 主要属性：
-- **id**: 唯一标识符
-- **version**: 代理版本号
-- **extends**: 继承另一个代理定义
+#### 核心属性 (由@dpml/core提供):
+- **id**: 唯一标识符，用于引用和复用（Core通用属性）
+- **version**: 版本号（Core通用属性）
+- **extends**: 继承另一个代理定义，由Core包的继承处理机制实现（Core通用属性）
+
+#### 标签特有属性:
+- 当前版本未定义特有属性，保持简洁设计
 
 详细规范请参考 [agent-tag-design.md](./agent-tag-design.md)。
 
@@ -213,7 +288,10 @@ interface MemorySystem {
 
 定义大语言模型的连接方式和参数配置。
 
-#### 主要属性：
+#### 核心属性 (由@dpml/core提供):
+- **id**: 可选的唯一标识符（Core通用属性）
+
+#### 标签特有属性:
 - **api-type**: API规范/协议类型
 - **api-url**: API端点URL
 - **model**: 模型标识符
@@ -225,88 +303,354 @@ interface MemorySystem {
 
 定义代理的系统提示词，委托给@dpml/prompt包处理。
 
-#### 主要属性：
-- **extends**: 继承其他提示词定义
+#### 核心属性 (由@dpml/core提供):
+- **id**: 可选的唯一标识符（Core通用属性）
+- **extends**: 继承其他提示词定义，由Core包的继承处理机制实现（Core通用属性）
+
+#### 标签特有属性:
+- 提示词特有属性由@dpml/prompt包定义和处理
 
 详细规范请参考 [prompt-tag-design.md](./prompt-tag-design.md)。
 
 ## 5. 记忆管理
 
-虽然当前版本不通过XML标签配置记忆系统，但Agent内置了基础的记忆管理功能，用于处理多轮对话的上下文。
+### 5.1 记忆系统设计原则
 
-### 5.1 记忆系统设计
+Agent包的记忆系统设计遵循以下原则：
 
-记忆系统采用抽象接口设计，实现关注点分离：
+1. **抽象优先**：定义通用接口，不绑定特定实现
+2. **多样性支持**：支持多种记忆类型和存储方式
+3. **查询灵活性**：提供丰富的查询能力，适应不同场景
+4. **扩展性**：为高级记忆功能预留扩展空间
+
+### 5.2 记忆系统实现示例
+
+#### 5.2.1 会话记忆实现
+
+最基本的会话记忆实现，用于管理多轮对话历史：
 
 ```typescript
-// 记忆系统接口
-interface MemorySystem {
-  add(item: MemoryItem): Promise<void>;
-  getConversationMemory(sessionId: string, limit?: number): Promise<MemoryItem[]>;
-  clear(sessionId: string): Promise<void>;
+/**
+ * 会话记忆项
+ */
+interface ConversationMemoryItem {
+  id: string;
+  content: string;
+  role: 'user' | 'assistant' | 'system';
+  timestamp: number;
+  metadata?: Record<string, any>;
 }
-```
 
-### 5.2 基础上下文记忆实现
-
-默认提供简单的上下文记忆实现，基于内存存储：
-
-```typescript
-class SimpleContextMemory implements MemorySystem {
-  private sessions: Map<string, MemoryItem[]> = new Map();
+/**
+ * 简单会话记忆系统
+ */
+class ConversationMemorySystem implements MemorySystem {
+  private sessions: Map<string, ConversationMemoryItem[]> = new Map();
   
-  async add(item: MemoryItem): Promise<void> {
-    const sessionId = item.metadata?.sessionId || 'default';
+  async store(key: string, value: ConversationMemoryItem, options?: StoreOptions): Promise<void> {
+    const sessionId = key || 'default';
     if (!this.sessions.has(sessionId)) {
       this.sessions.set(sessionId, []);
     }
-    const sessionMemory = this.sessions.get(sessionId);
-    sessionMemory.push(item);
+    const session = this.sessions.get(sessionId);
+    session.push(value);
   }
   
-  async getConversationMemory(sessionId: string, limit = 10): Promise<MemoryItem[]> {
+  async retrieve(query: MemoryQuery, options?: RetrieveOptions): Promise<ConversationMemoryItem[]> {
+    const sessionId = query.sessionId || 'default';
+    const limit = options?.limit || 10;
+    
     const sessionMemory = this.sessions.get(sessionId) || [];
-    // 如果超过限制，只返回最近的几条
-    if (sessionMemory.length > limit) {
-      return sessionMemory.slice(-limit);
+    
+    // 应用筛选条件
+    let result = sessionMemory;
+    if (query.filter) {
+      result = this.applyFilter(result, query.filter);
     }
-    return sessionMemory;
+    
+    // 应用排序（默认按时间戳降序）
+    result = this.applySort(result, options?.sort);
+    
+    // 应用数量限制
+    if (result.length > limit) {
+      result = result.slice(-limit);
+    }
+    
+    return result;
   }
   
-  async clear(sessionId: string): Promise<void> {
-    this.sessions.delete(sessionId);
+  async clear(filter?: ClearFilter): Promise<void> {
+    if (!filter) {
+      // 清除所有会话
+      this.sessions.clear();
+      return;
+    }
+    
+    if (filter.sessionId) {
+      // 清除特定会话
+      this.sessions.delete(filter.sessionId);
+    }
+    
+    // 其他复杂清除逻辑...
+  }
+  
+  private applyFilter(items: ConversationMemoryItem[], filter: Record<string, any>): ConversationMemoryItem[] {
+    // 简单实现，实际系统可能更复杂
+    return items.filter(item => {
+      for (const [key, value] of Object.entries(filter)) {
+        if (key === 'metadata') {
+          for (const [metaKey, metaValue] of Object.entries(value)) {
+            if (item.metadata?.[metaKey] !== metaValue) return false;
+          }
+        } else if (item[key] !== value) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }
+  
+  private applySort(items: ConversationMemoryItem[], sort?: {field: string, order: 'asc' | 'desc'}): ConversationMemoryItem[] {
+    if (!sort) {
+      // 默认按时间戳排序
+      return [...items].sort((a, b) => a.timestamp - b.timestamp);
+    }
+    
+    return [...items].sort((a, b) => {
+      const aValue = a[sort.field];
+      const bValue = b[sort.field];
+      
+      if (sort.order === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
   }
 }
 ```
 
-### 5.3 上下文窗口管理
+#### 5.2.2 向量记忆系统
 
-记忆系统管理上下文窗口，确保发送给LLM的上下文不会超出限制：
+支持语义搜索的向量记忆系统示例：
 
-1. 使用会话ID区分不同对话线程
-2. 根据配置限制消息数量，采用"滑动窗口"策略
-3. 提供会话清理和切换机制
+```typescript
+/**
+ * 向量记忆项
+ */
+interface VectorMemoryItem {
+  id: string;
+  content: string;
+  embedding: number[];
+  metadata?: Record<string, any>;
+}
+
+/**
+ * 向量记忆系统
+ * 适用于语义搜索和相似性查询场景
+ */
+class VectorMemorySystem implements MemorySystem {
+  private items: VectorMemoryItem[] = [];
+  private embedder: (text: string) => Promise<number[]>;
+  
+  constructor(embedder: (text: string) => Promise<number[]>) {
+    this.embedder = embedder;
+  }
+  
+  async store(key: string, value: {content: string, metadata?: Record<string, any>}): Promise<void> {
+    // 生成嵌入向量
+    const embedding = await this.embedder(value.content);
+    
+    // 存储记忆项
+    this.items.push({
+      id: key,
+      content: value.content,
+      embedding,
+      metadata: value.metadata
+    });
+  }
+  
+  async retrieve(query: MemoryQuery): Promise<VectorMemoryItem[]> {
+    if (!query.vector) {
+      // 如果没有提供向量，尝试从文本生成
+      if (query.filter?.content) {
+        query.vector = await this.embedder(query.filter.content);
+      } else {
+        throw new Error('Vector query requires either a vector or content to embed');
+      }
+    }
+    
+    // 计算相似度并排序
+    const limit = query.limit || 5;
+    const threshold = query.similarity || 0.7;
+    
+    const results = this.items
+      .map(item => ({
+        item,
+        similarity: this.cosineSimilarity(item.embedding, query.vector)
+      }))
+      .filter(result => result.similarity >= threshold)
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, limit)
+      .map(result => result.item);
+      
+    return results;
+  }
+  
+  async clear(filter?: ClearFilter): Promise<void> {
+    if (!filter) {
+      this.items = [];
+      return;
+    }
+    
+    // 应用筛选条件
+    this.items = this.items.filter(item => {
+      if (filter.filter) {
+        // 检查元数据匹配
+        for (const [key, value] of Object.entries(filter.filter)) {
+          if (item.metadata?.[key] !== value) return true;
+        }
+        return false;
+      }
+      return true;
+    });
+  }
+  
+  private cosineSimilarity(a: number[], b: number[]): number {
+    // 计算余弦相似度
+    let dotProduct = 0;
+    let mA = 0;
+    let mB = 0;
+    
+    for (let i = 0; i < a.length; i++) {
+      dotProduct += a[i] * b[i];
+      mA += a[i] * a[i];
+      mB += b[i] * b[i];
+    }
+    
+    mA = Math.sqrt(mA);
+    mB = Math.sqrt(mB);
+    
+    return dotProduct / (mA * mB);
+  }
+}
+```
+
+### 5.3 记忆系统组合
+
+代理可以使用多个记忆系统的组合，处理不同类型的记忆需求：
+
+```typescript
+/**
+ * 组合记忆系统
+ * 整合多个专门的记忆系统，根据记忆类型路由到合适的系统
+ */
+class CompositeMemorySystem implements MemorySystem {
+  private memorySystems: Map<string, MemorySystem> = new Map();
+  
+  constructor(systems: Record<string, MemorySystem>) {
+    for (const [type, system] of Object.entries(systems)) {
+      this.memorySystems.set(type, system);
+    }
+  }
+  
+  async store(key: string, value: any, options?: StoreOptions): Promise<void> {
+    const type = options?.type || 'default';
+    const system = this.getSystemForType(type);
+    await system.store(key, value, options);
+  }
+  
+  async retrieve(query: MemoryQuery, options?: RetrieveOptions): Promise<any> {
+    const type = query.type || 'default';
+    const system = this.getSystemForType(type);
+    return system.retrieve(query, options);
+  }
+  
+  async clear(filter?: ClearFilter): Promise<void> {
+    if (!filter?.type) {
+      // 清除所有系统
+      for (const system of this.memorySystems.values()) {
+        await system.clear(filter);
+      }
+      return;
+    }
+    
+    // 清除特定类型的系统
+    const types = Array.isArray(filter.type) ? filter.type : [filter.type];
+    for (const type of types) {
+      const system = this.memorySystems.get(type);
+      if (system) {
+        await system.clear(filter);
+      }
+    }
+  }
+  
+  private getSystemForType(type: string): MemorySystem {
+    const system = this.memorySystems.get(type);
+    if (!system) {
+      throw new Error(`No memory system registered for type: ${type}`);
+    }
+    return system;
+  }
+}
+```
 
 ### 5.4 上下文构建
 
-基于记忆系统中的对话历史构建LLM上下文：
+基于灵活的记忆系统构建LLM上下文：
 
 ```typescript
-// 构建LLM上下文
-function buildLLMContext(memoryItems: MemoryItem[], systemPrompt: string): LLMContext {
-  // 转换记忆项为消息格式
-  const messages = memoryItems.map(item => ({
-    role: item.role,
-    content: item.content
-  }));
+/**
+ * 构建LLM上下文
+ */
+async function buildLLMContext(memorySystem: MemorySystem, systemPrompt: string, options: ContextBuildOptions): Promise<LLMContext> {
+  // 检索会话历史
+  const conversationItems = await memorySystem.retrieve({
+    sessionId: options.sessionId,
+    type: 'conversation'
+  }, { limit: options.historyLimit || 10 });
   
-  // 添加系统提示词作为第一条消息
-  messages.unshift({
-    role: 'system',
-    content: systemPrompt
-  });
+  // 检索相关知识（如果需要）
+  let knowledgeItems = [];
+  if (options.includeKnowledge && options.currentInput) {
+    knowledgeItems = await memorySystem.retrieve({
+      type: 'knowledge',
+      filter: { content: options.currentInput },
+      vector: options.inputEmbedding
+    }, { limit: options.knowledgeLimit || 5 });
+  }
+  
+  // 构建消息数组
+  const messages = [
+    // 系统提示
+    {
+      role: 'system',
+      content: systemPrompt
+    },
+    
+    // 添加知识上下文（如果有）
+    ...(knowledgeItems.length > 0 ? [{
+      role: 'system',
+      content: `相关上下文信息:\n${knowledgeItems.map(item => item.content).join('\n\n')}`
+    }] : []),
+    
+    // 会话历史
+    ...conversationItems.map(item => ({
+      role: item.role,
+      content: item.content
+    }))
+  ];
   
   return { messages };
+}
+
+interface ContextBuildOptions {
+  sessionId: string;
+  historyLimit?: number;
+  includeKnowledge?: boolean;
+  knowledgeLimit?: number;
+  currentInput?: string;
+  inputEmbedding?: number[];
 }
 ```
 
@@ -368,7 +712,196 @@ Agent包利用Core包提供的继承处理机制，遵循以下规则：
 
 ## 7. 标签处理器设计
 
-### 7.1 标签处理架构
+### 7.1 标签定义与注册
+
+Agent包通过TagRegistry注册特定标签及其处理器，确保XML解析和处理过程中能够正确识别和处理标签：
+
+```typescript
+/**
+ * 代理模块标签注册
+ */
+export function registerAgentTags(registry: TagRegistry): void {
+  // 注册agent标签
+  registry.registerTag({
+    name: 'agent',
+    allowedParents: [], // 顶层标签，无父标签限制
+    allowedChildren: ['llm', 'prompt'], // 允许的子标签
+    requiredAttributes: ['id'], // 必需属性
+    optionalAttributes: ['version', 'extends'], // 可选属性
+    attributeTypes: { // 属性类型定义
+      id: 'string',
+      version: 'string',
+      extends: 'string'
+    },
+    validator: validateAgentTag // 自定义验证函数
+  });
+
+  // 注册llm标签
+  registry.registerTag({
+    name: 'llm',
+    allowedParents: ['agent'], // 只能在agent标签内
+    allowedChildren: [], // 无子标签
+    requiredAttributes: ['api-type', 'model'], // 必需属性
+    optionalAttributes: ['api-url', 'key-env', 'temperature'], // 可选属性
+    attributeTypes: {
+      'api-type': 'string',
+      'model': 'string',
+      'api-url': 'string',
+      'key-env': 'string',
+      'temperature': 'number'
+    },
+    validator: validateLLMTag
+  });
+
+  // prompt标签委托给@dpml/prompt包处理
+  // 这里仅定义基本结构约束
+  registry.registerTag({
+    name: 'prompt',
+    allowedParents: ['agent'],
+    allowedChildren: [], // 内部结构由prompt包处理
+    optionalAttributes: ['extends'],
+    attributeTypes: {
+      'extends': 'string'
+    }
+  });
+}
+```
+
+### 7.2 标签验证规则
+
+每个标签包含自定义的验证规则，确保标签结构和属性符合要求：
+
+```typescript
+/**
+ * agent标签验证函数
+ */
+function validateAgentTag(element: Element, context: ValidationContext): ValidationResult {
+  const errors: ValidationError[] = [];
+  const warnings: ValidationWarning[] = [];
+  
+  // 验证ID格式
+  const id = element.attributes.id;
+  if (id && !/^[a-z0-9-_]+$/i.test(id)) {
+    errors.push({
+      code: 'INVALID_ID_FORMAT',
+      message: 'Agent ID只能包含字母、数字、短横线和下划线',
+      element
+    });
+  }
+  
+  // 验证是否缺少必要的子标签
+  const hasLLM = element.children.some(child => 
+    isElement(child) && child.tagName === 'llm'
+  );
+  
+  if (!hasLLM) {
+    errors.push({
+      code: 'MISSING_REQUIRED_CHILD',
+      message: 'Agent标签必须包含llm子标签',
+      element
+    });
+  }
+  
+  const hasPrompt = element.children.some(child => 
+    isElement(child) && child.tagName === 'prompt'
+  );
+  
+  if (!hasPrompt) {
+    errors.push({
+      code: 'MISSING_REQUIRED_CHILD',
+      message: 'Agent标签必须包含prompt子标签',
+      element
+    });
+  }
+  
+  return { errors, warnings };
+}
+
+/**
+ * llm标签验证函数
+ */
+function validateLLMTag(element: Element, context: ValidationContext): ValidationResult {
+  const errors: ValidationError[] = [];
+  const warnings: ValidationWarning[] = [];
+  
+  // 验证api-type是否为支持的类型
+  const apiType = element.attributes['api-type'];
+  const supportedApiTypes = ['openai', 'anthropic', 'azure', 'mistral', 'custom'];
+  
+  if (apiType && !supportedApiTypes.includes(apiType)) {
+    warnings.push({
+      code: 'UNSUPPORTED_API_TYPE',
+      message: `不支持的API类型: ${apiType}。支持的类型: ${supportedApiTypes.join(', ')}`,
+      element
+    });
+  }
+  
+  // 检查是否缺少API密钥环境变量
+  if (!element.attributes['key-env']) {
+    warnings.push({
+      code: 'MISSING_KEY_ENV',
+      message: '建议设置key-env属性以指定API密钥的环境变量',
+      element
+    });
+  }
+  
+  return { errors, warnings };
+}
+```
+
+### 7.3 标签系统集成
+
+Agent包集成Core包提供的标签系统，通过以下机制实现标签定义和处理：
+
+1. **初始化标签注册表**：创建时从Core包获取TagRegistry实例
+2. **注册特定标签**：调用registerAgentTags注册Agent包特定标签
+3. **流程集成**：确保Agent处理流程使用Core包的解析和处理功能
+
+```typescript
+/**
+ * 标签系统初始化
+ */
+export function initializeTagSystem(): TagRegistry {
+  // 获取标签注册表实例
+  const registry = new TagRegistry();
+  
+  // 注册Agent包特定标签
+  registerAgentTags(registry);
+  
+  return registry;
+}
+
+/**
+ * Agent工厂创建
+ */
+export function createAgentFactory(options?: AgentFactoryOptions): AgentFactory {
+  // 初始化标签系统
+  const tagRegistry = options?.tagRegistry || initializeTagSystem();
+  
+  // 创建解析器适配器
+  const parserAdapter = new DpmlAdapter({
+    tagRegistry
+  });
+  
+  // 创建处理器
+  const processor = new DefaultProcessor({
+    tagRegistry,
+    // 其他处理器选项...
+  });
+  
+  // 创建转换器
+  const transformer = new AgentTransformer();
+  
+  return new AgentFactoryImpl({
+    parserAdapter,
+    processor,
+    transformer,
+    // 其他工厂选项...
+  });
+}
+```
+
+### 7.4 标签处理架构
 
 Agent包利用@dpml/core提供的处理器架构，实现特定于代理的标签处理逻辑：
 
@@ -384,100 +917,6 @@ graph TD
 - 验证标签的属性和结构
 - 处理标签的继承和引用
 - 实现标签特定的转换逻辑
-
-### 7.2 AgentTagProcessor
-
-AgentTagProcessor负责处理`<agent>`标签：
-
-```typescript
-export class AgentTagProcessor extends BaseTagProcessor {
-  readonly tagName = 'agent';
-  
-  async process(element: Element, context: ProcessingContext): Promise<Element> {
-    // 验证必需属性
-    this.validateRequiredAttributes(element, ['id']);
-    
-    // 处理继承
-    if (element.attributes.extends) {
-      element = await this.processExtends(element, context);
-    }
-    
-    // 处理子标签
-    for (const child of element.children) {
-      if (isElement(child)) {
-        const processor = context.getTagProcessor(child.tagName);
-        if (processor) {
-          await processor.process(child, context);
-        }
-      }
-    }
-    
-    return element;
-  }
-  
-  // 其他处理方法...
-}
-```
-
-### 7.3 LLMTagProcessor
-
-LLMTagProcessor负责处理`<llm>`标签：
-
-```typescript
-export class LLMTagProcessor extends BaseTagProcessor {
-  readonly tagName = 'llm';
-  
-  async process(element: Element, context: ProcessingContext): Promise<Element> {
-    // 验证属性
-    this.validateRequiredAttributes(element, ['api-type', 'model']);
-    
-    // 处理特定逻辑
-    // ...
-    
-    return element;
-  }
-}
-```
-
-### 7.4 标签转换
-
-Agent包实现AgentTransformer，继承自@dpml/core的DefaultTransformer，负责将处理后的文档转换为代理配置：
-
-```typescript
-export class AgentTransformer extends DefaultTransformer<AgentConfig> {
-  constructor(options?: AgentTransformerOptions) {
-    super();
-    this.registerVisitors();
-  }
-  
-  private registerVisitors() {
-    this.registerVisitor(new AgentElementVisitor(this));
-    this.registerVisitor(new LLMElementVisitor(this));
-    // 其他访问者...
-  }
-  
-  transform(doc: ProcessedDocument): AgentConfig {
-    return this.visit(doc) as AgentConfig;
-  }
-}
-
-class AgentElementVisitor implements TransformerVisitor {
-  name = 'AgentElementVisitor';
-  priority = 10;
-  
-  constructor(private transformer: AgentTransformer) {}
-  
-  visitElement(element: Element, context: TransformContext): Partial<AgentConfig> {
-    if (element.tagName !== 'agent') return {};
-    
-    return {
-      id: element.attributes.id,
-      version: element.attributes.version || '1.0',
-      // 其他属性...
-    };
-  }
-}
-```
 
 ## 8. 代理创建流程
 
