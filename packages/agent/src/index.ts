@@ -3,6 +3,8 @@
  *
  * 提供Agent相关功能
  */
+import { AgentFactory } from './agent/AgentFactory';
+import type { AgentFactoryConfig } from './agent/types';
 
 export const version = '0.1.0';
 
@@ -27,13 +29,18 @@ export * from './memory';
 // 导出事件系统模块
 export * from './events';
 
+// 导出代理模块
+export * from './agent';
+
+// 导出工具函数
+export * from './utils';
+
 /**
- * Agent模块的初始占位函数
- * 将在后续实现实际功能
+ * 创建代理的便捷函数
+ * 
+ * @param config 代理工厂配置
+ * @returns 配置好的代理实例
  */
-export function createAgent() {
-  return {
-    status: 'created',
-    version
-  };
+export function createAgent(config: AgentFactoryConfig) {
+  return AgentFactory.createAgent(config);
 }

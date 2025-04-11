@@ -175,4 +175,24 @@ export interface AgentStateTimeoutEventData {
   
   /** 时间戳 */
   timestamp: number;
+}
+
+/**
+ * 消息角色
+ */
+export enum MessageRole {
+  SYSTEM = 'system',
+  USER = 'user',
+  ASSISTANT = 'assistant',
+  FUNCTION = 'function',
+}
+
+/**
+ * 消息内容
+ */
+export interface Message {
+  role: MessageRole;
+  content: string;
+  name?: string;
+  functionCall?: any;
 } 
