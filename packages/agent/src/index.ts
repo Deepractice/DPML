@@ -35,6 +35,9 @@ export * from './errors';
 // 导出代理模块
 export * from './agent';
 
+// 导出安全模块
+export * from './security';
+
 // 导出工具函数
 export * from './utils';
 

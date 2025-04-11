@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { Memory, MemoryItem, AgentMemory, AgentMemoryOptions } from './types';
+import { PathSanitizer } from '../security/PathSanitizer';
 
 /**
  * 基于文件系统的代理记忆存储实现
@@ -169,9 +170,18 @@ export class FileSystemAgentMemory implements AgentMemory {
    * @private
    */
   private getFilePath(sessionId: string): string {
-    // 清理会话ID，防止路径注入
-    const safeSessionId = sessionId.replace(/[^a-zA-Z0-9-_]/g, '_');
-    return path.join(this.basePath, `${safeSessionId}.json`);
+    // 使用PathSanitizer创建安全的文件名
+    const safeSessionId = PathSanitizer.createSafeFileName(sessionId);
+    
+    // 使用PathSanitizer获取安全的完整路径
+    return PathSanitizer.sanitizeFilePath(
+      path.join(this.basePath, `${safeSessionId}.json`),
+      {
+        allowAbsolutePath: true,  // 允许绝对路径，因为basePath可能是绝对路径
+        baseDir: this.basePath,   // 设置基础目录为当前记忆存储目录
+        allowedExtensions: ['.json'] // 只允许.json扩展名
+      }
+    );
   }
 
   /**
@@ -179,8 +189,9 @@ export class FileSystemAgentMemory implements AgentMemory {
    * @private
    */
   private ensureDirectoryExists(): void {
-    if (!fs.existsSync(this.basePath)) {
-      fs.mkdirSync(this.basePath, { recursive: true });
-    }
+    // 使用PathSanitizer安全地创建目录
+    PathSanitizer.safeCreateDirectory(this.basePath, {
+      allowAbsolutePath: true // 允许绝对路径
+    });
   }
 } 
