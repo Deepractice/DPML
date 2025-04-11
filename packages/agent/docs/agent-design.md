@@ -692,161 +692,244 @@ graph TD
 - 处理标签的继承和引用
 - 实现标签特定的转换逻辑
 
-## 8. 类图设计
+## 8. 模块管理
+
+### 8.1 目录结构
+
+@dpml/agent包采用按功能模块分组的目录结构，清晰直观且易于维护：
+
+```
+packages/agent/
+├── src/
+│   ├── agent/                         # 代理核心功能
+│   │   ├── index.ts                   # 导出公共部分
+│   │   ├── types.ts                   # 类型定义
+│   │   ├── Agent.ts                   # 接口定义
+│   │   └── AgentImpl.ts               # 实现类
+│   │
+│   ├── memory/                        # 记忆系统
+│   │   ├── index.ts
+│   │   ├── types.ts
+│   │   ├── AgentMemory.ts             # 接口定义
+│   │   ├── InMemoryAgentMemory.ts     # 内存实现
+│   │   └── FileSystemAgentMemory.ts   # 文件系统实现
+│   │
+│   ├── llm/                           # LLM连接器
+│   │   ├── index.ts
+│   │   ├── types.ts
+│   │   ├── LLMConnector.ts            # 接口定义
+│   │   ├── OpenAIConnector.ts         # OpenAI实现
+│   │   └── AnthropicConnector.ts      # Anthropic实现
+│   │
+│   ├── factory/                       # 工厂功能
+│   │   ├── index.ts
+│   │   ├── AgentFactory.ts            # 接口定义
+│   │   └── AgentFactoryImpl.ts        # 实现类
+│   │
+│   ├── transformer/                   # 转换器(与Core交互)
+│   │   ├── index.ts
+│   │   ├── AgentTransformer.ts        # 代理转换器
+│   │   └── visitors/                  # 访问者
+│   │
+│   ├── tags/                          # 标签定义和处理
+│   │   ├── index.ts
+│   │   ├── registerTags.ts            # 标签注册
+│   │   ├── agent-tag.ts               # agent标签处理
+│   │   └── llm-tag.ts                 # llm标签处理
+│   │
+│   ├── utils/                         # 通用工具函数
+│   │   ├── index.ts
+│   │   └── formatters.ts
+│   │
+│   ├── types.ts                       # 共享类型定义
+│   └── index.ts                       # 主入口
+```
+
+### 8.2 模块分组原则
+
+1. **功能内聚**：相关功能放在同一目录下，每个模块有明确的功能边界
+2. **接口先行**：每个功能模块先定义接口，再提供实现
+3. **导出控制**：通过index.ts严格控制每个模块的导出内容
+4. **依赖方向**：一般依赖流向为agent→memory/llm，factory→agent/memory/llm
+
+### 8.3 与Core和Prompt包的集成
+
+- **transformer目录**：包含与@dpml/core的转换逻辑
+- **tags目录**：处理标签定义和注册，与@dpml/core的解析系统集成
+- **factory目录**：协调core和prompt包的功能，创建代理实例
+
+### 8.4 扩展点
+
+1. **新LLM供应商**：在llm目录添加新的连接器实现
+2. **新记忆存储**：在memory目录添加新的存储实现 
+3. **新标签处理**：在tags目录添加新的标签处理器
+
+## 9. 类图设计
 
 下图展示了@dpml/agent包的核心接口、实现类和它们之间的关系：
 
 ```mermaid
 classDiagram
-    %% 核心接口
-    class Agent {
-        <<interface>>
-        +id: string
-        +version: string
-        +chat(input: ChatInput): Promise~ChatOutput~
-        +chatStream(input: ChatInput): AsyncIterable~ChatChunk~
+    %% 包和模块注释
+    namespace agent {
+        class Agent {
+            <<interface>>
+            +id: string
+            +version: string
+            +chat(input: ChatInput): Promise~ChatOutput~
+            +chatStream(input: ChatInput): AsyncIterable~ChatChunk~
+        }
+        
+        class AgentImpl {
+            -id: string
+            -version: string
+            -llmConnector: LLMConnector
+            -memory: AgentMemory
+            -promptText: string
+            +constructor(options: AgentOptions)
+            +chat(input: ChatInput): Promise~ChatOutput~
+            +chatStream(input: ChatInput): AsyncIterable~ChatChunk~
+            -recallContext(sessionId: string): Promise~Message[]~
+            -remember(sessionId: string, role: string, content: string): Promise~void~
+        }
     }
     
-    class AgentMemory {
-        <<interface>>
-        +store(memory: Memory): Promise~void~
-        +retrieve(sessionId: string): Promise~Memory~
-        +clear(sessionId: string): Promise~void~
+    namespace memory {
+        class AgentMemory {
+            <<interface>>
+            +store(memory: Memory): Promise~void~
+            +retrieve(sessionId: string): Promise~Memory~
+            +clear(sessionId: string): Promise~void~
+        }
+        
+        class InMemoryAgentMemory {
+            -memories: Map~string, Memory~
+            +store(memory: Memory): Promise~void~
+            +retrieve(sessionId: string): Promise~Memory~
+            +clear(sessionId: string): Promise~void~
+        }
+        
+        class FileSystemAgentMemory {
+            -basePath: string
+            +constructor(basePath: string)
+            +store(memory: Memory): Promise~void~
+            +retrieve(sessionId: string): Promise~Memory~
+            +clear(sessionId: string): Promise~void~
+            -getFilePath(sessionId: string): string
+        }
+        
+        class Memory {
+            +id: string
+            +content: any
+            +metadata?: Record~string, any~
+        }
+        
+        class MemoryItem {
+            +text: string
+            +role: string
+            +timestamp: number
+        }
     }
     
-    class LLMConnector {
-        <<interface>>
-        +complete(options: CompletionOptions): Promise~CompletionResult~
-        +completeStream(options: CompletionOptions): AsyncIterable~CompletionChunk~
+    namespace llm {
+        class LLMConnector {
+            <<interface>>
+            +complete(options: CompletionOptions): Promise~CompletionResult~
+            +completeStream(options: CompletionOptions): AsyncIterable~CompletionChunk~
+        }
+        
+        class OpenAIConnector {
+            -apiKey: string
+            -apiUrl: string
+            -model: string
+            +constructor(options: OpenAIOptions)
+            +complete(options: CompletionOptions): Promise~CompletionResult~
+            +completeStream(options: CompletionOptions): AsyncIterable~CompletionChunk~
+        }
+        
+        class AnthropicConnector {
+            -apiKey: string
+            -apiUrl: string
+            -model: string
+            +constructor(options: AnthropicOptions)
+            +complete(options: CompletionOptions): Promise~CompletionResult~
+            +completeStream(options: CompletionOptions): AsyncIterable~CompletionChunk~
+        }
+        
+        class CompletionOptions {
+            +model: string
+            +messages: Message[]
+            +temperature?: number
+            +maxTokens?: number
+        }
+        
+        class CompletionResult {
+            +text: string
+            +usage: TokenUsage
+            +metadata: Record~string, any~
+        }
+        
+        class CompletionChunk {
+            +text: string
+            +isComplete: boolean
+            +metadata?: Record~string, any~
+        }
     }
     
-    class AgentFactory {
-        <<interface>>
-        +createAgent(definition: string): Promise~Agent~
+    namespace factory {
+        class AgentFactory {
+            <<interface>>
+            +createAgent(definition: string): Promise~Agent~
+        }
+        
+        class AgentFactoryImpl {
+            -parserAdapter: DpmlAdapter
+            -processor: DefaultProcessor
+            -transformer: AgentTransformer
+            +constructor(options: AgentFactoryOptions)
+            +createAgent(definition: string): Promise~Agent~
+            -parseDocument(definition: string): Promise~Document~
+            -processDocument(document: Document): Promise~ProcessedDocument~
+            -transformToConfig(document: ProcessedDocument): AgentConfig
+            -instantiateAgent(config: AgentConfig): Agent
+        }
     }
     
-    %% 数据结构
-    class Memory {
-        +id: string
-        +content: any
-        +metadata?: Record~string, any~
+    namespace transformer {
+        class AgentTransformer {
+            +constructor()
+            +transform(doc: ProcessedDocument): AgentConfig
+            -registerVisitors(): void
+        }
     }
     
-    class MemoryItem {
-        +text: string
-        +role: string
-        +timestamp: number
+    namespace types {
+        class ChatInput {
+            +input: string
+            +sessionId?: string
+            +metadata?: Record~string, any~
+        }
+        
+        class ChatOutput {
+            +output: string
+            +usage?: TokenUsage
+            +metadata?: Record~string, any~
+        }
+        
+        class ChatChunk {
+            +type: string
+            +content: string
+            +metadata?: Record~string, any~
+        }
     }
     
-    class ChatInput {
-        +input: string
-        +sessionId?: string
-        +metadata?: Record~string, any~
-    }
-    
-    class ChatOutput {
-        +output: string
-        +usage?: TokenUsage
-        +metadata?: Record~string, any~
-    }
-    
-    class ChatChunk {
-        +type: string
-        +content: string
-        +metadata?: Record~string, any~
-    }
-    
-    class CompletionOptions {
-        +model: string
-        +messages: Message[]
-        +temperature?: number
-        +maxTokens?: number
-    }
-    
-    class CompletionResult {
-        +text: string
-        +usage: TokenUsage
-        +metadata: Record~string, any~
-    }
-    
-    class CompletionChunk {
-        +text: string
-        +isComplete: boolean
-        +metadata?: Record~string, any~
-    }
-    
-    %% 实现类
-    class AgentImpl {
-        -id: string
-        -version: string
-        -llmConnector: LLMConnector
-        -memory: AgentMemory
-        -promptText: string
-        +constructor(options: AgentOptions)
-        +chat(input: ChatInput): Promise~ChatOutput~
-        +chatStream(input: ChatInput): AsyncIterable~ChatChunk~
-        -recallContext(sessionId: string): Promise~Message[]~
-        -remember(sessionId: string, role: string, content: string): Promise~void~
-    }
-    
-    class InMemoryAgentMemory {
-        -memories: Map~string, Memory~
-        +store(memory: Memory): Promise~void~
-        +retrieve(sessionId: string): Promise~Memory~
-        +clear(sessionId: string): Promise~void~
-    }
-    
-    class FileSystemAgentMemory {
-        -basePath: string
-        +constructor(basePath: string)
-        +store(memory: Memory): Promise~void~
-        +retrieve(sessionId: string): Promise~Memory~
-        +clear(sessionId: string): Promise~void~
-        -getFilePath(sessionId: string): string
-    }
-    
-    class OpenAIConnector {
-        -apiKey: string
-        -apiUrl: string
-        -model: string
-        +constructor(options: OpenAIOptions)
-        +complete(options: CompletionOptions): Promise~CompletionResult~
-        +completeStream(options: CompletionOptions): AsyncIterable~CompletionChunk~
-    }
-    
-    class AnthropicConnector {
-        -apiKey: string
-        -apiUrl: string
-        -model: string
-        +constructor(options: AnthropicOptions)
-        +complete(options: CompletionOptions): Promise~CompletionResult~
-        +completeStream(options: CompletionOptions): AsyncIterable~CompletionChunk~
-    }
-    
-    class AgentFactoryImpl {
-        -parserAdapter: DpmlAdapter
-        -processor: DefaultProcessor
-        -transformer: AgentTransformer
-        +constructor(options: AgentFactoryOptions)
-        +createAgent(definition: string): Promise~Agent~
-        -parseDocument(definition: string): Promise~Document~
-        -processDocument(document: Document): Promise~ProcessedDocument~
-        -transformToConfig(document: ProcessedDocument): AgentConfig
-        -instantiateAgent(config: AgentConfig): Agent
-    }
-    
-    class AgentTransformer {
-        +constructor()
-        +transform(doc: ProcessedDocument): AgentConfig
-        -registerVisitors(): void
-    }
-    
-    %% 辅助类
-    class MemoryUtils {
-        <<static>>
-        +truncateConversation(memory: Memory, maxItems: number): Memory
-        +storeUserMessage(memory: AgentMemory, sessionId: string, text: string): Promise~void~
-        +storeAssistantMessage(memory: AgentMemory, sessionId: string, text: string): Promise~void~
+    namespace utils {
+        class MemoryUtils {
+            <<static>>
+            +truncateConversation(memory: Memory, maxItems: number): Memory
+            +storeUserMessage(memory: AgentMemory, sessionId: string, text: string): Promise~void~
+            +storeAssistantMessage(memory: AgentMemory, sessionId: string, text: string): Promise~void~
+        }
     }
     
     %% 关系
@@ -876,14 +959,14 @@ classDiagram
     AgentFactoryImpl ..> AnthropicConnector : 可能创建
 ```
 
-### 8.1 核心接口
+### 9.1 核心接口
 
 - **Agent**: 代理接口，定义代理的基本操作（聊天、流式聊天）
 - **AgentMemory**: 记忆存储接口，管理会话记忆
 - **LLMConnector**: LLM连接器接口，抽象与大语言模型的交互
 - **AgentFactory**: 代理工厂接口，负责创建Agent实例
 
-### 8.2 实现类
+### 9.2 实现类
 
 - **AgentImpl**: Agent接口的默认实现
 - **InMemoryAgentMemory**: 基于内存的记忆存储实现
@@ -892,7 +975,7 @@ classDiagram
 - **AnthropicConnector**: 基于Anthropic API的LLM连接器实现
 - **AgentFactoryImpl**: 代理工厂的默认实现
 
-### 8.3 数据结构
+### 9.3 数据结构
 
 - **Memory**: 记忆基本单元
 - **MemoryItem**: 会话记忆项（通常作为Memory.content的类型）
@@ -900,7 +983,7 @@ classDiagram
 - **ChatOutput**: 代理聊天输出
 - **ChatChunk**: 流式聊天块
 
-### 8.4 设计要点
+### 9.4 设计要点
 
 1. **平衡的命名策略**: 
    - 用户交互层使用拟人化命名（如chat、ChatInput）
@@ -919,9 +1002,9 @@ classDiagram
 - 实现自定义记忆存储策略
 - 在不同环境中灵活配置代理
 
-## 9. 代理创建流程
+## 10. 代理创建流程
 
-### 9.1 创建流程
+### 10.1 创建流程
 
 创建代理的过程使用@dpml/core的解析、处理和转换功能：
 
@@ -946,7 +1029,7 @@ sequenceDiagram
     Factory-->>Client: agent
 ```
 
-### 9.2 实现代码
+### 10.2 实现代码
 
 ```typescript
 export async function createAgent(definition: string): Promise<Agent> {
@@ -980,9 +1063,9 @@ function instantiateAgent(config: AgentConfig): Agent {
 }
 ```
 
-## 10. API设计
+## 11. API设计
 
-### 10.1 公共API
+### 11.1 公共API
 
 Agent包提供以下核心API：
 
@@ -1082,7 +1165,7 @@ type ChatChunk = {
 };
 ```
 
-### 10.2 使用示例
+### 11.2 使用示例
 
 ```typescript
 // 创建并使用代理
