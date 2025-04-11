@@ -167,104 +167,61 @@ interface AgentState {
 
 ### 3.5 记忆系统抽象
 
-Agent包提供灵活的记忆系统抽象，用于管理代理的上下文和长期记忆：
+Agent包提供简洁而灵活的记忆系统抽象，用于管理代理的对话历史和上下文：
 
 ```typescript
 /**
- * 记忆系统抽象接口
- * 提供通用的记忆管理能力，不限定具体实现方式
+ * 记忆基础接口
+ * 表示一个独立的记忆单元
  */
-interface MemorySystem {
-  /**
-   * 存储记忆
-   * @param key 记忆标识
-   * @param value 记忆内容
-   * @param options 存储选项
-   */
-  store(key: string, value: any, options?: StoreOptions): Promise<void>;
+interface Memory {
+  // 唯一标识符（通常是会话ID）
+  id: string;
   
-  /**
-   * 检索记忆
-   * @param query 检索条件
-   * @param options 检索选项
-   */
-  retrieve(query: MemoryQuery, options?: RetrieveOptions): Promise<any>;
+  // 记忆内容（可以是任何类型）
+  content: any;
   
-  /**
-   * 清除记忆
-   * @param filter 清除条件
-   */
-  clear(filter?: ClearFilter): Promise<void>;
-}
-
-/**
- * 记忆存储选项
- */
-interface StoreOptions {
-  // 记忆类型
-  type?: 'conversation' | 'knowledge' | 'state' | string;
-  
-  // 记忆持久性
-  persistence?: 'session' | 'temporary' | 'permanent';
-  
-  // 元数据
+  // 元数据（提供扩展性）
   metadata?: Record<string, any>;
 }
 
 /**
- * 记忆检索查询
+ * 会话记忆项
+ * 默认的对话内容类型
  */
-type MemoryQuery = {
-  // 可以是简单的会话ID
-  sessionId?: string;
+interface MemoryItem {
+  // 内容文本
+  text: string;
   
-  // 或是复杂的结构化查询
-  filter?: Record<string, any>;
+  // 角色（用户、助手、系统）
+  role: 'user' | 'assistant' | 'system';
   
-  // 或是向量搜索查询
-  vector?: number[];
-  similarity?: number;
-  
-  // 或是时间范围查询
-  timeRange?: {
-    from?: Date | number;
-    to?: Date | number;
-  };
-};
-
-/**
- * 记忆检索选项
- */
-interface RetrieveOptions {
-  // 结果数量限制
-  limit?: number;
-  
-  // 排序选项
-  sort?: {
-    field: string;
-    order: 'asc' | 'desc';
-  };
-  
-  // 投影（指定返回哪些字段）
-  projection?: string[];
+  // 创建时间
+  timestamp: number;
 }
 
 /**
- * 记忆清除过滤器
+ * 代理记忆存储
+ * 提供记忆的基本存取功能
  */
-type ClearFilter = {
-  sessionId?: string;
-  type?: string | string[];
-  before?: Date | number;
-  filter?: Record<string, any>;
-};
+interface AgentMemory {
+  // 存储记忆
+  store(memory: Memory): Promise<void>;
+  
+  // 检索会话记忆（返回单个Memory对象，其content通常是MemoryItem数组）
+  retrieve(sessionId: string): Promise<Memory>;
+  
+  // 清除特定会话的记忆
+  clear(sessionId: string): Promise<void>;
+}
 ```
 
-这种灵活的抽象允许实现各种不同类型的记忆系统，包括但不限于：
-- 简单的会话历史记忆
-- 结构化知识存储
-- 向量嵌入记忆
-- 图结构记忆
+这种设计的核心原则：
+
+1. **简洁性**：接口保持最小必要设计，避免过度复杂化
+2. **灵活性**：Memory.content可以容纳任何类型的内容
+3. **可扩展性**：metadata提供了未来扩展的机制
+4. **职责分离**：Memory表示"是什么"，AgentMemory定义"做什么"
 
 ## 4. 标签定义概述
 
@@ -318,341 +275,199 @@ type ClearFilter = {
 
 Agent包的记忆系统设计遵循以下原则：
 
-1. **抽象优先**：定义通用接口，不绑定特定实现
-2. **多样性支持**：支持多种记忆类型和存储方式
-3. **查询灵活性**：提供丰富的查询能力，适应不同场景
-4. **扩展性**：为高级记忆功能预留扩展空间
+1. **最小必要设计**：只提供真正需要的功能，避免过度设计
+2. **通用记忆表示**：使用统一的Memory接口表示不同类型的记忆
+3. **灵活内容模型**：记忆内容可以是简单的消息数组或复杂的结构
+4. **关注点分离**：记忆表示和记忆存储分离，增强可扩展性
 
-### 5.2 记忆系统实现示例
+### 5.2 默认记忆实现
 
-#### 5.2.1 会话记忆实现
-
-最基本的会话记忆实现，用于管理多轮对话历史：
+Agent包提供基于内存的默认实现：
 
 ```typescript
 /**
- * 会话记忆项
+ * 内存存储实现
+ * 基于JavaScript Map的简单实现
  */
-interface ConversationMemoryItem {
-  id: string;
-  content: string;
-  role: 'user' | 'assistant' | 'system';
-  timestamp: number;
-  metadata?: Record<string, any>;
-}
-
-/**
- * 简单会话记忆系统
- */
-class ConversationMemorySystem implements MemorySystem {
-  private sessions: Map<string, ConversationMemoryItem[]> = new Map();
+class InMemoryAgentMemory implements AgentMemory {
+  private memories: Map<string, Memory> = new Map();
   
-  async store(key: string, value: ConversationMemoryItem, options?: StoreOptions): Promise<void> {
-    const sessionId = key || 'default';
-    if (!this.sessions.has(sessionId)) {
-      this.sessions.set(sessionId, []);
-    }
-    const session = this.sessions.get(sessionId);
-    session.push(value);
+  async store(memory: Memory): Promise<void> {
+    this.memories.set(memory.id, memory);
   }
   
-  async retrieve(query: MemoryQuery, options?: RetrieveOptions): Promise<ConversationMemoryItem[]> {
-    const sessionId = query.sessionId || 'default';
-    const limit = options?.limit || 10;
-    
-    const sessionMemory = this.sessions.get(sessionId) || [];
-    
-    // 应用筛选条件
-    let result = sessionMemory;
-    if (query.filter) {
-      result = this.applyFilter(result, query.filter);
+  async retrieve(sessionId: string): Promise<Memory> {
+    const memory = this.memories.get(sessionId);
+    if (!memory) {
+      // 如果不存在，返回空记忆
+      return {
+        id: sessionId,
+        content: [] as MemoryItem[],
+        metadata: { created: Date.now() }
+      };
     }
-    
-    // 应用排序（默认按时间戳降序）
-    result = this.applySort(result, options?.sort);
-    
-    // 应用数量限制
-    if (result.length > limit) {
-      result = result.slice(-limit);
-    }
-    
-    return result;
+    return memory;
   }
   
-  async clear(filter?: ClearFilter): Promise<void> {
-    if (!filter) {
-      // 清除所有会话
-      this.sessions.clear();
-      return;
-    }
-    
-    if (filter.sessionId) {
-      // 清除特定会话
-      this.sessions.delete(filter.sessionId);
-    }
-    
-    // 其他复杂清除逻辑...
-  }
-  
-  private applyFilter(items: ConversationMemoryItem[], filter: Record<string, any>): ConversationMemoryItem[] {
-    // 简单实现，实际系统可能更复杂
-    return items.filter(item => {
-      for (const [key, value] of Object.entries(filter)) {
-        if (key === 'metadata') {
-          for (const [metaKey, metaValue] of Object.entries(value)) {
-            if (item.metadata?.[metaKey] !== metaValue) return false;
-          }
-        } else if (item[key] !== value) {
-          return false;
-        }
-      }
-      return true;
-    });
-  }
-  
-  private applySort(items: ConversationMemoryItem[], sort?: {field: string, order: 'asc' | 'desc'}): ConversationMemoryItem[] {
-    if (!sort) {
-      // 默认按时间戳排序
-      return [...items].sort((a, b) => a.timestamp - b.timestamp);
-    }
-    
-    return [...items].sort((a, b) => {
-      const aValue = a[sort.field];
-      const bValue = b[sort.field];
-      
-      if (sort.order === 'asc') {
-        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-      } else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-      }
-    });
+  async clear(sessionId: string): Promise<void> {
+    this.memories.delete(sessionId);
   }
 }
 ```
 
-#### 5.2.2 向量记忆系统
+### 5.3 记忆存储场景
 
-支持语义搜索的向量记忆系统示例：
+记忆系统支持以下典型场景：
+
+#### 5.3.1 存储新消息
 
 ```typescript
-/**
- * 向量记忆项
- */
-interface VectorMemoryItem {
-  id: string;
-  content: string;
-  embedding: number[];
-  metadata?: Record<string, any>;
-}
-
-/**
- * 向量记忆系统
- * 适用于语义搜索和相似性查询场景
- */
-class VectorMemorySystem implements MemorySystem {
-  private items: VectorMemoryItem[] = [];
-  private embedder: (text: string) => Promise<number[]>;
+// 存储用户消息
+async function storeUserMessage(agentMemory: AgentMemory, sessionId: string, text: string): Promise<void> {
+  // 首先获取现有记忆
+  const memory = await agentMemory.retrieve(sessionId);
   
-  constructor(embedder: (text: string) => Promise<number[]>) {
-    this.embedder = embedder;
-  }
+  // 确保content是MemoryItem数组
+  const items = Array.isArray(memory.content) ? memory.content : [];
   
-  async store(key: string, value: {content: string, metadata?: Record<string, any>}): Promise<void> {
-    // 生成嵌入向量
-    const embedding = await this.embedder(value.content);
-    
-    // 存储记忆项
-    this.items.push({
-      id: key,
-      content: value.content,
-      embedding,
-      metadata: value.metadata
-    });
-  }
+  // 添加新的记忆项
+  items.push({
+    text,
+    role: 'user',
+    timestamp: Date.now()
+  });
   
-  async retrieve(query: MemoryQuery): Promise<VectorMemoryItem[]> {
-    if (!query.vector) {
-      // 如果没有提供向量，尝试从文本生成
-      if (query.filter?.content) {
-        query.vector = await this.embedder(query.filter.content);
-      } else {
-        throw new Error('Vector query requires either a vector or content to embed');
-      }
-    }
-    
-    // 计算相似度并排序
-    const limit = query.limit || 5;
-    const threshold = query.similarity || 0.7;
-    
-    const results = this.items
-      .map(item => ({
-        item,
-        similarity: this.cosineSimilarity(item.embedding, query.vector)
-      }))
-      .filter(result => result.similarity >= threshold)
-      .sort((a, b) => b.similarity - a.similarity)
-      .slice(0, limit)
-      .map(result => result.item);
-      
-    return results;
-  }
-  
-  async clear(filter?: ClearFilter): Promise<void> {
-    if (!filter) {
-      this.items = [];
-      return;
-    }
-    
-    // 应用筛选条件
-    this.items = this.items.filter(item => {
-      if (filter.filter) {
-        // 检查元数据匹配
-        for (const [key, value] of Object.entries(filter.filter)) {
-          if (item.metadata?.[key] !== value) return true;
-        }
-        return false;
-      }
-      return true;
-    });
-  }
-  
-  private cosineSimilarity(a: number[], b: number[]): number {
-    // 计算余弦相似度
-    let dotProduct = 0;
-    let mA = 0;
-    let mB = 0;
-    
-    for (let i = 0; i < a.length; i++) {
-      dotProduct += a[i] * b[i];
-      mA += a[i] * a[i];
-      mB += b[i] * b[i];
-    }
-    
-    mA = Math.sqrt(mA);
-    mB = Math.sqrt(mB);
-    
-    return dotProduct / (mA * mB);
-  }
+  // 更新并存储记忆
+  memory.content = items;
+  await agentMemory.store(memory);
 }
 ```
 
-### 5.3 记忆系统组合
-
-代理可以使用多个记忆系统的组合，处理不同类型的记忆需求：
+#### 5.3.2 构建对话上下文
 
 ```typescript
-/**
- * 组合记忆系统
- * 整合多个专门的记忆系统，根据记忆类型路由到合适的系统
- */
-class CompositeMemorySystem implements MemorySystem {
-  private memorySystems: Map<string, MemorySystem> = new Map();
+// 构建LLM对话上下文
+async function buildConversationContext(agentMemory: AgentMemory, sessionId: string, systemPrompt: string): Promise<Message[]> {
+  // 获取会话记忆
+  const memory = await agentMemory.retrieve(sessionId);
   
-  constructor(systems: Record<string, MemorySystem>) {
-    for (const [type, system] of Object.entries(systems)) {
-      this.memorySystems.set(type, system);
-    }
-  }
+  // 确保content是MemoryItem数组
+  const items = Array.isArray(memory.content) ? memory.content : [];
   
-  async store(key: string, value: any, options?: StoreOptions): Promise<void> {
-    const type = options?.type || 'default';
-    const system = this.getSystemForType(type);
-    await system.store(key, value, options);
-  }
-  
-  async retrieve(query: MemoryQuery, options?: RetrieveOptions): Promise<any> {
-    const type = query.type || 'default';
-    const system = this.getSystemForType(type);
-    return system.retrieve(query, options);
-  }
-  
-  async clear(filter?: ClearFilter): Promise<void> {
-    if (!filter?.type) {
-      // 清除所有系统
-      for (const system of this.memorySystems.values()) {
-        await system.clear(filter);
-      }
-      return;
-    }
-    
-    // 清除特定类型的系统
-    const types = Array.isArray(filter.type) ? filter.type : [filter.type];
-    for (const type of types) {
-      const system = this.memorySystems.get(type);
-      if (system) {
-        await system.clear(filter);
-      }
-    }
-  }
-  
-  private getSystemForType(type: string): MemorySystem {
-    const system = this.memorySystems.get(type);
-    if (!system) {
-      throw new Error(`No memory system registered for type: ${type}`);
-    }
-    return system;
-  }
-}
-```
-
-### 5.4 上下文构建
-
-基于灵活的记忆系统构建LLM上下文：
-
-```typescript
-/**
- * 构建LLM上下文
- */
-async function buildLLMContext(memorySystem: MemorySystem, systemPrompt: string, options: ContextBuildOptions): Promise<LLMContext> {
-  // 检索会话历史
-  const conversationItems = await memorySystem.retrieve({
-    sessionId: options.sessionId,
-    type: 'conversation'
-  }, { limit: options.historyLimit || 10 });
-  
-  // 检索相关知识（如果需要）
-  let knowledgeItems = [];
-  if (options.includeKnowledge && options.currentInput) {
-    knowledgeItems = await memorySystem.retrieve({
-      type: 'knowledge',
-      filter: { content: options.currentInput },
-      vector: options.inputEmbedding
-    }, { limit: options.knowledgeLimit || 5 });
-  }
-  
-  // 构建消息数组
-  const messages = [
-    // 系统提示
-    {
-      role: 'system',
-      content: systemPrompt
-    },
-    
-    // 添加知识上下文（如果有）
-    ...(knowledgeItems.length > 0 ? [{
-      role: 'system',
-      content: `相关上下文信息:\n${knowledgeItems.map(item => item.content).join('\n\n')}`
-    }] : []),
-    
-    // 会话历史
-    ...conversationItems.map(item => ({
-      role: item.role,
-      content: item.content
-    }))
+  // 构建消息数组，首先添加系统提示
+  const messages: Message[] = [
+    { role: 'system', content: systemPrompt }
   ];
   
-  return { messages };
-}
-
-interface ContextBuildOptions {
-  sessionId: string;
-  historyLimit?: number;
-  includeKnowledge?: boolean;
-  knowledgeLimit?: number;
-  currentInput?: string;
-  inputEmbedding?: number[];
+  // 添加对话历史
+  for (const item of items) {
+    messages.push({
+      role: item.role,
+      content: item.text
+    });
+  }
+  
+  return messages;
 }
 ```
+
+### 5.4 记忆系统扩展
+
+基于简洁的基础设计，记忆系统可以通过多种方式扩展：
+
+#### 5.4.1 持久化存储
+
+```typescript
+/**
+ * 基于文件系统的持久化记忆实现
+ */
+class FileSystemAgentMemory implements AgentMemory {
+  private basePath: string;
+  
+  constructor(basePath: string) {
+    this.basePath = basePath;
+    // 确保目录存在
+    if (!fs.existsSync(basePath)) {
+      fs.mkdirSync(basePath, { recursive: true });
+    }
+  }
+  
+  private getFilePath(sessionId: string): string {
+    return path.join(this.basePath, `${sessionId}.json`);
+  }
+  
+  async store(memory: Memory): Promise<void> {
+    const filePath = this.getFilePath(memory.id);
+    await fs.promises.writeFile(
+      filePath, 
+      JSON.stringify(memory, null, 2)
+    );
+  }
+  
+  async retrieve(sessionId: string): Promise<Memory> {
+    const filePath = this.getFilePath(sessionId);
+    
+    try {
+      const data = await fs.promises.readFile(filePath, 'utf-8');
+      return JSON.parse(data) as Memory;
+    } catch (error) {
+      // 文件不存在或读取错误，返回空记忆
+      return {
+        id: sessionId,
+        content: [] as MemoryItem[],
+        metadata: { created: Date.now() }
+      };
+    }
+  }
+  
+  async clear(sessionId: string): Promise<void> {
+    const filePath = this.getFilePath(sessionId);
+    try {
+      await fs.promises.unlink(filePath);
+    } catch (error) {
+      // 如果文件不存在，忽略错误
+    }
+  }
+}
+```
+
+#### 5.4.2 会话记忆管理
+
+对于长对话，可以实现记忆管理策略：
+
+```typescript
+/**
+ * 记忆管理帮助函数：截断超长对话
+ */
+function truncateConversation(memory: Memory, maxItems: number): Memory {
+  if (!Array.isArray(memory.content)) {
+    return memory;
+  }
+  
+  const items = memory.content as MemoryItem[];
+  if (items.length <= maxItems) {
+    return memory;
+  }
+  
+  // 保留system消息和最近的消息
+  const systemMessages = items.filter(item => item.role === 'system');
+  const recentMessages = items
+    .filter(item => item.role !== 'system')
+    .slice(-maxItems + systemMessages.length);
+  
+  return {
+    ...memory,
+    content: [...systemMessages, ...recentMessages],
+    metadata: {
+      ...memory.metadata,
+      truncated: true,
+      originalLength: items.length
+    }
+  };
+}
+```
+
+记忆系统通过这种简洁而灵活的设计，既满足了当前的基本需求，又为未来的功能演进预留了空间，实现了"设计为扩展"的良好实践。
 
 ## 6. 继承机制
 
