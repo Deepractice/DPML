@@ -29,6 +29,9 @@ export * from './memory';
 // 导出事件系统模块
 export * from './events';
 
+// 导出错误处理模块
+export * from './errors';
+
 // 导出代理模块
 export * from './agent';
 
