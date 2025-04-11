@@ -32,8 +32,8 @@ classDiagram
         +createAgent(definition: string): Agent
     }
     class Agent {
-        +run(input: RunInput): Promise<RunOutput>
-        +runStream(input: RunInput): AsyncIterable<OutputChunk>
+        +chat(input: ChatInput): Promise<ChatOutput>
+        +chatStream(input: ChatInput): AsyncIterable<ChatChunk>
     }
     class LLMConnector {
         +complete(options: CompletionOptions): Promise<CompletionResult>
@@ -471,25 +471,10 @@ function truncateConversation(memory: Memory, maxItems: number): Memory {
 
 ## 6. 继承机制
 
-### 6.1 代理继承原理
-
-代理定义支持通过`extends`属性继承其他代理的内容和属性，这一功能利用@dpml/core的继承处理机制实现：
+Agent包利用@dpml/core提供的继承机制，支持代理定义的复用和扩展。通过在`<agent>`标签上使用`extends`属性，可以从基础代理定义继承并覆盖特定配置：
 
 ```xml
-<!-- 基础代理定义 -->
-<agent id="base-assistant">
-  <llm 
-    api-type="openai" 
-    model="gpt-4-turbo" 
-    key-env="OPENAI_API_KEY"
-  />
-  
-  <prompt>
-    你是一个有帮助的助手。
-  </prompt>
-</agent>
-
-<!-- 继承和扩展代理 -->
+<!-- 继承示例 -->
 <agent id="specialized-assistant" extends="./base-assistant.dpml">
   <prompt>
     你是一个专注于科学问题的助手，擅长解释复杂概念。
@@ -497,33 +482,7 @@ function truncateConversation(memory: Memory, maxItems: number): Memory {
 </agent>
 ```
 
-### 6.2 继承规则
-
-Agent包利用Core包提供的继承处理机制，遵循以下规则：
-
-1. **属性继承**：子标签可以继承父标签的属性，子标签的同名属性会覆盖父标签
-2. **子标签继承**：
-   - 如果子代理定义了父代理没有的子标签，则添加该子标签
-   - 如果子代理定义了父代理已有的子标签，则覆盖该子标签
-   - 如果子代理未定义父代理已有的子标签，则继承父代理的子标签
-3. **跨文件继承**：支持通过路径引用其他文件中的代理定义
-4. **多级继承**：支持继承链，子代理可以继承父代理，父代理继承祖父代理
-
-### 6.3 跨文件继承
-
-支持从其他文件继承代理定义：
-
-```xml
-<!-- 从本地文件继承 -->
-<agent id="research-assistant" extends="./templates/base-assistant.dpml">
-  <!-- 覆盖或添加子标签 -->
-</agent>
-
-<!-- 从远程文件继承 -->
-<agent id="customer-service" extends="https://example.com/templates/cs-agent.dpml">
-  <!-- 覆盖或添加子标签 -->
-</agent>
-```
+继承机制是@dpml/core包的核心特性，支持属性继承、子标签继承以及跨文件继承。Agent包直接复用这一机制，无需重新实现，这保证了DPML生态系统中继承行为的一致性。
 
 ## 7. 标签处理器设计
 
@@ -733,9 +692,236 @@ graph TD
 - 处理标签的继承和引用
 - 实现标签特定的转换逻辑
 
-## 8. 代理创建流程
+## 8. 类图设计
 
-### 8.1 创建流程
+下图展示了@dpml/agent包的核心接口、实现类和它们之间的关系：
+
+```mermaid
+classDiagram
+    %% 核心接口
+    class Agent {
+        <<interface>>
+        +id: string
+        +version: string
+        +chat(input: ChatInput): Promise~ChatOutput~
+        +chatStream(input: ChatInput): AsyncIterable~ChatChunk~
+    }
+    
+    class AgentMemory {
+        <<interface>>
+        +store(memory: Memory): Promise~void~
+        +retrieve(sessionId: string): Promise~Memory~
+        +clear(sessionId: string): Promise~void~
+    }
+    
+    class LLMConnector {
+        <<interface>>
+        +complete(options: CompletionOptions): Promise~CompletionResult~
+        +completeStream(options: CompletionOptions): AsyncIterable~CompletionChunk~
+    }
+    
+    class AgentFactory {
+        <<interface>>
+        +createAgent(definition: string): Promise~Agent~
+    }
+    
+    %% 数据结构
+    class Memory {
+        +id: string
+        +content: any
+        +metadata?: Record~string, any~
+    }
+    
+    class MemoryItem {
+        +text: string
+        +role: string
+        +timestamp: number
+    }
+    
+    class ChatInput {
+        +input: string
+        +sessionId?: string
+        +metadata?: Record~string, any~
+    }
+    
+    class ChatOutput {
+        +output: string
+        +usage?: TokenUsage
+        +metadata?: Record~string, any~
+    }
+    
+    class ChatChunk {
+        +type: string
+        +content: string
+        +metadata?: Record~string, any~
+    }
+    
+    class CompletionOptions {
+        +model: string
+        +messages: Message[]
+        +temperature?: number
+        +maxTokens?: number
+    }
+    
+    class CompletionResult {
+        +text: string
+        +usage: TokenUsage
+        +metadata: Record~string, any~
+    }
+    
+    class CompletionChunk {
+        +text: string
+        +isComplete: boolean
+        +metadata?: Record~string, any~
+    }
+    
+    %% 实现类
+    class AgentImpl {
+        -id: string
+        -version: string
+        -llmConnector: LLMConnector
+        -memory: AgentMemory
+        -promptText: string
+        +constructor(options: AgentOptions)
+        +chat(input: ChatInput): Promise~ChatOutput~
+        +chatStream(input: ChatInput): AsyncIterable~ChatChunk~
+        -recallContext(sessionId: string): Promise~Message[]~
+        -remember(sessionId: string, role: string, content: string): Promise~void~
+    }
+    
+    class InMemoryAgentMemory {
+        -memories: Map~string, Memory~
+        +store(memory: Memory): Promise~void~
+        +retrieve(sessionId: string): Promise~Memory~
+        +clear(sessionId: string): Promise~void~
+    }
+    
+    class FileSystemAgentMemory {
+        -basePath: string
+        +constructor(basePath: string)
+        +store(memory: Memory): Promise~void~
+        +retrieve(sessionId: string): Promise~Memory~
+        +clear(sessionId: string): Promise~void~
+        -getFilePath(sessionId: string): string
+    }
+    
+    class OpenAIConnector {
+        -apiKey: string
+        -apiUrl: string
+        -model: string
+        +constructor(options: OpenAIOptions)
+        +complete(options: CompletionOptions): Promise~CompletionResult~
+        +completeStream(options: CompletionOptions): AsyncIterable~CompletionChunk~
+    }
+    
+    class AnthropicConnector {
+        -apiKey: string
+        -apiUrl: string
+        -model: string
+        +constructor(options: AnthropicOptions)
+        +complete(options: CompletionOptions): Promise~CompletionResult~
+        +completeStream(options: CompletionOptions): AsyncIterable~CompletionChunk~
+    }
+    
+    class AgentFactoryImpl {
+        -parserAdapter: DpmlAdapter
+        -processor: DefaultProcessor
+        -transformer: AgentTransformer
+        +constructor(options: AgentFactoryOptions)
+        +createAgent(definition: string): Promise~Agent~
+        -parseDocument(definition: string): Promise~Document~
+        -processDocument(document: Document): Promise~ProcessedDocument~
+        -transformToConfig(document: ProcessedDocument): AgentConfig
+        -instantiateAgent(config: AgentConfig): Agent
+    }
+    
+    class AgentTransformer {
+        +constructor()
+        +transform(doc: ProcessedDocument): AgentConfig
+        -registerVisitors(): void
+    }
+    
+    %% 辅助类
+    class MemoryUtils {
+        <<static>>
+        +truncateConversation(memory: Memory, maxItems: number): Memory
+        +storeUserMessage(memory: AgentMemory, sessionId: string, text: string): Promise~void~
+        +storeAssistantMessage(memory: AgentMemory, sessionId: string, text: string): Promise~void~
+    }
+    
+    %% 关系
+    Agent <|.. AgentImpl : 实现
+    AgentMemory <|.. InMemoryAgentMemory : 实现
+    AgentMemory <|.. FileSystemAgentMemory : 实现
+    LLMConnector <|.. OpenAIConnector : 实现
+    LLMConnector <|.. AnthropicConnector : 实现
+    AgentFactory <|.. AgentFactoryImpl : 实现
+    
+    AgentImpl --> LLMConnector : 使用
+    AgentImpl --> AgentMemory : 使用
+    AgentFactoryImpl --> AgentTransformer : 使用
+    
+    Memory "1" *-- "many" MemoryItem : 包含
+    AgentImpl ..> Memory : 创建/使用
+    AgentImpl ..> ChatOutput : 创建
+    AgentImpl ..> ChatChunk : 创建
+    OpenAIConnector ..> CompletionResult : 创建
+    OpenAIConnector ..> CompletionChunk : 创建
+    AnthropicConnector ..> CompletionResult : 创建
+    AnthropicConnector ..> CompletionChunk : 创建
+    
+    AgentFactoryImpl ..> AgentImpl : 创建
+    AgentFactoryImpl ..> InMemoryAgentMemory : 创建(默认)
+    AgentFactoryImpl ..> OpenAIConnector : 可能创建
+    AgentFactoryImpl ..> AnthropicConnector : 可能创建
+```
+
+### 8.1 核心接口
+
+- **Agent**: 代理接口，定义代理的基本操作（聊天、流式聊天）
+- **AgentMemory**: 记忆存储接口，管理会话记忆
+- **LLMConnector**: LLM连接器接口，抽象与大语言模型的交互
+- **AgentFactory**: 代理工厂接口，负责创建Agent实例
+
+### 8.2 实现类
+
+- **AgentImpl**: Agent接口的默认实现
+- **InMemoryAgentMemory**: 基于内存的记忆存储实现
+- **FileSystemAgentMemory**: 基于文件系统的记忆存储实现
+- **OpenAIConnector**: 基于OpenAI API的LLM连接器实现
+- **AnthropicConnector**: 基于Anthropic API的LLM连接器实现
+- **AgentFactoryImpl**: 代理工厂的默认实现
+
+### 8.3 数据结构
+
+- **Memory**: 记忆基本单元
+- **MemoryItem**: 会话记忆项（通常作为Memory.content的类型）
+- **ChatInput**: 代理聊天输入
+- **ChatOutput**: 代理聊天输出
+- **ChatChunk**: 流式聊天块
+
+### 8.4 设计要点
+
+1. **平衡的命名策略**: 
+   - 用户交互层使用拟人化命名（如chat、ChatInput）
+   - 底层技术实现保持技术性命名（如LLMConnector、store）
+   - 反映系统的双重性质：对外表现为智能体，内部基于计算机技术
+
+2. **接口分离**: 通过明确的接口定义确保组件之间的低耦合
+3. **依赖注入**: AgentImpl通过构造函数注入LLMConnector和AgentMemory
+4. **工厂模式**: 使用AgentFactory创建和配置Agent实例
+5. **策略模式**: LLMConnector的不同实现可以互相替换
+6. **组合优于继承**: 使用组合关系构建系统，而非复杂的继承层次
+
+通过这种设计，开发人员可以:
+- 替换任何组件的实现而不影响其他部分
+- 轻松扩展新的LLM提供商支持
+- 实现自定义记忆存储策略
+- 在不同环境中灵活配置代理
+
+## 9. 代理创建流程
+
+### 9.1 创建流程
 
 创建代理的过程使用@dpml/core的解析、处理和转换功能：
 
@@ -760,7 +946,7 @@ sequenceDiagram
     Factory-->>Client: agent
 ```
 
-### 8.2 实现代码
+### 9.2 实现代码
 
 ```typescript
 export async function createAgent(definition: string): Promise<Agent> {
@@ -781,7 +967,7 @@ function instantiateAgent(config: AgentConfig): Agent {
   const llmConnector = createLLMConnector(config.llm);
   
   // 创建记忆系统
-  const memorySystem = new SimpleContextMemory();
+  const memorySystem = new InMemoryAgentMemory();
   
   // 创建并返回代理实例
   return new AgentImpl({
@@ -794,9 +980,9 @@ function instantiateAgent(config: AgentConfig): Agent {
 }
 ```
 
-## 9. API设计
+## 10. API设计
 
-### 9.1 公共API
+### 10.1 公共API
 
 Agent包提供以下核心API：
 
@@ -821,20 +1007,20 @@ interface Agent {
   readonly version: string;
   
   /**
-   * 运行代理
+   * 与代理聊天
    */
-  run(input: RunInput): Promise<RunOutput>;
+  chat(input: ChatInput): Promise<ChatOutput>;
   
   /**
-   * 流式运行代理
+   * 流式聊天
    */
-  runStream(input: RunInput): AsyncIterable<OutputChunk>;
+  chatStream(input: ChatInput): AsyncIterable<ChatChunk>;
 }
 
 /**
- * 运行输入
+ * 聊天输入
  */
-interface RunInput {
+interface ChatInput {
   /**
    * 用户输入文本
    */
@@ -852,9 +1038,9 @@ interface RunInput {
 }
 
 /**
- * 运行输出
+ * 聊天输出
  */
-interface RunOutput {
+interface ChatOutput {
   /**
    * 代理输出文本
    */
@@ -876,9 +1062,9 @@ interface RunOutput {
 }
 
 /**
- * 输出块
+ * 聊天块
  */
-type OutputChunk = {
+type ChatChunk = {
   /**
    * 块类型
    */
@@ -896,7 +1082,7 @@ type OutputChunk = {
 };
 ```
 
-### 9.2 使用示例
+### 10.2 使用示例
 
 ```typescript
 // 创建并使用代理
@@ -916,7 +1102,7 @@ async function main() {
     const sessionId = 'user-123';
     
     // 第一轮对话
-    const result1 = await agent.run({
+    const result1 = await agent.chat({
       input: '中国历史上有哪些重要的朝代？',
       sessionId
     });
@@ -924,17 +1110,17 @@ async function main() {
     console.log('代理回复:', result1.output);
     
     // 第二轮对话 (引用上一轮对话)
-    const result2 = await agent.run({
+    const result2 = await agent.chat({
       input: '在你刚才提到的历史中，哪个时期最重要？',
       sessionId // 同一会话，代理能够记住前一轮对话内容
     });
     
     console.log('代理回复:', result2.output);
     
-    // 流式运行示例
-    console.log('流式运行示例:');
+    // 流式聊天示例
+    console.log('流式聊天示例:');
     
-    for await (const chunk of agent.runStream({ 
+    for await (const chunk of agent.chatStream({ 
       input: '什么是深度学习？',
       sessionId
     })) {
@@ -946,7 +1132,7 @@ async function main() {
     }
     
   } catch (error) {
-    console.error('运行代理时出错:', error);
+    console.error('与代理聊天时出错:', error);
   }
 }
 
@@ -982,7 +1168,7 @@ async function createSpecializedAgent() {
     const agent = await createAgent(definition);
     
     // 运行代理
-    const result = await agent.run({
+    const result = await agent.chat({
       input: '请解释量子纠缠的概念'
     });
     
