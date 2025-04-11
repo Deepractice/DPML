@@ -8,6 +8,7 @@
 
 import { Element, ProcessingContext, ValidationError, ValidationWarning, AbstractTagProcessor } from '@dpml/core';
 import { LLMTagAttributes } from '../../types';
+import { ApiKeyManager, ApiKeyError, ApiKeyErrorCode } from '../../apiKey';
 
 /**
  * 支持的API类型列表
@@ -75,12 +76,21 @@ export class LLMTagProcessor extends AbstractTagProcessor {
       }
     }
     
+    // 获取备用密钥环境变量
+    const backupKeyEnvs: string[] = [];
+    for (const key in attributes) {
+      if (key.startsWith('backup-key-env-') && attributes[key]) {
+        backupKeyEnvs.push(attributes[key]);
+      }
+    }
+    
     // 返回LLM特定的元数据
     return {
       apiType,
       apiUrl,
       model,
       keyEnv,
+      backupKeyEnvs,
       temperature,
       attributes
     };
@@ -131,12 +141,40 @@ export class LLMTagProcessor extends AbstractTagProcessor {
       });
     }
     
+    // 创建API密钥管理器用于验证
+    const keyManager = new ApiKeyManager(apiType as any);
+    
     // 验证key-env环境变量是否存在
-    if (keyEnv && !process.env[keyEnv]) {
+    if (keyEnv) {
+      // 检查环境变量是否存在，但不实际获取密钥值
+      if (!process.env[keyEnv]) {
+        warnings.push({
+          code: 'MISSING_ENV_VARIABLE',
+          message: `环境变量${keyEnv}不存在或未设置`
+        });
+      } else {
+        // 不进行格式验证，避免同步调用异步方法
+        // 实际验证将在运行时由ApiKeyManager执行
+      }
+    } else if (apiType !== 'custom') {
+      // 如果不是自定义API类型且未指定key-env，发出警告
       warnings.push({
-        code: 'MISSING_ENV_VARIABLE',
-        message: `环境变量${keyEnv}不存在或未设置`
+        code: 'MISSING_KEY_ENV',
+        message: '建议设置key-env属性以指定API密钥的环境变量'
       });
+    }
+    
+    // 验证备用密钥环境变量
+    for (const key in attributes) {
+      if (key.startsWith('backup-key-env-') && attributes[key]) {
+        const backupEnvName = attributes[key];
+        if (!process.env[backupEnvName]) {
+          warnings.push({
+            code: 'MISSING_BACKUP_ENV_VARIABLE',
+            message: `备用环境变量${backupEnvName}不存在或未设置`
+          });
+        }
+      }
     }
     
     // 验证temperature值是否有效

@@ -12,6 +12,9 @@ export * from './tags';
 // 导出类型定义
 export * from './types';
 
+// 导出API密钥管理模块
+export * from './apiKey';
+
 /**
  * Agent模块的初始占位函数
  * 将在后续实现实际功能
