@@ -12,4 +12,7 @@ export { promptTagDefinition } from './definitions/promptTag';
 
 // 导出标签验证函数
 export { validateAgentTag } from './definitions/agentTag';
-export { validateLLMTag } from './definitions/llmTag'; 
+export { validateLLMTag } from './definitions/llmTag';
+
+// 导出标签处理器
+export * from './processors'; 
