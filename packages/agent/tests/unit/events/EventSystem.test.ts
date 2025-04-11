@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { EventSystem } from '../EventSystem';
-import { EventType } from '../EventTypes';
-import { DefaultEventSystem } from '../DefaultEventSystem';
+import { EventSystem } from '../../../src/events/EventSystem';
+import { EventType, EventData } from '../../../src/events/EventTypes';
+import { DefaultEventSystem } from '../../../src/events/DefaultEventSystem';
 
 describe('EventSystem', () => {
   let eventSystem: EventSystem;
@@ -14,7 +14,10 @@ describe('EventSystem', () => {
   it('should register and trigger events correctly', async () => {
     const listener = vi.fn();
     const eventType = EventType.AGENT_INITIALIZED;
-    const eventData = { agentId: 'test-agent' };
+    const eventData: EventData = { 
+      agentId: 'test-agent',
+      timestamp: Date.now()
+    };
 
     const listenerId = eventSystem.on(eventType, listener);
     expect(listenerId).toBeTypeOf('string');
@@ -32,15 +35,15 @@ describe('EventSystem', () => {
   it('should trigger lifecycle events in the expected order', async () => {
     const events: string[] = [];
     
-    eventSystem.on(EventType.AGENT_INITIALIZING, () => events.push('initializing'));
-    eventSystem.on(EventType.AGENT_INITIALIZED, () => events.push('initialized'));
-    eventSystem.on(EventType.CHAT_STARTED, () => events.push('chat_started'));
-    eventSystem.on(EventType.CHAT_COMPLETED, () => events.push('chat_completed'));
+    eventSystem.on(EventType.AGENT_INITIALIZING, () => { events.push('initializing'); });
+    eventSystem.on(EventType.AGENT_INITIALIZED, () => { events.push('initialized'); });
+    eventSystem.on(EventType.CHAT_STARTED, () => { events.push('chat_started'); });
+    eventSystem.on(EventType.CHAT_COMPLETED, () => { events.push('chat_completed'); });
     
-    eventSystem.emit(EventType.AGENT_INITIALIZING, {});
-    eventSystem.emit(EventType.AGENT_INITIALIZED, {});
-    eventSystem.emit(EventType.CHAT_STARTED, {});
-    eventSystem.emit(EventType.CHAT_COMPLETED, {});
+    eventSystem.emit(EventType.AGENT_INITIALIZING, { timestamp: Date.now() });
+    eventSystem.emit(EventType.AGENT_INITIALIZED, { timestamp: Date.now() });
+    eventSystem.emit(EventType.CHAT_STARTED, { timestamp: Date.now() });
+    eventSystem.emit(EventType.CHAT_COMPLETED, { timestamp: Date.now() });
     
     // 等待异步事件处理完成
     await new Promise(resolve => setTimeout(resolve, 10));
@@ -52,15 +55,15 @@ describe('EventSystem', () => {
   it('should trigger processing phase events correctly', async () => {
     const events: string[] = [];
     
-    eventSystem.on(EventType.PROMPT_BUILDING, () => events.push('prompt_building'));
-    eventSystem.on(EventType.PROMPT_BUILT, () => events.push('prompt_built'));
-    eventSystem.on(EventType.LLM_REQUEST_STARTED, () => events.push('llm_request_started'));
-    eventSystem.on(EventType.LLM_REQUEST_COMPLETED, () => events.push('llm_request_completed'));
+    eventSystem.on(EventType.PROMPT_BUILDING, () => { events.push('prompt_building'); });
+    eventSystem.on(EventType.PROMPT_BUILT, () => { events.push('prompt_built'); });
+    eventSystem.on(EventType.LLM_REQUEST_STARTED, () => { events.push('llm_request_started'); });
+    eventSystem.on(EventType.LLM_REQUEST_COMPLETED, () => { events.push('llm_request_completed'); });
     
-    eventSystem.emit(EventType.PROMPT_BUILDING, {});
-    eventSystem.emit(EventType.PROMPT_BUILT, {});
-    eventSystem.emit(EventType.LLM_REQUEST_STARTED, {});
-    eventSystem.emit(EventType.LLM_REQUEST_COMPLETED, {});
+    eventSystem.emit(EventType.PROMPT_BUILDING, { timestamp: Date.now() });
+    eventSystem.emit(EventType.PROMPT_BUILT, { timestamp: Date.now() });
+    eventSystem.emit(EventType.LLM_REQUEST_STARTED, { timestamp: Date.now() });
+    eventSystem.emit(EventType.LLM_REQUEST_COMPLETED, { timestamp: Date.now() });
     
     // 等待异步事件处理完成
     await new Promise(resolve => setTimeout(resolve, 10));
@@ -87,7 +90,7 @@ describe('EventSystem', () => {
       result.push('async2');
     });
     
-    eventSystem.emit(EventType.CHAT_STARTED, {});
+    eventSystem.emit(EventType.CHAT_STARTED, { timestamp: Date.now() });
     
     // 等待异步回调完成
     await new Promise(resolve => setTimeout(resolve, 30));
@@ -105,7 +108,7 @@ describe('EventSystem', () => {
     });
     
     expect(() => {
-      eventSystem.emit(EventType.CHAT_STARTED, {});
+      eventSystem.emit(EventType.CHAT_STARTED, { timestamp: Date.now() });
     }).not.toThrow();
     
     // 等待异步事件处理完成
@@ -118,7 +121,7 @@ describe('EventSystem', () => {
   // 测试用例 UT-EV-006: 事件参数传递
   it('should correctly pass parameters to event handlers', async () => {
     const listener = vi.fn();
-    const eventData = {
+    const eventData: EventData = {
       agentId: 'test-agent',
       sessionId: 'test-session',
       timestamp: Date.now(),
@@ -143,7 +146,7 @@ describe('EventSystem', () => {
     const id1 = eventSystem.on(EventType.CHAT_STARTED, listener1);
     const id2 = eventSystem.on(EventType.CHAT_STARTED, listener2);
     
-    eventSystem.emit(EventType.CHAT_STARTED, {});
+    eventSystem.emit(EventType.CHAT_STARTED, { timestamp: Date.now() });
     
     // 等待异步事件处理完成
     await new Promise(resolve => setTimeout(resolve, 10));
@@ -157,7 +160,7 @@ describe('EventSystem', () => {
     const removed = eventSystem.off(id1);
     expect(removed).toBe(true);
     
-    eventSystem.emit(EventType.CHAT_STARTED, {});
+    eventSystem.emit(EventType.CHAT_STARTED, { timestamp: Date.now() });
     
     // 等待异步事件处理完成
     await new Promise(resolve => setTimeout(resolve, 10));
@@ -173,11 +176,11 @@ describe('EventSystem', () => {
   it('should handle synchronous event emission with emitAsync', async () => {
     const events: string[] = [];
     
-    eventSystem.on(EventType.AGENT_INITIALIZING, () => events.push('initializing'));
-    eventSystem.on(EventType.AGENT_INITIALIZED, () => events.push('initialized'));
+    eventSystem.on(EventType.AGENT_INITIALIZING, () => { events.push('initializing'); });
+    eventSystem.on(EventType.AGENT_INITIALIZED, () => { events.push('initialized'); });
     
-    await eventSystem.emitAsync(EventType.AGENT_INITIALIZING, {});
-    await eventSystem.emitAsync(EventType.AGENT_INITIALIZED, {});
+    await eventSystem.emitAsync(EventType.AGENT_INITIALIZING, { timestamp: Date.now() });
+    await eventSystem.emitAsync(EventType.AGENT_INITIALIZED, { timestamp: Date.now() });
     
     expect(events).toEqual(['initializing', 'initialized']);
   });
