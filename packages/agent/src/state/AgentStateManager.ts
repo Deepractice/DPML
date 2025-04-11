@@ -1,4 +1,5 @@
 import { AgentState, AgentStatus, AgentStateEvent } from './AgentState';
+import { EventSystem } from '../events';
 
 /**
  * 代理状态管理器选项
@@ -18,6 +19,9 @@ export interface AgentStateManagerOptions {
   
   /** 超时检测间隔（毫秒） */
   timeoutCheckIntervalMs?: number;
+  
+  /** 事件系统，用于触发事件 */
+  eventSystem?: EventSystem;
 }
 
 /**

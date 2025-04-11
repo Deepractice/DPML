@@ -9,6 +9,7 @@ import {
 } from './AgentState';
 import { AgentStateManager, AgentStateManagerOptions } from './AgentStateManager';
 import { AGENT_STATE_TRANSITIONS } from './AgentState';
+import { EventSystem, EventType, getGlobalEventSystem } from '../events';
 
 /**
  * 事件监听器接口
@@ -50,6 +51,9 @@ export class InMemoryAgentStateManager implements AgentStateManager {
   /** 事件监听器列表 */
   private eventListeners: EventListener[];
   
+  /** 事件系统 */
+  private eventSystem: EventSystem;
+  
   /** 超时检测定时器ID */
   private timeoutDetectionInterval: NodeJS.Timeout | null;
   
@@ -67,6 +71,9 @@ export class InMemoryAgentStateManager implements AgentStateManager {
     this.states = new Map<string, AgentState>();
     this.eventListeners = [];
     this.timeoutDetectionInterval = null;
+    
+    // 使用全局事件系统
+    this.eventSystem = options.eventSystem || getGlobalEventSystem();
   }
   
   /**
@@ -375,7 +382,7 @@ export class InMemoryAgentStateManager implements AgentStateManager {
       return;
     }
     
-    // 查找对应事件的监听器
+    // 使用旧的事件监听器系统
     const listeners = this.eventListeners.filter(
       listener => listener.event === event
     );
@@ -390,6 +397,31 @@ export class InMemoryAgentStateManager implements AgentStateManager {
         }
       }
     }, 0);
+    
+    // 同时使用新的事件系统
+    // 将旧的事件类型映射到新的事件类型
+    let newEventType: EventType | null = null;
+    
+    switch (event) {
+      case 'state:change':
+        newEventType = EventType.STATE_CHANGED;
+        break;
+      case 'state:error':
+        newEventType = EventType.STATE_ERROR;
+        break;
+      case 'state:timeout':
+        newEventType = EventType.STATE_TIMEOUT;
+        break;
+      case 'state:reset':
+        // 没有直接对应的事件类型，使用STATE_CHANGED
+        newEventType = EventType.STATE_CHANGED;
+        data = { ...data, reason: 'reset' };
+        break;
+    }
+    
+    if (newEventType) {
+      this.eventSystem.emit(newEventType, data);
+    }
   }
   
   /**
