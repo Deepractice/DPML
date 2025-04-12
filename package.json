@@ -10,13 +10,11 @@
     "test": "turbo run test",
     "clean": "turbo run clean && rm -rf node_modules",
     "swc": "node -r @swc-node/register",
-    
     "r": "pnpm -w exec --",
     "prompt": "pnpm --filter @dpml/prompt exec --",
     "core": "pnpm --filter @dpml/core exec --",
     "agent": "pnpm --filter @dpml/agent exec --",
     "workflow": "pnpm --filter @dpml/workflow exec --",
-    
     "prompt:test": "pnpm --filter @dpml/prompt test",
     "core:test": "pnpm --filter @dpml/core test",
     "prompt:dev": "pnpm --filter @dpml/prompt dev",
@@ -34,15 +32,20 @@
   "devDependencies": {
     "@swc-node/register": "^1.10.10",
     "@swc/core": "^1.11.18",
+    "@type-challenges/utils": "^0.1.1",
     "@types/node": "^22.14.0",
     "@typescript-eslint/eslint-plugin": "8.29.0",
     "@typescript-eslint/parser": "8.29.0",
     "eslint": "9.23.0",
     "eslint-config-prettier": "10.1.1",
     "prettier": "3.5.3",
+    "reflect-metadata": "^0.2.0",
+    "ts-auto-mock": "^3.6.2",
     "tsup": "8.4.0",
+    "ttypescript": "^1.5.15",
     "turbo": "2.4.4",
-    "typescript": "5.8.2"
+    "typescript": "5.8.2",
+    "vitest": "^3.1.1"
   },
   "dependencies": {
     "fast-xml-parser": "^5.2.0"
