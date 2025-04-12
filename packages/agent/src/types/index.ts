@@ -16,11 +16,6 @@ export interface AgentTagAttributes {
   version?: string;
   
   /**
-   * 继承的代理ID
-   */
-  extends?: string;
-  
-  /**
    * 代理类型
    */
   type?: string;
@@ -64,5 +59,8 @@ export interface LLMTagAttributes {
 }
 
 export interface PromptTagAttributes {
-  extends?: string;
+  /**
+   * 其他属性
+   */
+  [key: string]: string | undefined;
 } 
