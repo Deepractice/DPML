@@ -8,6 +8,14 @@ export default defineConfig({
     coverage: {
       reporter: ['text', 'json', 'html'],
     },
+    setupFiles: ['./vitest.setup.ts'],
+    typecheck: {
+      checker: 'typescript',
+      tsconfig: './tsconfig.json'
+    },
+    deps: {
+      inline: [/ts-auto-mock/]
+    }
   },
   resolve: {
     alias: {

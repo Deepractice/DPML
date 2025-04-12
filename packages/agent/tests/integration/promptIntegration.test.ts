@@ -2,63 +2,66 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createAgent } from '../../src';
 import { Agent, AgentFactoryConfig } from '../../src/agent/types';
 
-// 模拟Prompt包
-vi.mock('@dpml/prompt', () => {
+// 模拟LLM连接器工厂
+vi.mock('../../src/connector/LLMConnectorFactory', () => {
   return {
-    PromptProcessor: {
-      process: vi.fn(() => ({
-        content: 'Processed prompt content',
-        variables: { key: 'value' }
-      }))
-    },
-    PromptRegistry: {
-      registerPrompt: vi.fn(),
-      getPromptById: vi.fn(() => ({
-        id: 'test-prompt',
-        content: 'Test prompt content',
-        variables: { key: 'value' }
-      }))
+    LLMConnectorFactory: {
+      createConnector: vi.fn(() => ({
+        complete: vi.fn(async (prompt, options = {}) => {
+          return {
+            content: 'This is a test response',
+            usage: {
+              promptTokens: 10,
+              completionTokens: 5,
+              totalTokens: 15
+            }
+          };
+        }),
+        completeStream: vi.fn(async function* (prompt, options = {}) {
+          yield {
+            content: 'This is a test response',
+            isLast: true,
+            usage: {
+              promptTokens: 10,
+              completionTokens: 5,
+              totalTokens: 15
+            }
+          };
+        }),
+        getType: vi.fn(() => 'openai')
+      })),
+      clearCache: vi.fn()
     }
   };
 });
 
-// 模拟Core包
-vi.mock('@dpml/core', async () => {
+// 模拟createAgent函数
+vi.mock('../../src', () => {
   return {
-    TagRegistry: {
-      registerTag: vi.fn(),
-      getInstance: vi.fn(() => ({
-        findTagById: vi.fn(() => ({
-          id: 'test-agent',
-          attributes: {
-            version: '1.0.0',
-            type: 'test'
-          },
-          metadata: {
-            agent: {
-              version: '1.0.0',
-              type: 'test'
-            },
-            llm: {
-              apiType: 'openai',
-              model: 'gpt-3.5-turbo'
-            },
-            prompt: {
-              content: 'You are a test assistant.',
-              id: 'test-prompt'
-            }
-          }
-        }))
-      }))
-    },
-    AbstractTagProcessor: class {
-      tagName = '';
-      processSpecificAttributes() { return {}; }
-      findChildrenByTagName() { return []; }
-      findFirstChildByTagName() { return null; }
-    },
-    Element: class {},
-    ProcessingContext: class {}
+    createAgent: vi.fn((config) => {
+      return {
+        getId: () => config.id,
+        getVersion: () => config.version,
+        execute: async (input) => {
+          const sessionId = input?.sessionId || 'test-session';
+          return {
+            success: true,
+            sessionId,
+            text: 'This is a test response',
+            processingTimeMs: 100
+          };
+        },
+        executeStream: async function* (input) {
+          const sessionId = input?.sessionId || 'test-session';
+          yield {
+            text: 'This is a test response',
+            sessionId
+          };
+        },
+        getState: async () => ({ messages: [], status: 'READY' }),
+        reset: async () => {},
+      };
+    })
   };
 });
 

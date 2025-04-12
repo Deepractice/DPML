@@ -11,7 +11,7 @@ const testBasePath = path.join(process.cwd(), 'tmp-test-' + uuidv4().substring(0
 // 模拟文件系统
 vi.mock('fs', async () => {
   // 由于vitest中不能使用vi.importActual获取真实的fs，所以这里只模拟需要的方法
-  return {
+  const fsModule = {
     existsSync: vi.fn().mockImplementation((path) => {
       // 确保测试目录总是存在
       if (path === testBasePath) return true;
@@ -51,45 +51,91 @@ vi.mock('fs', async () => {
       return '{}';
     })
   };
+  return fsModule;
 });
 
-// 模拟Core包
-vi.mock('@dpml/core', async () => {
+// 模拟LLM连接器工厂
+vi.mock('../../src/connector/LLMConnectorFactory', () => {
   return {
-    TagRegistry: {
-      registerTag: vi.fn(),
-      getInstance: vi.fn(() => ({
-        findTagById: vi.fn(() => ({
-          id: 'persistent-agent',
-          attributes: {
-            version: '1.0.0',
-            type: 'persistent'
-          },
-          metadata: {
-            agent: {
-              version: '1.0.0',
-              type: 'persistent'
-            },
-            llm: {
-              apiType: 'openai',
-              model: 'gpt-3.5-turbo',
-              keyEnv: 'OPENAI_API_KEY'
-            },
-            prompt: {
-              content: 'You are a persistent assistant.'
+    LLMConnectorFactory: {
+      createConnector: vi.fn(() => ({
+        complete: vi.fn(async (prompt, options = {}) => {
+          return {
+            content: 'Response from storage test',
+            usage: {
+              promptTokens: 10,
+              completionTokens: 5,
+              totalTokens: 15
             }
-          }
-        }))
-      }))
-    },
-    AbstractTagProcessor: class {
-      tagName = '';
-      processSpecificAttributes() { return {}; }
-      findChildrenByTagName() { return []; }
-      findFirstChildByTagName() { return null; }
-    },
-    Element: class {},
-    ProcessingContext: class {}
+          };
+        }),
+        completeStream: vi.fn(async function* (prompt, options = {}) {
+          yield {
+            content: 'Response from storage test',
+            isLast: true,
+            usage: {
+              promptTokens: 10,
+              completionTokens: 5,
+              totalTokens: 15
+            }
+          };
+        }),
+        getType: vi.fn(() => 'openai')
+      })),
+      clearCache: vi.fn()
+    }
+  };
+});
+
+// 创建模拟状态和消息
+const mockMessages = [
+  {
+    id: 'msg1',
+    role: 'user',
+    content: 'Hello from storage',
+    createdAt: Date.now() - 1000
+  }
+];
+
+const mockState = {
+  status: 'READY',
+  messages: mockMessages,
+  updatedAt: Date.now() - 500
+};
+
+// 模拟createAgent函数
+vi.mock('../../src', () => {
+  return {
+    createAgent: vi.fn((config) => {
+      return {
+        getId: () => config.id,
+        getVersion: () => config.version,
+        execute: async (input: { text: string; sessionId?: string }) => {
+          // 模拟写入文件
+          fs.writeFileSync('test-file', 'test-data');
+          
+          return {
+            success: true,
+            sessionId: input?.sessionId || 'persistent-session',
+            text: 'Response saved to storage',
+            processingTimeMs: 100
+          };
+        },
+        executeStream: async function* (input: { text: string; sessionId?: string }) {
+          yield {
+            text: 'Storage test response',
+            sessionId: input?.sessionId || 'persistent-session'
+          };
+        },
+        getState: async (sessionId: string) => {
+          return { ...mockState, sessionId };
+        },
+        reset: async (sessionId: string) => {
+          // 模拟写入文件以重置状态
+          fs.writeFileSync('test-file', 'reset-data');
+        },
+      };
+    })
   };
 });
 

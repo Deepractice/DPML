@@ -405,10 +405,10 @@ export class AgentImpl implements Agent {
       return {
         text: result.content,
         sessionId,
-        finishReason: 'done',
+        finishReason: "done",
+        usage: result.usage,
         processingTimeMs,
-        success: true,
-        usage: result.usage
+        success: true
       };
     } catch (error) {
       // 计算处理时间
@@ -443,9 +443,9 @@ export class AgentImpl implements Agent {
       // 返回错误结果
       const errorMessage = error instanceof Error ? error.message : String(error);
       return {
-        text: `执行出错: ${errorMessage}`,
+        text: errorMessage,
         sessionId,
-        finishReason: 'error',
+        finishReason: "error",
         processingTimeMs,
         success: false,
         error: errorMessage
@@ -620,20 +620,34 @@ export class AgentImpl implements Agent {
     
     // 处理流式响应
     try {
+      let previousContent = '';
       for await (const chunk of stream.stream) {
+        // 计算新增的内容部分
+        const newContent = chunk.content;
+        
         // 更新完整内容
-        stream.fullContent += chunk.content;
+        stream.fullContent += newContent;
         
         // 更新token计数
         stream.tokens++;
         
-        // 产生响应块
+        // 产生完整响应块
         yield {
           sessionId: stream.sessionId,
-          text: chunk.content,
+          text: newContent, // 只返回新增的部分而不是累积的全部内容
+          timestamp: new Date().toISOString(),
           isLast: chunk.isLast,
-          finishReason: chunk.finishReason
+          finishReason: chunk.finishReason,
+          processingTimeMs: Date.now() - stream.startTime,
+          success: true,
+          usage: {
+            promptTokens: 0, // 暂无法获取精确值
+            completionTokens: stream.tokens,
+            totalTokens: stream.tokens
+          }
         };
+        
+        previousContent = stream.fullContent;
         
         // 如果是最后一块，处理完成逻辑
         if (chunk.isLast) {
@@ -712,8 +726,10 @@ export class AgentImpl implements Agent {
       yield {
         sessionId: stream.sessionId,
         text: errorMessage,
+        timestamp: new Date().toISOString(),
         isLast: true,
         finishReason: 'error',
+        success: false,
         error: errorMessage
       };
     }
