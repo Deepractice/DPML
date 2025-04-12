@@ -45,7 +45,7 @@ export interface LLMTagAttributes {
   /**
    * API端点URL
    */
-  'api-url'?: string;
+  'api-url': string;
   
   /**
    * 模型名称
@@ -61,11 +61,6 @@ export interface LLMTagAttributes {
    * 温度参数
    */
   'temperature'?: string;
-  
-  /**
-   * 继承的LLM配置ID
-   */
-  'extends'?: string;
   
   /**
    * 其他属性

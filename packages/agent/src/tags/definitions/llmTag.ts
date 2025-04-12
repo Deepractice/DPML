@@ -1,11 +1,37 @@
 import { Element, ValidationResult, ValidationError, ValidationWarning } from '@dpml/core';
 
 /**
+ * 检查URL是否有效
+ */
+function isValidUrl(url: string): boolean {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * llm标签验证函数
  */
 export function validateLLMTag(element: Element, context: any): ValidationResult {
   const errors: ValidationError[] = [];
   const warnings: ValidationWarning[] = [];
+  
+  // 验证api-url是否为有效URL
+  const apiUrl = element.attributes['api-url'];
+  if (!apiUrl) {
+    errors.push({
+      code: 'MISSING_REQUIRED_ATTRIBUTE',
+      message: 'LLM标签必须包含api-url属性'
+    });
+  } else if (!isValidUrl(apiUrl)) {
+    errors.push({
+      code: 'INVALID_API_URL',
+      message: `API URL无效: ${apiUrl}`
+    });
+  }
   
   // 验证api-type是否为支持的类型
   const apiType = element.attributes['api-type'];
@@ -36,15 +62,14 @@ export const llmTagDefinition = {
   name: 'llm',
   allowedParents: ['agent'], // 只能在agent标签内
   allowedChildren: [], // 无子标签
-  requiredAttributes: ['model'], // 必需属性
-  optionalAttributes: ['api-type', 'api-url', 'key-env', 'temperature', 'extends'], // 可选属性
+  requiredAttributes: ['model', 'api-url'], // 必需属性，增加了api-url
+  optionalAttributes: ['api-type', 'key-env', 'temperature'], // 可选属性，移除了extends
   attributeTypes: {
     'api-type': 'string',
     'model': 'string',
     'api-url': 'string',
     'key-env': 'string',
-    'temperature': 'number',
-    'extends': 'string'
+    'temperature': 'number'
   },
   validator: validateLLMTag
 }; 

@@ -8,8 +8,6 @@ export const promptTagDefinition = {
   name: 'prompt',
   allowedParents: ['agent'],
   allowedChildren: [], // 内部结构由prompt包处理
-  optionalAttributes: ['extends'],
-  attributeTypes: {
-    'extends': 'string'
-  }
+  optionalAttributes: [], // 移除了extends
+  attributeTypes: {}
 }; 

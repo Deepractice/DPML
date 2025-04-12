@@ -108,7 +108,7 @@ describe('Agent标签定义与注册', () => {
     // 检查重复ID的验证
     if (validation2.errors) {
       expect(validation2.errors.some(error => error.code === 'DUPLICATE_ID'))
-        .toBe(false); // 当前validateAgentTag实现没有检查重复ID
+        .toBe(true); // 现在validateAgentTag实现应该检查重复ID
     }
   });
 }); 

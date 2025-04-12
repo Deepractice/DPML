@@ -16,6 +16,14 @@ export function validateAgentTag(element: Element, context: any): ValidationResu
     });
   }
   
+  // 检查ID是否重复
+  if (id && context.ids && context.ids.has(id)) {
+    errors.push({
+      code: 'DUPLICATE_ID',
+      message: `ID "${id}" 已被使用`
+    });
+  }
+  
   // 验证是否缺少必要的子标签
   const hasLLM = element.children.some((child: any) => 
     isElement(child) && child.tagName === 'llm'
@@ -50,11 +58,10 @@ export const agentTagDefinition = {
   allowedParents: [], // 顶层标签，无父标签限制
   allowedChildren: ['llm', 'prompt'], // 允许的子标签
   requiredAttributes: ['id'], // 必需属性
-  optionalAttributes: ['version', 'extends'], // 可选属性
+  optionalAttributes: ['version'], // 可选属性，移除了extends
   attributeTypes: { // 属性类型定义
     id: 'string',
-    version: 'string',
-    extends: 'string'
+    version: 'string'
   },
   validator: validateAgentTag // 自定义验证函数
 }; 
