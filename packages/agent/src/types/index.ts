@@ -58,11 +58,6 @@ export interface LLMTagAttributes {
   'key-env'?: string;
   
   /**
-   * 温度参数
-   */
-  'temperature'?: string;
-  
-  /**
    * 其他属性
    */
   [key: string]: string | undefined;

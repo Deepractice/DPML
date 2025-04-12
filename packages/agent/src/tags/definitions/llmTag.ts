@@ -63,13 +63,12 @@ export const llmTagDefinition = {
   allowedParents: ['agent'], // 只能在agent标签内
   allowedChildren: [], // 无子标签
   requiredAttributes: ['model', 'api-url'], // 必需属性，增加了api-url
-  optionalAttributes: ['api-type', 'key-env', 'temperature'], // 可选属性，移除了extends
+  optionalAttributes: ['api-type', 'key-env'], // 可选属性，移除了extends和temperature
   attributeTypes: {
     'api-type': 'string',
     'model': 'string',
     'api-url': 'string',
-    'key-env': 'string',
-    'temperature': 'number'
+    'key-env': 'string'
   },
   validator: validateLLMTag
 }; 
