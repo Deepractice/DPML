@@ -60,9 +60,13 @@ describe('LLMTagProcessor', () => {
 
   // 创建LLM元素辅助函数
   function createLLMElement(attributes: Record<string, any> = {}, children: any[] = []): Element {
-    // 确保元素至少有model属性
+    // 确保元素至少有model属性和api-url属性
     if (!attributes.model && !attributes['model']) {
       attributes.model = 'gpt-4-turbo';
+    }
+    
+    if (!attributes['api-url'] && !attributes.apiUrl) {
+      attributes['api-url'] = 'https://api.openai.com/v1';
     }
     
     // 设置默认的key-env属性，除非明确指定为不同的值或null
@@ -91,8 +95,7 @@ describe('LLMTagProcessor', () => {
     const element = createLLMElement({
       'api-type': 'openai',
       'api-url': 'https://api.openai.com/v1',
-      'model': 'gpt-4-turbo',
-      'temperature': '0.7'
+      'model': 'gpt-4-turbo'
     });
     
     // 创建处理上下文
@@ -108,7 +111,6 @@ describe('LLMTagProcessor', () => {
     expect(result.metadata?.llm.apiUrl).toBe('https://api.openai.com/v1');
     expect(result.metadata?.llm.model).toBe('gpt-4-turbo');
     expect(result.metadata?.llm.keyEnv).toBe('TEST_API_KEY');
-    expect(result.metadata?.llm.temperature).toBe(0.7);
     
     // 验证处理标记
     expect(result.metadata?.processed).toBe(true);
@@ -171,6 +173,13 @@ describe('LLMTagProcessor', () => {
       'model': 'gpt-4-turbo'
     });
     
+    // 创建缺少URL的元素
+    const missingUrlElement = createLLMElement({
+      'api-type': 'openai',
+      'model': 'gpt-4-turbo'
+    });
+    delete missingUrlElement.attributes['api-url'];
+    
     // 创建处理上下文
     const context = createContext();
     
@@ -179,16 +188,24 @@ describe('LLMTagProcessor', () => {
     
     // 验证有效元素处理结果
     expect(validResult.metadata?.llm.apiUrl).toBe('https://api.openai.com/v1');
-    expect(validResult.metadata?.validationWarnings).toBeUndefined();
+    expect(validResult.metadata?.validationErrors).toBeUndefined();
     
     // 处理无效元素
     const invalidResult = await processor.process(invalidElement, context);
     
-    // 验证无效元素处理结果，应该有警告
+    // 验证无效元素处理结果，应该有错误
     expect(invalidResult.metadata?.llm.apiUrl).toBe('invalid-url');
-    expect(invalidResult.metadata?.validationWarnings).toBeDefined();
-    expect(invalidResult.metadata?.validationWarnings?.length).toBeGreaterThan(0);
-    expect(invalidResult.metadata?.validationWarnings?.[0].code).toBe('INVALID_API_URL');
+    expect(invalidResult.metadata?.validationErrors).toBeDefined();
+    expect(invalidResult.metadata?.validationErrors?.length).toBeGreaterThan(0);
+    expect(invalidResult.metadata?.validationErrors?.[0].code).toBe('INVALID_API_URL');
+    
+    // 处理缺少URL的元素
+    const missingUrlResult = await processor.process(missingUrlElement, context);
+    
+    // 验证缺少URL的处理结果，应该有错误
+    expect(missingUrlResult.metadata?.validationErrors).toBeDefined();
+    expect(missingUrlResult.metadata?.validationErrors?.length).toBeGreaterThan(0);
+    expect(missingUrlResult.metadata?.validationErrors?.[0].code).toBe('MISSING_REQUIRED_ATTRIBUTE');
   });
 
   it('UT-LP-004: 应安全处理key-env属性', async () => {
@@ -292,7 +309,7 @@ describe('LLMTagProcessor', () => {
     // 处理元素
     const result = await processor.process(element, context);
     
-    // 验证extends属性被正确记录
+    // 验证extends属性已被AbstractTagProcessor处理
     expect(result.metadata?.llm.extends).toBe('base-llm');
   });
 }); 

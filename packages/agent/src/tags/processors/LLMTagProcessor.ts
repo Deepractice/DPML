@@ -65,16 +65,6 @@ export class LLMTagProcessor extends AbstractTagProcessor {
     const apiUrl = attributes['api-url'];
     const model = attributes['model'];
     const keyEnv = attributes['key-env'];
-    const tempStr = attributes['temperature'];
-    
-    // 处理temperature属性，转换为数值
-    let temperature: number | undefined;
-    if (tempStr !== undefined) {
-      temperature = parseFloat(tempStr);
-      if (isNaN(temperature)) {
-        temperature = undefined;
-      }
-    }
     
     // 获取备用密钥环境变量
     const backupKeyEnvs: string[] = [];
@@ -91,7 +81,6 @@ export class LLMTagProcessor extends AbstractTagProcessor {
       model,
       keyEnv,
       backupKeyEnvs,
-      temperature,
       attributes
     };
   }
@@ -115,7 +104,6 @@ export class LLMTagProcessor extends AbstractTagProcessor {
     const apiUrl = attributes['api-url'];
     const model = attributes['model'];
     const keyEnv = attributes['key-env'];
-    const tempStr = attributes['temperature'];
     
     // 验证model属性
     if (!model) {
@@ -125,19 +113,25 @@ export class LLMTagProcessor extends AbstractTagProcessor {
       });
     }
     
+    // 验证api-url是否存在
+    if (!apiUrl) {
+      errors.push({
+        code: 'MISSING_REQUIRED_ATTRIBUTE',
+        message: 'LLM标签必须包含api-url属性'
+      });
+    } else if (!isValidUrl(apiUrl)) {
+      // 验证api-url是否为有效URL
+      errors.push({
+        code: 'INVALID_API_URL',
+        message: `API URL无效: ${apiUrl}`
+      });
+    }
+    
     // 验证api-type是否为支持的类型
     if (apiType && !SUPPORTED_API_TYPES.includes(apiType)) {
       warnings.push({
         code: 'UNSUPPORTED_API_TYPE',
         message: `不支持的API类型: ${apiType}。支持的类型: ${SUPPORTED_API_TYPES.join(', ')}`
-      });
-    }
-    
-    // 验证api-url是否为有效URL
-    if (apiUrl && !isValidUrl(apiUrl)) {
-      warnings.push({
-        code: 'INVALID_API_URL',
-        message: `API URL无效: ${apiUrl}`
       });
     }
     
@@ -175,14 +169,6 @@ export class LLMTagProcessor extends AbstractTagProcessor {
           });
         }
       }
-    }
-    
-    // 验证temperature值是否有效
-    if (tempStr !== undefined && isNaN(parseFloat(tempStr))) {
-      warnings.push({
-        code: 'INVALID_TEMPERATURE',
-        message: `temperature值无效，应为数字: ${tempStr}`
-      });
     }
     
     return { errors, warnings };
