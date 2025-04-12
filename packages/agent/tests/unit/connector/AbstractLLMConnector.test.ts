@@ -245,7 +245,7 @@ describe('AbstractLLMConnector', () => {
       
       // 修改executeCompletion方法，使其在检测到取消信号时抛出错误
       vi.spyOn(connector as any, 'executeCompletion').mockImplementationOnce(
-        async (opts: any, abortSignal: AbortSignal) => {
+        async function mockExecuteCompletion(opts: any, abortSignal: any) {
           // 返回一个永不完成的Promise，这样我们可以在它完成前取消它
           return new Promise((resolve, reject) => {
             // 添加取消监听器
@@ -280,11 +280,16 @@ describe('AbstractLLMConnector', () => {
       // 验证请求被移除
       expect(activeRequests.has(requestId)).toBe(false);
       
-      // 验证promise被拒绝并且抛出正确类型的错误
-      await expect(promise).rejects.toThrow(LLMConnectorError);
-      await expect(promise).rejects.toMatchObject({
-        type: LLMErrorType.ABORTED
-      });
+      // 使用try-catch而不是expect().rejects
+      try {
+        await promise;
+        // 如果没有抛出错误，测试应该失败
+        expect.fail('应该抛出错误但没有');
+      } catch (error) {
+        // 验证错误类型和属性
+        expect(error).toBeInstanceOf(LLMConnectorError);
+        expect((error as LLMConnectorError).type).toBe(LLMErrorType.ABORTED);
+      }
     });
     
     it('应中止所有请求', async () => {
@@ -292,7 +297,7 @@ describe('AbstractLLMConnector', () => {
       const executeSpy = vi.spyOn(connector as any, 'executeCompletion');
       
       executeSpy.mockImplementation(
-        async (opts: any, abortSignal: AbortSignal) => {
+        async function mockExecution(opts: any, abortSignal: any) {
           // 返回一个永不完成的Promise，这样我们可以在它完成前取消它
           return new Promise((resolve, reject) => {
             // 添加取消监听器
@@ -339,16 +344,26 @@ describe('AbstractLLMConnector', () => {
       // 验证所有请求被移除
       expect(activeRequests.size).toBe(0);
       
-      // 验证promise被拒绝并且抛出正确类型的错误
-      await expect(promise1).rejects.toThrow(LLMConnectorError);
-      await expect(promise1).rejects.toMatchObject({
-        type: LLMErrorType.ABORTED
-      });
+      // 使用try-catch而不是expect().rejects
+      try {
+        await promise1;
+        // 如果没有抛出错误，测试应该失败
+        expect.fail('promise1应该抛出错误但没有');
+      } catch (error) {
+        // 验证错误类型和属性
+        expect(error).toBeInstanceOf(LLMConnectorError);
+        expect((error as LLMConnectorError).type).toBe(LLMErrorType.ABORTED);
+      }
       
-      await expect(promise2).rejects.toThrow(LLMConnectorError);
-      await expect(promise2).rejects.toMatchObject({
-        type: LLMErrorType.ABORTED
-      });
+      try {
+        await promise2;
+        // 如果没有抛出错误，测试应该失败
+        expect.fail('promise2应该抛出错误但没有');
+      } catch (error) {
+        // 验证错误类型和属性
+        expect(error).toBeInstanceOf(LLMConnectorError);
+        expect((error as LLMConnectorError).type).toBe(LLMErrorType.ABORTED);
+      }
     });
   });
   

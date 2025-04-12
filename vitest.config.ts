@@ -5,7 +5,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     typecheck: {
-      tscompiler: 'ttypescript',
+      checker: 'typescript',
       include: ['**/*.{test,spec}.{ts,tsx}']
     },
     deps: {
