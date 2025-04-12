@@ -243,6 +243,30 @@ describe('AbstractLLMConnector', () => {
         model: 'test-model'
       };
       
+      // 修改executeCompletion方法，使其在检测到取消信号时抛出错误
+      vi.spyOn(connector as any, 'executeCompletion').mockImplementationOnce(
+        async (opts: any, abortSignal: AbortSignal) => {
+          // 返回一个永不完成的Promise，这样我们可以在它完成前取消它
+          return new Promise((resolve, reject) => {
+            // 添加取消监听器
+            abortSignal.addEventListener('abort', () => {
+              reject(new Error('AbortError'));
+            });
+            
+            // 添加一个超时，以防测试卡住
+            setTimeout(() => {
+              resolve({
+                content: 'This should not be returned',
+                usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 },
+                finishReason: 'stop',
+                requestId: 'test-request',
+                model: 'test-model'
+              });
+            }, 5000);
+          });
+        }
+      );
+      
       // 开始请求但不等待完成
       const promise = connector.complete(options);
       
@@ -256,15 +280,40 @@ describe('AbstractLLMConnector', () => {
       // 验证请求被移除
       expect(activeRequests.has(requestId)).toBe(false);
       
-      // 清理
-      try {
-        await promise;
-      } catch (error) {
-        // 忽略预期的错误
-      }
+      // 验证promise被拒绝并且抛出正确类型的错误
+      await expect(promise).rejects.toThrow(LLMConnectorError);
+      await expect(promise).rejects.toMatchObject({
+        type: LLMErrorType.ABORTED
+      });
     });
     
     it('应中止所有请求', async () => {
+      // 修改executeCompletion方法，使其在检测到取消信号时抛出错误
+      const executeSpy = vi.spyOn(connector as any, 'executeCompletion');
+      
+      executeSpy.mockImplementation(
+        async (opts: any, abortSignal: AbortSignal) => {
+          // 返回一个永不完成的Promise，这样我们可以在它完成前取消它
+          return new Promise((resolve, reject) => {
+            // 添加取消监听器
+            abortSignal.addEventListener('abort', () => {
+              reject(new Error('AbortError'));
+            });
+            
+            // 添加一个超时，以防测试卡住
+            setTimeout(() => {
+              resolve({
+                content: 'This should not be returned',
+                usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 },
+                finishReason: 'stop',
+                requestId: 'test-request',
+                model: 'test-model'
+              });
+            }, 5000);
+          });
+        }
+      );
+      
       // 启动多个请求
       const options1: CompletionOptions = {
         messages: [{ role: 'user', content: 'Hello 1' }],
@@ -290,13 +339,16 @@ describe('AbstractLLMConnector', () => {
       // 验证所有请求被移除
       expect(activeRequests.size).toBe(0);
       
-      // 清理
-      try {
-        await promise1;
-        await promise2;
-      } catch (error) {
-        // 忽略预期的错误
-      }
+      // 验证promise被拒绝并且抛出正确类型的错误
+      await expect(promise1).rejects.toThrow(LLMConnectorError);
+      await expect(promise1).rejects.toMatchObject({
+        type: LLMErrorType.ABORTED
+      });
+      
+      await expect(promise2).rejects.toThrow(LLMConnectorError);
+      await expect(promise2).rejects.toMatchObject({
+        type: LLMErrorType.ABORTED
+      });
     });
   });
   
