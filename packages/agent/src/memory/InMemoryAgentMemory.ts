@@ -269,8 +269,9 @@ export class InMemoryAgentMemory implements AgentMemory {
 
     const items = memory.content as MemoryItem[];
     
-    // 计算压缩后应保留的条目数
-    const targetCount = Math.floor(this.compressionConfig.threshold * this.compressionConfig.ratio);
+    // 确保使用正确的目标数量 (如果有maxItems设置)
+    const targetCount = this.maxItems || 
+      Math.floor(this.compressionConfig.threshold * this.compressionConfig.ratio);
     
     if (items.length <= targetCount) {
       return memory;
@@ -280,7 +281,7 @@ export class InMemoryAgentMemory implements AgentMemory {
     const systemMessages = items.filter(item => item.role === 'system');
     
     // 计算需要从非系统消息中保留的数量
-    const nonSystemToKeep = targetCount - systemMessages.length;
+    const nonSystemToKeep = Math.max(0, targetCount - systemMessages.length);
     
     if (nonSystemToKeep <= 0) {
       // 如果只能保留系统消息，则只返回系统消息
@@ -302,7 +303,7 @@ export class InMemoryAgentMemory implements AgentMemory {
     // 1. 保留最近的一半消息
     // 2. 从剩余的消息中均匀采样
     
-    const recentCount = Math.floor(nonSystemToKeep / 2);
+    const recentCount = Math.ceil(nonSystemToKeep / 2);
     const recentMessages = nonSystemMessages.slice(-recentCount);
     
     // 从较早的消息中采样
@@ -310,9 +311,10 @@ export class InMemoryAgentMemory implements AgentMemory {
     const sampledOlderMessages = this.sampleMessages(olderMessages, nonSystemToKeep - recentCount);
     
     // 合并消息并按原始顺序排序
-    const selectedNonSystemMessages = [...sampledOlderMessages, ...recentMessages];
+    const selectedNonSystemMessages = [...sampledOlderMessages, ...recentMessages]
+      .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
     
-    // 合并所有消息
+    // 返回压缩后的记忆
     return {
       ...memory,
       content: [...systemMessages, ...selectedNonSystemMessages],
@@ -370,17 +372,26 @@ export class InMemoryAgentMemory implements AgentMemory {
 
     // 保留system消息和最近的消息
     const systemMessages = items.filter(item => item.role === 'system');
+    
+    // 计算可以保留的非系统消息数量
+    const nonSystemToKeep = Math.max(0, this.maxItems - systemMessages.length);
+    
+    // 获取最近的非系统消息
     const recentMessages = items
       .filter(item => item.role !== 'system')
-      .slice(-this.maxItems + systemMessages.length);
+      .slice(-nonSystemToKeep);
+
+    // 确保总数为maxItems
+    const finalContent = [...systemMessages, ...recentMessages];
 
     return {
       ...memory,
-      content: [...systemMessages, ...recentMessages],
+      content: finalContent,
       metadata: {
         ...memory.metadata,
         truncated: true,
-        originalLength: items.length
+        originalLength: items.length,
+        truncationTime: Date.now()
       }
     };
   }

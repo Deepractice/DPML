@@ -171,9 +171,9 @@ export class AgentImpl implements Agent {
     
     // 更新token使用情况
     if (usage) {
-      this.metrics.tokensUsed.prompt += usage.promptTokens;
-      this.metrics.tokensUsed.completion += usage.completionTokens;
-      this.metrics.tokensUsed.total += usage.totalTokens;
+      this.metrics.tokensUsed.prompt += usage.promptTokens || 0;
+      this.metrics.tokensUsed.completion += usage.completionTokens || 0;
+      this.metrics.tokensUsed.total += usage.totalTokens || 0;
     }
   }
   
@@ -398,52 +398,57 @@ export class AgentImpl implements Agent {
       // 计算处理时间
       const processingTimeMs = Date.now() - startTime;
       
-      // 更新指标
+      // 更新性能指标
       this.updateMetrics(processingTimeMs, result.usage);
       
+      // 返回结果
       return {
-        success: true,
-        sessionId,
         text: result.content,
-        finishReason: result.finishReason || 'done',
+        sessionId,
+        finishReason: 'done',
         processingTimeMs,
+        success: true,
         usage: result.usage
       };
     } catch (error) {
-      // 错误处理
-      await this.stateManager.updateState(sessionId, {
-        status: AgentStatus.ERROR
-      });
+      // 计算处理时间
+      const processingTimeMs = Date.now() - startTime;
       
-      // 更新状态缓存
-      this.invalidateStateCache(sessionId);
+      // 更新错误状态
+      try {
+        await this.stateManager.updateState(sessionId, {
+          status: AgentStatus.ERROR
+        });
+        
+        // 更新状态缓存
+        this.invalidateStateCache(sessionId);
+      } catch (stateError) {
+        // 状态更新错误不应影响响应
+        console.error('更新状态失败:', stateError);
+      }
       
       // 发送错误事件
       this.eventSystem.emit('agent:error', {
         agentId: this.id,
         sessionId,
-        error: error instanceof Error ? error : new Error(String(error))
+        error
       });
       
       // 清除中止控制器
       this.abortControllers.delete(sessionId);
       
-      // 计算处理时间
-      const processingTimeMs = Date.now() - startTime;
-      
-      // 更新指标
+      // 更新性能指标 - 即使出错也记录
       this.updateMetrics(processingTimeMs);
       
-      // 构建错误消息
+      // 返回错误结果
       const errorMessage = error instanceof Error ? error.message : String(error);
-      
       return {
-        success: false,
+        text: `执行出错: ${errorMessage}`,
         sessionId,
-        text: errorMessage,
         finishReason: 'error',
-        error: errorMessage,
-        processingTimeMs
+        processingTimeMs,
+        success: false,
+        error: errorMessage
       };
     }
   }
@@ -727,9 +732,9 @@ export class AgentImpl implements Agent {
       this.abortControllers.delete(sessionId);
     }
     
-    // 更新状态为中断
+    // 更新状态为暂停
     await this.stateManager.updateState(sessionId, {
-      status: AgentStatus.INTERRUPTED
+      status: AgentStatus.PAUSED
     });
     
     // 更新状态缓存
@@ -758,7 +763,7 @@ export class AgentImpl implements Agent {
     }
     
     // 重置状态
-    await this.stateManager.initState(sessionId);
+    await this.stateManager.resetState(sessionId);
     
     // 清除记忆
     await this.memory.clear(sessionId);

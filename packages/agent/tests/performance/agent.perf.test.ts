@@ -179,6 +179,35 @@ describe('代理执行性能测试', () => {
   });
   
   test('性能指标收集正确工作', async () => {
+    // 修改mock实现，确保usage被传递
+    mockConnector.complete.mockImplementation(() => {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          resolve({
+            content: '这是模拟响应',
+            model: 'gpt-3.5-turbo',
+            usage: {
+              promptTokens: 10,
+              completionTokens: 20,
+              totalTokens: 30
+            }
+          });
+        }, 50);
+      });
+    });
+    
+    // 重置metrics
+    (agent as any).metrics = {
+      requestsProcessed: 0,
+      tokensUsed: {
+        prompt: 0,
+        completion: 0,
+        total: 0
+      },
+      averageResponseTime: 0,
+      totalProcessingTime: 0
+    };
+    
     // 执行几个请求
     await agent.execute({ text: '请求1', sessionId: 'metrics-session-1' });
     await agent.execute({ text: '请求2', sessionId: 'metrics-session-2' });

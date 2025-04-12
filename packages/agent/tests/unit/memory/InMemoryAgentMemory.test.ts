@@ -143,6 +143,9 @@ describe('InMemoryAgentMemory', () => {
         maxItems: 5
       });
       
+      // 强制使用truncateMemory而不是compressMemory
+      (compressManager as any).shouldCompress = () => false;
+      
       // 创建超过限制的记忆
       const testMemory: Memory = {
         id: testSessionId,
@@ -163,7 +166,7 @@ describe('InMemoryAgentMemory', () => {
       // 检索记忆
       const retrievedMemory = await compressManager.retrieve(testSessionId);
       
-      // 验证记忆被压缩了
+      // 验证记忆被截断了
       expect(retrievedMemory.content).toHaveLength(5); // 最大条目数
       expect(retrievedMemory.metadata?.truncated).toBe(true);
       expect(retrievedMemory.metadata?.originalLength).toBe(7);

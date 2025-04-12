@@ -45,6 +45,12 @@ export abstract class AbstractLLMConnector implements LLMConnector {
   protected requestCache: Map<string, RequestCacheItem> = new Map();
   
   /**
+   * 正在进行中的请求映射
+   * 用于合并相同的同时请求
+   */
+  protected pendingRequests: Map<string, Promise<CompletionResult>> = new Map();
+  
+  /**
    * 缓存生存时间(毫秒)
    * 默认5分钟
    */
@@ -202,9 +208,11 @@ export abstract class AbstractLLMConnector implements LLMConnector {
    * @param options 完成选项
    */
   async complete(options: CompletionOptions): Promise<CompletionResult> {
+    // 生成请求哈希，用于缓存和请求合并
+    const requestHash = this.generateRequestHash(options);
+    
     // 检查缓存是否可用
     if (options.useCache !== false) {
-      const requestHash = this.generateRequestHash(options);
       const cachedItem = this.requestCache.get(requestHash);
       
       // 如果有缓存且未过期，直接返回
@@ -212,8 +220,22 @@ export abstract class AbstractLLMConnector implements LLMConnector {
         return {...cachedItem.result};
       }
       
-      // 使用请求队列限制并发
-      return this.enqueueRequest(async () => {
+      // 检查是否有相同请求正在进行中
+      const pendingRequest = this.pendingRequests.get(requestHash);
+      if (pendingRequest) {
+        // 复用已经在进行中的相同请求
+        return await pendingRequest;
+      }
+      
+      // 使用请求队列限制并发，并添加到进行中请求
+      const requestPromise = this.enqueueRequest(async () => {
+        // 再次检查缓存，避免在队列等待期间缓存已更新
+        const cachedItem = this.requestCache.get(requestHash);
+        if (cachedItem && (Date.now() - cachedItem.timestamp <= this.cacheTTL)) {
+          return {...cachedItem.result};
+        }
+        
+        // 执行实际请求
         const result = await this.completeWithRetry(options);
         
         // 缓存结果
@@ -224,6 +246,16 @@ export abstract class AbstractLLMConnector implements LLMConnector {
         
         return result;
       });
+      
+      // 添加到进行中请求
+      this.pendingRequests.set(requestHash, requestPromise);
+      
+      // 完成后从进行中请求中移除
+      requestPromise.finally(() => {
+        this.pendingRequests.delete(requestHash);
+      });
+      
+      return await requestPromise;
     }
     
     // 不使用缓存，但仍然限制并发

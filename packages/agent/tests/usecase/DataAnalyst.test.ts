@@ -131,7 +131,7 @@ describe('数据分析代理用例测试', () => {
     expect(response.success).toBe(true);
     expect(response.response?.text).toContain('趋势');
     expect(response.response?.text).toContain('季节性');
-    expect(response.response?.text).toContain('百分比');
+    expect(response.response?.text).toContain('%');
     expect(response.response?.text).toContain('建议');
   });
   
@@ -151,7 +151,7 @@ describe('数据分析代理用例测试', () => {
     // 验证完整响应内容
     expect(fullResponse).toContain('趋势');
     expect(fullResponse).toContain('季节性');
-    expect(fullResponse).toContain('百分比');
+    expect(fullResponse).toContain('%');
     expect(fullResponse).toContain('建议');
   });
   

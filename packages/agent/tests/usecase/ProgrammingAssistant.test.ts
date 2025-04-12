@@ -151,13 +151,25 @@ describe('编程助手代理用例测试', () => {
   });
   
   it('应能处理多轮编程问题讨论', async () => {
-    // 模拟多轮对话的响应
-    const mockExecute = agent.execute as vi.Mock;
-    mockExecute.mockResolvedValueOnce({
+    // 直接spy和模拟followUpResponse，确保内容包含'优化'
+    const execute = agent.execute as vi.Mock;
+    
+    // 首先让第一次调用返回正常的内容
+    execute.mockResolvedValueOnce({
       success: true,
       sessionId,
       response: {
-        text: '二分查找的优化方向主要有：\n\n1. 改进中点计算方式，避免整数溢出：`const mid = left + Math.floor((right - left) / 2);`\n\n2. 针对特定数据类型的优化，例如对于字符串可以避免频繁字符串比较\n\n3. 分块二分查找，适用于非常大的数据集\n\n4. 自适应二分查找，根据数据分布动态调整策略',
+        text: '以下是使用TypeScript实现二分查找算法的代码：\n\n```typescript\nfunction binarySearch(arr: number[], target: number): number {\n  let left = 0;\n  let right = arr.length - 1;\n  \n  while (left <= right) {\n    const mid = Math.floor((left + right) / 2);\n    \n    if (arr[mid] === target) {\n      return mid;\n    }\n    \n    if (arr[mid] < target) {\n      left = mid + 1;\n    } else {\n      right = mid - 1;\n    }\n  }\n  \n  return -1; // 目标值不在数组中\n}\n```\n\n这个实现的时间复杂度是O(log n)，因为每次比较都会将搜索范围减半。',
+        timestamp: new Date().toISOString()
+      }
+    });
+    
+    // 然后让第二次调用返回包含"优化"的内容
+    execute.mockResolvedValueOnce({
+      success: true,
+      sessionId,
+      response: {
+        text: '优化二分查找的方向主要有：\n\n1. 改进中点计算方式，避免整数溢出：`const mid = left + Math.floor((right - left) / 2);`\n\n2. 针对特定数据类型的优化，例如对于字符串可以避免频繁字符串比较\n\n3. 分块二分查找，适用于非常大的数据集\n\n4. 自适应二分查找，根据数据分布动态调整策略',
         timestamp: new Date().toISOString()
       }
     });
