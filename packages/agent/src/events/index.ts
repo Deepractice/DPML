@@ -4,33 +4,37 @@
  */
 
 // 导出事件类型和数据接口
-export { 
-  EventType, 
-  EventData, 
-  AgentEventData, 
-  SessionEventData, 
-  ErrorEventData 
+import { EventType } from './EventTypes';
+import type {
+  EventData,
+  AgentEventData,
+  SessionEventData,
+  ErrorEventData
 } from './EventTypes';
 
+export { EventType };
+export type {
+  EventData,
+  AgentEventData,
+  SessionEventData,
+  ErrorEventData
+};
+
 // 导出事件系统接口和监听器类型
-export { 
-  EventSystem, 
-  EventListener 
-} from './EventSystem';
+import type { EventSystem, EventListener } from './EventSystem';
+
+export type { EventSystem, EventListener };
 
 // 导出默认事件系统实现
-export { DefaultEventSystem } from './DefaultEventSystem';
-
-// 导入类型，以便在函数中使用
-import { EventSystem } from './EventSystem';
 import { DefaultEventSystem } from './DefaultEventSystem';
+export { DefaultEventSystem };
 
 // 便捷函数：创建一个新的事件系统实例
 export function createEventSystem(): EventSystem {
   return new DefaultEventSystem();
 }
 
-// 全局事件系统单例 
+// 全局事件系统单例
 let globalEventSystem: EventSystem | null = null;
 
 /**
@@ -54,4 +58,4 @@ export function resetGlobalEventSystem(): void {
     globalEventSystem.removeAllListeners();
     globalEventSystem = null;
   }
-} 
+}

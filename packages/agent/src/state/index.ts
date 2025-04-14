@@ -4,35 +4,44 @@
  */
 
 // 导出状态类型和接口
-export {
+import { AgentStatus, AGENT_STATE_TRANSITIONS } from './AgentState';
+import type {
   AgentState,
-  AgentStatus,
   AgentStateEvent,
   AgentMessage,
   AgentStateChangeEventData,
   AgentStateErrorEventData,
-  AgentStateTimeoutEventData,
-  AGENT_STATE_TRANSITIONS
+  AgentStateTimeoutEventData
 } from './AgentState';
 
+export { AgentStatus, AGENT_STATE_TRANSITIONS };
+export type {
+  AgentState,
+  AgentStateEvent,
+  AgentMessage,
+  AgentStateChangeEventData,
+  AgentStateErrorEventData,
+  AgentStateTimeoutEventData
+};
+
 // 导出状态管理器接口和选项
-export {
-  AgentStateManager,
-  AgentStateManagerOptions
-} from './AgentStateManager';
+import type { AgentStateManager, AgentStateManagerOptions } from './AgentStateManager';
+
+export type { AgentStateManager, AgentStateManagerOptions };
 
 // 导出内存状态管理器
 export { InMemoryAgentStateManager } from './InMemoryAgentStateManager';
 
 // 导出文件系统状态管理器及其选项
-export {
-  FileSystemAgentStateManager,
-  FileSystemAgentStateManagerOptions
-} from './FileSystemAgentStateManager';
+import { FileSystemAgentStateManager } from './FileSystemAgentStateManager';
+import type { FileSystemAgentStateManagerOptions } from './FileSystemAgentStateManager';
+
+export { FileSystemAgentStateManager };
+export type { FileSystemAgentStateManagerOptions };
 
 // 导出状态管理器工厂
-export {
-  AgentStateManagerFactory,
-  AgentStateManagerType,
-  AgentStateManagerFactoryConfig
-} from './AgentStateManagerFactory'; 
+import { AgentStateManagerFactory, AgentStateManagerType } from './AgentStateManagerFactory';
+import type { AgentStateManagerFactoryConfig } from './AgentStateManagerFactory';
+
+export { AgentStateManagerFactory, AgentStateManagerType };
+export type { AgentStateManagerFactoryConfig };
