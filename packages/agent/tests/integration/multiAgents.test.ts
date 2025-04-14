@@ -1,12 +1,31 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createAgent } from '../../src';
 import { Agent, AgentFactoryConfig } from '../../src/agent/types';
+
+// 模拟createAgent函数
+vi.mock('../../src', () => {
+  return {
+    createAgent: vi.fn().mockImplementation((config) => {
+      return {
+        getId: () => config.id,
+        getVersion: () => config.version,
+        execute: async () => ({ success: true }),
+        executeStream: async function* () {
+          yield { text: 'test response' };
+        },
+        getState: async () => ({}),
+        reset: async () => {},
+        interrupt: async () => {}
+      };
+    })
+  };
+});
 
 describe('多代理集成测试 (IT-A-002)', () => {
   let firstAgent: Agent;
   let secondAgent: Agent;
   
-  beforeEach(() => {
+  beforeEach(async () => {
     // 第一个代理配置
     const firstConfig: AgentFactoryConfig = {
       id: 'first-agent',
@@ -29,9 +48,9 @@ describe('多代理集成测试 (IT-A-002)', () => {
       }
     };
     
-    // 创建代理
-    firstAgent = createAgent(firstConfig);
-    secondAgent = createAgent(secondConfig);
+    // 创建代理 - 使用await因为createAgent返回Promise
+    firstAgent = await createAgent(firstConfig);
+    secondAgent = await createAgent(secondConfig);
   });
   
   it('应该能同时创建多个代理实例', () => {

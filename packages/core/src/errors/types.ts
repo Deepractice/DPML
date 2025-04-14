@@ -13,7 +13,7 @@ export enum ErrorLevel {
  */
 export enum ErrorCode {
   // 通用错误
-  UNKNOWN_ERROR = 'unknown-error',
+  UNKNOWN_ERROR = 'unknown-erroar',
 
   // 解析错误
   SYNTAX_ERROR = 'syntax-error',
