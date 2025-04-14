@@ -1,9 +1,12 @@
 /**
  * 核心API函数
  */
-import { DpmlAdapter, ParseOptions, ParseResult } from '@core/parser';
-import { DefaultProcessor, ProcessorOptions, ProcessedDocument } from '@core/processor';
-import { Document, Element, Content, Node, NodeType } from '@core/types';
+import { DpmlAdapter } from '../parser';
+import { ParseOptions, ParseResult } from '../parser/interfaces';
+import { DefaultProcessor, ProcessorOptions, ProcessedDocument } from '../processor';
+// 直接导入所需类型
+import { NodeType } from '../types/node';
+import type { Document, Element, Content, Node } from '../types/node';
 
 /**
  * 解析DPML文本
@@ -23,11 +26,11 @@ export async function parse(input: string, options?: ParseOptions): Promise<Pars
  * @returns 处理后的文档
  */
 export async function process(
-  document: Document, 
+  document: Document,
   pathOrOptions?: string | ProcessorOptions
 ): Promise<ProcessedDocument> {
   const processor = new DefaultProcessor();
-  
+
   // 处理参数
   if (typeof pathOrOptions === 'string') {
     // 如果是字符串，则为文档路径
@@ -37,7 +40,7 @@ export async function process(
     processor.configure(pathOrOptions);
     return processor.process(document, ''); // 传入空字符串作为path参数
   }
-  
+
   // 不带路径调用处理方法，传入默认的空字符串
   return processor.process(document, '');
 }
@@ -52,7 +55,7 @@ export interface Warning {
 }
 
 // 重新导出其他需要的类型
-export { ParseOptions, ParseResult } from '@core/parser';
+export type { ParseOptions, ParseResult };
 
 // 重新导出Node类型
-export { Element, Content, Node, NodeType }; 
+export { Element, Content, Node, NodeType };

@@ -8,6 +8,9 @@ export enum NodeType {
   REFERENCE = 'reference'
 }
 
+// 显式导出节点类型，确保可以被正确导入
+export const NODE_TYPE = NodeType;
+
 /**
  * 源码位置信息
  */
@@ -53,7 +56,7 @@ export interface Element extends Node {
    * 用于存储处理过程中生成的语义信息和其他元数据
    */
   metadata?: Record<string, any>;
-  
+
   /**
    * 元素元数据信息
    * 用于转换和输出过程中的元数据处理
@@ -84,8 +87,8 @@ export interface Reference extends Node {
  * 检查一个值是否为节点
  */
 export function isNode(value: any): value is Node {
-  return value !== null && 
-         typeof value === 'object' && 
+  return value !== null &&
+         typeof value === 'object' &&
          typeof value.type === 'string' &&
          (
            value.type === NodeType.DOCUMENT ||
@@ -100,7 +103,7 @@ export function isNode(value: any): value is Node {
  * 检查一个值是否为文档节点
  */
 export function isDocument(value: any): value is Document {
-  return isNode(value) && 
+  return isNode(value) &&
          value.type === NodeType.DOCUMENT &&
          Array.isArray((value as any).children);
 }
@@ -109,13 +112,13 @@ export function isDocument(value: any): value is Document {
  * 检查一个值是否为元素节点
  */
 export function isElement(value: any): value is Element {
-  return isNode(value) && 
+  return isNode(value) &&
          value.type === NodeType.ELEMENT &&
          typeof (value as any).tagName === 'string' &&
          typeof (value as any).attributes === 'object' &&
          Array.isArray((value as any).children) &&
          (
-           (value as any).metadata === undefined || 
+           (value as any).metadata === undefined ||
            typeof (value as any).metadata === 'object'
          );
 }
@@ -124,7 +127,7 @@ export function isElement(value: any): value is Element {
  * 检查一个值是否为内容节点
  */
 export function isContent(value: any): value is Content {
-  return isNode(value) && 
+  return isNode(value) &&
          value.type === NodeType.CONTENT &&
          typeof (value as any).value === 'string';
 }
@@ -133,8 +136,8 @@ export function isContent(value: any): value is Content {
  * 检查一个值是否为引用节点
  */
 export function isReference(value: any): value is Reference {
-  return isNode(value) && 
+  return isNode(value) &&
          value.type === NodeType.REFERENCE &&
          typeof (value as any).protocol === 'string' &&
          typeof (value as any).path === 'string';
-} 
+}

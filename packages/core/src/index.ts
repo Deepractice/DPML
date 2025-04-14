@@ -7,14 +7,19 @@
 export * from './types';
 
 // 导出解析器模块，避免重复导出
+import { DpmlAdapter, TagRegistry, ValidationError, ValidationWarningImpl } from './parser';
+import type { TagDefinition, ValidationWarning } from './parser';
+
+// 重新导出类型和类
 export {
   DpmlAdapter,
   TagRegistry,
-  TagDefinition,
   // 从tag-definition重新导出，避免与errors重名
   ValidationError as ParserValidationError,
-  ValidationWarning
-} from './parser';
+  ValidationWarningImpl
+};
+
+export type { TagDefinition, ValidationWarning };
 
 // 导出处理器模块
 export * from './processor';
@@ -44,6 +49,8 @@ export * from './constants';
 // 导出API函数
 export {
   parse,
-  process,
-  Warning
-} from './api'; 
+  process
+} from './api';
+
+// 导出Warning接口
+export type { Warning } from './api';

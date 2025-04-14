@@ -14,17 +14,17 @@ export enum ErrorLevel {
 export enum ErrorCode {
   // 通用错误
   UNKNOWN_ERROR = 'unknown-error',
-  
+
   // 解析错误
   SYNTAX_ERROR = 'syntax-error',
   INVALID_XML = 'invalid-xml',
   UNCLOSED_TAG = 'unclosed-tag',
-  
+
   // 验证错误
   INVALID_ATTRIBUTE = 'invalid-attribute',
   MISSING_REQUIRED_ATTRIBUTE = 'missing-required-attribute',
   INVALID_NESTING = 'invalid-nesting',
-  
+
   // 引用错误
   REFERENCE_NOT_FOUND = 'reference-not-found',
   INVALID_REFERENCE = 'invalid-reference',
@@ -59,22 +59,22 @@ export class DPMLError extends Error {
    * 错误码
    */
   code: string;
-  
+
   /**
    * 错误级别
    */
   level: ErrorLevel;
-  
+
   /**
    * 错误位置
    */
   position?: ErrorPosition;
-  
+
   /**
    * 原始错误
    */
   cause?: Error;
-  
+
   /**
    * 构造函数
    */
@@ -85,24 +85,24 @@ export class DPMLError extends Error {
     this.level = options.level || ErrorLevel.ERROR;
     this.position = options.position;
     this.cause = options.cause;
-    
+
     // 确保正确的原型链，因为TypeScript的类继承在转换为ES5时可能出现问题
     Object.setPrototypeOf(this, new.target.prototype);
   }
-  
+
   /**
    * 将错误转换为字符串
    */
   toString(): string {
     let result = `[${this.code}] ${this.message}`;
-    
+
     if (this.position) {
       result += ` (at line ${this.position.line}, column ${this.position.column})`;
     }
-    
+
     return result;
   }
-  
+
   /**
    * 格式化错误为对象
    */
@@ -141,12 +141,12 @@ export interface ValidationError {
    * 错误码
    */
   code: string;
-  
+
   /**
    * 错误消息
    */
   message: string;
-  
+
   /**
    * 错误位置
    */
@@ -169,7 +169,7 @@ export class ValidationErrorImpl extends DPMLError {
   constructor(options: ValidationErrorOptions) {
     super(options);
   }
-  
+
   /**
    * 转换为ValidationError接口格式
    */
@@ -180,7 +180,7 @@ export class ValidationErrorImpl extends DPMLError {
       position: this.position
     };
   }
-  
+
   /**
    * 从ValidationError创建ValidationErrorImpl实例
    */
@@ -214,17 +214,37 @@ export interface ValidationWarning {
    * 警告码
    */
   code: string;
-  
+
   /**
    * 警告消息
    */
   message: string;
-  
+
   /**
    * 警告位置
    */
   position?: any;
 }
+
+
+
+/**
+ * 验证警告实现类
+ */
+export class ValidationWarningImpl implements ValidationWarning {
+  code: string;
+  message: string;
+  position?: any;
+
+  constructor(warning: ValidationWarning) {
+    this.code = warning.code;
+    this.message = warning.message;
+    this.position = warning.position;
+  }
+}
+
+// 为了保持向后兼容，导出类型别名
+export const ValidationWarningClass = ValidationWarningImpl;
 
 /**
  * 验证结果接口
@@ -235,12 +255,12 @@ export interface ValidationResult {
    * 验证是否通过
    */
   valid: boolean;
-  
+
   /**
    * 验证错误信息
    */
   errors?: ValidationError[];
-  
+
   /**
    * 验证警告信息
    */
@@ -262,25 +282,25 @@ export class ReferenceError extends DPMLError {
    * 引用URI
    */
   referenceUri?: string;
-  
+
   constructor(options: ReferenceErrorOptions) {
     super(options);
     this.referenceUri = options.referenceUri;
   }
-  
+
   /**
    * 将错误转换为字符串
    */
   toString(): string {
     let result = super.toString();
-    
+
     if (this.referenceUri) {
       result += ` [Reference: ${this.referenceUri}]`;
     }
-    
+
     return result;
   }
-  
+
   /**
    * 格式化错误为对象
    */
@@ -290,4 +310,4 @@ export class ReferenceError extends DPMLError {
       referenceUri: this.referenceUri
     };
   }
-} 
+}
