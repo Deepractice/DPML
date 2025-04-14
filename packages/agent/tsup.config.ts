@@ -8,4 +8,9 @@ export default defineConfig({
   sourcemap: true,
   splitting: false,
   treeshake: true,
+  skipNodeModulesBundle: true,
+  external: ['@dpml/core', '@dpml/prompt'],
+  esbuildOptions(options, context) {
+    options.tsconfig = './tsconfig.build.json'
+  }
 }); 

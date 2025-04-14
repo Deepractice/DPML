@@ -12,6 +12,13 @@ export default defineConfig({
     environment: 'node',
     include: ['tests/**/*.test.ts'],
     exclude: ['**/node_modules/**'],
+    typecheck: {
+      enabled: false
+    },
+    setupFiles: ['./vitest.setup.ts'],
+    deps: {
+      inline: [/@dpml\/.*/]
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
