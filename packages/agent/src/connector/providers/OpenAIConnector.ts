@@ -148,27 +148,53 @@ export class OpenAIConnector extends AbstractLLMConnector {
   }
   
   /**
-   * 执行完成请求
-   * @param options 完成选项
-   * @param abortSignal 中止信号
-   * @param requestId 请求ID
+   * 执行LLM请求
+   * @param options 请求选项 
+   * @returns 响应结果
    */
-  protected async executeCompletion(
-    options: CompletionOptions,
-    abortSignal: AbortSignal,
-    requestId: string
-  ): Promise<CompletionResult> {
-    // 构建请求体
-    const requestBody = {
-      model: options.model,
-      messages: options.messages,
-      max_tokens: options.maxTokens,
-      temperature: options.temperature,
-      top_p: options.topP,
-      stop: options.stopSequences
-    };
+  protected async executeCompletion(options: CompletionOptions): Promise<CompletionResult> {
+    // 记录请求详情
+    console.log('DEBUG: 发送到OpenAI的请求:');
+    console.log(`DEBUG: API URL: ${this.apiUrl}`);
+    console.log(`DEBUG: 模型: ${options.model}`);
+    
+    // 特别记录system prompt
+    const systemMessages = options.messages.filter(m => m.role === 'system');
+    if (systemMessages.length > 0) {
+      console.log('DEBUG: 系统提示词:');
+      systemMessages.forEach((m, i) => {
+        console.log(`DEBUG: [${i}] ${m.content}`);
+      });
+    } else {
+      console.log('DEBUG: 警告 - 请求中没有系统提示词!');
+    }
+    
+    // 记录所有消息内容
+    console.log('DEBUG: 所有消息:');
+    options.messages.forEach((m, i) => {
+      console.log(`DEBUG: [${i}] 角色=${m.role}, 内容长度=${m.content.length}`);
+      console.log(`DEBUG: 内容预览: ${m.content.substring(0, 100)}${m.content.length > 100 ? '...' : ''}`);
+    });
+    
+    console.log(`DEBUG: 消息总数: ${options.messages.length}`);
     
     try {
+      // 构建请求体
+      const requestBody = {
+        model: options.model,
+        messages: options.messages,
+        max_tokens: options.maxTokens,
+        temperature: options.temperature,
+        top_p: options.topP,
+        stop: options.stopSequences
+      };
+      
+      // 打印完整请求体
+      console.log('==========================');
+      console.log('完整请求体:');
+      console.log(JSON.stringify(requestBody, null, 2));
+      console.log('==========================');
+      
       // 发送请求
       const response = await fetch(`${this.apiUrl}/chat/completions`, {
         method: 'POST',
@@ -177,7 +203,7 @@ export class OpenAIConnector extends AbstractLLMConnector {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(requestBody),
-        signal: abortSignal
+        signal: options.signal
       });
       
       if (!response.ok) {
@@ -217,6 +243,7 @@ export class OpenAIConnector extends AbstractLLMConnector {
     abortSignal: AbortSignal,
     requestId: string
   ): AsyncIterable<CompletionChunk> {
+   
     // 构建请求体
     const requestBody = {
       model: options.model,

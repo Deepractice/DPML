@@ -314,8 +314,7 @@ export class AgentImpl implements Agent {
                           !this.isValidStateTransition(currentState.status, targetState));
       
       if (needsReset) {
-        // 记录日志
-        console.log(`自动重置会话状态: 从 ${currentState.status} 到 IDLE (SessionId: ${sessionId})`);
+       
         
         // 重置状态
         await this.stateManager.resetState(sessionId);

@@ -32,7 +32,7 @@ async function main() {
       id: 'interactive-assistant',
       version: '1.0.0',
       stateManagerType: 'memory', // 使用内存状态管理器
-      memoryType: 'conversational', // 使用对话记忆系统
+      memoryType: 'simple', // 使用对话记忆系统
       executionConfig: {
         defaultModel: 'gpt-3.5-turbo', // 使用更经济的模型
         apiType: 'openai',

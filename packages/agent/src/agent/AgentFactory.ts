@@ -263,21 +263,33 @@ export class AgentFactory {
    */
   private static async parseFromContent(content: string): Promise<AgentFactoryConfig> {
     try {
+      console.log('DEBUG: 开始解析DPML内容...');
+      console.log('DEBUG: DPML内容长度:', content.length);
+      console.log('DEBUG: DPML内容预览:', content.substring(0, 200));
+      
       // 使用DPML核心包解析内容
       const { parse, process } = await import('@dpml/core');
       const parseResult = await parse(content);
-
+      
+      console.log('DEBUG: 解析结果:', parseResult.errors ? '有错误' : '无错误');
       if (parseResult.errors && parseResult.errors.length > 0) {
+        console.log('DEBUG: 解析错误:', parseResult.errors);
         throw ErrorFactory.createTagError(
           `解析DPML内容失败: ${parseResult.errors[0].message}`,
           AgentErrorCode.AGENT_TAG_ERROR,
           { position: parseResult.errors[0].position }
         );
       }
+      
+      console.log('DEBUG: 解析AST结构:');
+      console.log(JSON.stringify(parseResult.ast, null, 2));
 
       const processedDoc = await process(parseResult.ast);
+      
+      console.log('DEBUG: 处理后文档:');
+      console.log(JSON.stringify(processedDoc, null, 2));
 
-      // 转换为配置对象
+      // 提取配置
       return this.extractConfigFromDocument(processedDoc);
     } catch (error) {
       // 如果已经是TagError，直接抛出
@@ -388,31 +400,93 @@ export class AgentFactory {
    * @returns 系统提示
    */
   private static extractSystemPrompt(agentElement: any): string {
+    console.log('DEBUG: 开始提取系统提示词...');
+    console.log('DEBUG: agent元素类型:', typeof agentElement);
+    console.log('DEBUG: agent元素结构:', JSON.stringify(agentElement, null, 2));
+    
     // 查找prompt元素
     const promptElement = agentElement.children.find(
       (child: any) => child.type === 'element' && child.tagName === 'prompt'
     );
 
     if (!promptElement) {
+      console.log('DEBUG: 未找到prompt元素，使用默认提示词');
       return '你是一个有帮助的助手。';
     }
 
-    // 从元数据中获取处理后的提示词
+    console.log('DEBUG: 找到prompt元素:', JSON.stringify(promptElement, null, 2));
+
+    // 检查是否有元数据中的处理后提示词
     if (promptElement.metadata?.prompt?.processedPrompt) {
+      console.log('DEBUG: 使用元数据中的处理后提示词');
       return promptElement.metadata.prompt.processedPrompt.content;
     }
 
-    // 提取内容
+    // 直接检查提示词的文本内容
+    if (promptElement.content) {
+      console.log('DEBUG: 直接使用prompt元素的content属性:', promptElement.content);
+      return promptElement.content;
+    }
+
+    // 检查value属性
+    if (promptElement.value) {
+      console.log('DEBUG: 使用prompt元素的value属性:', promptElement.value);
+      return promptElement.value;
+    }
+
+    // 提取内容元素并合并文本
     if (Array.isArray(promptElement.children)) {
+      console.log('DEBUG: prompt包含子元素数量:', promptElement.children.length);
+      
+      // 先检查是否有text属性
+      if (promptElement.text) {
+        console.log('DEBUG: 使用prompt元素的text属性:', promptElement.text);
+        return promptElement.text;
+      }
+      
+      // 查找content类型的子元素
       const contentElements = promptElement.children.filter(
-        (child: any) => child.type === 'content'
+        (child: any) => child.type === 'content' || child.type === 'text'
       );
 
+      console.log('DEBUG: 找到内容元素数量:', contentElements.length);
+      console.log('DEBUG: 内容元素详情:', JSON.stringify(contentElements, null, 2));
+
       if (contentElements.length > 0) {
-        return contentElements.map((el: any) => el.text).join('');
+        // 使用text或value属性
+        const extractedPrompt = contentElements.map((el: any) => {
+          // 检查可能的属性
+          const textContent = el.text || el.value || el.content || '';
+          console.log('DEBUG: 内容元素的内容:', textContent);
+          return textContent;
+        }).join('');
+        
+        console.log('DEBUG: 提取到的提示词:', extractedPrompt);
+        return extractedPrompt;
+      }
+      
+      // 如果没有内容元素，但是有任何子元素，试图从所有子元素提取文本
+      const allText = promptElement.children
+        .map((child: any) => {
+          console.log('DEBUG: 子元素类型:', child.type, '内容属性:', 
+            Object.keys(child).filter(key => ['text', 'value', 'content'].includes(key)));
+          return child.value || child.text || child.content || '';
+        })
+        .join('');
+        
+      if (allText) {
+        console.log('DEBUG: 从所有子元素提取的文本:', allText);
+        return allText;
       }
     }
 
+    // 检查attributes里是否有文本内容
+    if (promptElement.attributes && promptElement.attributes.content) {
+      console.log('DEBUG: 使用prompt元素attributes中的content:', promptElement.attributes.content);
+      return promptElement.attributes.content;
+    }
+
+    console.log('DEBUG: 未能提取到提示词内容，使用默认提示词');
     return '你是一个有帮助的助手。';
   }
 

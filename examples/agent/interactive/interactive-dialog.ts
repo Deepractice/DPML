@@ -5,9 +5,7 @@
  */
 
 // @ts-ignore - 忽略类型定义错误
-import { createAgent, AgentState } from '../../../packages/agent';
-// @ts-ignore - 忽略类型定义错误
-import { EventType } from '../../../packages/agent/src/events/EventTypes';
+import { AgentFactory, AgentState } from '../../../packages/agent';
 import * as readline from 'readline';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -38,42 +36,15 @@ async function main() {
     console.log('=== 交互式对话代理示例 ===');
     console.log('创建交互式对话代理...');
     
-    // 初始化代理
-    const agent = await createAgent({
-      id: 'interactive-assistant',
-      version: '1.0.0',
-      stateManagerType: 'filesystem',
-      stateManagerConfig: {
-        basePath: sessionsDir
-      },
-      memoryType: 'conversational', // 使用会话记忆类型
-      executionConfig: {
-        defaultModel: 'gpt-3.5-turbo',
-        apiType: 'openai',
-        systemPrompt: `你是一个友好的助手，能够进行多轮对话并记住之前的交互内容。
-你应该用中文回答问题，保持对话的连贯性。
-如果你遇到技术问题，请尝试解释问题并提供解决方案。`,
-        maxResponseTokens: 800,
-        temperature: 0.7,
-        defaultTimeout: 30000
-      }
-    });
+    // 从DPML文件创建代理
+    const dpmlFilePath = path.join(__dirname, '../basic/assistant.dpml');
+    const agent = await AgentFactory.createAgentFromFile(dpmlFilePath);
     
     console.log(`创建成功: ${agent.getId()} v${agent.getVersion()}`);
     
     // 创建一个会话ID
     const sessionId = `interactive-session-${Date.now()}`;
     console.log(`会话ID: ${sessionId}`);
-    
-    // 监听状态变化事件
-    agent.on(EventType.STATE_CHANGED, (data: any) => {
-      console.log(`\n状态变化: ${data.from} -> ${data.to}`);
-    });
-    
-    // 监听错误事件
-    agent.on(EventType.ERROR_OCCURRED, (data: any) => {
-      console.error(`\n错误发生: ${data.message}`);
-    });
     
     console.log('\n开始交互式对话 (输入"退出"结束对话, "重置"重置会话, "状态"查看当前状态):');
     
@@ -111,7 +82,7 @@ async function main() {
         // 检查当前状态，如果是错误状态，先重置
         try {
           const currentState = await agent.getSessionState(sessionId);
-          if (currentState?.state === AgentState.ERROR) {
+          if (currentState?.status === AgentState.ERROR) {
             console.log('\n检测到错误状态，正在重置会话...');
             await agent.reset(sessionId);
             console.log('会话已重置');
