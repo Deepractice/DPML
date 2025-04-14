@@ -22,6 +22,31 @@ export enum EventType {
   /** 会话删除 */
   SESSION_DELETED = 'session:deleted',
   
+  // 代理工作流事件
+  /** 代理思考中 */
+  AGENT_THINKING = 'agent:thinking',
+  
+  /** 代理响应中 */
+  AGENT_RESPONDING = 'agent:responding',
+  
+  /** 代理完成 */
+  AGENT_DONE = 'agent:done',
+  
+  /** 代理错误 */
+  AGENT_ERROR = 'agent:error',
+  
+  /** 代理中断 */
+  AGENT_INTERRUPTED = 'agent:interrupted',
+  
+  /** 代理状态重置 */
+  AGENT_STATE_RESET = 'agent:state:reset',
+  
+  /** 代理LLM调用前 */
+  AGENT_LLM_BEFORE = 'agent:llm:before',
+  
+  /** 代理LLM调用成功 */
+  AGENT_LLM_SUCCESS = 'agent:llm:success',
+  
   // 处理阶段事件
   /** 提示词构建开始 */
   PROMPT_BUILDING = 'prompt:building',

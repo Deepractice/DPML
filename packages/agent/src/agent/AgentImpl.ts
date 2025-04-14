@@ -9,6 +9,8 @@ import { AgentMemory } from '../memory/AgentMemory';
 import { LLMConnector, CompletionOptions, CompletionResult } from '../connector/LLMConnector';
 import { EventSystem } from '../events/EventSystem';
 import { AgentStatus, Message } from '../state/AgentState';
+import { EventType, SessionEventData } from '../events/EventTypes';
+import { AGENT_STATE_TRANSITIONS } from '../state/AgentState';
 
 /**
  * AgentImpl构造函数选项接口
@@ -198,8 +200,8 @@ export class AgentImpl implements Agent {
       this.requestQueue.push(async () => {
         try {
           resolve(await fn());
-        } catch (err) {
-          reject(err);
+        } catch (error) {
+          reject(error);
         }
       });
     });
@@ -214,10 +216,10 @@ export class AgentImpl implements Agent {
       return;
     }
     
-    const nextRequest = this.requestQueue.shift();
-    if (nextRequest) {
+    const request = this.requestQueue.shift();
+    if (request) {
       this.activeRequestCount++;
-      nextRequest().finally(() => {
+      request().finally(() => {
         this.activeRequestCount--;
         this.processQueue();
       });
@@ -230,15 +232,17 @@ export class AgentImpl implements Agent {
    * @returns Agent状态
    */
   async getState(sessionId?: string): Promise<any> {
-    // 如果未提供sessionId，使用第一个会话或创建新会话
+    // 如果未提供sessionId，返回一个空状态
     if (!sessionId) {
-      const sessions = await this.stateManager.getSessions();
-      if (sessions.length > 0) {
-        sessionId = sessions[0];
+      const allSessions = await this.stateManager.getAllSessionIds();
+      if (allSessions.length > 0) {
+        sessionId = allSessions[0];
       } else {
-        // 创建一个新会话
-        sessionId = uuidv4();
-        await this.stateManager.initState(sessionId);
+        // 返回空状态
+        return {
+          messages: [],
+          status: AgentStatus.IDLE
+        };
       }
     }
     
@@ -250,7 +254,15 @@ export class AgentImpl implements Agent {
     }
     
     // 获取最新状态
-    const state = await this.stateManager.getState(sessionId);
+    let state = await this.stateManager.getState(sessionId);
+    
+    // 如果状态不存在，返回空状态
+    if (!state) {
+      state = {
+        messages: [],
+        status: AgentStatus.IDLE
+      };
+    }
     
     // 更新缓存
     this.sessionStateCache.set(sessionId, {
@@ -262,11 +274,107 @@ export class AgentImpl implements Agent {
   }
 
   /**
+   * 确保会话存在，如果不存在则创建
+   * @param sessionId 会话ID 
+   * @private
+   */
+  private async ensureSessionExists(sessionId: string): Promise<void> {
+    const exists = await this.stateManager.hasSession(sessionId);
+    if (!exists) {
+      await this.stateManager.createSession(sessionId);
+    }
+  }
+
+  /**
+   * 确保会话状态有效
+   * @param sessionId 会话ID
+   * @param targetState 目标状态
+   * @private
+   */
+  private async ensureValidState(sessionId: string, targetState: AgentStatus): Promise<void> {
+    try {
+      // 检查会话是否存在
+      const sessionExists = await this.stateManager.hasSession(sessionId);
+      if (!sessionExists) {
+        await this.stateManager.createSession(sessionId);
+        return;
+      }
+      
+      // 获取当前状态
+      const currentState = await this.stateManager.getState(sessionId);
+      if (!currentState) {
+        await this.stateManager.createSession(sessionId);
+        return;
+      }
+      
+      // 检查是否需要重置状态
+      const needsReset = currentState.status === AgentStatus.ERROR ||
+                         currentState.status === AgentStatus.DONE ||
+                         (currentState.status !== AgentStatus.IDLE && 
+                          !this.isValidStateTransition(currentState.status, targetState));
+      
+      if (needsReset) {
+        // 记录日志
+        console.log(`自动重置会话状态: 从 ${currentState.status} 到 IDLE (SessionId: ${sessionId})`);
+        
+        // 重置状态
+        await this.stateManager.resetState(sessionId);
+        
+        // 发送状态重置事件
+        this.eventSystem.emit(EventType.AGENT_STATE_RESET, {
+          agentId: this.id,
+          sessionId,
+          previousStatus: currentState.status,
+          currentStatus: AgentStatus.IDLE,
+          reason: 'auto-reset',
+          timestamp: Date.now()
+        } as SessionEventData);
+      }
+    } catch (error) {
+      // 记录错误但不抛出，尽量保持会话流畅
+      console.error(`确保状态有效时出错: ${error.message}`);
+      
+      // 尝试重置状态
+      try {
+        await this.stateManager.createSession(sessionId);
+      } catch (resetError) {
+        console.error(`创建会话失败: ${resetError.message}`);
+      }
+    }
+  }
+  
+  /**
+   * 检查状态转换是否有效
+   * @param from 起始状态
+   * @param to 目标状态
+   * @private
+   */
+  private isValidStateTransition(from: AgentStatus, to: AgentStatus): boolean {
+    const AGENT_STATE_TRANSITIONS = {
+      [AgentStatus.IDLE]: [AgentStatus.THINKING, AgentStatus.ERROR],
+      [AgentStatus.THINKING]: [AgentStatus.EXECUTING, AgentStatus.RESPONDING, AgentStatus.ERROR, AgentStatus.PAUSED],
+      [AgentStatus.EXECUTING]: [AgentStatus.THINKING, AgentStatus.RESPONDING, AgentStatus.DONE, AgentStatus.ERROR, AgentStatus.PAUSED],
+      [AgentStatus.RESPONDING]: [AgentStatus.DONE, AgentStatus.ERROR, AgentStatus.PAUSED],
+      [AgentStatus.DONE]: [AgentStatus.IDLE, AgentStatus.ERROR],
+      [AgentStatus.PAUSED]: [AgentStatus.THINKING, AgentStatus.EXECUTING, AgentStatus.RESPONDING, AgentStatus.ERROR],
+      [AgentStatus.ERROR]: [AgentStatus.IDLE],
+    };
+    
+    const validTransitions = AGENT_STATE_TRANSITIONS[from];
+    return validTransitions?.includes(to) || false;
+  }
+
+  /**
    * 执行Agent请求
    * @param request Agent请求
    * @returns 执行结果
    */
   async execute(request: AgentRequest): Promise<AgentResult> {
+    const sessionId = request.sessionId || uuidv4();
+    
+    // 确保状态有效
+    await this.ensureValidState(sessionId, AgentStatus.THINKING);
+    
     // 使用并发队列控制并发执行数量
     return this.enqueueRequest(() => this.executeInternal(request));
   }
@@ -282,23 +390,35 @@ export class AgentImpl implements Agent {
     const startTime = Date.now();
     
     try {
+      // 确保会话存在
+      await this.ensureSessionExists(sessionId);
+      
       // 更新状态为思考中
       await this.stateManager.updateState(sessionId, {
         status: AgentStatus.THINKING
       });
       
       // 发送思考事件
-      this.eventSystem.emit('agent:thinking', {
+      this.eventSystem.emit(EventType.AGENT_THINKING, {
         agentId: this.id,
         sessionId
-      });
+      } as SessionEventData);
+      
+      // 获取当前状态
+      const currentState = await this.stateManager.getState(sessionId);
       
       // 添加用户消息到状态
-      await this.stateManager.addMessage(sessionId, {
+      const userMessage = {
         id: uuidv4(),
         role: 'user',
         content: request.text,
         createdAt: Date.now()
+      };
+      
+      // 更新状态中的消息数组
+      const updatedMessages = [...(currentState?.messages || []), userMessage];
+      await this.stateManager.updateState(sessionId, {
+        messages: updatedMessages
       });
       
       // 存储用户消息到记忆
@@ -317,10 +437,10 @@ export class AgentImpl implements Agent {
       this.invalidateStateCache(sessionId);
       
       // 发送响应事件
-      this.eventSystem.emit('agent:responding', {
+      this.eventSystem.emit(EventType.AGENT_RESPONDING, {
         agentId: this.id,
         sessionId
-      });
+      } as SessionEventData);
       
       // 准备上下文和系统提示
       const state = await this.stateManager.getState(sessionId);
@@ -330,11 +450,11 @@ export class AgentImpl implements Agent {
       this.abortControllers.set(sessionId, abortController);
       
       // 发送LLM前事件
-      this.eventSystem.emit('agent:llm:before', {
+      this.eventSystem.emit(EventType.AGENT_LLM_BEFORE, {
         agentId: this.id,
         sessionId,
         messages: state?.messages || []
-      });
+      } as SessionEventData);
       
       // 优化消息格式转换，减少内存复制
       const formattedMessages = this.formatMessages(state?.messages || [], request);
@@ -357,18 +477,24 @@ export class AgentImpl implements Agent {
       const result = await this.llmConnector.complete(requestOptions);
       
       // 发送LLM成功事件
-      this.eventSystem.emit('agent:llm:success', {
+      this.eventSystem.emit(EventType.AGENT_LLM_SUCCESS, {
         agentId: this.id,
         sessionId,
         result
-      });
+      } as SessionEventData);
       
       // 添加助手消息到状态
-      await this.stateManager.addMessage(sessionId, {
+      const assistantMessage = {
         id: uuidv4(),
         role: 'assistant',
         content: result.content,
         createdAt: Date.now()
+      };
+      
+      // 更新状态中的消息数组
+      const updatedMessagesWithAssistant = [...(state?.messages || []), assistantMessage];
+      await this.stateManager.updateState(sessionId, {
+        messages: updatedMessagesWithAssistant
       });
       
       // 存储助手消息到记忆
@@ -408,24 +534,34 @@ export class AgentImpl implements Agent {
         finishReason: "done",
         usage: result.usage,
         processingTimeMs,
-        success: true
+        success: true,
+        response: {
+          text: result.content,
+          timestamp: new Date().toISOString()
+        }
       };
     } catch (error) {
       // 计算处理时间
       const processingTimeMs = Date.now() - startTime;
       
-      // 更新错误状态
+      // 尝试创建会话（如果尚未创建）
       try {
+        const exists = await this.stateManager.hasSession(sessionId);
+        if (!exists) {
+          await this.stateManager.createSession(sessionId);
+        }
+        
+        // 更新错误状态
         await this.stateManager.updateState(sessionId, {
           status: AgentStatus.ERROR
         });
-        
-        // 更新状态缓存
-        this.invalidateStateCache(sessionId);
       } catch (stateError) {
         // 状态更新错误不应影响响应
         console.error('更新状态失败:', stateError);
       }
+      
+      // 更新状态缓存
+      this.invalidateStateCache(sessionId);
       
       // 发送错误事件
       this.eventSystem.emit('agent:error', {
@@ -437,335 +573,286 @@ export class AgentImpl implements Agent {
       // 清除中止控制器
       this.abortControllers.delete(sessionId);
       
-      // 更新性能指标 - 即使出错也记录
-      this.updateMetrics(processingTimeMs);
-      
       // 返回错误结果
-      const errorMessage = error instanceof Error ? error.message : String(error);
       return {
-        text: errorMessage,
         sessionId,
-        finishReason: "error",
-        processingTimeMs,
         success: false,
-        error: errorMessage
+        error: (error as Error).message || String(error),
+        processingTimeMs
       };
     }
   }
   
   /**
-   * 格式化消息，优化内存使用
-   * @param messages 原始消息
-   * @param request 请求对象
-   * @returns 格式化后的消息
+   * 格式化消息
+   * @param messages 消息数组
+   * @param request 请求参数
+   * @returns 格式化的消息数组
    * @private
    */
   private formatMessages(messages: Message[], request: AgentRequest): Array<{role: string, content: string}> {
-    // 创建一个新数组，避免修改原始消息
-    const formattedMessages: Array<{role: string, content: string}> = [];
+    const result: Array<{role: string, content: string}> = [];
     
-    // 添加系统提示词
-    if (this.config.executionConfig.systemPrompt) {
-      formattedMessages.push({
-        role: 'system',
-        content: this.config.executionConfig.systemPrompt
+    // 添加系统提示
+    result.push({
+      role: 'system',
+      content: this.config.executionConfig.systemPrompt
+    });
+    
+    // 限制上下文消息数量
+    let filteredMessages = messages;
+    if (request.maxContextMessages && messages.length > request.maxContextMessages) {
+      // 保留系统消息和最近的N条消息
+      const systemMessages = messages.filter(m => m.role === 'system');
+      const nonSystemMessages = messages
+        .filter(m => m.role !== 'system')
+        .slice(-request.maxContextMessages);
+      
+      filteredMessages = [...systemMessages, ...nonSystemMessages];
+    }
+    
+    // 添加历史消息
+    for (const message of filteredMessages) {
+      result.push({
+        role: message.role,
+        content: message.content
       });
     }
     
-    // 添加上下文消息，但进行长度限制
-    if (request.maxContextMessages) {
-      // 限制上下文消息数量，保留最近的n条
-      const recentMessages = messages.slice(-request.maxContextMessages);
-      for (const msg of recentMessages) {
-        formattedMessages.push({
-          role: msg.role,
-          content: msg.content
-        });
-      }
-    } else {
-      // 使用所有消息
-      for (const msg of messages) {
-        formattedMessages.push({
-          role: msg.role,
-          content: msg.content
-        });
-      }
-    }
-    
-    return formattedMessages;
+    return result;
   }
   
   /**
-   * 使状态缓存失效
+   * 使缓存中的状态失效
    * @param sessionId 会话ID
    * @private
    */
   private invalidateStateCache(sessionId: string): void {
     this.sessionStateCache.delete(sessionId);
   }
-
+  
   /**
-   * 执行Agent流式请求
+   * 流式执行Agent请求
    * @param request Agent请求
-   * @returns 流式执行结果
    */
   async *executeStream(request: AgentRequest): AsyncGenerator<AgentResponse> {
-    // 使用并发队列和流式请求
-    const stream = await this.enqueueRequest(async () => {
-      const sessionId = request.sessionId || uuidv4();
-      const startTime = Date.now();
-      
-      try {
-        // 更新状态为思考中
-        await this.stateManager.updateState(sessionId, {
-          status: AgentStatus.THINKING
-        });
-        
-        // 发送思考事件
-        this.eventSystem.emit('agent:thinking', {
-          agentId: this.id,
-          sessionId
-        });
-        
-        // 添加用户消息到状态
-        await this.stateManager.addMessage(sessionId, {
-          id: uuidv4(),
-          role: 'user',
-          content: request.text,
-          createdAt: Date.now()
-        });
-        
-        // 存储用户消息到记忆
-        await this.memory.store(sessionId, {
-          text: request.text,
-          role: 'user',
-          timestamp: Date.now()
-        });
-        
-        // 更新状态为响应中
-        await this.stateManager.updateState(sessionId, {
-          status: AgentStatus.RESPONDING
-        });
-        
-        // 更新状态缓存
-        this.invalidateStateCache(sessionId);
-        
-        // 发送响应事件
-        this.eventSystem.emit('agent:responding', {
-          agentId: this.id,
-          sessionId
-        });
-        
-        // 准备上下文和系统提示
-        const state = await this.stateManager.getState(sessionId);
-        
-        // 创建中止控制器
-        const abortController = new AbortController();
-        this.abortControllers.set(sessionId, abortController);
-        
-        // 发送LLM前事件
-        this.eventSystem.emit('agent:llm:before', {
-          agentId: this.id,
-          sessionId,
-          messages: state?.messages || []
-        });
-        
-        // 优化消息格式转换
-        const formattedMessages = this.formatMessages(state?.messages || [], request);
-        
-        // 准备请求选项
-        const requestOptions: CompletionOptions = {
-          messages: formattedMessages,
-          model: request.model || this.config.executionConfig.defaultModel,
-          signal: abortController.signal,
-          stream: true,
-          maxTokens: request.maxTokens || this.config.executionConfig.maxResponseTokens,
-          temperature: request.temperature || this.config.executionConfig.temperature
-        };
-        
-        // 流式请求不使用缓存
-        requestOptions.useCache = false;
-        
-        // 创建转换流返回
-        return {
-          sessionId,
-          stream: this.llmConnector.completeStream(requestOptions),
-          startTime,
-          fullContent: '',
-          tokens: 0
-        };
-      } catch (error) {
-        // 错误初始化处理
-        await this.stateManager.updateState(sessionId, {
-          status: AgentStatus.ERROR
-        });
-        
-        // 更新状态缓存
-        this.invalidateStateCache(sessionId);
-        
-        // 发送错误事件
-        this.eventSystem.emit('agent:error', {
-          agentId: this.id,
-          sessionId,
-          error: error instanceof Error ? error : new Error(String(error))
-        });
-        
-        // 清除中止控制器
-        this.abortControllers.delete(sessionId);
-        
-        // 抛出错误
-        throw error;
-      }
-    });
+    const sessionId = request.sessionId || uuidv4();
+    const startTime = Date.now();
     
-    // 处理流式响应
     try {
-      let previousContent = '';
-      for await (const chunk of stream.stream) {
-        // 计算新增的内容部分
-        const newContent = chunk.content;
-        
-        // 更新完整内容
-        stream.fullContent += newContent;
-        
-        // 更新token计数
-        stream.tokens++;
-        
-        // 产生完整响应块
-        yield {
-          sessionId: stream.sessionId,
-          text: newContent, // 只返回新增的部分而不是累积的全部内容
-          timestamp: new Date().toISOString(),
-          isLast: chunk.isLast,
-          finishReason: chunk.finishReason,
-          processingTimeMs: Date.now() - stream.startTime,
-          success: true,
-          usage: {
-            promptTokens: 0, // 暂无法获取精确值
-            completionTokens: stream.tokens,
-            totalTokens: stream.tokens
-          }
-        };
-        
-        previousContent = stream.fullContent;
-        
-        // 如果是最后一块，处理完成逻辑
-        if (chunk.isLast) {
-          // 添加助手消息到状态
-          await this.stateManager.addMessage(stream.sessionId, {
-            id: uuidv4(),
-            role: 'assistant',
-            content: stream.fullContent,
-            createdAt: Date.now()
-          });
-          
-          // 存储助手消息到记忆
-          await this.memory.store(stream.sessionId, {
-            text: stream.fullContent,
-            role: 'assistant',
-            timestamp: Date.now()
-          });
-          
-          // 更新状态为完成
-          await this.stateManager.updateState(stream.sessionId, {
-            status: AgentStatus.DONE
-          });
-          
-          // 更新状态缓存
-          this.invalidateStateCache(stream.sessionId);
-          
-          // 发送完成事件
-          this.eventSystem.emit('agent:done', {
-            agentId: this.id,
-            sessionId: stream.sessionId
-          });
-          
-          // 清除中止控制器
-          this.abortControllers.delete(stream.sessionId);
-          
-          // 计算处理时间
-          const processingTimeMs = Date.now() - stream.startTime;
-          
-          // 更新指标
-          this.updateMetrics(processingTimeMs, {
-            promptTokens: 0, // 暂无法获取精确值
-            completionTokens: stream.tokens,
-            totalTokens: stream.tokens
-          });
-        }
-      }
-    } catch (error) {
-      // 错误处理
-      await this.stateManager.updateState(stream.sessionId, {
-        status: AgentStatus.ERROR
+      // 确保状态有效
+      await this.ensureValidState(sessionId, AgentStatus.THINKING);
+      
+      // 更新状态为思考中
+      await this.stateManager.updateState(sessionId, {
+        status: AgentStatus.THINKING
+      });
+      
+      // 发送思考事件
+      this.eventSystem.emit('agent:thinking', {
+        agentId: this.id,
+        sessionId
+      });
+      
+      // 获取当前状态
+      const currentState = await this.stateManager.getState(sessionId);
+      
+      // 添加用户消息到状态
+      const userMessage = {
+        id: uuidv4(),
+        role: 'user',
+        content: request.text,
+        createdAt: Date.now()
+      };
+      
+      // 更新状态中的消息数组
+      const updatedMessages = [...(currentState?.messages || []), userMessage];
+      await this.stateManager.updateState(sessionId, {
+        messages: updatedMessages
+      });
+      
+      // 存储用户消息到记忆
+      await this.memory.store(sessionId, {
+        text: request.text,
+        role: 'user',
+        timestamp: Date.now()
+      });
+      
+      // 更新状态为响应中
+      await this.stateManager.updateState(sessionId, {
+        status: AgentStatus.RESPONDING
       });
       
       // 更新状态缓存
-      this.invalidateStateCache(stream.sessionId);
+      this.invalidateStateCache(sessionId);
       
-      // 发送错误事件
-      this.eventSystem.emit('agent:error', {
+      // 发送响应事件
+      this.eventSystem.emit(EventType.AGENT_RESPONDING, {
         agentId: this.id,
-        sessionId: stream.sessionId,
-        error: error instanceof Error ? error : new Error(String(error))
+        sessionId
+      } as SessionEventData);
+      
+      // 准备上下文和系统提示
+      const state = await this.stateManager.getState(sessionId);
+      
+      // 创建中止控制器
+      const abortController = new AbortController();
+      this.abortControllers.set(sessionId, abortController);
+      
+      // 发送LLM前事件
+      this.eventSystem.emit(EventType.AGENT_LLM_BEFORE, {
+        agentId: this.id,
+        sessionId,
+        messages: state?.messages || []
+      } as SessionEventData);
+      
+      // 优化消息格式转换，减少内存复制
+      const formattedMessages = this.formatMessages(state?.messages || [], request);
+      
+      // 准备请求选项
+      const requestOptions: CompletionOptions = {
+        messages: formattedMessages,
+        model: request.model || this.config.executionConfig.defaultModel,
+        signal: abortController.signal,
+        maxTokens: request.maxTokens || this.config.executionConfig.maxResponseTokens,
+        temperature: request.temperature || this.config.executionConfig.temperature,
+        stream: true
+      };
+      
+      // 流式执行LLM调用
+      const stream = await this.llmConnector.completeStream(requestOptions);
+      
+      // 完整响应文本，用于最后记录到历史
+      let fullResponseText = '';
+      
+      // 迭代流响应
+      for await (const chunk of stream) {
+        // 更新完整响应
+        fullResponseText += chunk.content;
+        
+        // 创建并返回响应块
+        const responseChunk: AgentResponse = {
+          text: chunk.content,
+          timestamp: new Date().toISOString()
+        };
+        
+        yield responseChunk;
+      }
+      
+      // 添加完整响应到状态
+      const assistantMessage = {
+        id: uuidv4(),
+        role: 'assistant',
+        content: fullResponseText,
+        createdAt: Date.now()
+      };
+      
+      // 更新状态中的消息数组
+      const updatedMessagesWithAssistant = [...(state?.messages || []), assistantMessage];
+      await this.stateManager.updateState(sessionId, {
+        messages: updatedMessagesWithAssistant
+      });
+      
+      // 存储助手消息到记忆
+      await this.memory.store(sessionId, {
+        text: fullResponseText,
+        role: 'assistant',
+        timestamp: Date.now()
+      });
+      
+      // 更新状态为完成
+      await this.stateManager.updateState(sessionId, {
+        status: AgentStatus.DONE
+      });
+      
+      // 更新状态缓存
+      this.invalidateStateCache(sessionId);
+      
+      // 发送完成事件
+      this.eventSystem.emit('agent:done', {
+        agentId: this.id,
+        sessionId
       });
       
       // 清除中止控制器
-      this.abortControllers.delete(stream.sessionId);
+      this.abortControllers.delete(sessionId);
       
       // 计算处理时间
-      const processingTimeMs = Date.now() - stream.startTime;
+      const processingTimeMs = Date.now() - startTime;
       
       // 更新指标
       this.updateMetrics(processingTimeMs);
       
-      // 构建错误消息
-      const errorMessage = error instanceof Error ? error.message : String(error);
+    } catch (error) {
+      // 尝试创建会话（如果尚未创建）
+      try {
+        const exists = await this.stateManager.hasSession(sessionId);
+        if (!exists) {
+          await this.stateManager.createSession(sessionId);
+        }
+        
+        // 更新错误状态
+        await this.stateManager.updateState(sessionId, {
+          status: AgentStatus.ERROR
+        });
+      } catch (stateError) {
+        // 状态更新错误不应影响响应
+        console.error('更新状态失败:', stateError);
+      }
       
-      // 产生错误响应
+      // 更新状态缓存
+      this.invalidateStateCache(sessionId);
+      
+      // 发送错误事件
+      this.eventSystem.emit('agent:error', {
+        agentId: this.id,
+        sessionId,
+        error
+      });
+      
+      // 清除中止控制器
+      this.abortControllers.delete(sessionId);
+      
+      // 最后一个响应块包含错误信息
       yield {
-        sessionId: stream.sessionId,
-        text: errorMessage,
+        text: `错误: ${(error as Error).message || String(error)}`,
         timestamp: new Date().toISOString(),
-        isLast: true,
-        finishReason: 'error',
-        success: false,
-        error: errorMessage
+        isError: true
       };
     }
   }
-
+  
   /**
-   * 中断执行
+   * 中断Agent执行
    * @param sessionId 会话ID
    */
   async interrupt(sessionId: string): Promise<void> {
     // 获取中止控制器
     const controller = this.abortControllers.get(sessionId);
     if (controller) {
-      // 中止请求
       controller.abort();
       this.abortControllers.delete(sessionId);
+      
+      // 确保会话存在
+      const exists = await this.stateManager.hasSession(sessionId);
+      if (exists) {
+        // 更新状态为中断
+        await this.stateManager.updateState(sessionId, {
+          status: AgentStatus.INTERRUPTED
+        });
+        
+        // 更新状态缓存
+        this.invalidateStateCache(sessionId);
+        
+        // 发送中断事件
+        this.eventSystem.emit('agent:interrupted', {
+          agentId: this.id,
+          sessionId
+        });
+      }
     }
-    
-    // 更新状态为暂停
-    await this.stateManager.updateState(sessionId, {
-      status: AgentStatus.PAUSED
-    });
-    
-    // 更新状态缓存
-    this.invalidateStateCache(sessionId);
-    
-    // 发送中断事件
-    this.eventSystem.emit('agent:interrupted', {
-      agentId: this.id,
-      sessionId
-    });
-    
-    // 中断LLM请求
-    await this.llmConnector.abortRequest();
   }
-
+  
   /**
    * 重置代理
    * @param sessionId 会话ID
@@ -778,8 +865,14 @@ export class AgentImpl implements Agent {
       this.abortControllers.delete(sessionId);
     }
     
-    // 重置状态
-    await this.stateManager.resetState(sessionId);
+    // 检查会话是否存在，如果不存在则创建
+    const exists = await this.stateManager.hasSession(sessionId);
+    if (!exists) {
+      await this.stateManager.createSession(sessionId);
+    } else {
+      // 重置状态
+      await this.stateManager.resetState(sessionId);
+    }
     
     // 清除记忆
     await this.memory.clear(sessionId);

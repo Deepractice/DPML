@@ -4,7 +4,8 @@
  * 这个示例展示了如何使用配置对象直接创建代理
  */
 
-import { createAgent } from '@dpml/agent';
+// @ts-ignore - 忽略类型定义错误
+import { createAgent } from '../../../packages/agent';
 
 async function main() {
   try {
@@ -42,7 +43,19 @@ async function main() {
     
     // 输出代理响应
     console.log('\n代理响应:');
-    console.log(result.response?.text);
+    if (result.success) {
+      console.log(result.response?.text);
+    } else {
+      console.log(`错误: ${result.error}`);
+      
+      // 尝试重置会话
+      try {
+        console.log('\n重置会话状态...');
+        await agent.reset(sessionId);
+      } catch (resetError) {
+        console.error(`重置会话失败: ${resetError}`);
+      }
+    }
     
   } catch (error) {
     console.error('错误:', error);

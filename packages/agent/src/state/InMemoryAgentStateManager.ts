@@ -9,7 +9,7 @@ import {
 } from './AgentState';
 import { AgentStateManager, AgentStateManagerOptions } from './AgentStateManager';
 import { AGENT_STATE_TRANSITIONS } from './AgentState';
-import { EventSystem, EventType, getGlobalEventSystem } from '../events';
+import { EventSystem, EventType, SessionEventData, getGlobalEventSystem } from '../events';
 
 /**
  * 事件监听器接口
@@ -139,7 +139,7 @@ export class InMemoryAgentStateManager implements AgentStateManager {
    * @param sessionId 会话ID
    * @param updates 状态更新
    * @returns 更新后的状态对象
-   * @throws 如果会话不存在或状态转换无效，将抛出错误
+   * @throws 如果会话不存在，将抛出错误
    */
   async updateState(sessionId: string, updates: Partial<AgentState>): Promise<AgentState> {
     const currentState = await this.getState(sessionId);
@@ -148,12 +148,24 @@ export class InMemoryAgentStateManager implements AgentStateManager {
       throw new Error(`Session ${sessionId} does not exist`);
     }
     
-    // 检查状态转换是否有效
+    // 检查状态转换，只记录非标准转换但不阻止
     if (updates.status && updates.status !== currentState.status) {
       if (!this.isValidTransition(currentState.status, updates.status)) {
-        throw new Error(
-          `Invalid state transition from ${currentState.status} to ${updates.status}`
+        // 记录警告但不抛出错误
+        console.warn(
+          `警告: 状态转换 ${currentState.status} -> ${updates.status} 不符合标准规则（SessionId: ${sessionId}）`
         );
+        
+        // 发送非标准转换事件
+        this.eventSystem.emit(EventType.STATE_CHANGED, {
+          agentId: this.agentId,
+          sessionId,
+          previousStatus: currentState.status,
+          currentStatus: updates.status,
+          nonStandard: true,
+          reason: 'non-standard-transition',
+          timestamp: Date.now()
+        } as SessionEventData);
       }
     }
     
@@ -191,7 +203,7 @@ export class InMemoryAgentStateManager implements AgentStateManager {
    * @param newStatus 新状态
    * @param reason 可选的状态转换原因
    * @returns 更新后的状态对象
-   * @throws 如果状态转换无效，将抛出错误
+   * @throws 如果会话不存在，将抛出错误
    */
   async transitionState(sessionId: string, newStatus: AgentStatus, reason?: string): Promise<AgentState> {
     const currentState = await this.getState(sessionId);
@@ -200,11 +212,23 @@ export class InMemoryAgentStateManager implements AgentStateManager {
       throw new Error(`Session ${sessionId} does not exist`);
     }
     
-    // 检查状态转换是否有效
+    // 检查状态转换，只记录非标准转换但不阻止
     if (!this.isValidTransition(currentState.status, newStatus)) {
-      throw new Error(
-        `Invalid state transition from ${currentState.status} to ${newStatus}`
+      // 记录警告但不抛出错误
+      console.warn(
+        `警告: 状态转换 ${currentState.status} -> ${newStatus} 不符合标准规则（SessionId: ${sessionId}）`
       );
+      
+      // 发送非标准转换事件
+      this.eventSystem.emit(EventType.STATE_CHANGED, {
+        agentId: this.agentId,
+        sessionId,
+        previousStatus: currentState.status,
+        currentStatus: newStatus,
+        nonStandard: true,
+        reason: 'non-standard-transition',
+        timestamp: Date.now()
+      } as SessionEventData);
     }
     
     // 更新状态

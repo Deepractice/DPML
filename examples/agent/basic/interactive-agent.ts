@@ -1,13 +1,11 @@
 /**
- * 流式响应代理示例
+ * 交互式对话代理示例
  * 
- * 这个示例展示了如何创建一个支持流式输出的对话代理
+ * 这个示例展示了如何创建一个交互式对话代理，支持多轮对话和状态管理
  */
 
 // @ts-ignore - 忽略类型定义错误
 import { createAgent } from '../../../packages/agent';
-// @ts-ignore - 忽略类型定义错误
-import { EventType } from '../../../packages/agent/src/events/EventTypes';
 import * as readline from 'readline';
 
 // 创建命令行交互界面
@@ -27,46 +25,33 @@ function prompt(question: string): Promise<string> {
 
 async function main() {
   try {
-    console.log('创建流式响应代理...');
+    console.log('创建交互式对话代理...');
     
     // 使用配置对象创建代理
     const agent = await createAgent({
-      id: 'stream-assistant',
+      id: 'interactive-assistant',
       version: '1.0.0',
       stateManagerType: 'memory', // 使用内存状态管理器
-      memoryType: 'simple', // 使用简单记忆系统
+      memoryType: 'conversational', // 使用对话记忆系统
       executionConfig: {
         defaultModel: 'gpt-3.5-turbo', // 使用更经济的模型
         apiType: 'openai',
-        systemPrompt: `你是一个专业的编程助手，擅长用中文解答编程问题。
-在回答问题时，你应该提供清晰的解释和代码示例。
-如果需要编写代码，请确保代码正确且易于理解。`,
-        maxResponseTokens: 1000, // 增加响应长度限制以支持代码示例
-        temperature: 0.5, // 降低温度以获得更确定性的回答
-        defaultTimeout: 45000 // 增加超时时间
+        systemPrompt: `你是一个友好的对话助手，擅长进行多轮对话。
+你应该记住用户之前说过的内容，并在回复中体现出对话的连贯性。
+尽量使用中文回答问题，除非特别要求使用其他语言。`,
+        maxResponseTokens: 800, // 限制响应长度
+        temperature: 0.7, // 设置温度参数
+        defaultTimeout: 30000 // 设置超时时间
       }
     });
     
     console.log(`创建成功: ${agent.getId()} v${agent.getVersion()}`);
     
     // 创建一个会话ID
-    const sessionId = `stream-session-${Date.now()}`;
+    const sessionId = `session-${Date.now()}`;
     console.log(`会话ID: ${sessionId}`);
     
-    // 监听流式事件
-    agent.on(EventType.LLM_RESPONSE_CHUNK, (data: any) => {
-      process.stdout.write(data.text || '');
-    });
-    
-    agent.on(EventType.LLM_ERROR, (error: any) => {
-      console.error('\n\n流式输出错误:', error);
-    });
-    
-    agent.on(EventType.LLM_REQUEST_COMPLETED, () => {
-      console.log('\n\n--- 响应结束 ---');
-    });
-    
-    console.log('\n开始流式对话 (输入"退出"结束对话):');
+    console.log('\n开始交互式对话 (输入"退出"结束对话):');
     
     let userInput = '';
     
@@ -80,16 +65,19 @@ async function main() {
       }
       
       try {
-        // 发送用户输入给代理，使用流式模式
-        console.log('\n代理: ');
-        const result = await agent.executeStream({
+        // 发送用户输入给代理
+        console.log('\n代理思考中...');
+        const result = await agent.execute({
           text: userInput,
           sessionId
         });
         
-        // 检查结果
-        if (!result.success) {
-          console.log(`\n错误: ${result.error}`);
+        // 输出代理响应
+        console.log('\n代理: ');
+        if (result.success) {
+          console.log(result.response?.text);
+        } else {
+          console.log(`错误: ${result.error}`);
           
           // 如果出现状态转换错误，尝试重置会话
           if (result.error?.includes('Invalid state transition')) {
