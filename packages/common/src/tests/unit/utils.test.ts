@@ -1,10 +1,10 @@
 import { describe, test, expect, vi } from 'vitest';
-import * as stringUtils from '../../src/utils/string';
-import * as arrayUtils from '../../src/utils/array';
-import * as objectUtils from '../../src/utils/object';
-import * as asyncUtils from '../../src/utils/async';
-import * as validationUtils from '../../src/utils/validation';
-import * as errorUtils from '../../src/utils/error';
+import * as stringUtils from '../../utils/string';
+import * as arrayUtils from '../../utils/array';
+import * as objectUtils from '../../utils/object';
+import * as asyncUtils from '../../utils/async';
+import * as validationUtils from '../../utils/validation';
+import * as errorUtils from '../../utils/error';
 
 // 字符串工具测试
 describe('UT-UTIL-STRING: 字符串工具', () => {
@@ -235,7 +235,7 @@ describe('UT-UTIL-ERROR: 错误工具', () => {
         { foo: 'bar' },
         cause
       );
-      
+
       const formatted = error.format();
       expect(formatted).toContain('[TEST_ERROR] Test error');
       expect(formatted).toContain('Context: {"foo":"bar"}');
@@ -249,7 +249,7 @@ describe('UT-UTIL-ERROR: 错误工具', () => {
         () => { throw new Error('Test error'); },
         (error) => 'Caught: ' + (error as Error).message
       );
-      
+
       expect(result).toBe('Caught: Test error');
     });
   });
@@ -260,8 +260,8 @@ describe('UT-UTIL-ERROR: 错误工具', () => {
         async () => { throw new Error('Test error'); },
         (error) => 'Caught: ' + (error as Error).message
       );
-      
+
       expect(result).toBe('Caught: Test error');
     });
   });
-}); 
+});

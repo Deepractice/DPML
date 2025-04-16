@@ -1,3 +1,34 @@
+#!/bin/bash
+
+# 设置颜色
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+echo -e "${YELLOW}开始修复测试文件导入路径...${NC}"
+
+# 查找所有测试文件
+test_files=$(find src/tests -type f -name "*.test.ts")
+
+# 对每个文件进行修复
+for file in $test_files; do
+  echo -e "${YELLOW}修复文件: $file${NC}"
+  
+  # 修复导入路径 - 从 "../../src/xxx" 改为 "../../xxx"
+  sed -i '' 's/from "\.\.\/\.\.\/src\//from "\.\.\/\.\.\//' $file
+  sed -i '' "s/from '\.\.\/\.\.\/src\//from '\.\.\/\.\.\//" $file
+  
+  # 修复从 "../../src" 导入的情况
+  sed -i '' 's/from "\.\.\/\.\.\/src"/from "\.\.\/\.\.\"/' $file
+  sed -i '' "s/from '\.\.\/\.\.\/src'/from '\.\.\/\.\.\'/" $file
+  
+  # 修复特殊情况的导入路径
+  if [[ $file == *"src/tests/utils/fs.test.ts" ]]; then
+    echo -e "${YELLOW}修复fs测试文件的特殊导入...${NC}"
+    
+    # 替换 fs 模块的模拟代码，确保模拟代码没有语法错误
+    cat > $file.new << 'EOF'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -310,3 +341,25 @@ describe('文件系统工具测试', () => {
     });
   });
 });
+EOF
+
+    mv $file.new $file
+  fi
+  
+  # 对于路径测试文件的特殊处理
+  if [[ $file == *"src/tests/utils/paths.test.ts" || $file == *"src/tests/utils/paths.simple.test.ts" ]]; then
+    echo -e "${YELLOW}修复 paths 测试文件...${NC}"
+    sed -i '' 's/from "\.\.\/\.\.\/src\/utils\/paths"/from "\.\.\/\.\.\/utils\/paths"/' $file
+    sed -i '' "s/from '\.\.\/\.\.\/src\/utils\/paths'/from '\.\.\/\.\.\/utils\/paths'/" $file
+  fi
+  
+  # 修复 core 下的测试文件
+  if [[ $file == *"src/tests/core/"* ]]; then
+    echo -e "${YELLOW}修复 core 测试文件...${NC}"
+    module_name=$(basename $file .test.ts)
+    sed -i '' "s/from \"\.\.\/\.\.\/src\/core\/$module_name\"/from \"\.\.\/\.\.\/core\/$module_name\"/" $file
+    sed -i '' "s/from '\.\.\/\.\.\/src\/core\/$module_name'/from '\.\.\/\.\.\/core\/$module_name'/" $file
+  fi
+done
+
+echo -e "${GREEN}导入路径修复完成！${NC}" 

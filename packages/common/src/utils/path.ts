@@ -108,22 +108,39 @@ export function join(...paths: string[]): string {
 
 /**
  * 解析相对路径为绝对路径
- * @param relativePath 相对路径
+ * @param paths 路径片段数组
  * @returns 绝对路径
  */
-export function resolve(relativePath: string): string {
+export function resolve(...paths: string[]): string {
   if (isRunningInNode() && nodePath) {
-    return nodePath.resolve(relativePath);
+    return nodePath.resolve(...paths);
   }
 
   // 浏览器环境下，无法真正获取文件系统绝对路径
   // 可以考虑基于当前URL进行处理
   if (typeof window !== 'undefined' && window.location) {
     const base = new URL('.', window.location.href).pathname;
-    return join(base, relativePath);
+    return join(base, ...paths);
   }
 
-  return relativePath; // 浏览器环境下的兜底返回
+  // 浏览器环境下的兜底实现
+  // 如果有绝对路径，使用最后一个绝对路径作为基准
+  let resolvedPath = '';
+
+  for (const path of paths) {
+    if (path.startsWith('/')) {
+      // 绝对路径重置当前路径
+      resolvedPath = path;
+    } else if (!resolvedPath) {
+      // 第一个路径
+      resolvedPath = path;
+    } else {
+      // 相对路径，连接到当前路径
+      resolvedPath = join(resolvedPath, path);
+    }
+  }
+
+  return resolvedPath || '.';
 }
 
 /**

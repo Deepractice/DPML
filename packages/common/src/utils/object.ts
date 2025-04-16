@@ -1,6 +1,6 @@
 /**
  * 对象处理工具模块
- * 
+ *
  * 提供对象深拷贝、合并、路径访问等工具函数。
  */
 
@@ -21,12 +21,12 @@ export function isObject(item: unknown): item is Record<string, unknown> {
  */
 export function deepMerge<T extends Record<string, any>>(target: T, source: Partial<T>): T {
   const output = { ...target };
-  
+
   if (isObject(target) && isObject(source)) {
     Object.keys(source).forEach(key => {
       const sourceKey = key as keyof typeof source;
       const targetKey = key as keyof typeof target;
-      
+
       if (isObject(source[sourceKey])) {
         if (!(key in target)) {
           Object.assign(output, { [key]: source[sourceKey] });
@@ -38,7 +38,7 @@ export function deepMerge<T extends Record<string, any>>(target: T, source: Part
       }
     });
   }
-  
+
   return output;
 }
 
@@ -50,6 +50,11 @@ export function deepMerge<T extends Record<string, any>>(target: T, source: Part
 export function deepClone<T>(obj: T): T {
   if (obj === null || typeof obj !== 'object') {
     return obj;
+  }
+
+  // 处理日期对象
+  if (obj instanceof Date) {
+    return new Date(obj.getTime()) as unknown as T;
   }
 
   if (Array.isArray(obj)) {
@@ -76,8 +81,8 @@ export function deepClone<T>(obj: T): T {
  * @returns 路径指向的值或默认值
  */
 export function get(
-  obj: Record<string, any>, 
-  path: string | string[], 
+  obj: Record<string, any>,
+  path: string | string[],
   defaultValue?: any
 ): any {
   const keys = Array.isArray(path) ? path : path.split('.');
@@ -184,4 +189,4 @@ export const objectUtils = {
   pick,
   omit,
   isEmpty
-}; 
+};

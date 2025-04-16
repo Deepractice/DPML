@@ -1,3 +1,15 @@
+#!/bin/bash
+
+# 设置颜色
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+echo -e "${YELLOW}开始修复 fs.test.ts 测试文件...${NC}"
+
+# 替换fs模块模拟代码
+cat > src/tests/utils/fs.test.ts.new << 'EOF'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -310,3 +322,9 @@ describe('文件系统工具测试', () => {
     });
   });
 });
+EOF
+
+# 替换原文件
+mv src/tests/utils/fs.test.ts.new src/tests/utils/fs.test.ts
+
+echo -e "${GREEN}fs.test.ts 文件修复完成${NC}" 

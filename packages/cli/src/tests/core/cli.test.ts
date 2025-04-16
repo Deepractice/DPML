@@ -6,10 +6,10 @@ import { CommandExecutor } from '../../core/executor';
 import { ConfigManager } from '../../core/config';
 
 // 模拟依赖模块
-vi.mock('../../core/registry');
-vi.mock('../../core/loader');
-vi.mock('../../core/executor');
-vi.mock('../../core/config');
+vi.mock('../../src/core/registry');
+vi.mock('../../src/core/loader');
+vi.mock('../../src/core/executor');
+vi.mock('../../src/core/config');
 
 describe('CLI', () => {
   let cli: CLI;
