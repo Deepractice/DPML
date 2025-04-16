@@ -1,6 +1,6 @@
 /**
  * 测试环境管理工具
- * 
+ *
  * 提供测试环境的设置、隔离和清理功能
  */
 
@@ -12,21 +12,26 @@ export interface TestEnvironmentConfig {
    * 环境名称
    */
   name: string;
-  
+
   /**
    * 是否启用模拟时间
    */
   mockTime?: boolean;
-  
+
   /**
    * 是否隔离全局对象
    */
   isolateGlobals?: boolean;
-  
+
   /**
    * 环境变量集合
    */
   env?: Record<string, string>;
+
+  /**
+   * 自定义临时目录路径
+   */
+  tempDirPath?: string;
 }
 
 /**
@@ -37,46 +42,61 @@ export interface TestEnvironment {
    * 环境配置
    */
   config: TestEnvironmentConfig;
-  
+
   /**
    * 设置环境
    */
   setup(): Promise<void>;
-  
+
   /**
    * 清理环境
    */
   teardown(): Promise<void>;
-  
+
   /**
    * 重置环境状态（不完全销毁，但重置为初始状态）
    */
   reset(): Promise<void>;
-  
+
   /**
    * 获取环境变量
    */
   getEnv(key: string): string | undefined;
-  
+
   /**
    * 设置环境变量
    */
   setEnv(key: string, value: string): void;
-  
+
   /**
    * 获取当前模拟时间（如果启用）
    */
   getCurrentTime(): Date | null;
-  
+
   /**
    * 设置当前模拟时间（如果启用）
    */
   setCurrentTime(date: Date): void;
-  
+
   /**
    * 前进模拟时间（如果启用）
    */
   advanceTimeBy(milliseconds: number): void;
+
+  /**
+   * 临时目录路径
+   */
+  tempDir: string;
+
+  /**
+   * 清理环境（与 teardown 相同）
+   */
+  cleanup(): Promise<void>;
+
+  /**
+   * 前进时间（与 advanceTimeBy 相同）
+   */
+  advanceTime?(ms: number): void;
 }
 
 /**
@@ -87,25 +107,30 @@ export class BaseTestEnvironment implements TestEnvironment {
    * 环境配置
    */
   public config: TestEnvironmentConfig;
-  
+
   /**
    * 环境变量备份
    */
   private envBackup: Record<string, string | undefined> = {};
-  
+
   /**
    * 当前模拟时间
    */
   private mockDate: Date | null = null;
-  
+
   /**
    * 原始的Date构造函数
    */
   private originalDate: DateConstructor | null = null;
 
   /**
+   * 临时目录路径
+   */
+  public tempDir: string;
+
+  /**
    * 创建基础测试环境
-   * 
+   *
    * @param config 环境配置
    */
   constructor(config: TestEnvironmentConfig) {
@@ -115,6 +140,16 @@ export class BaseTestEnvironment implements TestEnvironment {
       isolateGlobals: config.isolateGlobals ?? false,
       env: config.env ?? {},
     };
+
+    // 创建临时目录
+    const os = require('os');
+    const path = require('path');
+    const fs = require('fs');
+
+    this.tempDir = config.tempDirPath || path.join(os.tmpdir(), `dpml-test-${config.name}-${Date.now()}`);
+    if (!fs.existsSync(this.tempDir)) {
+      fs.mkdirSync(this.tempDir, { recursive: true });
+    }
   }
 
   /**
@@ -152,6 +187,49 @@ export class BaseTestEnvironment implements TestEnvironment {
     // 清理模拟时间
     if (this.config.mockTime) {
       this.teardownMockTime();
+    }
+
+    // 清理临时目录
+    await this.cleanupTempDir();
+  }
+
+  /**
+   * 清理环境（与 teardown 相同）
+   */
+  public async cleanup(): Promise<void> {
+    return this.teardown();
+  }
+
+  /**
+   * 清理临时目录
+   */
+  private async cleanupTempDir(): Promise<void> {
+    const fs = require('fs');
+    const path = require('path');
+
+    if (fs.existsSync(this.tempDir)) {
+      // 递归删除目录
+      const deleteFolderRecursive = (folderPath: string) => {
+        if (fs.existsSync(folderPath)) {
+          fs.readdirSync(folderPath).forEach((file: string) => {
+            const curPath = path.join(folderPath, file);
+            if (fs.lstatSync(curPath).isDirectory()) {
+              // 递归删除子目录
+              deleteFolderRecursive(curPath);
+            } else {
+              // 删除文件
+              fs.unlinkSync(curPath);
+            }
+          });
+          fs.rmdirSync(folderPath);
+        }
+      };
+
+      try {
+        deleteFolderRecursive(this.tempDir);
+      } catch (error) {
+        console.warn(`Failed to clean up temp directory ${this.tempDir}:`, error);
+      }
     }
   }
 
@@ -209,15 +287,22 @@ export class BaseTestEnvironment implements TestEnvironment {
   }
 
   /**
+   * 前进时间（与 advanceTimeBy 相同）
+   */
+  public advanceTime(ms: number): void {
+    this.advanceTimeBy(ms);
+  }
+
+  /**
    * 设置模拟时间
    */
   private setupMockTime(): void {
     this.mockDate = new Date();
     this.originalDate = global.Date;
-    
+
     const mockDateInstance = this.mockDate;
     const that = this;
-    
+
     // @ts-ignore 重写全局Date
     global.Date = class extends Date {
       constructor(...args: any[]) {
@@ -249,7 +334,7 @@ export class BaseTestEnvironment implements TestEnvironment {
 
 /**
  * 创建测试环境
- * 
+ *
  * @param config 环境配置
  * @returns 测试环境实例
  */
@@ -259,7 +344,7 @@ export function createTestEnvironment(config: TestEnvironmentConfig): TestEnviro
 
 /**
  * 使用测试环境运行函数
- * 
+ *
  * @param config 环境配置
  * @param fn 要运行的函数
  * @returns 函数返回值的Promise
@@ -269,7 +354,7 @@ export async function withTestEnvironment<T>(
   fn: (env: TestEnvironment) => Promise<T>
 ): Promise<T> {
   const env = createTestEnvironment(config);
-  
+
   try {
     await env.setup();
     return await fn(env);
@@ -280,22 +365,47 @@ export async function withTestEnvironment<T>(
 
 /**
  * 创建带有spy的测试环境
- * 
+ *
  * @param config 环境配置
- * @returns 带有spy的测试环境实例
+ * @returns 带有spy的测试环境实例和spy对象
  */
-export function createTestEnvWithSpies(config: TestEnvironmentConfig): TestEnvironment {
+export async function createTestEnvWithSpies(config: TestEnvironmentConfig): Promise<{
+  env: TestEnvironment;
+  spies: {
+    console: {
+      log: any;
+      info: any;
+      warn: any;
+      error: any;
+      debug: any;
+    };
+    process: {
+      exit: any;
+    };
+  };
+}> {
   const env = createTestEnvironment(config);
-  const originalSetup = env.setup;
-  const originalTeardown = env.teardown;
-  
-  env.setup = async () => {
-    return originalSetup.call(env);
+  await env.setup();
+
+  // 创建console spies
+  const consoleSpy = {
+    log: jest.spyOn(console, 'log').mockImplementation(),
+    info: jest.spyOn(console, 'info').mockImplementation(),
+    warn: jest.spyOn(console, 'warn').mockImplementation(),
+    error: jest.spyOn(console, 'error').mockImplementation(),
+    debug: jest.spyOn(console, 'debug').mockImplementation()
   };
-  
-  env.teardown = async () => {
-    return originalTeardown.call(env);
+
+  // 创建process spies
+  const processSpy = {
+    exit: jest.spyOn(process, 'exit').mockImplementation((() => {}) as any)
   };
-  
-  return env;
-} 
+
+  return {
+    env,
+    spies: {
+      console: consoleSpy,
+      process: processSpy
+    }
+  };
+}

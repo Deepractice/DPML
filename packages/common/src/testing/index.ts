@@ -1,6 +1,6 @@
 /**
  * 测试工具模块
- * 
+ *
  * 提供测试辅助工具、模拟对象和测试环境管理功能。
  */
 
@@ -21,6 +21,13 @@ export {
   httpClientMock,
   testingUtils
 };
+
+// 直接导出常用测试环境函数
+export {
+  withTestEnvironment,
+  createTestEnvironment,
+  createTestEnvWithSpies
+} from './environment';
 
 // 导出工厂
 export * from './factories';
@@ -59,4 +66,4 @@ export interface MockHttpClient {
 export interface TestDataFactory<T> {
   create(overrides?: Partial<T>): T;
   createMany(count: number, overrides?: Partial<T>): T[];
-} 
+}

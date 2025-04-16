@@ -1,6 +1,6 @@
 /**
  * 字符串处理工具模块
- * 
+ *
  * 提供字符串格式化、验证、转换等实用函数。
  */
 
@@ -119,6 +119,68 @@ export function escapeHtml(str: string): string {
 }
 
 /**
+ * 解析URL字符串为各个组成部分
+ * @param url URL字符串
+ * @returns 解析后的URL对象
+ */
+export function parseUrl(url: string): {
+  protocol: string;
+  host: string;
+  hostname: string;
+  port: string;
+  pathname: string;
+  search: string;
+  hash: string;
+  origin: string;
+} {
+  // 在浏览器环境中使用URL API
+  if (typeof URL !== 'undefined') {
+    try {
+      const parsedUrl = new URL(url);
+      return {
+        protocol: parsedUrl.protocol,
+        host: parsedUrl.host,
+        hostname: parsedUrl.hostname,
+        port: parsedUrl.port,
+        pathname: parsedUrl.pathname,
+        search: parsedUrl.search,
+        hash: parsedUrl.hash,
+        origin: parsedUrl.origin
+      };
+    } catch (error) {
+      // URL解析失败，使用备用方法
+    }
+  }
+
+  // 备用方法：手动解析URL
+  const match = url.match(/^(?:(https?:)\/\/)?([^:\/\s]+)(?::(\d+))?((?:\/[^\s/]+)*)?(?:\?([^\s#]*))?(#.*)?$/);
+
+  if (!match) {
+    throw new Error(`Invalid URL: ${url}`);
+  }
+
+  const protocol = match[1] || '';
+  const hostname = match[2] || '';
+  const port = match[3] || '';
+  const pathname = match[4] || '/';
+  const search = match[5] ? `?${match[5]}` : '';
+  const hash = match[6] || '';
+  const host = port ? `${hostname}:${port}` : hostname;
+  const origin = protocol ? `${protocol}//${host}` : '';
+
+  return {
+    protocol,
+    host,
+    hostname,
+    port,
+    pathname,
+    search,
+    hash,
+    origin
+  };
+}
+
+/**
  * 导出stringUtils对象，保持向后兼容
  */
 export const stringUtils = {
@@ -131,5 +193,6 @@ export const stringUtils = {
   toKebabCase,
   toSnakeCase,
   format,
-  escapeHtml
-}; 
+  escapeHtml,
+  parseUrl
+};

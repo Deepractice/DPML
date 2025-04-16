@@ -1,6 +1,6 @@
 /**
  * 异步操作工具模块
- * 
+ *
  * 提供异步控制流、并发管理和异步任务处理工具函数。
  */
 
@@ -26,24 +26,24 @@ export async function retry<T>(
 ): Promise<T> {
   const { maxAttempts, delay, backoff = false, onRetry } = options;
   let lastError: Error;
-  
+
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       return await fn();
     } catch (error) {
       lastError = error as Error;
-      
+
       if (onRetry) {
         onRetry(attempt, lastError);
       }
-      
+
       if (attempt < maxAttempts) {
         const waitTime = backoff ? delay * Math.pow(2, attempt - 1) : delay;
         await sleep(waitTime);
       }
     }
   }
-  
+
   throw lastError!;
 }
 
@@ -59,24 +59,24 @@ export async function parallel<T>(
 ): Promise<T[]> {
   const results: T[] = new Array(tasks.length);
   let currentIndex = 0;
-  
+
   async function runTask(taskIndex: number): Promise<void> {
     const result = await tasks[taskIndex]();
     results[taskIndex] = result;
-    
+
     const nextIndex = currentIndex++;
     if (nextIndex < tasks.length) {
       await runTask(nextIndex);
     }
   }
-  
+
   const initialWorkers: Promise<void>[] = [];
   const initialCount = Math.min(concurrency, tasks.length);
-  
+
   for (let i = 0; i < initialCount; i++) {
     initialWorkers.push(runTask(currentIndex++));
   }
-  
+
   await Promise.all(initialWorkers);
   return results;
 }
@@ -98,7 +98,7 @@ export function withTimeout<T>(
       reject(typeof timeoutError === 'string' ? new Error(timeoutError) : timeoutError);
     }, timeoutMs);
   });
-  
+
   return Promise.race([promise, timeoutPromise]);
 }
 
@@ -111,13 +111,13 @@ export function createCancellablePromise<T>(): {
   cancel: (reason?: string) => void;
 } {
   let cancelFn: (reason?: string) => void;
-  
+
   const promise = new Promise<T>((resolve, reject) => {
     cancelFn = (reason = 'Promise was cancelled') => {
       reject(new Error(reason));
     };
   });
-  
+
   return {
     promise,
     cancel: cancelFn!
@@ -136,15 +136,15 @@ export function throttle<T extends (...args: any[]) => any>(
 ): (...args: Parameters<T>) => ReturnType<T> | undefined {
   let lastCall = 0;
   let lastResult: ReturnType<T>;
-  
+
   return function(this: any, ...args: Parameters<T>): ReturnType<T> | undefined {
     const now = Date.now();
-    
+
     if (now - lastCall >= delay) {
       lastCall = now;
       lastResult = fn.apply(this, args);
     }
-    
+
     return lastResult;
   };
 }
@@ -160,13 +160,13 @@ export function debounce<T extends (...args: any[]) => any>(
   delay: number
 ): (...args: Parameters<T>) => Promise<ReturnType<T>> {
   let timeoutId: NodeJS.Timeout;
-  
+
   return function(this: any, ...args: Parameters<T>): Promise<ReturnType<T>> {
     return new Promise(resolve => {
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
-      
+
       timeoutId = setTimeout(() => {
         const result = fn.apply(this, args);
         resolve(result);
@@ -182,13 +182,21 @@ export function debounce<T extends (...args: any[]) => any>(
  */
 export async function sequence<T>(tasks: (() => Promise<T>)[]): Promise<T[]> {
   const results: T[] = [];
-  
+
   for (const task of tasks) {
     results.push(await task());
   }
-  
+
   return results;
 }
+
+/**
+ * parallelLimit 函数，作为 parallel 的别名
+ * @param tasks 任务函数数组
+ * @param concurrency 最大并发数
+ * @returns 所有任务的结果数组，顺序与输入任务相同
+ */
+export const parallelLimit = parallel;
 
 /**
  * 导出asyncUtils对象，保持向后兼容
@@ -197,9 +205,10 @@ export const asyncUtils = {
   sleep,
   retry,
   parallel,
+  parallelLimit,
   withTimeout,
   createCancellablePromise,
   throttle,
   debounce,
   sequence
-}; 
+};

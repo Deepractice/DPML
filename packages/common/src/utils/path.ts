@@ -1,6 +1,6 @@
 /**
  * 路径操作工具模块
- * 
+ *
  * 提供路径规范化、合并、安全检查等功能。
  * 设计为在Node.js和浏览器环境都可用。
  */
@@ -34,8 +34,8 @@ if (isRunningInNode()) {
 /**
  * 路径分隔符
  */
-export const separator = isRunningInNode() 
-  ? nodePath?.sep || '/' 
+export const separator = isRunningInNode()
+  ? nodePath?.sep || '/'
   : '/';
 
 /**
@@ -91,7 +91,7 @@ export function join(...paths: string[]): string {
   if (isRunningInNode() && nodePath) {
     return nodePath.join(...paths);
   }
-  
+
   // 浏览器环境的简单实现
   return paths
     .filter(Boolean)
@@ -115,14 +115,14 @@ export function resolve(relativePath: string): string {
   if (isRunningInNode() && nodePath) {
     return nodePath.resolve(relativePath);
   }
-  
+
   // 浏览器环境下，无法真正获取文件系统绝对路径
   // 可以考虑基于当前URL进行处理
   if (typeof window !== 'undefined' && window.location) {
     const base = new URL('.', window.location.href).pathname;
     return join(base, relativePath);
   }
-  
+
   return relativePath; // 浏览器环境下的兜底返回
 }
 
@@ -135,22 +135,22 @@ export function dirname(filePath: string): string {
   if (isRunningInNode() && nodePath) {
     return nodePath.dirname(filePath);
   }
-  
+
   // 如果路径以斜杠结尾，则返回路径本身
   if (filePath.endsWith('/') || filePath.endsWith('\\')) {
     return filePath.slice(0, -1);
   }
-  
+
   // 浏览器环境的简单实现
   const lastSlashIndex = Math.max(
     filePath.lastIndexOf('/'),
     filePath.lastIndexOf('\\')
   );
-  
+
   if (lastSlashIndex === -1) {
     return '.';
   }
-  
+
   return filePath.slice(0, lastSlashIndex);
 }
 
@@ -163,17 +163,17 @@ export function basename(filePath: string): string {
   if (isRunningInNode() && nodePath) {
     return nodePath.basename(filePath);
   }
-  
+
   // 浏览器环境的简单实现
   const lastSlashIndex = Math.max(
     filePath.lastIndexOf('/'),
     filePath.lastIndexOf('\\')
   );
-  
+
   if (lastSlashIndex === -1) {
     return filePath;
   }
-  
+
   return filePath.slice(lastSlashIndex + 1);
 }
 
@@ -186,15 +186,15 @@ export function extname(filePath: string): string {
   if (isRunningInNode() && nodePath) {
     return nodePath.extname(filePath);
   }
-  
+
   // 浏览器环境的简单实现
   const fileName = basename(filePath);
   const lastDotIndex = fileName.lastIndexOf('.');
-  
+
   if (lastDotIndex === -1 || lastDotIndex === 0) {
     return '';
   }
-  
+
   return fileName.slice(lastDotIndex);
 }
 
@@ -207,26 +207,26 @@ export function isAbsolute(filePath: string): boolean {
   if (isRunningInNode() && nodePath) {
     return nodePath.isAbsolute(filePath);
   }
-  
+
   // 浏览器环境的简单实现
   // Unix风格的绝对路径
   if (filePath.startsWith('/')) {
     return true;
   }
-  
+
   // Windows风格的绝对路径
   // 驱动器字母后跟冒号，如 C:
   if (/^[a-zA-Z]:[/\\]/.test(filePath)) {
     return true;
   }
-  
+
   // URL格式
-  if (filePath.startsWith('http://') || 
+  if (filePath.startsWith('http://') ||
       filePath.startsWith('https://') ||
       filePath.startsWith('file://')) {
     return true;
   }
-  
+
   return false;
 }
 
@@ -239,31 +239,38 @@ export function isAbsolute(filePath: string): boolean {
 export function isPathWithinDirectory(basePath: string, targetPath: string): boolean {
   let resolvedBase: string;
   let resolvedTarget: string;
-  
+
   if (isRunningInNode() && nodePath) {
     // Node.js环境下使用path.resolve
     resolvedBase = nodePath.resolve(basePath);
     resolvedTarget = nodePath.resolve(targetPath);
-    
+
     // 确保以目录分隔符结尾，防止部分匹配（如/app匹配/appdata）
     if (!resolvedBase.endsWith(nodePath.sep)) {
       resolvedBase += nodePath.sep;
     }
-    
+
     return resolvedTarget.startsWith(resolvedBase);
   } else {
     // 浏览器环境下的简单实现
     resolvedBase = normalizePath(basePath);
     resolvedTarget = normalizePath(targetPath);
-    
+
     // 确保以斜杠结尾
     if (!resolvedBase.endsWith('/')) {
       resolvedBase += '/';
     }
-    
+
     return resolvedTarget.startsWith(resolvedBase);
   }
 }
+
+/**
+ * normalize 函数，作为 normalizePath 的别名
+ * @param filePath 文件路径
+ * @returns 标准化的路径
+ */
+export const normalize = normalizePath;
 
 /**
  * 导出pathUtils对象，保持向后兼容
@@ -271,6 +278,7 @@ export function isPathWithinDirectory(basePath: string, targetPath: string): boo
 export const pathUtils = {
   separator,
   normalizePath,
+  normalize,  // 添加 normalize 别名
   join,
   resolve,
   dirname,
@@ -278,4 +286,4 @@ export const pathUtils = {
   extname,
   isAbsolute,
   isPathWithinDirectory
-}; 
+};

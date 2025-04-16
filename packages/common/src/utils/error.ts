@@ -1,6 +1,6 @@
 /**
  * 错误处理工具模块
- * 
+ *
  * 提供错误类型定义和错误处理工具函数。
  */
 
@@ -33,7 +33,7 @@ export class DpmlError extends Error {
     this.code = code;
     this.context = context;
     this.cause = cause;
-    
+
     // 修复继承链中的原型链错误，确保instanceof正常工作
     Object.setPrototypeOf(this, new.target.prototype);
   }
@@ -43,7 +43,7 @@ export class DpmlError extends Error {
    */
   format(): string {
     let result = `[${this.code}] ${this.message}`;
-    
+
     if (this.context && Object.keys(this.context).length > 0) {
       try {
         const contextStr = JSON.stringify(this.context);
@@ -52,11 +52,11 @@ export class DpmlError extends Error {
         // 忽略序列化错误
       }
     }
-    
+
     if (this.cause) {
       result += `\nCaused by: ${this.cause.message}`;
     }
-    
+
     return result;
   }
 }
@@ -201,19 +201,19 @@ export function formatErrorStack(error: Error): string {
   if (!error.stack) {
     return error.message;
   }
-  
+
   // 分割堆栈并提取有用信息
   const lines = error.stack.split('\n');
-  
+
   // 移除内部框架和库路径
   const filteredLines = lines.filter(line => {
-    return !line.includes('node_modules') && 
+    return !line.includes('node_modules') &&
            !line.includes('internal') &&
            !line.includes('at Module._compile') &&
            !line.includes('at Module.') &&
            !line.includes('at require');
   });
-  
+
   return filteredLines.join('\n');
 }
 
@@ -232,11 +232,11 @@ export function toDpmlError(
   if (error instanceof DpmlError) {
     return error;
   }
-  
+
   if (error instanceof Error) {
     return new DpmlError(error.message, code, context, error);
   }
-  
+
   return new DpmlError(
     typeof error === 'string' ? error : 'Unknown error occurred',
     code,
@@ -279,6 +279,65 @@ export async function tryCatchAsync<T, E = unknown>(
 }
 
 /**
+ * 获取错误消息，处理各种错误类型
+ * @param error 错误对象
+ * @returns 错误消息字符串
+ */
+export function getErrorMessage(error: unknown): string {
+  if (error instanceof DpmlError) {
+    return error.format();
+  }
+
+  if (error instanceof Error) {
+    return error.message || error.toString();
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  if (error === null) {
+    return 'Null error';
+  }
+
+  if (error === undefined) {
+    return 'Undefined error';
+  }
+
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
+}
+
+/**
+ * 包装函数，安全捕获错误并调用错误处理函数
+ * @param fn 要执行的函数
+ * @param errorHandler 错误处理函数
+ * @returns 包装后的函数
+ */
+export function safeCatch<T extends (...args: any[]) => any>(
+  fn: T,
+  errorHandler: (error: unknown, ...args: Parameters<T>) => ReturnType<T>
+): (...args: Parameters<T>) => ReturnType<T> {
+  return (...args: Parameters<T>): ReturnType<T> => {
+    try {
+      const result = fn(...args);
+
+      // 处理Promise返回值
+      if (result instanceof Promise) {
+        return result.catch(error => errorHandler(error, ...args)) as ReturnType<T>;
+      }
+
+      return result;
+    } catch (error) {
+      return errorHandler(error, ...args);
+    }
+  };
+}
+
+/**
  * 导出errorUtils对象
  */
 export const errorUtils = {
@@ -292,5 +351,7 @@ export const errorUtils = {
   formatErrorStack,
   toDpmlError,
   tryCatch,
-  tryCatchAsync
-}; 
+  tryCatchAsync,
+  getErrorMessage,
+  safeCatch
+};
