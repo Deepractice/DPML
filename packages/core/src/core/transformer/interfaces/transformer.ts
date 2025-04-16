@@ -1,7 +1,7 @@
 import type { OutputAdapter } from './outputAdapter';
 import type { TransformerVisitor } from './transformerVisitor';
 import type { TransformOptions } from './transformOptions';
-import type { ProcessedDocument } from '../../processor/interfaces/processor';
+import type { ProcessedDocument } from '@core/types/processor';
 
 /**
  * 转换器接口

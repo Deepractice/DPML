@@ -4,9 +4,9 @@
  * 提供处理大型文档时的内存优化功能
  */
 
-import { NodeType } from '../../types/node';
+import { NodeType } from '@core/types/node';
 
-import type { Document, Node, Element } from '../../types/node';
+import type { Document, Node, Element } from '@core/types/node';
 
 /**
  * 声明global.gc类型

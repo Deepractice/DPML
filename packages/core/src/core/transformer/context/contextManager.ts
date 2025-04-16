@@ -1,6 +1,6 @@
-import { ProcessedDocument } from '../../processor/interfaces/processor';
+import { ProcessedDocument } from '@core/types/processor';
 
-import type { Document } from '../../types/node';
+import type { Document } from '@core/types/node';
 import type { TransformContext } from '../interfaces/transformContext';
 import type { TransformOptions } from '../interfaces/transformOptions';
 

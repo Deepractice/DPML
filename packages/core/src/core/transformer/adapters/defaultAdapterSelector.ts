@@ -1,4 +1,4 @@
-import type { ProcessedDocument } from '../../processor/interfaces/processor';
+import type { ProcessedDocument } from '@core/types/processor';
 import type {
   AdapterSelector,
   AdapterSelectorOptions,

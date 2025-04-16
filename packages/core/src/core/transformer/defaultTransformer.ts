@@ -1,11 +1,11 @@
-import { ProcessedDocument } from '../processor/interfaces/processor';
+import { ProcessedDocument } from '@core/types/processor';
 import {
   isDocument,
   isElement,
   isContent,
   isReference,
   NodeType,
-} from '../types/node';
+} from '@core/types/node';
 
 import { DefaultOutputAdapter } from './adapters/defaultOutputAdapter';
 import { ContextManager } from './context/contextManager';
@@ -53,7 +53,7 @@ import type {
   Element,
   Content,
   Reference,
-} from '../types/node';
+} from '@core/types/node';
 
 /**
  * 简单的默认输出处理器实现

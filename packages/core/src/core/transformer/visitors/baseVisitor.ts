@@ -1,4 +1,4 @@
-import { NodeType } from '../../types/node';
+import { NodeType } from '@core/types/node';
 
 import type { TransformContext } from '../interfaces/transformContext';
 import type { TransformerVisitor } from '../interfaces/transformerVisitor';
