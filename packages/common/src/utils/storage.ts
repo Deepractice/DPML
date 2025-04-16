@@ -19,7 +19,12 @@ const memoryStorage: Record<string, string> = {};
  */
 function canUseLocalStorage(): boolean {
   try {
-    if (isBrowser()) {
+    if (isBrowser() || isBrowserEnvironment()) {
+      // 检查localStorage是否定义
+      if (typeof localStorage === 'undefined') {
+        return false;
+      }
+      
       // 检查localStorage是否可用
       const testKey = '__test_storage__';
       localStorage.setItem(testKey, 'test');

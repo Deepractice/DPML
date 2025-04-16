@@ -15,6 +15,9 @@ describe('IT-Logger集成测试', () => {
         // 准备日志文件路径
         const logFilePath = path.join(env.tempDir, 'test.log');
         
+        // 确保目录存在
+        fs.mkdirSync(path.dirname(logFilePath), { recursive: true });
+        
         // 捕获控制台输出
         const mockConsole = {
           log: vi.fn(),
@@ -30,7 +33,10 @@ describe('IT-Logger集成测试', () => {
           level: LogLevel.DEBUG,
           transports: [
             new ConsoleTransport({ console: mockConsole }),
-            new FileTransport({ filePath: logFilePath }),
+            new FileTransport({ 
+              filePath: logFilePath,
+              mkdir: true // 确保设置mkdir选项为true
+            }),
           ],
         });
         
@@ -44,7 +50,11 @@ describe('IT-Logger集成测试', () => {
         expect(mockConsole.error).toHaveBeenCalledTimes(1);
         expect(mockConsole.debug).toHaveBeenCalledTimes(1);
         
+        // 等待文件写入完成
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         // 验证文件输出
+        expect(fs.existsSync(logFilePath)).toBe(true);
         const logContent = fs.readFileSync(logFilePath, 'utf8');
         expect(logContent).toContain('集成测试信息');
         expect(logContent).toContain('测试错误消息');

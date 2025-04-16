@@ -4,7 +4,7 @@
  * 提供运行环境检测、平台特性探测等功能。
  */
 
-import { _setEnvironmentOverrides as setEnvOverrides, _resetEnvironmentOverrides as resetEnvOverrides } from '../logger/core/environment';
+import { _overrideNodeEnv, _overrideBrowserEnv } from '../logger/core/environment';
 
 /**
  * 检查代码是否运行在Node.js环境中
@@ -12,9 +12,8 @@ import { _setEnvironmentOverrides as setEnvOverrides, _resetEnvironmentOverrides
  */
 export function isRunningInNode(): boolean {
   // 优先使用环境覆盖设置
-  const envOverride = useEnvironmentOverride();
-  if (envOverride !== null) {
-    return envOverride.isNode;
+  if (_overrideNodeEnv !== null) {
+    return _overrideNodeEnv;
   }
   
   return (
@@ -30,9 +29,8 @@ export function isRunningInNode(): boolean {
  */
 export function isRunningInBrowser(): boolean {
   // 优先使用环境覆盖设置
-  const envOverride = useEnvironmentOverride();
-  if (envOverride !== null) {
-    return envOverride.isBrowser;
+  if (_overrideBrowserEnv !== null) {
+    return _overrideBrowserEnv;
   }
   
   return (
@@ -47,9 +45,8 @@ export function isRunningInBrowser(): boolean {
  */
 export function isRunningInWebWorker(): boolean {
   // 优先使用环境覆盖设置
-  const envOverride = useEnvironmentOverride();
-  if (envOverride !== null && envOverride.isBrowser) {
-    return false;
+  if (_overrideBrowserEnv !== null) {
+    return false; // 如果明确设置为浏览器环境，则不是Worker
   }
   
   return (
@@ -57,29 +54,6 @@ export function isRunningInWebWorker(): boolean {
     typeof window === 'undefined' &&
     typeof importScripts === 'function'
   );
-}
-
-/**
- * 获取当前环境设置覆盖
- * @returns 环境设置对象，如果没有覆盖返回null
- */
-function useEnvironmentOverride(): { isNode: boolean, isBrowser: boolean } | null {
-  try {
-    // 导入环境检测模块
-    const envModule = require('../logger/core/environment');
-    
-    // 检查是否有环境覆盖
-    if (envModule._overrideNodeEnv !== null || envModule._overrideBrowserEnv !== null) {
-      return {
-        isNode: envModule._overrideNodeEnv === true,
-        isBrowser: envModule._overrideBrowserEnv === true
-      };
-    }
-  } catch (error) {
-    // 忽略导入错误，使用默认检测
-  }
-  
-  return null;
 }
 
 /**

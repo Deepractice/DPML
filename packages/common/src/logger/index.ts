@@ -1,32 +1,50 @@
 /**
- * 日志系统模块
+ * 日志系统入口模块
  * 
- * 提供统一的日志接口和实现，支持多级别日志和不同输出目标。
+ * 提供日志记录、格式化和传输功能
  */
 
-// 导出核心组件
-export * from './core';
+// 导出核心类型和工厂
+export * from './core/types';
+export { loggerFactory } from './core/logger-factory';
+
+// 导出传输实现
+export { ConsoleTransport } from './transports/console-transport';
+export { FileTransport } from './transports/file-transport';
 
 // 导出格式化器
-export * from './formatters';
+export { TextFormatter } from './formatters/text-formatter';
+export { JsonFormatter } from './formatters/json-formatter';
 
-// 导出传输通道
-export * from './transports';
+// 导出测试帮助工具
+export { _setEnvironmentOverrides, _resetEnvironmentOverrides } from './core/environment';
 
 // 辅助函数
-import { LogLevel, loggerFactory } from './core';
+import { LogLevel } from './core/types';
+import { loggerFactory } from './core/logger-factory';
 import { isNodeEnvironment } from './core/environment';
 import { FileTransport, FileTransportOptions } from './transports/file-transport';
+import { ILogger } from './core/types';
 
 /**
  * 创建日志记录器的便捷方法
  * 
- * @param name 包或模块名称
+ * @param nameOrOptions 包或模块名称，或选项对象
  * @param options 可选的日志选项
  * @returns 日志记录器实例
  */
-export const createLogger = (name: string, options?: any) => {
-  return loggerFactory.getLogger(name, options);
+export const createLogger = (nameOrOptions: string | any, options?: any): ILogger => {
+  if (typeof nameOrOptions === 'string') {
+    return loggerFactory.getLogger(nameOrOptions, options);
+  } else {
+    // 重新映射名称字段到packageName，以保持向后兼容
+    const loggerOptions = {
+      ...nameOrOptions,
+      packageName: nameOrOptions.name
+    };
+    
+    return loggerFactory.getLogger(nameOrOptions.name, loggerOptions);
+  }
 };
 
 /**
@@ -47,8 +65,8 @@ export const createFileTransport = (options: FileTransportOptions | string): Fil
     return null;
   }
   
-  const fileOptions = typeof options === 'string' 
-    ? { filename: options } 
+  const fileOptions: FileTransportOptions = typeof options === 'string' 
+    ? { filePath: options } 
     : options;
     
   try {

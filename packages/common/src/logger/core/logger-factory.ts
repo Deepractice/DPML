@@ -87,4 +87,25 @@ export class LoggerFactory implements ILoggerFactory {
 /**
  * 全局日志工厂实例
  */
-export const loggerFactory = new LoggerFactory(); 
+export const loggerFactory = new LoggerFactory();
+
+/**
+ * 创建日志记录器的快捷方法
+ * 
+ * @param options 日志选项
+ * @returns 日志记录器实例
+ */
+export function createLogger(options: Partial<LoggerOptions> & { name: string }): ILogger {
+  // 重新映射名称字段到packageName，以保持向后兼容
+  const loggerOptions: Partial<LoggerOptions> = {
+    ...options,
+    packageName: options.name
+  };
+
+  // 增加调试信息，在测试环境下可查看日志创建
+  if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
+    console.log(`Creating logger: ${options.name} at level ${loggerOptions.level}`);
+  }
+  
+  return loggerFactory.getLogger(options.name, loggerOptions);
+} 

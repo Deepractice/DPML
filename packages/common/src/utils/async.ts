@@ -22,9 +22,24 @@ export function sleep(ms: number): Promise<void> {
  */
 export async function retry<T>(
   fn: () => Promise<T>,
-  options: { maxAttempts: number; delay: number; backoff?: boolean; onRetry?: (attempt: number, error: Error) => void }
+  options: { 
+    maxAttempts?: number; 
+    delay?: number; 
+    backoff?: boolean; 
+    onRetry?: (attempt: number, error: Error) => void;
+    // 兼容旧版本参数
+    retries?: number;
+    minTimeout?: number;
+    maxTimeout?: number;
+    factor?: number;
+  }
 ): Promise<T> {
-  const { maxAttempts, delay, backoff = false, onRetry } = options;
+  // 参数兼容处理
+  const maxAttempts = options.maxAttempts || options.retries || 3;
+  const delay = options.delay || options.minTimeout || 100;
+  const backoff = options.backoff !== undefined ? options.backoff : (options.factor !== undefined);
+  const onRetry = options.onRetry;
+  
   let lastError: Error;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -38,7 +53,7 @@ export async function retry<T>(
       }
 
       if (attempt < maxAttempts) {
-        const waitTime = backoff ? delay * Math.pow(2, attempt - 1) : delay;
+        const waitTime = backoff ? delay * Math.pow(options.factor || 2, attempt - 1) : delay;
         await sleep(waitTime);
       }
     }

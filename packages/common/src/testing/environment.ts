@@ -168,6 +168,18 @@ export class BaseTestEnvironment implements TestEnvironment {
     if (this.config.mockTime) {
       this.setupMockTime();
     }
+
+    // 模拟浏览器环境，如果测试名称包含"browser"或"浏览器"
+    if (this.config.name.toLowerCase().includes('browser') || 
+        this.config.name.toLowerCase().includes('浏览器')) {
+      // 导入环境模块并设置为浏览器环境
+      try {
+        const { _setEnvironmentOverrides } = require('../logger/core/environment');
+        _setEnvironmentOverrides(false, true);
+      } catch (error) {
+        console.warn('Failed to set browser environment:', error);
+      }
+    }
   }
 
   /**
@@ -187,6 +199,14 @@ export class BaseTestEnvironment implements TestEnvironment {
     // 清理模拟时间
     if (this.config.mockTime) {
       this.teardownMockTime();
+    }
+
+    // 重置环境覆盖
+    try {
+      const { _resetEnvironmentOverrides } = require('../logger/core/environment');
+      _resetEnvironmentOverrides();
+    } catch (error) {
+      // 忽略错误
     }
 
     // 清理临时目录

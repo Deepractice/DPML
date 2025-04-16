@@ -131,13 +131,35 @@ export class Logger implements ILogger {
       meta
     );
     
+    // 确保有传输通道可用
+    if (this.transports.length === 0) {
+      // 在没有传输通道时使用默认控制台输出
+      try {
+        const level2Method: Record<number, keyof Console> = {
+          [LogLevel.ERROR]: 'error',
+          [LogLevel.WARN]: 'warn',
+          [LogLevel.INFO]: 'info',
+          [LogLevel.DEBUG]: 'debug',
+          [LogLevel.NONE]: 'log'
+        };
+        const method = level2Method[level] || 'log';
+        if (typeof console[method] === 'function') {
+          (console[method] as Function)(formattedMessage);
+        } else {
+          console.log(formattedMessage);
+        }
+      } catch (error) {
+        // 忽略控制台错误
+      }
+    }
+    
     // 发送到所有传输通道
     for (const transport of this.transports) {
       try {
         const result = transport.log(level, formattedMessage, meta);
         
         // 处理异步传输
-        if (transport.isAsync() && result instanceof Promise) {
+        if (typeof transport.isAsync === 'function' && transport.isAsync() && result instanceof Promise) {
           result.catch(err => {
             console.error(`日志传输错误: ${err.message}`);
           });

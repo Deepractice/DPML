@@ -29,7 +29,8 @@ describe('IT-跨包集成测试', () => {
     logger.info('测试信息');
     
     // 验证日志正确记录
-    expect(mockConsole.info).toHaveBeenCalledWith('测试信息');
+    expect(mockConsole.info).toHaveBeenCalled();
+    expect(mockConsole.info.mock.calls[0][0]).toContain('测试信息');
   });
   
   test('IT-CROSS-002: 测试工具应支持跨包使用', async () => {

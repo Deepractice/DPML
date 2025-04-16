@@ -73,9 +73,26 @@ export class FileTransport implements LogTransport {
    */
   private ensureDirectoryExists(): void {
     if (this.mkdir) {
-      const dir = this.path.dirname(this.filePath);
-      if (!this.fs.existsSync(dir)) {
-        this.fs.mkdirSync(dir, { recursive: true });
+      try {
+        const dir = this.path.dirname(this.filePath);
+        // 增加调试日志
+        console.debug(`确保日志目录存在: ${dir}`);
+        
+        if (!this.fs.existsSync(dir)) {
+          console.debug(`目录不存在，正在创建: ${dir}`);
+          this.fs.mkdirSync(dir, { recursive: true });
+          
+          // 验证目录是否成功创建
+          if (!this.fs.existsSync(dir)) {
+            throw new Error(`无法创建目录: ${dir}`);
+          }
+          
+          console.debug(`目录创建成功: ${dir}`);
+        }
+      } catch (error) {
+        // 更详细的错误输出
+        console.error(`创建日志目录失败:`, error);
+        throw new Error(`无法创建日志目录: ${error}`);
       }
     }
   }
