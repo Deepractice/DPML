@@ -48,10 +48,40 @@ export { wait as coreWait } from './core';
 // 提供接口定义
 // 模拟文件系统接口
 export interface MockFileSystem {
-  readFile(path: string): Promise<string>;
-  writeFile(path: string, content: string): Promise<void>;
+  // 异步方法
+  readFile(path: string): Promise<string | Buffer>;
+  writeFile(path: string, content: string | Buffer): Promise<void>;
   exists(path: string): Promise<boolean>;
+  isDirectory(path: string): Promise<boolean>;
+  isFile(path: string): Promise<boolean>;
   mkdir(path: string, recursive?: boolean): Promise<void>;
+  readdir(path: string): Promise<string[]>;
+  stat(path: string): Promise<any>;
+  rename(oldPath: string, newPath: string): Promise<void>;
+  copy(sourcePath: string, destPath: string, recursive?: boolean): Promise<void>;
+  delete(path: string, recursive?: boolean): Promise<void>;
+  
+  // 同步方法
+  readFileSync(path: string): string | Buffer;
+  writeFileSync(path: string, content: string | Buffer): void;
+  existsSync(path: string): boolean;
+  isDirectorySync(path: string): boolean;
+  isFileSync(path: string): boolean;
+  mkdirSync(path: string): void;
+  readdirSync(path: string): string[];
+  statSync(path: string): any;
+  renameSync(oldPath: string, newPath: string): void;
+  copySync(sourcePath: string, destPath: string, recursive?: boolean): void;
+  deleteSync(path: string, recursive?: boolean): void;
+  
+  // 其他方法
+  snapshot(): Record<string, string | Buffer>;
+  clear(): void;
+  
+  // 事件监听
+  on(event: string, listener: (...args: any[]) => void): this;
+  once(event: string, listener: (...args: any[]) => void): this;
+  off(event: string, listener: (...args: any[]) => void): this;
 }
 
 // 模拟HTTP客户端接口

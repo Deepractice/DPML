@@ -8,7 +8,7 @@ import { MockFileSystem, MockFileSystemOptions } from '../mocks/file-system';
  * @returns 模拟文件系统实例
  */
 export function createMockFileSystem(
-  initialFiles?: Record<string, string | Buffer>,
+  initialFiles?: Record<string, string | Buffer | null>,
   options: Omit<MockFileSystemOptions, 'initialFiles'> = {}
 ): MockFileSystem {
   return new MockFileSystem({

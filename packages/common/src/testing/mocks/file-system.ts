@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 import * as path from 'path';
+import { DpmlError } from '../../utils/error';
 
 /**
  * 文件系统条目类型
@@ -83,7 +84,7 @@ export interface MockFileSystemOptions {
   /**
    * 初始文件结构
    */
-  initialFiles?: Record<string, string | Buffer>;
+  initialFiles?: Record<string, string | Buffer | null>;
 
   /**
    * 是否区分大小写
@@ -123,7 +124,13 @@ export class MockFileSystem extends EventEmitter {
 
     if (options.initialFiles) {
       Object.entries(options.initialFiles).forEach(([filePath, content]) => {
-        this.writeFile(filePath, content);
+        if (content === null) {
+          // 如果内容为null，创建目录
+          this.mkdirSync(filePath);
+        } else {
+          // 否则创建文件
+          this.writeFileSync(filePath, content);
+        }
       });
     }
   }
@@ -248,40 +255,56 @@ export class MockFileSystem extends EventEmitter {
   }
 
   /**
-   * 读取文件
+   * 同步读取文件内容
    *
    * @param filePath 文件路径
    * @returns 文件内容
+   * @throws {DpmlError} 当文件不存在或是目录时
    */
-  readFile(filePath: string): string | Buffer {
+  readFileSync(filePath: string): string | Buffer {
     const { entry } = this.findEntry(filePath);
 
     if (!entry) {
-      throw new Error(`文件不存在: ${filePath}`);
+      throw new DpmlError(`文件不存在: ${filePath}`, 'ENOENT');
     }
 
     if (entry.type !== 'file') {
-      throw new Error(`路径不是文件: ${filePath}`);
+      throw new DpmlError(`路径是目录: ${filePath}`, 'EISDIR');
     }
 
-    return entry.content!;
+    return entry.content || '';
   }
 
   /**
-   * 写入文件
+   * 异步读取文件内容
+   * 
+   * @param filePath 文件路径
+   * @returns 文件内容的Promise
+   */
+  async readFile(filePath: string): Promise<string | Buffer> {
+    try {
+      return this.readFileSync(filePath);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  /**
+   * 同步写入文件
    *
    * @param filePath 文件路径
    * @param content 文件内容
+   * @throws {DpmlError} 当父目录不存在或路径是目录时
    */
-  writeFile(filePath: string, content: string | Buffer): void {
+  writeFileSync(filePath: string, content: string | Buffer): void {
     const { entry, parent, name } = this.findEntry(filePath, true);
 
     if (!parent) {
-      throw new Error(`父目录不存在: ${filePath}`);
+      throw new DpmlError(`父目录不存在: ${filePath}`, 'ENOENT');
     }
 
     if (entry && entry.type === 'directory') {
-      throw new Error(`路径是目录: ${filePath}`);
+      throw new DpmlError(`路径是目录: ${filePath}`, 'EISDIR');
     }
 
     const now = new Date();
@@ -329,20 +352,37 @@ export class MockFileSystem extends EventEmitter {
   }
 
   /**
-   * 删除文件或目录
+   * 异步写入文件
+   * 
+   * @param filePath 文件路径
+   * @param content 文件内容
+   * @returns 完成写入的Promise
+   */
+  async writeFile(filePath: string, content: string | Buffer): Promise<void> {
+    try {
+      this.writeFileSync(filePath, content);
+      return Promise.resolve();
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  /**
+   * 同步删除文件或目录
    *
    * @param filePath 文件路径
    * @param recursive 是否递归删除目录
+   * @throws {DpmlError} 当文件不存在或目录不为空时
    */
-  delete(filePath: string, recursive: boolean = false): void {
+  deleteSync(filePath: string, recursive: boolean = false): void {
     const { entry, parent, name } = this.findEntry(filePath);
 
     if (!entry || !parent) {
-      throw new Error(`文件或目录不存在: ${filePath}`);
+      throw new DpmlError(`文件或目录不存在: ${filePath}`, 'ENOENT');
     }
 
     if (entry.type === 'directory' && entry.children && Object.keys(entry.children).length > 0 && !recursive) {
-      throw new Error(`目录不为空: ${filePath}`);
+      throw new DpmlError(`目录不为空: ${filePath}`, 'ENOTEMPTY');
     }
 
     delete parent.children![name];
@@ -356,11 +396,28 @@ export class MockFileSystem extends EventEmitter {
   }
 
   /**
-   * 创建目录
+   * 异步删除文件或目录
+   * 
+   * @param filePath 文件路径
+   * @param recursive 是否递归删除目录
+   * @returns 完成删除的Promise
+   */
+  async delete(filePath: string, recursive: boolean = false): Promise<void> {
+    try {
+      this.deleteSync(filePath, recursive);
+      return Promise.resolve();
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  /**
+   * 同步创建目录
    *
    * @param dirPath 目录路径
+   * @throws {DpmlError} 当路径已存在且为文件或父目录不存在时
    */
-  mkdir(dirPath: string): void {
+  mkdirSync(dirPath: string): void {
     const { entry, parent, name } = this.findEntry(dirPath, true);
 
     if (entry) {
@@ -368,11 +425,11 @@ export class MockFileSystem extends EventEmitter {
         return; // 目录已存在
       }
 
-      throw new Error(`路径已存在且为文件: ${dirPath}`);
+      throw new DpmlError(`路径已存在且为文件: ${dirPath}`, 'EEXIST');
     }
 
     if (!parent) {
-      throw new Error(`父目录不存在: ${dirPath}`);
+      throw new DpmlError(`父目录不存在: ${dirPath}`, 'ENOENT');
     }
 
     const now = new Date();
@@ -395,69 +452,150 @@ export class MockFileSystem extends EventEmitter {
   }
 
   /**
-   * 列出目录内容
+   * 异步创建目录
+   * 
+   * @param dirPath 目录路径
+   * @param recursive 是否递归创建
+   * @returns 完成创建的Promise
+   */
+  async mkdir(dirPath: string, recursive: boolean = true): Promise<void> {
+    try {
+      if (recursive) {
+        const parts = dirPath.split('/').filter(Boolean);
+        let currentPath = '';
+        
+        for (const part of parts) {
+          currentPath = currentPath ? `${currentPath}/${part}` : part;
+          
+          try {
+            this.mkdirSync(currentPath);
+          } catch (err) {
+            // 如果目录已存在则继续
+            if (err instanceof DpmlError && err.message.includes('目录已存在')) {
+              continue;
+            }
+            throw err;
+          }
+        }
+      } else {
+        this.mkdirSync(dirPath);
+      }
+      return Promise.resolve();
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  /**
+   * 同步列出目录内容
    *
    * @param dirPath 目录路径
    * @returns 子条目列表
+   * @throws {DpmlError} 当目录不存在或路径不是目录时
    */
-  readdir(dirPath: string): string[] {
+  readdirSync(dirPath: string): string[] {
     const { entry } = this.findEntry(dirPath);
 
     if (!entry) {
-      throw new Error(`目录不存在: ${dirPath}`);
+      throw new DpmlError(`目录不存在: ${dirPath}`, 'ENOENT');
     }
 
     if (entry.type !== 'directory') {
-      throw new Error(`路径不是目录: ${dirPath}`);
+      throw new DpmlError(`路径不是目录: ${dirPath}`, 'ENOTDIR');
     }
 
     return Object.keys(entry.children || {});
   }
 
   /**
-   * 检查路径是否存在
+   * 异步列出目录内容
+   * 
+   * @param dirPath 目录路径
+   * @returns 子条目列表的Promise
+   */
+  async readdir(dirPath: string): Promise<string[]> {
+    try {
+      return this.readdirSync(dirPath);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  /**
+   * 同步检查路径是否存在
    *
    * @param filePath 文件路径
    * @returns 是否存在
    */
-  exists(filePath: string): boolean {
+  existsSync(filePath: string): boolean {
     const { entry } = this.findEntry(filePath);
     return !!entry;
   }
 
   /**
-   * 检查路径是否是目录
+   * 异步检查路径是否存在
+   * 
+   * @param filePath 文件路径
+   * @returns 是否存在的Promise
+   */
+  async exists(filePath: string): Promise<boolean> {
+    return Promise.resolve(this.existsSync(filePath));
+  }
+
+  /**
+   * 同步检查路径是否是目录
    *
    * @param dirPath 目录路径
    * @returns 是否是目录
    */
-  isDirectory(dirPath: string): boolean {
+  isDirectorySync(dirPath: string): boolean {
     const { entry } = this.findEntry(dirPath);
     return !!entry && entry.type === 'directory';
   }
 
   /**
-   * 检查路径是否是文件
+   * 异步检查路径是否是目录
+   * 
+   * @param dirPath 目录路径
+   * @returns 是否是目录的Promise
+   */
+  async isDirectory(dirPath: string): Promise<boolean> {
+    return Promise.resolve(this.isDirectorySync(dirPath));
+  }
+
+  /**
+   * 同步检查路径是否是文件
    *
    * @param filePath 文件路径
    * @returns 是否是文件
    */
-  isFile(filePath: string): boolean {
+  isFileSync(filePath: string): boolean {
     const { entry } = this.findEntry(filePath);
     return !!entry && entry.type === 'file';
   }
 
   /**
-   * 获取条目信息
+   * 异步检查路径是否是文件
+   * 
+   * @param filePath 文件路径
+   * @returns 是否是文件的Promise
+   */
+  async isFile(filePath: string): Promise<boolean> {
+    return Promise.resolve(this.isFileSync(filePath));
+  }
+
+  /**
+   * 同步获取条目信息
    *
    * @param filePath 文件路径
    * @returns 条目信息
+   * @throws {DpmlError} 当文件或目录不存在时
    */
-  stat(filePath: string): Omit<FileSystemEntry, 'content' | 'children'> {
+  statSync(filePath: string): Omit<FileSystemEntry, 'content' | 'children'> {
     const { entry } = this.findEntry(filePath);
 
     if (!entry) {
-      throw new Error(`文件或目录不存在: ${filePath}`);
+      throw new DpmlError(`文件或目录不存在: ${filePath}`, 'ENOENT');
     }
 
     const { content, children, ...stat } = entry;
@@ -465,26 +603,41 @@ export class MockFileSystem extends EventEmitter {
   }
 
   /**
-   * 重命名文件或目录
+   * 异步获取条目信息
+   * 
+   * @param filePath 文件路径
+   * @returns 条目信息的Promise
+   */
+  async stat(filePath: string): Promise<Omit<FileSystemEntry, 'content' | 'children'>> {
+    try {
+      return this.statSync(filePath);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  /**
+   * 同步重命名文件或目录
    *
    * @param oldPath 旧路径
    * @param newPath 新路径
+   * @throws {DpmlError} 当源路径不存在或目标路径已存在时
    */
-  rename(oldPath: string, newPath: string): void {
+  renameSync(oldPath: string, newPath: string): void {
     const { entry: oldEntry, parent: oldParent, name: oldName } = this.findEntry(oldPath);
 
     if (!oldEntry || !oldParent) {
-      throw new Error(`源路径不存在: ${oldPath}`);
+      throw new DpmlError(`源路径不存在: ${oldPath}`, 'ENOENT');
     }
 
     const { entry: newEntry, parent: newParent, name: newName } = this.findEntry(newPath, true);
 
     if (newEntry) {
-      throw new Error(`目标路径已存在: ${newPath}`);
+      throw new DpmlError(`目标路径已存在: ${newPath}`, 'EEXIST');
     }
 
     if (!newParent) {
-      throw new Error(`目标父目录不存在: ${newPath}`);
+      throw new DpmlError(`目标父目录不存在: ${newPath}`, 'ENOENT');
     }
 
     // 从旧位置移除
@@ -508,43 +661,77 @@ export class MockFileSystem extends EventEmitter {
   }
 
   /**
-   * 复制文件或目录
+   * 异步重命名文件或目录
+   * 
+   * @param oldPath 旧路径
+   * @param newPath 新路径
+   * @returns 完成重命名的Promise
+   */
+  async rename(oldPath: string, newPath: string): Promise<void> {
+    try {
+      this.renameSync(oldPath, newPath);
+      return Promise.resolve();
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  /**
+   * 同步复制文件或目录
    *
    * @param sourcePath 源路径
    * @param destPath 目标路径
    * @param recursive 是否递归复制目录
+   * @throws {DpmlError} 当源路径不存在或目标路径已存在时
    */
-  copy(sourcePath: string, destPath: string, recursive: boolean = true): void {
+  copySync(sourcePath: string, destPath: string, recursive: boolean = true): void {
     const { entry: sourceEntry } = this.findEntry(sourcePath);
 
     if (!sourceEntry) {
-      throw new Error(`源路径不存在: ${sourcePath}`);
+      throw new DpmlError(`源路径不存在: ${sourcePath}`, 'ENOENT');
     }
 
     const { entry: destEntry, parent: destParent, name: destName } = this.findEntry(destPath, true);
 
     if (destEntry) {
-      throw new Error(`目标路径已存在: ${destPath}`);
+      throw new DpmlError(`目标路径已存在: ${destPath}`, 'EEXIST');
     }
 
     if (!destParent) {
-      throw new Error(`目标父目录不存在: ${destPath}`);
+      throw new DpmlError(`目标父目录不存在: ${destPath}`, 'ENOENT');
     }
 
     if (sourceEntry.type === 'file') {
       // 复制文件
-      this.writeFile(destPath, sourceEntry.content!);
+      this.writeFileSync(destPath, sourceEntry.content!);
     } else if (sourceEntry.type === 'directory') {
       // 复制目录
-      this.mkdir(destPath);
+      this.mkdirSync(destPath);
 
       if (recursive && sourceEntry.children) {
         Object.entries(sourceEntry.children).forEach(([childName, childEntry]) => {
           const childSourcePath = `${sourcePath}/${childName}`;
           const childDestPath = `${destPath}/${childName}`;
-          this.copy(childSourcePath, childDestPath, recursive);
+          this.copySync(childSourcePath, childDestPath, recursive);
         });
       }
+    }
+  }
+
+  /**
+   * 异步复制文件或目录
+   * 
+   * @param sourcePath 源路径
+   * @param destPath 目标路径
+   * @param recursive 是否递归复制目录
+   * @returns 完成复制的Promise
+   */
+  async copy(sourcePath: string, destPath: string, recursive: boolean = true): Promise<void> {
+    try {
+      this.copySync(sourcePath, destPath, recursive);
+      return Promise.resolve();
+    } catch (err) {
+      return Promise.reject(err);
     }
   }
 
