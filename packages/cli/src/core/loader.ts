@@ -218,7 +218,7 @@ export class CommandLoader {
    * @param config 领域命令配置
    * @returns 是否是有效配置
    */
-  public validateCommandConfig(config: any): boolean {
+  private validateCommandConfig(config: any): boolean {
     // 检查基本结构
     if (!config || typeof config !== 'object') {
       return false;
@@ -252,7 +252,7 @@ export class CommandLoader {
    * @param filePath 文件路径
    * @returns 领域命令配置
    */
-  public async importCommandConfig(filePath: string): Promise<DomainCommandConfig | null> {
+  private async importCommandConfig(filePath: string): Promise<DomainCommandConfig | null> {
     try {
       // 动态导入模块
       const module = await import(filePath);
@@ -271,7 +271,7 @@ export class CommandLoader {
    * 查找DPML相关包
    * @returns 包信息列表
    */
-  public findDpmlPackages(): string[] {
+  private findDpmlPackages(): string[] {
     try {
       const packages: string[] = [];
       const nodeModules = pathUtils.findNodeModules();
