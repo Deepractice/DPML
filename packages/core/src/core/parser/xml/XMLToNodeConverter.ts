@@ -24,9 +24,9 @@ export class XMLToNodeConverter {
   }
 
   /**
-   * 将XML节点转换为DPML节点
+   * 将XML节点转换为相应的内部节点表示
    * @param xmlNode XML节点
-   * @returns DPML节点
+   * @returns 转换后的节点
    */
   convert(xmlNode: XMLNode): Node {
     if (!xmlNode) {
@@ -36,18 +36,15 @@ export class XMLToNodeConverter {
       });
     }
 
-    // 根据XML节点名称决定转换为哪种DPML节点
-    const nodeName = xmlNode.name.toLowerCase();
-
-    if (nodeName === 'document' || nodeName === 'prompt') {
-      return this.convertToElement(xmlNode);
-    } else {
-      return this.convertToElement(xmlNode);
-    }
+    // 所有XML节点统一转换为Element节点
+    // 不再根据特定的标签名称进行硬编码判断
+    return this.convertToElement(xmlNode);
   }
 
   /**
    * 将XML节点转换为Document节点
+   * 注意：当前实现使用统一的Element转换方式，此方法暂未使用
+   * @deprecated 当前版本未使用此方法，保留以供未来可能的扩展
    * @param xmlNode XML节点
    * @returns Document节点
    */
