@@ -150,6 +150,22 @@ import { createLogger } from '@dpml/common/logger';
 import { stringUtils } from '@dpml/common/utils';
 ```
 
+## 文档
+
+详细文档请参阅：
+
+- [API参考文档](./docs/API-Reference.md)
+- [日志系统文档](./docs/logger/README.md)
+- [测试工具文档](./docs/testing/README.md)
+- [工具函数文档](./docs/utils/README.md)
+- [类型定义文档](./docs/types/README.md)
+- [集成指南](./docs/integration-guide.md)
+- [升级与迁移指南](./docs/migration-guide.md)
+
+## 示例
+
+更多使用示例请查看[examples](./examples)目录。
+
 ## 许可证
 
 MIT 

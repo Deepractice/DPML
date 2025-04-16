@@ -213,6 +213,86 @@ DPML项目采用基于微软TypeScript风格的文件命名约定，确保代码
    - 不假设其他包的内部实现总是成功
    - 提供清晰的错误信息和回溯路径
 
+## 通用工具使用规范
+
+DPML项目提供了`@dpml/common`包作为跨包共享的工具和功能库，为确保代码一致性和减少重复实现，应遵循以下规范：
+
+1. **优先使用共享工具**
+   - 使用`@dpml/common`中的工具函数，而非在各包中重复实现
+   - 对于字符串处理、数组操作、对象操作等通用功能，优先使用共享工具
+   - 遵循"不重复发明轮子"原则，减少代码重复和维护成本
+
+2. **日志系统规范**
+   - 所有包应使用`@dpml/common/logger`提供的统一日志接口
+   - 按包名和模块名创建日志记录器，确保日志来源可跟踪
+   - 遵循日志级别约定：debug用于开发信息，info用于重要状态变更，warn用于潜在问题，error用于错误情况
+   - 示例：
+     ```typescript
+     import { createLogger } from '@dpml/common/logger';
+     
+     // 创建特定模块的日志记录器
+     const logger = createLogger('prompt:parser');
+     
+     // 记录不同级别的信息
+     logger.debug('详细的调试信息');
+     logger.info('重要的状态变更');
+     logger.warn('潜在的问题');
+     logger.error('错误情况', { errorDetails: '详细错误信息' });
+     ```
+
+3. **错误处理规范**
+   - 使用`@dpml/common/types`中的`DPMLError`和`Result`类型进行统一错误处理
+   - 对于可预见的错误情况，返回`Result`类型而非抛出异常
+   - 使用标准化的错误代码和格式，便于错误识别和处理
+   - 示例：
+     ```typescript
+     import { Result, success, failure, createDPMLError, DPMLErrorCode } from '@dpml/common/types';
+     
+     function processFile(path: string): Result<string, Error> {
+       try {
+         // 处理逻辑
+         return success(fileContent);
+       } catch (err) {
+         return failure(createDPMLError(
+           '文件处理失败',
+           DPMLErrorCode.FILE_PROCESSING_ERROR,
+           { path, cause: err }
+         ));
+       }
+     }
+     ```
+
+4. **类型定义共享**
+   - 使用`@dpml/common/types`中的共享接口和类型，确保类型定义一致性
+   - 为包特定的类型添加专门的前缀，避免与共享类型冲突
+   - 继承和扩展共享接口，而非重新定义相似的接口
+
+5. **测试工具规范**
+   - 使用`@dpml/common/testing`中的模拟对象和测试辅助工具
+   - 按照测试标准文档中的指导使用共享测试工具
+   - 为通用测试场景使用标准化的测试夹具和断言
+
+## 文档与资源
+
+关于`@dpml/common`包的详细使用说明，请参考以下资源：
+
+1. **API文档**
+   - [API参考文档](../packages/common/docs/API-Reference.md)
+   - [日志系统文档](../packages/common/docs/logger/README.md)
+   - [测试工具文档](../packages/common/docs/testing/README.md)
+   - [工具函数文档](../packages/common/docs/utils/README.md)
+   - [类型定义文档](../packages/common/docs/types/README.md)
+
+2. **集成指南**
+   - [集成指南](../packages/common/docs/integration-guide.md) - 与其他DPML包集成的说明
+   - [升级与迁移指南](../packages/common/docs/migration-guide.md) - 版本迁移说明
+
+3. **示例代码**
+   - [日志系统示例](../packages/common/examples/logger/basic-usage.ts)
+   - [测试工具示例](../packages/common/examples/testing/mock-file-system.ts)
+   - [工具函数示例](../packages/common/examples/utils/string-array-utils.ts)
+   - [类型使用示例](../packages/common/examples/types/result-error-handling.ts)
+
 ## 项目命令规范
 
 为解决monorepo项目中目录导航和命令执行的问题，DPML项目提供了一套标准命令，避免了修改系统配置的需要。

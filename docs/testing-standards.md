@@ -708,4 +708,237 @@ describe('CLI集成测试', () => {
       }
     );
   });
-}); 
+});
+
+## 4. 共享测试工具使用标准
+
+DPML项目的`@dpml/common/testing`模块提供了标准化的测试工具和模拟对象，所有包应遵循以下标准使用这些工具：
+
+### 4.1 使用共享模拟对象
+
+- **文件系统模拟**：使用`createMockFileSystem`而非自定义模拟
+- **HTTP客户端模拟**：使用`createMockHttpClient`进行API请求模拟
+- **时间模拟**：使用`mockTime`和`advanceTime`控制时间相关测试
+
+示例：
+
+```typescript
+import { createMockFileSystem, mockTime } from '@dpml/common/testing';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+
+describe('ConfigLoader', () => {
+  beforeEach(() => {
+    // 设置固定的时间点，确保测试结果一致
+    mockTime('2023-05-15T10:00:00Z');
+  });
+
+  it('应正确加载配置文件', async () => {
+    // 创建模拟文件系统
+    const mockFs = createMockFileSystem({
+      '/app/config.json': '{"debug": true, "timestamp": "2023-05-15"}'
+    });
+    
+    const loader = new ConfigLoader(mockFs);
+    const config = await loader.load('/app/config.json');
+    
+    expect(config.debug).toBe(true);
+    // 验证模拟文件系统的调用
+    expect(mockFs.readFile).toHaveBeenCalledWith('/app/config.json', 'utf-8');
+  });
+  
+  afterEach(() => {
+    // 重置时间模拟
+    mockTime.reset();
+  });
+});
+```
+
+### 4.2 使用共享测试断言
+
+- 使用`assertStructure`验证对象结构而非手动检查每个属性
+- 使用`assertDeepEquals`进行深度相等比较，支持忽略特定字段
+- 使用`assertErrorType`验证错误类型和消息
+
+示例：
+
+```typescript
+import { assertStructure, assertErrorType } from '@dpml/common/testing';
+import { describe, it } from 'vitest';
+
+describe('UserService', () => {
+  it('应创建有效的用户对象', () => {
+    const user = userService.createUser('test@example.com');
+    
+    // 验证用户对象结构
+    assertStructure(user, {
+      id: 'string',
+      email: 'string',
+      createdAt: 'object', // Date类型
+      status: 'string'
+    });
+  });
+  
+  it('应在邮箱无效时抛出ValidationError', () => {
+    // 验证异常类型和消息
+    assertErrorType(
+      () => userService.createUser('invalid-email'),
+      'ValidationError',
+      { messageContains: '无效的邮箱格式' }
+    );
+  });
+});
+```
+
+### 4.3 使用测试夹具(Fixtures)
+
+- 使用`createFixture`和`useFixture`管理复杂的测试环境设置
+- 为共享的测试场景创建可重用的夹具
+- 确保夹具包含清理函数，避免测试间的状态泄漏
+
+示例：
+
+```typescript
+import { createFixture, useFixture } from '@dpml/common/testing';
+import { describe, it, beforeAll } from 'vitest';
+
+// 在测试套件前创建夹具
+beforeAll(() => {
+  createFixture('databaseConnection', () => {
+    // 设置测试数据库
+    const db = setupTestDatabase();
+    db.users.add({ id: '1', name: 'Test User' });
+    
+    // 返回夹具和清理函数
+    return {
+      fixture: db,
+      cleanup: () => db.close()
+    };
+  });
+});
+
+describe('UserRepository', () => {
+  it('应获取用户记录', async () => {
+    // 使用夹具
+    const { fixture: db, cleanup } = useFixture('databaseConnection');
+    
+    const repo = new UserRepository(db);
+    const user = await repo.findById('1');
+    
+    expect(user.name).toBe('Test User');
+    
+    // 测试后清理
+    cleanup();
+  });
+});
+```
+
+### 4.4 异步测试最佳实践
+
+- 使用`asyncUtils`处理复杂的异步场景
+- 使用`createPromise`创建可控的Promise，便于测试异步行为
+- 避免直接使用`setTimeout`等定时器，优先使用`advanceTime`控制时间流
+
+示例：
+
+```typescript
+import { createPromise, advanceTime } from '@dpml/common/testing';
+import { describe, it, expect, beforeEach } from 'vitest';
+
+describe('TaskQueue', () => {
+  beforeEach(() => {
+    mockTime('2023-01-01');
+  });
+  
+  it('应在任务完成后调用回调', async () => {
+    const { promise, resolve } = createPromise();
+    const callback = vi.fn();
+    
+    const queue = new TaskQueue();
+    queue.addTask(() => promise).onComplete(callback);
+    
+    // 确认回调尚未调用
+    expect(callback).not.toHaveBeenCalled();
+    
+    // 解析Promise，触发完成
+    resolve('result');
+    await promise;
+    
+    // 验证回调已调用
+    expect(callback).toHaveBeenCalledWith('result');
+  });
+  
+  it('应在超时后取消任务', async () => {
+    const queue = new TaskQueue({ timeout: 1000 });
+    const task = vi.fn(() => new Promise(() => {})); // 永不解析的Promise
+    
+    queue.addTask(task);
+    
+    // 前进1001毫秒，触发超时
+    advanceTime(1001);
+    
+    expect(queue.getStatus()).toBe('timeout');
+  });
+});
+```
+
+## 5. 测试文档标准
+
+测试应附带简明的文档，说明测试目的和测试策略。对于复杂的测试场景，应提供详细的步骤说明。
+
+### 5.1 测试文档结构
+
+每个测试文件应包含以下文档内容：
+
+- **文件顶部注释**：简要描述测试范围和类型
+- **测试套件注释**：描述测试套件的目的和测试策略
+- **复杂测试用例注释**：解释测试步骤和断言目的
+
+示例：
+
+```typescript
+/**
+ * UserService单元测试
+ * 
+ * 这些测试验证UserService的核心功能，包括用户创建、验证和权限检查。
+ * 所有外部依赖都使用模拟对象替代。
+ */
+import { createMockHttpClient } from '@dpml/common/testing';
+import { describe, it, expect, beforeEach } from 'vitest';
+
+describe('UserService', () => {
+  // 测试套件设置...
+  
+  /**
+   * 用户创建流程测试
+   * 
+   * 步骤:
+   * 1. 模拟验证服务返回成功
+   * 2. 调用创建用户方法
+   * 3. 验证用户数据正确
+   * 4. 验证验证服务被正确调用
+   */
+  it('应在验证成功后创建用户', async () => {
+    // 测试实现...
+  });
+});
+```
+
+## 6. 文档与资源
+
+关于测试工具和最佳实践的详细信息，请参考以下资源：
+
+1. **测试工具文档**
+   - [测试工具概述](../packages/common/docs/testing/README.md)
+   - [模拟文件系统](../packages/common/docs/testing/MockFileSystem.md)
+   - [模拟HTTP客户端](../packages/common/docs/testing/MockHttpClient.md)
+   - [测试工具函数](../packages/common/docs/testing/TestUtils.md)
+   - [断言辅助](../packages/common/docs/testing/Assertions.md)
+   - [测试夹具](../packages/common/docs/testing/Fixtures.md)
+
+2. **示例代码**
+   - [模拟文件系统示例](../packages/common/examples/testing/mock-file-system.ts)
+
+3. **最佳实践指南**
+   - [集成指南](../packages/common/docs/integration-guide.md) - 包含测试工具集成部分
+
+// ... existing content continues... 
