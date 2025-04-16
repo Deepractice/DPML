@@ -73,9 +73,9 @@ importers:
         specifier: ^11.1.0
         version: 11.1.0
     devDependencies:
-      '@dpml/testing':
+      '@dpml/common':
         specifier: workspace:^
-        version: link:../testing
+        version: link:../common
       '@types/uuid':
         specifier: ^10.0.0
         version: 10.0.0
@@ -116,9 +116,9 @@ importers:
         specifier: ^8.0.1
         version: 8.2.0
     devDependencies:
-      '@dpml/testing':
+      '@dpml/common':
         specifier: workspace:^
-        version: link:../testing
+        version: link:../common
       '@types/boxen':
         specifier: ^3.0.1
         version: 3.0.5
@@ -147,6 +147,27 @@ importers:
         specifier: ^1.4.0
         version: 1.6.1(@types/node@22.14.0)
 
+  packages/common:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.14.0
+        version: 22.14.0
+      eslint:
+        specifier: 9.23.0
+        version: 9.23.0
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.10
+      tsup:
+        specifier: 8.4.0
+        version: 8.4.0(@swc/core@1.11.18)(postcss@8.5.3)(typescript@5.8.2)
+      typescript:
+        specifier: 5.8.2
+        version: 5.8.2
+      vitest:
+        specifier: ^3.1.1
+        version: 3.1.1(@types/node@22.14.0)
+
   packages/core:
     dependencies:
       '@types/lodash':
@@ -165,9 +186,9 @@ importers:
         specifier: ^2.0.5
         version: 2.0.5
     devDependencies:
-      '@dpml/testing':
+      '@dpml/common':
         specifier: workspace:^
-        version: link:../testing
+        version: link:../common
       '@types/chai':
         specifier: ^5.2.1
         version: 5.2.1
@@ -199,9 +220,9 @@ importers:
         specifier: workspace:*
         version: link:../core
     devDependencies:
-      '@dpml/testing':
+      '@dpml/common':
         specifier: workspace:^
-        version: link:../testing
+        version: link:../common
       '@types/chai':
         specifier: ^5.2.1
         version: 5.2.1
@@ -220,24 +241,6 @@ importers:
       vitest:
         specifier: ^1.4.0
         version: 1.6.1(@types/node@22.14.0)
-
-  packages/testing:
-    dependencies:
-      '@dpml/agent':
-        specifier: workspace:*
-        version: link:../agent
-      '@dpml/core':
-        specifier: workspace:*
-        version: link:../core
-      '@dpml/prompt':
-        specifier: workspace:*
-        version: link:../prompt
-      reflect-metadata:
-        specifier: ^0.2.0
-        version: 0.2.2
-      ts-auto-mock:
-        specifier: ^3.6.2
-        version: 3.7.4(typescript@5.8.2)
 
   packages/workflow:
     dependencies:
