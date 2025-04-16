@@ -190,7 +190,7 @@ function getMemoryTestConfig(): {
   enable: boolean;
   maxHeapGrowth: number;
   maxHeapUsed: number;
-} {
+  } {
   // 默认配置
   const config = {
     enable: true,

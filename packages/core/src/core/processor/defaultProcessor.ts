@@ -9,10 +9,17 @@ import {
   ProcessingError,
   ErrorSeverity,
 } from '@core/core/processor/errors/processingError';
-import { ProcessedDocument } from '@core/types/processor';
 import { ProcessingContext as ProcessingContextImpl } from '@core/core/processor/processingContext';
 import { NodeType } from '@core/types/node';
+import { ProcessedDocument } from '@core/types/processor';
 
+import type {
+  Document,
+  Element,
+  Content,
+  Reference,
+  Node,
+} from '@core/types/node';
 import type {
   NodeVisitor,
   Processor,
@@ -23,13 +30,6 @@ import type {
   TagProcessor,
   TagProcessorRegistry,
 } from '@core/types/processor';
-import type {
-  Document,
-  Element,
-  Content,
-  Reference,
-  Node,
-} from '@core/types/node';
 
 /**
  * 默认标签处理器注册表实现

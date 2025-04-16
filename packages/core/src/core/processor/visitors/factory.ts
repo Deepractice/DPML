@@ -19,7 +19,6 @@ import type { AttributeValidationOptions } from './attributeValidationVisitor';
 import type { DocumentMode } from './documentMetadataVisitor';
 import type { IdValidationVisitorOptions } from './idValidationVisitor';
 import type { MarkdownContentVisitorOptions } from './markdownContentVisitor';
-
 import type { ReferenceVisitorOptions } from './referenceVisitor';
 
 /**

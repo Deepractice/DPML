@@ -13,8 +13,8 @@ import {
   resolveRelativePath,
 } from '@core/utils/pathUtils';
 
-import type { ProtocolHandler } from '@core/types/processor';
 import type { Reference } from '@core/types/node';
+import type { ProtocolHandler } from '@core/types/processor';
 
 /**
  * 文件系统错误类型

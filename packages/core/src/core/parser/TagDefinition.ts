@@ -9,7 +9,7 @@ import type { TagDefinition, AttributeDefinition } from '../../types/parser/tag-
 /**
  * 规范化属性定义
  * 将简化的属性定义转换为完整形式
- * 
+ *
  * @param attributes 原始属性定义
  * @returns 规范化后的属性定义
  */
@@ -27,6 +27,7 @@ export function normalizeAttributes(
     for (const attr of attributes) {
       normalized[attr] = { required: false };
     }
+
     return normalized;
   }
 
@@ -44,7 +45,7 @@ export function normalizeAttributes(
 
 /**
  * 验证标签定义是否有效
- * 
+ *
  * @param definition 标签定义
  * @returns 如果有效返回true，否则返回false
  */
@@ -63,4 +64,4 @@ export function validateTagDefinition(definition: TagDefinition): boolean {
   }
 
   return true;
-} 
+}

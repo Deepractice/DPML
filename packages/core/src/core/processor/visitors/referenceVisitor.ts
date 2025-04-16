@@ -6,12 +6,12 @@
 
 import { NodeType } from '@core/types/node';
 
+import type { Content, Reference } from '@core/types/node';
 import type {
   NodeVisitor,
   ProcessingContext,
   ReferenceResolver,
 } from '@core/types/processor';
-import type { Content, Reference } from '@core/types/node';
 
 /**
  * 引用访问者选项

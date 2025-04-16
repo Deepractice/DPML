@@ -23,17 +23,17 @@ Parser 模块基于现有XML解析库构建，专注于将DPML文本解析为AST
 ```mermaid
 flowchart LR
     Input[DPML 文本] --> XmlParser[XML解析库]
-    XmlParser --> DpmlAdapter[DPML适配器]
-    DpmlAdapter --> AST[基础DPML AST]
+    XmlParser --> DPMLAdapter[DPML适配器]
+    DPMLAdapter --> AST[基础DPML AST]
 
     subgraph "辅助组件"
       TagRegistry[标签注册表]
       ErrorHandler[错误处理器]
     end
 
-    TagRegistry -.-> DpmlAdapter
+    TagRegistry -.-> DPMLAdapter
     ErrorHandler -.-> XmlParser
-    ErrorHandler -.-> DpmlAdapter
+    ErrorHandler -.-> DPMLAdapter
 ```
 
 > 注意：所有高级处理功能（如继承处理、属性处理、引用解析）都不属于Parser模块，而是由Processor模块负责。Parser仅生成基础AST结构。
@@ -46,7 +46,7 @@ classDiagram
         +parse(xml: string): XmlNode
     }
 
-    class DpmlAdapter {
+    class DPMLAdapter {
         +adapt(xmlNode: XmlNode): DpmlNode
         -processElement(element: XmlElement): Element
         -processText(text: XmlText): Content
@@ -63,9 +63,9 @@ classDiagram
         +warnings: ParseWarning[]
     }
 
-    XmlParser --> DpmlAdapter: provides XML nodes
-    DpmlAdapter --> ParseResult: produces
-    DpmlAdapter --> TagRegistry: uses
+    XmlParser --> DPMLAdapter: provides XML nodes
+    DPMLAdapter --> ParseResult: produces
+    DPMLAdapter --> TagRegistry: uses
 ```
 
 ## 3. 组件详细设计
@@ -106,7 +106,7 @@ class XmlParserAdapter {
 适配器负责将通用XML节点转换为DPML特定节点：
 
 ```typescript
-class DpmlAdapter {
+class DPMLAdapter {
   /**
    * 将XML节点转换为DPML节点
    * @param xmlNode XML节点

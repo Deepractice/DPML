@@ -1,9 +1,11 @@
-import type { Document } from '../../types/node';
+import type { ValidationResult } from '@core/errors';
+import type { Document } from '@core/types';
+
+import { DPMLAdapter } from '../../core/parser/DPMLAdapter';
+import { TagRegistry } from '../../core/parser/TagRegistry';
+import { Validator } from '../../core/parser/Validator';
+
 import type { ParseOptions, ParseResult } from '../../types/parser';
-import type { ValidationResult } from '../../errors/types';
-import { DpmlAdapter } from '../../core/parser/dpml-adapter';
-import { Validator } from '../../core/parser/validator';
-import { TagRegistry } from '../../core/parser/tag-registry';
 
 /**
  * 解析 DPML 字符串为节点树
@@ -12,7 +14,8 @@ import { TagRegistry } from '../../core/parser/tag-registry';
  * @returns 解析结果
  */
 export async function parse(input: string, options?: ParseOptions): Promise<ParseResult> {
-  const adapter = new DpmlAdapter(options);
+  const adapter = new DPMLAdapter(options);
+
   return adapter.parse(input, options);
 }
 
@@ -24,6 +27,7 @@ export async function parse(input: string, options?: ParseOptions): Promise<Pars
 export function validate(document: Document): ValidationResult {
   const registry = new TagRegistry();
   const validator = new Validator(registry);
+
   return validator.validateDocument(document);
 }
 
@@ -33,4 +37,4 @@ export function validate(document: Document): ValidationResult {
  */
 export function createTagRegistry(): TagRegistry {
   return new TagRegistry();
-} 
+}

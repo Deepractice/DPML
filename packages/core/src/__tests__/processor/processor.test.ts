@@ -2,14 +2,17 @@
  * 处理器模块测试
  */
 import { jest } from '@jest/globals';
+
 import { factory } from '../../api/processor';
 import { ProcessorErrorCode } from '../../constants/processor';
+
 import type { Document } from '../../types/node';
 
 describe('处理器模块', () => {
   describe('工厂方法', () => {
     it('应该创建处理器实例', () => {
       const processor = factory();
+
       expect(processor).toBeDefined();
     });
 
@@ -17,6 +20,7 @@ describe('处理器模块', () => {
       const processor = factory({
         strictMode: true,
       });
+
       expect(processor).toBeDefined();
     });
   });
@@ -35,10 +39,11 @@ describe('处理器模块', () => {
           },
         ],
       };
-      
+
       const result = await processor.process(document, 'test.json');
+
       expect(result).toBeDefined();
       expect(result.children).toHaveLength(1);
     });
   });
-}); 
+});

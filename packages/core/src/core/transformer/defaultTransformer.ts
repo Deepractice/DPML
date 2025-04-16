@@ -1,10 +1,18 @@
-import { ProcessedDocument } from '@core/types/processor';
 import {
   isDocument,
   isElement,
   isContent,
   isReference,
   NodeType,
+} from '@core/types/node';
+import { ProcessedDocument } from '@core/types/processor';
+
+import type {
+  Node,
+  Document,
+  Element,
+  Content,
+  Reference,
 } from '@core/types/node';
 
 import { DefaultOutputAdapter } from './adapters/defaultOutputAdapter';
@@ -15,10 +23,22 @@ import {
   logTransformError,
 } from './utils/errorFormatter';
 import { mergeVisitorResults } from './utils/mergeUtils';
+import {
+  getModeConfig,
+  handleModeError,
+  ModeConfigOptions,
+} from './utils/modeConfig';
+import {
+  getVariables,
+  resolveVariables,
+  applyVariablesToContext,
+} from './utils/variableConfig';
+import { VisitorManager } from './visitor/visitorManager';
 
 import type { OutputAdapter } from './interfaces/outputAdapter';
+import type { OutputAdapterFactory } from './interfaces/outputAdapterFactory';
+import type { OutputProcessor } from './interfaces/outputProcessor';
 import type { TransformContext } from './interfaces/transformContext';
-
 import type { Transformer } from './interfaces/transformer';
 import type { TransformerOptions } from './interfaces/transformerOptions';
 import type { TransformerVisitor } from './interfaces/transformerVisitor';
@@ -28,32 +48,12 @@ import type { TransformOptions } from './interfaces/transformOptions';
 
 import type { MergeOptions } from './utils/mergeUtils';
 
-import {
-  getModeConfig,
-  handleModeError,
-  ModeConfigOptions,
-} from './utils/modeConfig';
 // 导入变量配置功能
-import {
-  getVariables,
-  resolveVariables,
-  applyVariablesToContext,
-} from './utils/variableConfig';
-import { VisitorManager } from './visitor/visitorManager';
 
-import type { OutputProcessor } from './interfaces/outputProcessor';
-import type { OutputAdapterFactory } from './interfaces/outputAdapterFactory';
 
 // 导入合并功能
 // 导入新的错误格式化工具
 
-import type {
-  Node,
-  Document,
-  Element,
-  Content,
-  Reference,
-} from '@core/types/node';
 
 /**
  * 简单的默认输出处理器实现

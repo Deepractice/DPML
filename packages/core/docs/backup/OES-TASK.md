@@ -28,7 +28,7 @@
 - **背景**：ValidationError在多处定义导致使用混乱，目前同名接口和类实现并存
 - **资源**：
   - `packages/core/src/errors/types.ts`中的ValidationError接口和DefaultValidationError类
-  - `packages/core/src/parser/tag-definition.ts`和`interfaces.ts`中的重复定义
+  - `packages/core/src/parser/TagDefinition.ts`和`interfaces.ts`中的重复定义
   - `validation-error-integration.test.ts`测试文件
 - **约束**：
   - 必须保持向后兼容性，确保现有代码不会因重构而破坏
@@ -70,7 +70,7 @@
   - README示例与代码中推荐的用法不一致
   - 标记为废弃的特性仍在广泛使用
 - **资源**：
-  - `packages/core/src/parser/tag-definition.ts`中的接口定义
+  - `packages/core/src/parser/TagDefinition.ts`中的接口定义
   - `packages/prompt/src/tags/core.ts`中的实际使用案例
   - README中的示例代码
 - **约束**：
@@ -112,7 +112,7 @@
   - ValidationResult和ValidationWarning在多个文件中几乎完全相同
   - 接口重复导致导入路径复杂，维护困难
 - **资源**：
-  - `packages/core/src/parser/interfaces.ts`和`tag-definition.ts`中的重复接口
+  - `packages/core/src/parser/interfaces.ts`和`TagDefinition.ts`中的重复接口
   - 所有使用这些接口的代码
 - **约束**：
   - 不破坏现有功能和类型检查

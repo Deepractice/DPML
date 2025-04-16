@@ -52,4 +52,4 @@ export interface DefaultReferenceResolverOptions {
    * 是否使用缓存
    */
   useCache?: boolean;
-} 
+}

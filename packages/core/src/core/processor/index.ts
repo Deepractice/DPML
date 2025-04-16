@@ -15,4 +15,4 @@ export * from './errors/processingError';
 export * from './utils/memoryOptimizer';
 
 // 标签处理器导出
-export * from './tagProcessors/abstractTagProcessor'; 
+export * from './tagProcessors/abstractTagProcessor';

@@ -96,7 +96,7 @@
 **相关文件**：
 
 - `test/integration/parser-processor-integration.test.ts`
-- `src/parser/tag-registry.ts`
+- `src/parser/TagRegistry.ts`
 
 **解决方向**：
 

@@ -20,4 +20,4 @@ export const DEFAULT_PROCESSOR_OPTIONS = {
   registerBaseVisitors: true,
   registerBaseProtocolHandlers: true,
   registerTagProcessorVisitor: true,
-}; 
+};

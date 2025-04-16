@@ -20,7 +20,7 @@ export interface XMLPosition {
 export interface XMLNode {
   name: string;
   textContent?: string;
-  attributes?: Record<string, any>;
+  attributes?: Record<string, unknown>;
   children: XMLNode[];
   position?: XMLPosition;
 }
@@ -64,4 +64,4 @@ export interface XMLParserOptions {
    * @default true
    */
   cdataAsText?: boolean;
-} 
+}

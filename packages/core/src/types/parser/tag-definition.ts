@@ -1,4 +1,5 @@
 import type { ValidationResult } from '../../errors/types';
+import type { Element } from '../node';
 
 /**
  * 属性定义接口
@@ -18,12 +19,12 @@ export interface AttributeDefinition {
   /**
    * 默认值
    */
-  default?: any;
+  default?: unknown;
 
   /**
    * 属性验证函数
    */
-  validate?: (value: any) => boolean | string;
+  validate?: (value: unknown) => boolean | string;
 }
 
 /**
@@ -78,5 +79,8 @@ export interface TagDefinition {
    * 标签验证器函数
    * 可用于实现更复杂的验证逻辑
    */
-  validate?: (element: any, context: any) => ValidationResult;
-} 
+  validate?: (
+    element: Element,
+    context: Record<string, unknown>
+  ) => ValidationResult;
+}

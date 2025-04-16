@@ -30,8 +30,7 @@ describe('TagProcessorRegistry Interface', () => {
   it('should register a processor for a tag', () => {
     // 创建Registry的实例
     const registry: TagProcessorRegistry = new (class
-      implements TagProcessorRegistry
-    {
+    implements TagProcessorRegistry {
       private processors: Map<string, TagProcessor[]> = new Map();
 
       registerProcessor(tagName: string, processor: TagProcessor): void {
@@ -61,8 +60,7 @@ describe('TagProcessorRegistry Interface', () => {
   it('should register multiple processors for the same tag', () => {
     // 创建Registry的实例
     const registry: TagProcessorRegistry = new (class
-      implements TagProcessorRegistry
-    {
+    implements TagProcessorRegistry {
       private processors: Map<string, TagProcessor[]> = new Map();
 
       registerProcessor(tagName: string, processor: TagProcessor): void {
@@ -95,8 +93,7 @@ describe('TagProcessorRegistry Interface', () => {
   it('should return empty array for unknown tag', () => {
     // 创建Registry的实例
     const registry: TagProcessorRegistry = new (class
-      implements TagProcessorRegistry
-    {
+    implements TagProcessorRegistry {
       private processors: Map<string, TagProcessor[]> = new Map();
 
       registerProcessor(tagName: string, processor: TagProcessor): void {

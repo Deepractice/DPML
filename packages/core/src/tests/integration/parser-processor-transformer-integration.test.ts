@@ -6,8 +6,8 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-import { DpmlAdapter } from '@core/parser/dpml-adapter';
 import { DefaultProcessor } from '@core/api/processor';
+import { DpmlAdapter } from '@core/parser/dpml-adapter';
 import { DefaultOutputAdapterFactory } from '@core/transformer/adapters/defaultOutputAdapterFactory';
 import { JSONAdapter } from '@core/transformer/adapters/jsonAdapter';
 import { XMLAdapter } from '@core/transformer/adapters/xmlAdapter';

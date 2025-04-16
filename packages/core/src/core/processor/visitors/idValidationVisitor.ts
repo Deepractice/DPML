@@ -6,11 +6,11 @@
 
 import { ValidationError, ErrorCode, ErrorLevel } from '@core/errors/types';
 
+import type { Document, Element } from '@core/types/node';
 import type {
   NodeVisitor,
   ProcessingContext,
 } from '@core/types/processor';
-import type { Document, Element } from '@core/types/node';
 
 /**
  * ID验证访问者选项
@@ -88,10 +88,10 @@ export class IdValidationVisitor implements NodeVisitor {
           level: this.strictMode ? ErrorLevel.ERROR : ErrorLevel.WARNING,
           position: element.position
             ? {
-                line: element.position.start.line,
-                column: element.position.start.column,
-                offset: element.position.start.offset,
-              }
+              line: element.position.start.line,
+              column: element.position.start.column,
+              offset: element.position.start.offset,
+            }
             : undefined,
         });
 

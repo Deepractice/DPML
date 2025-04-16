@@ -7,12 +7,12 @@
 import { DPMLError, ErrorCode } from '@core/errors';
 import { NodeType, isElement } from '@core/types/node';
 
+import type { Element, Reference } from '@core/types/node';
 import type {
   NodeVisitor,
   ProcessingContext,
   ReferenceResolver,
 } from '@core/types/processor';
-import type { Element, Reference } from '@core/types/node';
 
 /**
  * 处理元素继承的访问者

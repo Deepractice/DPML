@@ -351,10 +351,10 @@ export class ErrorHandler {
     // 但为了类型安全，确保始终抛出异常
     throw typeof error === 'string'
       ? new ProcessingError({
-          message: error,
-          severity: ErrorSeverity.FATAL,
-          code,
-        })
+        message: error,
+        severity: ErrorSeverity.FATAL,
+        code,
+      })
       : error;
   }
 }

@@ -10,7 +10,7 @@ export enum DocumentMode {
    * 严格模式，所有错误都会中断处理
    */
   STRICT = 'strict',
-  
+
   /**
    * 宽松模式，非致命错误可以继续处理
    */
@@ -55,4 +55,4 @@ export interface ReferenceVisitorOptions {
    * 是否在内容中解析引用
    */
   resolveInContent?: boolean;
-} 
+}

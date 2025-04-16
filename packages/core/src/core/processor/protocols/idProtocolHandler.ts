@@ -6,11 +6,11 @@
 
 import { ReferenceError, ErrorCode } from '@core/errors/types';
 
+import type { Reference } from '@core/types/node';
 import type {
   ProcessingContext,
   ProtocolHandler,
 } from '@core/types/processor';
-import type { Reference } from '@core/types/node';
 
 /**
  * ID协议处理器上下文

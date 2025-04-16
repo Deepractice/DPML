@@ -6,11 +6,11 @@
  */
 
 import type { ValidationError, ValidationWarning } from '@core/errors/types';
+import type { Element } from '@core/types/node';
 import type {
   ProcessingContext,
   TagProcessor,
 } from '@core/types/processor';
-import type { Element } from '@core/types/node';
 
 /**
  * 标签处理器抽象基类

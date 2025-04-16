@@ -17,4 +17,4 @@ export const DEFAULT_OPTIONS = {
   preserveComments: false,
   validate: false,
   mode: 'loose',
-}; 
+};

@@ -6,11 +6,11 @@
 
 import { marked } from 'marked';
 
+import type { Content, Node } from '@core/types';
 import type {
   NodeVisitor,
   ProcessingContext,
 } from '@core/types/processor';
-import type { Content, Node } from '@core/types';
 
 import type { MarkedOptions } from 'marked';
 

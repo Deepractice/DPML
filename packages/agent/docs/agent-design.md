@@ -682,7 +682,7 @@ export function createAgentFactory(
   const tagRegistry = options?.tagRegistry || initializeTagSystem();
 
   // 创建解析器适配器
-  const parserAdapter = new DpmlAdapter({
+  const parserAdapter = new DPMLAdapter({
     tagRegistry,
   });
 
@@ -913,7 +913,7 @@ classDiagram
         }
 
         class AgentFactoryImpl {
-            -parserAdapter: DpmlAdapter
+            -parserAdapter: DPMLAdapter
             -processor: DefaultProcessor
             -transformer: AgentTransformer
             +constructor(options: AgentFactoryOptions)

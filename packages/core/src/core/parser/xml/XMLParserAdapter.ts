@@ -1,6 +1,7 @@
+import { XMLParser as FastXMLParser } from 'fast-xml-parser';
+
 import { ParseError } from '../../../errors';
 import { ErrorCode } from '../../../errors/types';
-import { XMLParser as FastXMLParser } from 'fast-xml-parser';
 
 import type { XMLNode, XMLParserOptions } from '../../../types/parser/xml-types';
 

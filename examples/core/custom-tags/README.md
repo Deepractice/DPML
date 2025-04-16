@@ -4,7 +4,7 @@
 
 ## 示例文件
 
-- `tag-definition.ts`: 演示标签定义和注册
+- `TagDefinition.ts`: 演示标签定义和注册
 - `custom-validation.ts`: 自定义标签验证逻辑
 - `custom-dpml.xml`: 使用自定义标签的示例文件
 
@@ -13,7 +13,7 @@
 ### 定义和注册自定义标签
 
 ```typescript
-// tag-definition.ts
+// TagDefinition.ts
 import { TagRegistry, TagDefinition } from '@dpml/core';
 
 // 获取标签注册表
@@ -191,7 +191,7 @@ pnpm install
 运行示例：
 
 ```bash
-ts-node examples/core/custom-tags/tag-definition.ts
+ts-node examples/core/custom-tags/TagDefinition.ts
 ts-node examples/core/custom-tags/custom-validation.ts
 ```
 

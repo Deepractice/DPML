@@ -1,1 +1,0 @@
-transformer模块已成功移动到core目录下，API层提供了简单导出。后续需要继续按照重构指南拆分代码到types/api/core/constants目录。

@@ -10,8 +10,8 @@
  */
 import { performance } from 'perf_hooks';
 
-import { DpmlAdapter } from '@core/parser/dpml-adapter';
 import { createProcessor } from '@core/api/processor';
+import { DpmlAdapter } from '@core/parser/dpml-adapter';
 import { DefaultOutputAdapterFactory } from '@core/transformer/adapters/defaultOutputAdapterFactory';
 import { JSONAdapter } from '@core/transformer/adapters/jsonAdapter';
 import { MarkdownAdapter } from '@core/transformer/adapters/markdownAdapter';
@@ -21,9 +21,9 @@ import { TextNode } from '@core/types/contentNode';
 import { NodeType, Node } from '@core/types/node';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
-import type { ProcessedDocument } from '@core/types/processor/processor';
 import type { OutputAdapterFactory } from '@core/transformer/interfaces/outputAdapterFactory';
 import type { Document, Element } from '@core/types/node';
+import type { ProcessedDocument } from '@core/types/processor/processor';
 
 describe('边界情况和性能测试', () => {
   // 基础组件

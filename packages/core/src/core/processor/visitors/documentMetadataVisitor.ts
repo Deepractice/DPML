@@ -4,11 +4,11 @@
  * 用于收集文档元数据
  */
 
+import type { Document } from '@core/types/node';
 import type {
   NodeVisitor,
   ProcessingContext,
 } from '@core/types/processor';
-import type { Document } from '@core/types/node';
 
 /**
  * 支持的文档模式

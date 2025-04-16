@@ -27,4 +27,4 @@ export interface ProcessorFactoryOptions extends ProcessorOptions {
    * 是否使用严格模式
    */
   strictMode?: boolean;
-} 
+}

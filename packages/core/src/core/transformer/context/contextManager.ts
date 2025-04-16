@@ -1,6 +1,7 @@
 import { ProcessedDocument } from '@core/types/processor';
 
 import type { Document } from '@core/types/node';
+
 import type { TransformContext } from '../interfaces/transformContext';
 import type { TransformOptions } from '../interfaces/transformOptions';
 

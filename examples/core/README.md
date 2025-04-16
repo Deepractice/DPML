@@ -12,7 +12,7 @@
 
 - `custom-tags/` - 自定义标签示例
 
-  - `tag-definition.ts` - 定义和注册自定义标签
+  - `TagDefinition.ts` - 定义和注册自定义标签
   - `custom-validation.ts` - 自定义标签验证逻辑
   - `custom-dpml.xml` - 使用自定义标签的示例文件
   - `README.md` - 自定义标签示例说明
@@ -55,7 +55,7 @@ pnpm install
 pnpm swc examples/core/basic/parsing.ts
 
 # 运行自定义标签示例
-pnpm swc examples/core/custom-tags/tag-definition.ts
+pnpm swc examples/core/custom-tags/TagDefinition.ts
 
 # 运行完整工作流示例
 pnpm swc examples/core/complete-workflow/prompt-processing.ts

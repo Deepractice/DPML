@@ -4,14 +4,13 @@
  * 测试抽象标签处理器的基本功能和钩子方法
  */
 
-import { ProcessingContext as ProcessingContextImpl } from '@core/api/processor';
-import { AbstractTagProcessor } from '@core/api/processor';
+import { ProcessingContext as ProcessingContextImpl, AbstractTagProcessor } from '@core/api/processor';
 import { NodeType, Node } from '@core/types/node';
 import { describe, it, expect, vi } from 'vitest';
 
 import type { ValidationError, ValidationWarning } from '@core/errors/types';
-import type { ProcessingContext } from '@core/types/processor';
 import type { Element, Content, Document } from '@core/types/node';
+import type { ProcessingContext } from '@core/types/processor';
 
 // 创建一个具体的标签处理器实现，用于测试
 class TestTagProcessor extends AbstractTagProcessor {

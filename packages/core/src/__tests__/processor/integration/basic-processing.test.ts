@@ -3,7 +3,6 @@
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 
-import { ReferenceVisitor } from '../../../processor/visitors/referenceVisitor';
 import { TagRegistry } from '../../../parser/tag-registry';
 import { DefaultProcessor } from '../../../processor/defaultProcessor';
 import { DefaultReferenceResolver } from '../../../processor/defaultReferenceResolver';
@@ -16,6 +15,7 @@ import { DocumentMetadataVisitor } from '../../../processor/visitors/documentMet
 import { IdValidationVisitor } from '../../../processor/visitors/idValidationVisitor';
 import { InheritanceVisitor } from '../../../processor/visitors/inheritanceVisitor';
 import { MarkdownContentVisitor } from '../../../processor/visitors/markdownContentVisitor';
+import { ReferenceVisitor } from '../../../processor/visitors/referenceVisitor';
 import { NodeType } from '../../../types/node';
 
 import type { ProcessingContext } from '../../../processor/interfaces';

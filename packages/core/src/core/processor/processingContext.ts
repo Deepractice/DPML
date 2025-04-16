@@ -1,11 +1,11 @@
 /**
  * 处理上下文实现
  */
+import type { Document, Element } from '@core/types/node';
 import type {
   ProcessingContext as ProcessingContextInterface,
   ResolvedReference,
 } from '@core/types/processor';
-import type { Document, Element } from '@core/types/node';
 
 /**
  * 处理上下文类

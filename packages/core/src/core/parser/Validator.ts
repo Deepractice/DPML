@@ -1,15 +1,14 @@
 import { ErrorCode } from '../../errors/types';
 import { Node, NodeType, isElement } from '../../types/node';
 
+import type { TagRegistry } from './TagRegistry';
 import type {
   ValidationError,
   ValidationResult,
   ValidationWarning,
 } from '../../errors/types';
 import type { Element, Document, SourcePosition } from '../../types/node';
-
 import type { TagDefinition } from '../../types/parser/tag-definition';
-import type { TagRegistry } from './tag-registry';
 
 /**
  * 验证器类

@@ -8,7 +8,7 @@ import { NodeType, isElement, isContent } from '../../types/node';
 
 import type { Element, Content } from '../../types/node';
 
-describe('DpmlAdapter', () => {
+describe('DPMLAdapter', () => {
   let dpmlAdapter: DpmlAdapter;
 
   beforeEach(() => {

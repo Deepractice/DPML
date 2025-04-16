@@ -4,12 +4,12 @@
  * 用于处理领域特定的标签语义
  */
 
+import type { Element } from '@core/types/node';
 import type {
   NodeVisitor,
   ProcessingContext,
   TagProcessorRegistry,
 } from '@core/types/processor';
-import type { Element } from '@core/types/node';
 
 /**
  * 领域标签访问者

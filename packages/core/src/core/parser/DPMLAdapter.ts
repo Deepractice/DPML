@@ -2,19 +2,20 @@ import { ParseError } from '../../errors';
 import { ErrorCode, ErrorPosition } from '../../errors/types';
 import { NodeType, SourcePosition, Node } from '../../types/node';
 
+
+import { TagRegistry } from './TagRegistry';
+import { Validator } from './Validator';
+import { XMLParserAdapter } from './xml/XMLParserAdapter';
+import { XMLToNodeConverter } from './xml/XMLToNodeConverter';
+
 import type { Document, Element } from '../../types/node';
 import type { ParseOptions, ParseResult, ParseWarning } from '../../types/parser/types';
-
-import { TagRegistry } from './tag-registry';
-import { Validator } from './validator';
-import { XMLParserAdapter } from './xml/xml-parser-adapter';
-import { XMLToNodeConverter } from './xml/xml-to-node-converter';
 
 /**
  * DPML适配器核心类
  * 负责将DPML文本解析为DPML节点树
  */
-export class DpmlAdapter {
+export class DPMLAdapter {
   /**
    * XML解析适配器
    */
@@ -123,9 +124,9 @@ export class DpmlAdapter {
             firstChild:
               document.children.length > 0
                 ? {
-                    type: document.children[0].type,
-                    tagName: (document.children[0] as Element).tagName,
-                  }
+                  type: document.children[0].type,
+                  tagName: (document.children[0] as Element).tagName,
+                }
                 : null,
           },
           null,

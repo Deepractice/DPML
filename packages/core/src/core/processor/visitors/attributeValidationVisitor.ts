@@ -4,6 +4,7 @@
  * 用于验证元素属性
  */
 
+import { DocumentMode } from '@core/core/processor/visitors/documentMetadataVisitor';
 import {
   DefaultValidationError,
   ErrorCode,
@@ -11,16 +12,15 @@ import {
   ValidationResult,
   ValidationWarning,
 } from '@core/errors/types';
-import { DocumentMode } from '@core/core/processor/visitors/documentMetadataVisitor';
 import { Document } from '@core/types/node';
 
 import type { ValidationErrorImpl } from '@core/errors/types';
 import type { TagRegistry } from '@core/parser/tag-registry';
+import type { Element } from '@core/types/node';
 import type {
   NodeVisitor,
   ProcessingContext,
 } from '@core/types/processor';
-import type { Element } from '@core/types/node';
 
 /**
  * 属性验证访问者选项

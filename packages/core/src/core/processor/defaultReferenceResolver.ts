@@ -6,6 +6,7 @@
 
 import { ReferenceError, ErrorCode } from '@core/errors/types';
 
+import type { Reference } from '@core/types/node';
 import type {
   ProcessingContext,
   ProtocolHandler,
@@ -13,7 +14,6 @@ import type {
   ResolvedReference,
   DefaultReferenceResolverOptions
 } from '@core/types/processor';
-import type { Reference } from '@core/types/node';
 
 /**
  * 默认引用解析器实现

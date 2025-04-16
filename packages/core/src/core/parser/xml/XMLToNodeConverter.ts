@@ -9,7 +9,6 @@ import type {
   Content,
   SourcePosition,
 } from '../../../types/node';
-
 import type { XMLNode, XMLPosition } from '../../../types/parser/xml-types';
 
 /**
