@@ -11,10 +11,9 @@ import {
   Content,
   Document,
   NodeType,
-  ProcessedDocument
+  ProcessedDocument,
+  TransformContext
 } from '@dpml/core';
-// 从正确路径导入TransformContext
-import { TransformContext } from '@dpml/core/src/transformer/interfaces/transformContext';
 import { 
   FormatTemplate, 
   FormatTemplates, 

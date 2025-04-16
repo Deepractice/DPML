@@ -7,7 +7,8 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "lint": "turbo run lint",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "test": "turbo run test",
     "clean": "turbo run clean && rm -rf node_modules",
     "check-configs": "node scripts/check-package-configs.js",
@@ -17,13 +18,8 @@
     "core": "pnpm --filter @dpml/core exec --",
     "agent": "pnpm --filter @dpml/agent exec --",
     "workflow": "pnpm --filter @dpml/workflow exec --",
-    "common": "pnpm --filter @dpml/common exec --",
-    "prompt:test": "pnpm --filter @dpml/prompt test",
-    "core:test": "pnpm --filter @dpml/core test",
-    "common:test": "pnpm --filter @dpml/common test",
-    "prompt:dev": "pnpm --filter @dpml/prompt dev",
-    "core:dev": "pnpm --filter @dpml/core dev",
-    "common:dev": "pnpm --filter @dpml/common dev"
+    "barrels": "node scripts/generate-barrels.js",
+    "barrels:watch": "chokidar \"packages/*/src/**/*.{ts,tsx}\" -c \"pnpm barrels\""
   },
   "keywords": [
     "dpml",
@@ -35,14 +31,21 @@
   "license": "MIT",
   "packageManager": "pnpm@10.7.0",
   "devDependencies": {
+    "@eslint/js": "^9.24.0",
     "@swc-node/register": "^1.10.10",
     "@swc/core": "^1.11.18",
     "@type-challenges/utils": "^0.1.1",
     "@types/node": "^22.14.0",
     "@typescript-eslint/eslint-plugin": "8.29.0",
     "@typescript-eslint/parser": "8.29.0",
+    "barrelsby": "^2.8.1",
+    "chokidar-cli": "^3.0.0",
     "eslint": "9.23.0",
     "eslint-config-prettier": "10.1.1",
+    "eslint-import-resolver-typescript": "^4.3.2",
+    "eslint-plugin-filenames": "^1.3.2",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-unicorn": "^58.0.0",
     "prettier": "3.5.3",
     "reflect-metadata": "^0.2.0",
     "ts-auto-mock": "^3.6.2",
@@ -50,6 +53,7 @@
     "ttypescript": "^1.5.15",
     "turbo": "2.4.4",
     "typescript": "5.8.2",
+    "typescript-eslint": "^8.30.1",
     "vitest": "^3.1.1"
   },
   "dependencies": {
