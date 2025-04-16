@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { CommandRegistry } from './registry';
-import { ExecutionContext } from '../types/command';
+import { Command as DpmlCommand, ExecutionContext } from '../types/command';
 
 /**
  * 命令执行器类
@@ -83,7 +83,7 @@ export class CommandExecutor {
         }
 
         // 添加命令别名
-        if (cmd.aliases) {
+        if (cmd.aliases && cmd.aliases.length > 0) {
           subCommand.aliases(cmd.aliases);
         }
 
@@ -125,8 +125,20 @@ export class CommandExecutor {
     }
 
     try {
+      // 在详细模式下显示执行信息
+      if (this.context.verbose) {
+        console.log(chalk.cyan(`执行命令: ${domainName} ${commandName}`));
+        console.log(chalk.cyan(`参数: ${Array.isArray(args) ? args.join(', ') : args}`));
+        console.log(chalk.cyan(`选项: ${JSON.stringify(options)}`));
+      }
+
       // 执行命令
       await command.execute(args, options, this.context);
+
+      // 在详细模式下显示执行完成信息
+      if (this.context.verbose) {
+        console.log(chalk.green(`命令 '${domainName} ${commandName}' 执行成功`));
+      }
     } catch (error: any) {
       // 包装错误以提供更多上下文
       const wrappedError = new Error(
@@ -177,6 +189,13 @@ export class CommandExecutor {
     } else if (error.message.includes('映射文件')) {
       // 映射文件错误
       console.error(chalk.yellow(`提示: 使用 'dpml --update' 更新命令映射`));
+    } else if (error.message.includes('参数')) {
+      // 参数错误
+      console.error(chalk.yellow(`提示: 请检查命令参数格式是否正确`));
+      console.error(chalk.yellow(`使用 'dpml <领域> <命令> --help' 查看命令用法`));
+    } else if (error.message.includes('执行命令')) {
+      // 命令执行错误
+      console.error(chalk.yellow(`提示: 命令执行过程中出现错误`));
     }
 
     // 在详细模式下显示堆栈信息
@@ -195,17 +214,24 @@ export class CommandExecutor {
    * @param argv 命令行参数数组
    */
   public parseArguments(argv: string[]): void {
-    // 解析全局选项
+    // 解析命令参数
+    this.program.parse(argv);
+
+    // 获取全局选项
     const globalOptions = this.program.opts();
 
     // 设置执行上下文
     this.setContext({
       verbose: !!globalOptions.verbose,
-      quiet: !!globalOptions.quiet
+      quiet: !!globalOptions.quiet,
+      update: !!globalOptions.update
     });
 
-    // 解析命令参数
-    this.program.parse(argv);
+    // 在详细模式下显示解析结果
+    if (this.context.verbose) {
+      console.log(chalk.cyan('命令行参数:'), argv);
+      console.log(chalk.cyan('解析选项:'), globalOptions);
+    }
   }
 
   /**
@@ -213,6 +239,16 @@ export class CommandExecutor {
    * @param context 上下文对象
    */
   public setContext(context: Partial<ExecutionContext>): void {
+    // 合并上下文
     this.context = { ...this.context, ...context };
+
+    // 处理冲突的选项
+    if (this.context.verbose && this.context.quiet) {
+      // verbose和quiet不能同时为true，优先使用verbose
+      this.context.quiet = false;
+
+      // 在详细模式下显示警告
+      console.log(chalk.yellow('警告: --verbose和--quiet选项不能同时使用，将使用--verbose'));
+    }
   }
 }
