@@ -148,26 +148,21 @@ test('loadConfig的实现细节', async () => {
 
 #### 3.3.3 使用共享模拟实现
 
-为常用依赖创建标准化的模拟实现：
+为常用依赖创建标准化的模拟实现，使用`@dpml/common/testing`提供的工具：
 
 ```typescript
-// testUtils.ts
-export const createMockFileSystem = (fileContents = {}) => ({
-  readFile: jest.fn().mockImplementation(path => {
-    if (fileContents[path]) return Promise.resolve(fileContents[path]);
-    return Promise.reject(new Error(`File not found: ${path}`));
-  }),
-  writeFile: jest.fn().mockResolvedValue(undefined),
-  // 其他方法...
+// 使用@dpml/common/testing提供的模拟工具
+import { createMockFileSystem, createMockFunction } from '@dpml/common/testing';
+
+// 创建模拟文件系统
+const mockFs = createMockFileSystem({
+  '/config.json': '{"key":"value"}',
+  '/settings.json': '{"theme":"dark"}'
 });
 
 // 在测试中使用
-import { createMockFileSystem } from '../testUtils';
-
 test('loadConfig处理文件不存在的情况', async () => {
-  const mockFs = createMockFileSystem({});
   const loader = new ConfigLoader(mockFs);
-  
   await expect(loader.loadConfig('missing.json')).rejects.toThrow();
 });
 ```
@@ -201,12 +196,12 @@ describe('FileSystem契约测试', () => {
 
 ```typescript
 // 避免的做法
-jest.mock('@dpml/core');
+vi.mock('@dpml/core');
 
 // 推荐的做法
-jest.mock('@dpml/core', () => ({
-  ...jest.requireActual('@dpml/core'),
-  parseConfig: jest.fn().mockReturnValue({})
+vi.mock('@dpml/core', () => ({
+  ...vi.importActual('@dpml/core'),
+  parseConfig: vi.fn().mockReturnValue({})
 }));
 ```
 
@@ -219,10 +214,15 @@ jest.mock('@dpml/core', () => ({
 - 不模拟被测单元内部的纯逻辑
 
 ```typescript
-// CommandRegistry单元测试 
+// CommandRegistry单元测试
+import { createMockFunction } from '@dpml/common/testing';
+
 test('register应添加命令到注册表', () => {
   const registry = new CommandRegistry();
-  const mockCommand = { name: 'test', execute: jest.fn() };
+  const mockCommand = { 
+    name: 'test', 
+    execute: createMockFunction() 
+  };
   
   registry.register('domain', 'test', mockCommand);
   
@@ -239,6 +239,8 @@ test('register应添加命令到注册表', () => {
 
 ```typescript
 // CommandLoader和CommandRegistry组件测试
+import { createMockFileSystem } from '@dpml/common/testing';
+
 test('loadDomainCommands应从配置加载并注册命令', async () => {
   // 模拟文件系统
   const mockFs = createMockFileSystem({
@@ -263,12 +265,14 @@ test('loadDomainCommands应从配置加载并注册命令', async () => {
 
 ```typescript
 // CLI和命令集成测试
+import { createMockFileSystem } from '@dpml/common/testing';
+
 test('CLI应成功加载和执行命令', async () => {
   // 仅模拟文件系统和进程
   const mockFs = createMockFileSystem({
     '~/.dpml/mapping.json': JSON.stringify({domains:{test:{package:'@dpml/test'}}})
   });
-  const mockProcess = { exit: jest.fn() };
+  const mockProcess = { exit: vi.fn() };
   
   // 使用真实CLI实现与注册表
   const cli = new CLI({fs: mockFs, process: mockProcess});
@@ -288,20 +292,19 @@ test('CLI应成功加载和执行命令', async () => {
 
 ```typescript
 // CLI端到端测试
+import { withTestEnvironment } from '@dpml/common/testing';
+
 test('端到端：CLI应执行完整流程', async () => {
-  // 创建临时文件夹
-  const tmpDir = await createTempDir();
-  
-  // 设置测试环境
-  process.env.DPML_CONFIG_DIR = tmpDir;
-  
-  // 执行实际CLI（最小模拟）
-  const result = await execAsync('node ./bin/dpml.js --help');
-  
-  // 验证
-  expect(result.stdout).toContain('Usage: dpml [options] [command]');
-  // 清理
-  await removeTempDir(tmpDir);
+  await withTestEnvironment(
+    { name: 'e2e-test', env: { DPML_CONFIG_DIR: 'tmp' } },
+    async (env) => {
+      // 执行实际CLI（最小模拟）
+      const result = await execAsync('node ./bin/dpml.js --help');
+      
+      // 验证
+      expect(result.stdout).toContain('Usage: dpml [options] [command]');
+    }
+  );
 });
 ```
 
@@ -381,11 +384,14 @@ describe('CommandRegistry', () => {
 为复杂对象创建工厂函数：
 
 ```typescript
-// testFactories.ts
+// 使用@dpml/common/testing提供的工厂工具
+import { createFixtureCollection } from '@dpml/common/testing';
+
+// 创建测试数据工厂
 export const createCommand = (overrides = {}) => ({
   name: 'test-command',
   description: 'Test command',
-  execute: jest.fn().mockResolvedValue(undefined),
+  execute: vi.fn().mockResolvedValue(undefined),
   ...overrides
 });
 
@@ -396,8 +402,6 @@ export const createDomainConfig = (overrides = {}) => ({
 });
 
 // 在测试中使用
-import { createCommand, createDomainConfig } from '../testFactories';
-
 test('应加载领域配置', () => {
   const config = createDomainConfig({
     domain: 'custom',
@@ -520,7 +524,7 @@ expect(JSON.stringify(result)).toBe('{"id":1}');  // 使用toEqual代替
 6. **错误处理**：测试各种错误情况的处理
 
 模拟策略：
-- 模拟文件系统操作
+- 使用`@dpml/common/testing`提供的模拟文件系统
 - 模拟进程控制 (process.exit等)
 - 模拟控制台输出
 - 使用真实的Commander接口进行集成测试
@@ -534,7 +538,7 @@ expect(JSON.stringify(result)).toBe('{"id":1}');  // 使用toEqual代替
 
 模拟策略：
 - 使用静态测试文件
-- 模拟文件系统操作
+- 使用`@dpml/common/testing`提供的模拟文件系统
 - 使用真实解析器进行端到端测试
 
 ### 10.3 Prompt/Agent模块测试策略
@@ -545,7 +549,7 @@ expect(JSON.stringify(result)).toBe('{"id":1}');  // 使用toEqual代替
 4. **会话处理**：测试会话和上下文管理
 
 模拟策略：
-- 模拟LLM API调用
+- 使用`@dpml/common/testing`提供的模拟HTTP客户端
 - 模拟文件系统操作
 - 使用小型真实调用进行集成测试
 
@@ -553,15 +557,16 @@ expect(JSON.stringify(result)).toBe('{"id":1}');  // 使用toEqual代替
 
 ### 11.1 单元测试环境
 
-- 使用Jest或Vitest作为测试框架
+- 使用Vitest作为测试框架
 - 使用TypeScript进行类型检查
 - 使用ESLint进行代码风格检查
-- 使用测试覆盖率工具
+- 使用`@dpml/common/testing`提供的测试工具
 
 ### 11.2 集成测试环境
 
 - 在隔离环境中运行
 - 使用测试配置而非生产配置
+- 使用`@dpml/common/testing`提供的环境管理工具
 - 使用临时目录进行文件操作
 
 ### 11.3 持续集成设置
@@ -576,6 +581,7 @@ expect(JSON.stringify(result)).toBe('{"id":1}');  // 使用toEqual代替
 
 ```typescript
 // registry.test.ts
+import { createMockFunction } from '@dpml/common/testing';
 import { CommandRegistry } from '../../src/core/registry';
 
 describe('CommandRegistry', () => {
@@ -588,7 +594,7 @@ describe('CommandRegistry', () => {
   describe('register方法', () => {
     test('应成功注册命令并能检索', () => {
       // 准备
-      const mockCommand = { name: 'test', execute: jest.fn() };
+      const mockCommand = { name: 'test', execute: createMockFunction() };
       
       // 执行
       registry.register('domain', 'test', mockCommand);
@@ -600,8 +606,8 @@ describe('CommandRegistry', () => {
     
     test('注册重复命令应抛出错误', () => {
       // 准备
-      const command1 = { name: 'test', execute: jest.fn() };
-      const command2 = { name: 'test', execute: jest.fn() };
+      const command1 = { name: 'test', execute: createMockFunction() };
+      const command2 = { name: 'test', execute: createMockFunction() };
       registry.register('domain', 'test', command1);
       
       // 执行并验证
@@ -617,49 +623,55 @@ describe('CommandRegistry', () => {
 
 ```typescript
 // cli-integration.test.ts
+import { createMockFileSystem, withTestEnvironment } from '@dpml/common/testing';
 import { CLI } from '../../src/core/cli';
-import { createMockFileSystem } from '../utils/testUtils';
 
 describe('CLI集成测试', () => {
   test('应加载映射文件并执行命令', async () => {
-    // 准备
-    const mockConfig = {
-      domains: {
-        test: {
-          package: '@dpml/test',
-          commandsPath: 'dist/commands.js'
-        }
+    // 使用测试环境
+    await withTestEnvironment(
+      { name: 'cli-test', mockTime: true },
+      async (env) => {
+        // 准备
+        const mockConfig = {
+          domains: {
+            test: {
+              package: '@dpml/test',
+              commandsPath: 'dist/commands.js'
+            }
+          }
+        };
+        
+        const mockFs = createMockFileSystem({
+          '~/.dpml/mapping.json': JSON.stringify(mockConfig)
+        });
+        
+        const mockExecute = vi.fn().mockResolvedValue(undefined);
+        const mockCommand = { 
+          name: 'testcmd', 
+          execute: mockExecute 
+        };
+        
+        // 模拟动态导入
+        vi.mock('@dpml/test/dist/commands.js', () => ({
+          default: {
+            domain: 'test',
+            commands: [mockCommand]
+          }
+        }), { virtual: true });
+        
+        // 创建CLI实例
+        const cli = new CLI({
+          fs: mockFs,
+          // 其他必要依赖...
+        });
+        
+        // 执行
+        await cli.run(['node', 'dpml', 'test', 'testcmd', 'arg1']);
+        
+        // 验证
+        expect(mockExecute).toHaveBeenCalledWith(['arg1'], {}, expect.anything());
       }
-    };
-    
-    const mockFs = createMockFileSystem({
-      '~/.dpml/mapping.json': JSON.stringify(mockConfig)
-    });
-    
-    const mockExecute = jest.fn().mockResolvedValue(undefined);
-    const mockCommand = { 
-      name: 'testcmd', 
-      execute: mockExecute 
-    };
-    
-    // 模拟动态导入
-    jest.mock('@dpml/test/dist/commands.js', () => ({
-      default: {
-        domain: 'test',
-        commands: [mockCommand]
-      }
-    }), { virtual: true });
-    
-    // 创建CLI实例
-    const cli = new CLI({
-      fs: mockFs,
-      // 其他必要依赖...
-    });
-    
-    // 执行
-    await cli.run(['node', 'dpml', 'test', 'testcmd', 'arg1']);
-    
-    // 验证
-    expect(mockExecute).toHaveBeenCalledWith(['arg1'], {}, expect.anything());
+    );
   });
 }); 

@@ -1,7 +1,69 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createTestEnvironment, withTestEnvironment } from '../../../src/testing/environment';
+import { createTestEnvironment, withTestEnvironment, createTestEnvWithSpies } from '../../../src/testing/environment';
+
+// 在顶层定义公共spy函数，以便vi.mock可以访问
+const setupSpy = vi.fn();
+const teardownSpy = vi.fn();
+
+// 模拟测试环境模块
+vi.mock('../../../src/testing/environment', async () => {
+  // 导入原始模块
+  const actual = await vi.importActual<{
+    createTestEnvironment: typeof import('../../../src/testing/environment').createTestEnvironment;
+    withTestEnvironment: typeof import('../../../src/testing/environment').withTestEnvironment;
+  }>('../../../src/testing/environment');
+  
+  return {
+    ...actual,
+    createTestEnvironment: (config: import('../../../src/testing/environment').TestEnvironmentConfig) => {
+      const env = actual.createTestEnvironment(config);
+      const originalSetup = env.setup;
+      const originalTeardown = env.teardown;
+      
+      env.setup = async () => {
+        setupSpy();
+        return originalSetup.call(env);
+      };
+      
+      env.teardown = async () => {
+        teardownSpy();
+        return originalTeardown.call(env);
+      };
+      
+      return env;
+    },
+    withTestEnvironment: (
+      config: import('../../../src/testing/environment').TestEnvironmentConfig, 
+      fn: (env: import('../../../src/testing/environment').TestEnvironment) => Promise<any>
+    ) => {
+      const env = actual.createTestEnvironment(config);
+      const originalSetup = env.setup;
+      const originalTeardown = env.teardown;
+      
+      env.setup = async () => {
+        setupSpy();
+        return originalSetup.call(env);
+      };
+      
+      env.teardown = async () => {
+        teardownSpy();
+        return originalTeardown.call(env);
+      };
+      
+      return env.setup()
+        .then(() => fn(env))
+        .finally(() => env.teardown());
+    }
+  };
+});
 
 describe('测试环境管理工具', () => {
+  // 每个测试前重置spy
+  beforeEach(() => {
+    setupSpy.mockReset();
+    teardownSpy.mockReset();
+  });
+
   describe('基本环境功能', () => {
     it('应该创建一个带有默认值的测试环境', () => {
       const env = createTestEnvironment({ name: 'test' });
@@ -161,40 +223,6 @@ describe('测试环境管理工具', () => {
 
   describe('withTestEnvironment', () => {
     it('应该在函数执行前后设置和清理环境', async () => {
-      const setupSpy = vi.fn();
-      const teardownSpy = vi.fn();
-      
-      const createTestEnvWithSpies = (config: any) => {
-        const env = createTestEnvironment(config);
-        const originalSetup = env.setup;
-        const originalTeardown = env.teardown;
-        
-        env.setup = async () => {
-          setupSpy();
-          return originalSetup.call(env);
-        };
-        
-        env.teardown = async () => {
-          teardownSpy();
-          return originalTeardown.call(env);
-        };
-        
-        return env;
-      };
-      
-      // 替换原始函数以使用我们的spy版本
-      vi.mock('../../../src/testing/environment', async () => {
-        return {
-          createTestEnvironment: (config: any) => createTestEnvWithSpies(config),
-          withTestEnvironment: (config: any, fn: any) => {
-            const env = createTestEnvWithSpies(config);
-            return env.setup()
-              .then(() => fn(env))
-              .finally(() => env.teardown());
-          }
-        };
-      });
-      
       const result = await withTestEnvironment(
         { name: 'test-with' },
         async (env) => {
@@ -209,33 +237,6 @@ describe('测试环境管理工具', () => {
     });
 
     it('即使函数抛出错误也应该清理环境', async () => {
-      const teardownSpy = vi.fn();
-      
-      const createTestEnvWithSpies = (config: any) => {
-        const env = createTestEnvironment(config);
-        const originalTeardown = env.teardown;
-        
-        env.teardown = async () => {
-          teardownSpy();
-          return originalTeardown.call(env);
-        };
-        
-        return env;
-      };
-      
-      // 替换原始函数以使用我们的spy版本
-      vi.mock('../../../src/testing/environment', async () => {
-        return {
-          createTestEnvironment: (config: any) => createTestEnvWithSpies(config),
-          withTestEnvironment: (config: any, fn: any) => {
-            const env = createTestEnvWithSpies(config);
-            return env.setup()
-              .then(() => fn(env))
-              .finally(() => env.teardown());
-          }
-        };
-      });
-      
       await expect(withTestEnvironment(
         { name: 'test-error' },
         async () => {

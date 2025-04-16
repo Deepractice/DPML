@@ -276,4 +276,26 @@ export async function withTestEnvironment<T>(
   } finally {
     await env.teardown();
   }
+}
+
+/**
+ * 创建带有spy的测试环境
+ * 
+ * @param config 环境配置
+ * @returns 带有spy的测试环境实例
+ */
+export function createTestEnvWithSpies(config: TestEnvironmentConfig): TestEnvironment {
+  const env = createTestEnvironment(config);
+  const originalSetup = env.setup;
+  const originalTeardown = env.teardown;
+  
+  env.setup = async () => {
+    return originalSetup.call(env);
+  };
+  
+  env.teardown = async () => {
+    return originalTeardown.call(env);
+  };
+  
+  return env;
 } 
