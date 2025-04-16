@@ -1,7 +1,7 @@
-import { describe, test, expect, vi } from 'vitest';
-import { createLogger, LogLevel } from '@dpml/common/logger';
-import { createMockFileSystem, createMockHttpClient } from '@dpml/common/testing';
-import * as utils from '@dpml/common/utils';
+import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { createLogger, LogLevel } from '../../logger';
+import { createMockFileSystem, createMockHttpClient } from '../../testing';
+import * as utils from '../../utils';
 
 // 性能测试辅助函数
 const measurePerformance = async (
@@ -36,21 +36,43 @@ const measurePerformance = async (
 
 describe('IT-性能测试', () => {
   describe('日志系统性能', () => {
-    test('IT-PERF-001: 日志记录应满足性能要求', async () => {
-      // 创建空日志记录器
-      const emptyTransport = { log: vi.fn() };
+    test('IT-PERF-001: 日志记录应满足性能要求', () => {
+      // 创建一个空的传输对象用于性能测试
+      const emptyTransport = {
+        log: vi.fn((level, message, meta) => {}),
+        isAsync: () => false
+      };
+      
+      // 创建日志记录器
       const logger = createLogger({
-        name: 'performance-test',
+        name: 'perf-test',
         level: LogLevel.INFO,
         transports: [emptyTransport]
       });
       
-      // 测量性能
-      const result = await measurePerformance(
-        '日志记录',
-        () => logger.info('这是一条测试日志消息，包含一些信息和数据'),
-        10000 // 1万次迭代
-      );
+      // 预热
+      for (let i = 0; i < 10; i++) {
+        logger.info('预热消息');
+      }
+      
+      // 性能测试
+      const startTime = performance.now();
+      
+      for (let i = 0; i < 10000; i++) {
+        logger.info(`性能测试消息 ${i}`);
+      }
+      
+      const endTime = performance.now();
+      const totalTime = endTime - startTime;
+      const averageTime = totalTime / 10000;
+      
+      const result = {
+        total: totalTime,
+        average: averageTime,
+        count: 10000
+      };
+      
+      console.log(`日志性能测试: 平均: ${averageTime.toFixed(3)}ms, 总时间: ${totalTime.toFixed(3)}ms, 数量: 10000`);
       
       // 验证性能目标
       expect(result.average).toBeLessThan(0.1); // 平均不超过0.1ms

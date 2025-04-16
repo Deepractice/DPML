@@ -5,13 +5,33 @@
  * 在浏览器环境中使用localStorage，在Node.js环境中使用文件系统。
  */
 
-import { isRunningInNode } from './platform';
+import { isRunningInNode, isBrowser } from './platform';
+import { isBrowserEnvironment } from '../logger/core/environment';
 import * as path from './path';
 import * as fs from 'fs';
 import * as os from 'os';
 
 // 内存存储，用于Node.js环境下的临时存储
 const memoryStorage: Record<string, string> = {};
+
+/**
+ * 检查是否可以使用localStorage
+ */
+function canUseLocalStorage(): boolean {
+  try {
+    if (isBrowser()) {
+      // 检查localStorage是否可用
+      const testKey = '__test_storage__';
+      localStorage.setItem(testKey, 'test');
+      localStorage.removeItem(testKey);
+      return true;
+    }
+    return false;
+  } catch (e) {
+    // 可能的异常：SecurityError, QuotaExceededError等
+    return false;
+  }
+}
 
 /**
  * 获取存储路径（仅Node.js环境）
@@ -51,7 +71,7 @@ export function set<T>(key: string, value: T): void {
       // 如果文件系统访问失败，回退到内存存储
       memoryStorage[key] = serialized;
     }
-  } else if (typeof localStorage !== 'undefined') {
+  } else if (canUseLocalStorage()) {
     // 浏览器环境使用localStorage
     try {
       localStorage.setItem(key, serialized);
@@ -87,7 +107,7 @@ export function get<T>(key: string): T | null {
       // 如果文件系统访问失败，回退到内存存储
       serialized = memoryStorage[key] || null;
     }
-  } else if (typeof localStorage !== 'undefined') {
+  } else if (canUseLocalStorage()) {
     // 浏览器环境使用localStorage
     try {
       serialized = localStorage.getItem(key);
@@ -133,7 +153,7 @@ export function remove(key: string): void {
     
     // 同时从内存存储中删除
     delete memoryStorage[key];
-  } else if (typeof localStorage !== 'undefined') {
+  } else if (canUseLocalStorage()) {
     // 浏览器环境使用localStorage
     try {
       localStorage.removeItem(key);
@@ -168,7 +188,7 @@ export function keys(): string[] {
       // 如果文件系统访问失败，回退到内存存储
       return Object.keys(memoryStorage);
     }
-  } else if (typeof localStorage !== 'undefined') {
+  } else if (canUseLocalStorage()) {
     // 浏览器环境使用localStorage
     try {
       const keys: string[] = [];
@@ -209,7 +229,7 @@ export function clear(): void {
     } catch (error) {
       // 忽略文件系统错误
     }
-  } else if (typeof localStorage !== 'undefined') {
+  } else if (canUseLocalStorage()) {
     // 浏览器环境使用localStorage
     try {
       localStorage.clear();

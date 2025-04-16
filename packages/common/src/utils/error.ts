@@ -338,6 +338,64 @@ export function safeCatch<T extends (...args: any[]) => any>(
 }
 
 /**
+ * 获取错误代码，处理各种错误类型
+ * @param error 错误对象
+ * @returns 错误代码，可能是字符串或数字，未找到则返回undefined
+ */
+export function getErrorCode(error: unknown): string | number | undefined {
+  if (error instanceof DpmlError) {
+    return error.code;
+  }
+
+  if (error instanceof Error) {
+    // 处理Node.js风格错误
+    if ('code' in error && error.code) {
+      return error.code as string;
+    }
+  }
+
+  // 处理DOMException或其他类型的错误
+  if (typeof error === 'object' && error !== null && 'code' in error && error.code) {
+    return error.code as string | number;
+  }
+
+  return undefined;
+}
+
+/**
+ * 获取错误位置信息
+ * @param error 错误对象
+ * @returns 错误位置信息对象
+ */
+export function getErrorLocation(error: unknown): Record<string, any> | undefined {
+  if (typeof error !== 'object' || error === null) {
+    return undefined;
+  }
+
+  const location: Record<string, any> = {};
+  const errorObj = error as Record<string, any>;
+
+  // 收集常见的位置相关属性
+  if ('fileName' in errorObj && errorObj.fileName) {
+    location.fileName = errorObj.fileName;
+  }
+
+  if ('lineNumber' in errorObj && errorObj.lineNumber) {
+    location.lineNumber = errorObj.lineNumber;
+  }
+
+  if ('columnNumber' in errorObj && errorObj.columnNumber) {
+    location.columnNumber = errorObj.columnNumber;
+  }
+
+  if ('stack' in errorObj && errorObj.stack) {
+    location.stack = errorObj.stack;
+  }
+
+  return Object.keys(location).length > 0 ? location : undefined;
+}
+
+/**
  * 导出errorUtils对象
  */
 export const errorUtils = {
@@ -353,5 +411,7 @@ export const errorUtils = {
   tryCatch,
   tryCatchAsync,
   getErrorMessage,
-  safeCatch
+  safeCatch,
+  getErrorCode,
+  getErrorLocation
 };

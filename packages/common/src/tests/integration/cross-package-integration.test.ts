@@ -1,7 +1,7 @@
 import { describe, test, expect, vi } from 'vitest';
-import { createLogger, LogLevel } from '@dpml/common/logger';
-import { createMockFileSystem, createMockHttpClient } from '@dpml/common/testing';
-import * as utils from '@dpml/common/utils';
+import { createLogger, LogLevel, ConsoleTransport } from '../../logger';
+import { createMockFileSystem, createMockHttpClient } from '../../testing';
+import * as utils from '../../utils';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -20,11 +20,9 @@ describe('IT-跨包集成测试', () => {
     const logger = createLogger({
       name: 'cross-package-test',
       level: LogLevel.INFO,
-      transports: [{
-        log: vi.fn((level, message) => {
-          mockConsole[level.toLowerCase()](message);
-        })
-      }]
+      transports: [
+        new ConsoleTransport({ console: mockConsole })
+      ]
     });
     
     // 记录日志

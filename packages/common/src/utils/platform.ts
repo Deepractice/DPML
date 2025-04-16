@@ -4,11 +4,19 @@
  * 提供运行环境检测、平台特性探测等功能。
  */
 
+import { _setEnvironmentOverrides as setEnvOverrides, _resetEnvironmentOverrides as resetEnvOverrides } from '../logger/core/environment';
+
 /**
  * 检查代码是否运行在Node.js环境中
  * @returns 如果在Node.js环境中运行则返回true
  */
 export function isRunningInNode(): boolean {
+  // 优先使用环境覆盖设置
+  const envOverride = useEnvironmentOverride();
+  if (envOverride !== null) {
+    return envOverride.isNode;
+  }
+  
   return (
     typeof process !== 'undefined' &&
     process.versions != null &&
@@ -21,6 +29,12 @@ export function isRunningInNode(): boolean {
  * @returns 如果在浏览器环境中运行则返回true
  */
 export function isRunningInBrowser(): boolean {
+  // 优先使用环境覆盖设置
+  const envOverride = useEnvironmentOverride();
+  if (envOverride !== null) {
+    return envOverride.isBrowser;
+  }
+  
   return (
     typeof window !== 'undefined' &&
     typeof document !== 'undefined'
@@ -32,11 +46,40 @@ export function isRunningInBrowser(): boolean {
  * @returns 如果在Web Worker环境中运行则返回true
  */
 export function isRunningInWebWorker(): boolean {
+  // 优先使用环境覆盖设置
+  const envOverride = useEnvironmentOverride();
+  if (envOverride !== null && envOverride.isBrowser) {
+    return false;
+  }
+  
   return (
     typeof self !== 'undefined' &&
     typeof window === 'undefined' &&
     typeof importScripts === 'function'
   );
+}
+
+/**
+ * 获取当前环境设置覆盖
+ * @returns 环境设置对象，如果没有覆盖返回null
+ */
+function useEnvironmentOverride(): { isNode: boolean, isBrowser: boolean } | null {
+  try {
+    // 导入环境检测模块
+    const envModule = require('../logger/core/environment');
+    
+    // 检查是否有环境覆盖
+    if (envModule._overrideNodeEnv !== null || envModule._overrideBrowserEnv !== null) {
+      return {
+        isNode: envModule._overrideNodeEnv === true,
+        isBrowser: envModule._overrideBrowserEnv === true
+      };
+    }
+  } catch (error) {
+    // 忽略导入错误，使用默认检测
+  }
+  
+  return null;
 }
 
 /**
@@ -134,16 +177,36 @@ export function hasFeatureSupport(featureName: string): boolean {
 }
 
 /**
- * isBrowser函数，作为isRunningInBrowser的别名
- * @returns 如果在浏览器环境中运行则返回true
+ * 检查是否在IE浏览器中运行
+ * @returns 如果在IE浏览器中运行则返回true
  */
-export const isBrowser = isRunningInBrowser;
+export function isIE(): boolean {
+  if (!isRunningInBrowser()) {
+    return false;
+  }
+  
+  if (typeof navigator === 'undefined') {
+    return false;
+  }
+  
+  // 检测IE
+  const ua = navigator.userAgent;
+  return ua.indexOf('MSIE ') > -1 || 
+         ua.indexOf('Trident/') > -1 || 
+         ua.indexOf('Edge/') > -1;
+}
 
 /**
  * isNode函数，作为isRunningInNode的别名
  * @returns 如果在Node.js环境中运行则返回true
  */
 export const isNode = isRunningInNode;
+
+/**
+ * isBrowser函数，作为isRunningInBrowser的别名
+ * @returns 如果在浏览器环境中运行则返回true
+ */
+export const isBrowser = isRunningInBrowser;
 
 /**
  * 导出platformUtils对象
@@ -155,6 +218,7 @@ export const platformUtils = {
   isWindowsPlatform,
   isMacOSPlatform,
   isLinuxPlatform,
+  isIE,
   getNodeVersion,
   hasFeatureSupport,
   // 别名

@@ -37,6 +37,9 @@ export interface HttpError {
   status?: number;
   config?: HttpRequestConfig;
   response?: HttpResponse;
+  data?: any;
+  statusText?: string;
+  headers?: Record<string, string>;
 }
 
 /**
@@ -221,6 +224,20 @@ export interface MockHttpClient {
    * @returns 请求匹配器
    */
   onAny(url: string | RegExp): MockHttpRequestMatcher;
+  
+  /**
+   * 请求历史记录
+   * 按HTTP方法分类的请求历史
+   */
+  history: {
+    get: HttpRequestConfig[];
+    post: HttpRequestConfig[];
+    put: HttpRequestConfig[];
+    delete: HttpRequestConfig[];
+    patch: HttpRequestConfig[];
+    head: HttpRequestConfig[];
+    options: HttpRequestConfig[];
+  };
 }
 
 /**
@@ -279,13 +296,31 @@ class MockHttpRequestMatcherImpl implements MockHttpRequestMatcher {
   replyError(status: number, message: string, code?: string): MockHttpClient {
     if (Array.isArray(this.method)) {
       for (const method of this.method) {
-        this.client.setError(this.urlPattern, method, (config) => {
-          return createHttpError(message, status, config);
+        this.client.setError(this.urlPattern, method, {
+          message,
+          code: code || `HTTP_ERROR_${status}`,
+          status,
+          response: {
+            status,
+            statusText: 'Error',
+            data: { message },
+            headers: {},
+            config: { url: this.urlPattern.toString(), method }
+          }
         });
       }
     } else {
-      this.client.setError(this.urlPattern, this.method, (config) => {
-        return createHttpError(message, status, config);
+      this.client.setError(this.urlPattern, this.method, {
+        message,
+        code: code || `HTTP_ERROR_${status}`,
+        status,
+        response: {
+          status,
+          statusText: 'Error',
+          data: { message },
+          headers: {},
+          config: { url: this.urlPattern.toString(), method: this.method }
+        }
       });
     }
 
@@ -372,22 +407,28 @@ export function createHttpResponse<T = any>(
 /**
  * 创建HTTP错误
  * @param message 错误消息
- * @param status HTTP状态码
+ * @param status 状态码
  * @param config 请求配置
  * @returns HttpError
  */
 export function createHttpError(
   message = '请求失败',
   status = 500,
-  config: HttpRequestConfig = { url: faker.internet.url(), method: 'GET' }
+  config: HttpRequestConfig = { url: faker.internet.url(), method: 'GET' },
+  data: any = { message }
 ): HttpError {
-  const response = createHttpResponse({ error: message }, status, config);
   return {
     message,
-    code: `ERR_HTTP_${status}`,
+    code: `HTTP_ERROR_${status}`,
     status,
     config,
-    response,
+    response: {
+      status,
+      statusText: 'Error',
+      data,
+      headers: {},
+      config
+    }
   };
 }
 
@@ -400,37 +441,83 @@ export function createMockHttpClient(): MockHttpClient {
   const errorMap = new Map<string, (config: HttpRequestConfig) => Promise<never>>();
   const delayMap = new Map<string, number>();
   const requestHistory: HttpRequestConfig[] = [];
+  
+  // 按HTTP方法分类的请求历史
+  const methodHistory: Record<HttpMethod, HttpRequestConfig[]> = {
+    GET: [],
+    POST: [],
+    PUT: [],
+    DELETE: [],
+    PATCH: [],
+    HEAD: [],
+    OPTIONS: []
+  };
 
   const getKey = (url: string | RegExp, method: HttpMethod): string => {
     return `${url.toString()}:${method}`;
   };
 
   const findMatchingKey = (url: string, method: HttpMethod): string | undefined => {
+    console.log(`Finding match for ${method} ${url}`);
+    
     // 精确匹配
     const exactKey = getKey(url, method);
+    console.log(`Checking exact key: ${exactKey}`);
+    
     if (responseMap.has(exactKey) || errorMap.has(exactKey)) {
+      console.log(`Found exact match: ${exactKey}`);
       return exactKey;
     }
 
-    // 正则表达式匹配
-    for (const key of [...responseMap.keys(), ...errorMap.keys()]) {
+    // 遍历所有键寻找正则表达式匹配
+    const allKeys = new Set([...responseMap.keys(), ...errorMap.keys()]);
+    console.log(`Checking ${allKeys.size} keys for matches`);
+    
+    for (const key of allKeys) {
       const [urlPattern, keyMethod] = key.split(':');
-      if (keyMethod === method) {
-        try {
-          const regexMatch = urlPattern.match(/^\/(.*)\/([gimuy]*)$/);
-          if (regexMatch) {
-            const [, pattern, flags] = regexMatch;
-            const regex = new RegExp(pattern, flags);
-            if (regex.test(url)) {
+      
+      // 方法必须匹配
+      if (keyMethod !== method) {
+        continue;
+      }
+      
+      console.log(`Checking pattern: ${urlPattern} for method: ${keyMethod}`);
+      
+      // 尝试作为字符串匹配
+      if (urlPattern === url) {
+        console.log(`Found string match: ${key}`);
+        return key;
+      }
+      
+      // 尝试作为正则表达式匹配
+      try {
+        const regexMatch = urlPattern.match(/^\/(.*)\/([gimuy]*)$/);
+        if (regexMatch) {
+          const [, pattern, flags] = regexMatch;
+          const regex = new RegExp(pattern, flags);
+          if (regex.test(url)) {
+            console.log(`Found regex match: ${key}`);
+            return key;
+          }
+        } else {
+          // 尝试简单字符串匹配 - 支持通配符等简单匹配
+          if (urlPattern.includes('*')) {
+            const escapedPattern = urlPattern
+              .replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // 转义特殊字符
+              .replace(/\\\*/g, '.*'); // 将 \* 替换为 .*
+            const wildcardRegex = new RegExp(`^${escapedPattern}$`);
+            if (wildcardRegex.test(url)) {
+              console.log(`Found wildcard match: ${key}`);
               return key;
             }
           }
-        } catch (error) {
-          // 忽略正则表达式错误
         }
+      } catch (error) {
+        console.error(`Error matching regex for ${urlPattern}:`, error);
       }
     }
 
+    console.log(`No match found for ${method} ${url}`);
     return undefined;
   };
 
@@ -471,6 +558,18 @@ export function createMockHttpClient(): MockHttpClient {
 
       errorMap.set(key, async (config: HttpRequestConfig) => {
         const result = typeof error === 'function' ? error(config) : error;
+        
+        // 确保错误对象具有response属性
+        if (!result.response) {
+          result.response = {
+            status: result.status || 500,
+            data: result.data || { error: result.message || '未知错误' },
+            statusText: result.statusText || 'Error',
+            headers: result.headers || {},
+            config: config
+          };
+        }
+        
         return Promise.reject(result);
       });
 
@@ -485,6 +584,11 @@ export function createMockHttpClient(): MockHttpClient {
 
     async request<T>(config: HttpRequestConfig): Promise<HttpResponse<T>> {
       requestHistory.push(config);
+      
+      // 添加到对应方法的历史记录中
+      if (config.method) {
+        methodHistory[config.method].push(config);
+      }
 
       const { url, method } = config;
       const key = findMatchingKey(url, method);
@@ -571,7 +675,47 @@ export function createMockHttpClient(): MockHttpClient {
       errorMap.clear();
       delayMap.clear();
       this.clearRequestHistory();
+      
+      // 清除方法历史记录
+      Object.values(methodHistory).forEach(history => history.length = 0);
     },
+
+    onGet(url: string | RegExp): MockHttpRequestMatcher {
+      return new MockHttpRequestMatcherImpl(this, url, 'GET');
+    },
+
+    onPost(url: string | RegExp): MockHttpRequestMatcher {
+      return new MockHttpRequestMatcherImpl(this, url, 'POST');
+    },
+
+    onPut(url: string | RegExp): MockHttpRequestMatcher {
+      return new MockHttpRequestMatcherImpl(this, url, 'PUT');
+    },
+
+    onDelete(url: string | RegExp): MockHttpRequestMatcher {
+      return new MockHttpRequestMatcherImpl(this, url, 'DELETE');
+    },
+
+    onPatch(url: string | RegExp): MockHttpRequestMatcher {
+      return new MockHttpRequestMatcherImpl(this, url, 'PATCH');
+    },
+
+    onAny(url: string | RegExp): MockHttpRequestMatcher {
+      return new MockHttpRequestMatcherImpl(this, url, ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS']);
+    },
+    
+    // 添加历史记录属性
+    get history() {
+      return {
+        get: methodHistory.GET,
+        post: methodHistory.POST,
+        put: methodHistory.PUT,
+        delete: methodHistory.DELETE,
+        patch: methodHistory.PATCH,
+        head: methodHistory.HEAD,
+        options: methodHistory.OPTIONS
+      };
+    }
   };
 
   return mockClient;

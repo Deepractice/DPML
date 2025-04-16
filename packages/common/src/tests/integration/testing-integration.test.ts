@@ -81,38 +81,51 @@ describe('IT-Testing工具集成测试', () => {
       expect(await mockFs.readFile('/new-file.txt')).toBe('new content');
     });
     
-    test('IT-TEST-004: HTTP客户端模拟应支持请求匹配和响应模拟', async () => {
-      // 创建模拟HTTP客户端
-      const mockHttp = createMockHttpClient();
-      
-      // 配置请求响应
-      mockHttp.onGet('https://api.example.com/data').reply(200, { success: true, data: [1, 2, 3] });
-      mockHttp.onPost('https://api.example.com/submit').reply(201, { id: '123' });
-      mockHttp.onAny('https://api.example.com/error').reply(500, { error: 'Internal error' });
-      
-      // 测试GET请求
-      const getResponse = await mockHttp.get('https://api.example.com/data');
-      expect(getResponse.status).toBe(200);
-      expect(getResponse.data).toEqual({ success: true, data: [1, 2, 3] });
-      
-      // 测试POST请求
-      const postResponse = await mockHttp.post('https://api.example.com/submit', { name: 'test' });
-      expect(postResponse.status).toBe(201);
-      expect(postResponse.data).toEqual({ id: '123' });
-      
-      // 测试错误响应
-      try {
-        await mockHttp.get('https://api.example.com/error');
-        // 应该不会执行到这里
-        expect(true).toBe(false);
-      } catch (error: any) {
-        expect(error.response.status).toBe(500);
-        expect(error.response.data).toEqual({ error: 'Internal error' });
-      }
-      
-      // 验证请求历史
-      expect(mockHttp.history.get.length).toBe(2); // data和error
-      expect(mockHttp.history.post.length).toBe(1);
+    /**
+     * IT-TEST-004: HTTP客户端模拟应支持请求匹配和响应模拟
+     */
+    describe('HTTP客户端模拟测试', () => {
+      it('应该支持HTTP请求匹配和响应模拟', async () => {
+        // 创建模拟HTTP客户端
+        const httpClient = createMockHttpClient();
+        
+        // 设置响应
+        httpClient.onGet('https://api.example.com/users').reply(200, { users: [{ id: 1, name: 'User 1' }] });
+        httpClient.onPost('https://api.example.com/users').reply(201, { id: 2, name: 'User 2' });
+        
+        // 设置错误响应
+        httpClient.onGet('https://api.example.com/error').replyError(404, 'Not found');
+        
+        // 测试成功的GET请求
+        const getResponse = await httpClient.get('https://api.example.com/users');
+        expect(getResponse.status).toBe(200);
+        expect(getResponse.data).toEqual({ users: [{ id: 1, name: 'User 1' }] });
+        
+        // 测试成功的POST请求
+        const postResponse = await httpClient.post('https://api.example.com/users', { name: 'User 2' });
+        expect(postResponse.status).toBe(201);
+        expect(postResponse.data).toEqual({ id: 2, name: 'User 2' });
+        
+        // 测试错误处理
+        let errorCaught = false;
+        try {
+          await httpClient.get('https://api.example.com/error');
+        } catch (error: any) {
+          errorCaught = true;
+          expect(error.response.status).toBe(404);
+          expect(error.response.data).toEqual({ message: 'Not found' });
+        }
+        
+        expect(errorCaught).toBe(true);
+        
+        // 验证请求历史
+        expect(httpClient.history.get.length).toBe(2); // 两个GET请求
+        expect(httpClient.history.post.length).toBe(1); // 一个POST请求
+        
+        expect(httpClient.history.get[0].url).toBe('https://api.example.com/users');
+        expect(httpClient.history.get[1].url).toBe('https://api.example.com/error');
+        expect(httpClient.history.post[0].url).toBe('https://api.example.com/users');
+      });
     });
   });
 }); 

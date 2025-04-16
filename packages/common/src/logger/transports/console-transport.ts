@@ -9,6 +9,11 @@ export interface ConsoleTransportOptions {
    * @default false
    */
   colorize?: boolean;
+
+  /**
+   * 自定义控制台对象（用于测试）
+   */
+  console?: Console;
 }
 
 /**
@@ -17,12 +22,14 @@ export interface ConsoleTransportOptions {
  */
 export class ConsoleTransport implements LogTransport {
   private colorize: boolean;
+  private consoleInstance: Console;
   
   /**
    * 创建控制台传输
    */
   constructor(options: ConsoleTransportOptions = {}) {
     this.colorize = options.colorize === true;
+    this.consoleInstance = options.console || console;
   }
   
   /**
@@ -33,9 +40,9 @@ export class ConsoleTransport implements LogTransport {
     
     if (this.colorize) {
       const colorizedMessage = this.colorizeMessage(level, message);
-      console[method](colorizedMessage);
+      this.consoleInstance[method](colorizedMessage);
     } else {
-      console[method](message);
+      this.consoleInstance[method](message);
     }
   }
   

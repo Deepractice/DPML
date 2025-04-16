@@ -246,7 +246,7 @@ export class MockHttpRequestMatcher {
   replyError(status: number, message: string, code?: string): MockHttpClient {
     this.client.onRequest(this.urlPattern, this.method, (config) => {
       const response = this.client.createResponse(
-        { error: message, code },
+        { message: message },
         status,
         config,
         'Error'

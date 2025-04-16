@@ -5,55 +5,66 @@
  * 实际的浏览器兼容性测试应在真实浏览器环境中进行
  */
 
-import { describe, test, expect, vi } from 'vitest';
-import * as utils from '@dpml/common/utils';
-import { createLogger, LogLevel } from '@dpml/common/logger';
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import * as utils from '../../utils';
+import { createLogger, LogLevel, ConsoleTransport } from '../../logger';
+import { _setEnvironmentOverrides, _resetEnvironmentOverrides } from '../../logger/core/environment';
 
 describe('IT-浏览器兼容性测试', () => {
+  // 每个测试后重置环境覆盖
+  afterEach(() => {
+    _resetEnvironmentOverrides();
+  });
+  
   describe('平台检测', () => {
     test('IT-COMPAT-001: 平台检测工具应正确识别环境', () => {
-      // 测试浏览器环境模拟
+      // 原始环境
       const originalWindow = global.window;
+      const originalDocument = global.document;
       const originalNavigator = global.navigator;
-
+      
       try {
         // 模拟浏览器环境
-        const mockWindow = {} as any;
-        const mockNavigator = {
-          userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        } as any;
-
-        // 使用Object.defineProperty来模拟浏览器全局对象
-        Object.defineProperty(global, 'window', {
-          value: mockWindow,
-          writable: true,
-          configurable: true
-        });
-
-        // 使用Object.defineProperty来模拟浏览器navigator
+        const mockWindow = {};
+        const mockDocument = { createElement: vi.fn() };
+        const mockNavigator = { userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' };
+        
+        // 设置全局对象
+        global.window = mockWindow as any;
+        global.document = mockDocument as any;
+        
+        // 使用 Object.defineProperty 设置 navigator
         Object.defineProperty(global, 'navigator', {
           value: mockNavigator,
-          writable: true,
-          configurable: true
+          configurable: true,
+          writable: true
         });
+        
+        // 使用环境覆盖
+        _setEnvironmentOverrides(false, true);
 
         // 验证平台检测
         expect(utils.platform.isBrowser()).toBe(true);
         expect(utils.platform.isNode()).toBe(false);
 
         // 模拟IE浏览器
-        Object.defineProperty(mockNavigator, 'userAgent', {
-          value: 'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko',
-          writable: true,
-          configurable: true
-        });
+        mockNavigator.userAgent = 'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko';
 
         expect(utils.platform.isBrowser()).toBe(true);
         expect(utils.platform.isIE()).toBe(true);
       } finally {
         // 恢复原始环境
         global.window = originalWindow;
-        global.navigator = originalNavigator;
+        global.document = originalDocument;
+        
+        // 恢复 navigator
+        Object.defineProperty(global, 'navigator', {
+          value: originalNavigator,
+          configurable: true,
+          writable: true
+        });
+        
+        _resetEnvironmentOverrides();
       }
 
       // 验证恢复Node环境后的检测
@@ -67,6 +78,9 @@ describe('IT-浏览器兼容性测试', () => {
       const originalConsole = global.console;
 
       try {
+        // 模拟浏览器环境
+        _setEnvironmentOverrides(false, true);
+        
         // 模拟浏览器console
         const mockConsole = {
           log: vi.fn(),
@@ -82,7 +96,8 @@ describe('IT-浏览器兼容性测试', () => {
         // 创建日志器
         const logger = createLogger({
           name: 'browser-test',
-          level: LogLevel.INFO
+          level: LogLevel.INFO,
+          transports: [new ConsoleTransport({ console: mockConsole })]
         });
 
         // 记录日志
@@ -95,8 +110,9 @@ describe('IT-浏览器兼容性测试', () => {
         expect(mockConsole.error).toHaveBeenCalled();
         expect(mockConsole.debug).not.toHaveBeenCalled(); // 级别太低
       } finally {
-        // 恢复原始console
+        // 恢复原始console和环境
         global.console = originalConsole;
+        _resetEnvironmentOverrides();
       }
     });
   });
@@ -139,6 +155,9 @@ describe('IT-浏览器兼容性测试', () => {
       const originalLocalStorage = global.localStorage;
 
       try {
+        // 使用环境覆盖
+        _setEnvironmentOverrides(false, true);
+
         // 使用Object.defineProperty模拟浏览器localStorage
         const mockLocalStorage = {
           getItem: vi.fn((key) => mockStorage[key] || null),
@@ -149,11 +168,7 @@ describe('IT-浏览器兼容性测试', () => {
           get length() { return Object.keys(mockStorage).length; }
         };
 
-        Object.defineProperty(global, 'localStorage', {
-          value: mockLocalStorage,
-          writable: true,
-          configurable: true
-        });
+        global.localStorage = mockLocalStorage;
 
         // 使用存储工具
         utils.storage.set('test-key', { value: 123 });
@@ -171,6 +186,7 @@ describe('IT-浏览器兼容性测试', () => {
       } finally {
         // 恢复原始环境
         global.localStorage = originalLocalStorage;
+        _resetEnvironmentOverrides();
       }
     });
   });
