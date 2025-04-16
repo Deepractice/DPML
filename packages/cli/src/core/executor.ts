@@ -68,12 +68,29 @@ export class CommandExecutor {
               const cmdObj = command.parent;
               const args = cmdObj.args || [];
 
+              // 处理命令参数
+              // 如果命令定义了参数，确保提供的参数数量正确
+              if (cmd.arguments) {
+                const requiredArgs = cmd.arguments.filter(arg => arg.required).length;
+                if (args.length < requiredArgs) {
+                  throw new Error(`命令 '${cmd.name}' 需要至少 ${requiredArgs} 个参数，但只提供了 ${args.length} 个`);
+                }
+              }
+
               // 执行命令
               await this.executeCommand(domainName, cmd.name, args, options);
             } catch (error: any) {
               this.handleErrors(error);
             }
           });
+
+        // 添加命令参数
+        if (cmd.arguments) {
+          for (const arg of cmd.arguments) {
+            const argStr = arg.required ? `<${arg.name}>` : `[${arg.name}]`;
+            subCommand.argument(argStr, arg.description, arg.default);
+          }
+        }
 
         // 添加命令选项
         if (cmd.options) {
@@ -91,6 +108,63 @@ export class CommandExecutor {
         if (cmd.examples && cmd.examples.length > 0) {
           const examples = cmd.examples.map(ex => `  ${ex}`).join('\n');
           subCommand.addHelpText('after', `\n示例:\n${examples}`);
+        }
+
+        // 处理子命令
+        if (cmd.subcommands && cmd.subcommands.length > 0) {
+          for (const subcmd of cmd.subcommands) {
+            const nestedCommand = new Command(subcmd.name)
+              .description(subcmd.description)
+              .action(async (options, command) => {
+                try {
+                  // 获取命令参数
+                  const cmdObj = command.parent;
+                  const args = cmdObj.args || [];
+
+                  // 处理子命令参数
+                  if (subcmd.arguments) {
+                    const requiredArgs = subcmd.arguments.filter(arg => arg.required).length;
+                    if (args.length < requiredArgs) {
+                      throw new Error(`命令 '${subcmd.name}' 需要至少 ${requiredArgs} 个参数，但只提供了 ${args.length} 个`);
+                    }
+                  }
+
+                  // 执行子命令
+                  await this.executeCommand(`${domainName}.${cmd.name}`, subcmd.name, args, options);
+                } catch (error: any) {
+                  this.handleErrors(error);
+                }
+              });
+
+            // 添加子命令参数
+            if (subcmd.arguments) {
+              for (const arg of subcmd.arguments) {
+                const argStr = arg.required ? `<${arg.name}>` : `[${arg.name}]`;
+                nestedCommand.argument(argStr, arg.description, arg.default);
+              }
+            }
+
+            // 添加子命令选项
+            if (subcmd.options) {
+              for (const opt of subcmd.options) {
+                nestedCommand.option(opt.flag, opt.description, opt.default);
+              }
+            }
+
+            // 添加子命令别名
+            if (subcmd.aliases && subcmd.aliases.length > 0) {
+              nestedCommand.aliases(subcmd.aliases);
+            }
+
+            // 添加子命令使用示例
+            if (subcmd.examples && subcmd.examples.length > 0) {
+              const examples = subcmd.examples.map(ex => `  ${ex}`).join('\n');
+              nestedCommand.addHelpText('after', `\n示例:\n${examples}`);
+            }
+
+            // 将嵌套命令添加到子命令
+            subCommand.addCommand(nestedCommand);
+          }
         }
 
         // 将子命令添加到领域命令
@@ -196,6 +270,18 @@ export class CommandExecutor {
     } else if (error.message.includes('执行命令')) {
       // 命令执行错误
       console.error(chalk.yellow(`提示: 命令执行过程中出现错误`));
+    } else if (error.message.includes('需要至少')) {
+      // 缺少必要参数错误
+      console.error(chalk.yellow(`提示: 请提供所有必要的命令参数`));
+      console.error(chalk.yellow(`使用 'dpml <领域> <命令> --help' 查看命令用法`));
+    } else if (error.message.includes('选项')) {
+      // 选项错误
+      console.error(chalk.yellow(`提示: 请检查命令选项格式是否正确`));
+      console.error(chalk.yellow(`使用 'dpml <领域> <命令> --help' 查看可用选项`));
+    } else {
+      // 其他错误
+      console.error(chalk.yellow(`提示: 发生未知错误，请检查命令用法`));
+      console.error(chalk.yellow(`使用 'dpml --help' 查看帮助信息`));
     }
 
     // 在详细模式下显示堆栈信息

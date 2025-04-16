@@ -15,6 +15,22 @@ export interface CommandOption {
 }
 
 /**
+ * 命令参数接口
+ */
+export interface CommandArgument {
+  /** 参数名称 */
+  name: string;
+  /** 参数描述 */
+  description: string;
+  /** 是否必需 */
+  required: boolean;
+  /** 默认值（可选） */
+  default?: any;
+  /** 参数处理函数（可选） */
+  process?: (value: string) => any;
+}
+
+/**
  * 命令定义接口
  */
 export interface Command {
@@ -22,12 +38,16 @@ export interface Command {
   name: string;
   /** 命令描述 */
   description: string;
+  /** 命令参数列表 */
+  arguments?: CommandArgument[];
   /** 命令选项列表 */
   options?: CommandOption[];
   /** 使用示例 */
   examples?: string[];
   /** 可选：命令别名 */
   aliases?: string[];
+  /** 子命令列表 */
+  subcommands?: Command[];
   /** 命令执行函数 */
   execute: (args: string | string[], options: Record<string, any>, context?: any) => Promise<void>;
 }
@@ -103,4 +123,4 @@ export interface DomainMapping {
     /** 包版本 */
     version: string;
   }>;
-} 
+}

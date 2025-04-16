@@ -3,7 +3,7 @@ import { CommandExecutor } from '../../src/core/executor';
 import { CommandRegistry } from '../../src/core/registry';
 import { Command } from '../../src/types/command';
 
-// 直接模拟CommandExecutor类，而不是模拟Commander
+// 直接模拟CommandExecutor类
 vi.mock('../../src/core/executor', () => {
   // 保存原始模块
   const originalModule = vi.importActual('../../src/core/executor');
@@ -61,7 +61,8 @@ vi.mock('chalk', () => ({
 
 vi.mock('../../src/core/registry');
 
-// 暂时跳过这些测试，直到我们有更好的模拟策略
+// 测试CommandExecutor类
+// 暂时跳过测试，等实现完成后再修复
 describe.skip('CommandExecutor', () => {
   let executor: CommandExecutor;
   let mockRegistry: CommandRegistry;
@@ -80,7 +81,7 @@ describe.skip('CommandExecutor', () => {
     };
 
     // 创建模拟注册表
-    mockRegistry = new CommandRegistry() as jest.Mocked<CommandRegistry>;
+    mockRegistry = new CommandRegistry() as any;
     mockRegistry.getAllDomains = vi.fn().mockReturnValue(['test-domain']);
     mockRegistry.getDomainCommands = vi.fn().mockReturnValue([mockCommand]);
     mockRegistry.getCommand = vi.fn().mockReturnValue(mockCommand);
