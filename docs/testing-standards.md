@@ -312,7 +312,7 @@ test('端到端：CLI应执行完整流程', async () => {
 
 ### 4.1 文件结构
 
-测试文件应与源文件保持对应关系：
+测试文件应与源文件保持对应关系。在DPML项目中，测试文件放置在`src/tests/`目录下：
 
 ```
 src/
@@ -321,15 +321,14 @@ src/
     registry.ts
   utils/
     paths.ts
-tests/
-  unit/
+  tests/
     core/
       loader.test.ts
       registry.test.ts
     utils/
       paths.test.ts
-  integration/
-    cli-registry.test.ts
+    integration/
+      cli-registry.test.ts
 ```
 
 ### 4.2 命名约定
@@ -575,14 +574,49 @@ expect(JSON.stringify(result)).toBe('{"id":1}');  // 使用toEqual代替
 - 在PR和合并前运行集成测试
 - 维护测试覆盖率并防止下降
 
+## 11.4 测试目录结构
+
+DPML项目已将所有测试文件从独立的`tests/`目录迁移到`src/tests/`目录下。这种变化有以下优势：
+
+- 与源代码保持更紧密的关系
+- 简化了相对导入路径
+- 允许测试使用包内的模块别名
+- 使测试可以更容易地访问非公开但需要测试的内部API
+
+请确保所有新的测试都放在`src/tests/`目录下，并根据模块结构组织子目录。
+
+## 11.5 Vitest配置
+
+Vitest配置需要更新以反映新的测试目录结构：
+
+```typescript
+// vitest.config.ts 示例
+import { defineConfig } from 'vitest/config';
+import * as path from 'path';
+
+export default defineConfig({
+  resolve: {
+    alias: {
+      '@packageName': path.resolve(__dirname, './src')
+    }
+  },
+  test: {
+    globals: true,
+    environment: 'node',
+    include: ['src/tests/**/*.test.ts'],
+    // 其他配置...
+  },
+});
+```
+
 ## 附录：测试用例示例
 
 ### 单元测试示例
 
 ```typescript
-// registry.test.ts
+// src/tests/core/registry.test.ts
 import { createMockFunction } from '@dpml/common/testing';
-import { CommandRegistry } from '../../src/core/registry';
+import { CommandRegistry } from '../../core/registry';
 
 describe('CommandRegistry', () => {
   let registry: CommandRegistry;
@@ -622,9 +656,9 @@ describe('CommandRegistry', () => {
 ### 集成测试示例
 
 ```typescript
-// cli-integration.test.ts
+// src/tests/integration/cli-integration.test.ts
 import { createMockFileSystem, withTestEnvironment } from '@dpml/common/testing';
-import { CLI } from '../../src/core/cli';
+import { CLI } from '../../core/cli';
 
 describe('CLI集成测试', () => {
   test('应加载映射文件并执行命令', async () => {

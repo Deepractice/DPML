@@ -48,6 +48,7 @@ DPML项目采用基于微软TypeScript风格的文件命名约定，确保代码
 4. **目录命名**
    - 源码目录使用camelCase：`src/`, `utils/`, `helpers/`
    - 按功能或领域组织的目录使用camelCase：`tags/`, `processors/`, `transformers/`
+   - 测试目录使用camelCase：`src/tests/`, `src/tests/unit/`, `src/tests/integration/`
    - 避免使用短横线或下划线命名目录
 
 5. **组件与模块文件**
@@ -75,6 +76,7 @@ DPML项目采用基于微软TypeScript风格的文件命名约定，确保代码
    - 包内部使用 `@包名/` 前缀代替相对路径导入：`import { Foo } from '@prompt/utils/helper'` 
    - 在每个包的 tsconfig.json, vitest.config.ts, tsup.config.ts 中配置路径别名
    - 路径别名应映射到包的 src 目录：`@prompt -> ./src`
+   - 测试文件使用同样的别名规则：`import { TestHelper } from '@core/tests/utils/testHelper'`
    - 好处包括：
      - 提高代码可读性，避免复杂的相对路径计算 (`../../` 等)
      - 文件移动时不需要修改导入路径
@@ -87,6 +89,9 @@ DPML项目采用基于微软TypeScript风格的文件命名约定，确保代码
      
      // 不推荐 (使用相对路径)
      import { SomeProcessor } from '../../processors/someProcessor';
+     
+     // 测试文件导入 (使用路径别名)
+     import { TestHelper } from '@prompt/tests/utils/testHelper';
      ```
 
 ## API使用规范
@@ -123,6 +128,33 @@ DPML项目采用基于微软TypeScript风格的文件命名约定，确保代码
    - 避免为测试特殊定制包的导入路径
    - 确保测试能验证实际使用场景
 
+4. **测试目录结构**
+   - 测试文件放置在`src/tests/`目录下，而非独立的`tests/`目录
+   - 测试目录结构应与源码结构保持对应关系
+   - 使用子目录组织不同类型的测试：`src/tests/unit/`, `src/tests/integration/`
+   - 示例：
+
+     ```
+     src/
+       core/
+         loader.ts
+       utils/
+         paths.ts
+       tests/
+         core/
+           loader.test.ts
+         utils/
+           paths.test.ts
+         integration/
+           core-utils.test.ts
+     ```
+
+5. **测试导入路径**
+   - 测试文件应使用相对路径导入被测代码：`import { Component } from '../../core/component'`
+   - 或使用包内路径别名：`import { Component } from '@package/core/component'`
+   - 测试辅助工具可以从测试目录导入：`import { helper } from '../utils/testHelper'`
+   - 避免使用过于复杂的相对路径导入
+
 ## 工具配置规范
 
 1. **别名限制**
@@ -139,6 +171,30 @@ DPML项目采用基于微软TypeScript风格的文件命名约定，确保代码
    - 工具配置不应破坏包的边界和封装性
    - 构建输出应只包含公开API
    - 确保包的独立性与可复用性
+
+4. **测试配置**
+   - 在vitest.config.ts中配置测试文件路径：`include: ['src/tests/**/*.test.ts']`
+   - 确保路径别名在测试环境中正确配置
+   - 示例配置：
+
+     ```typescript
+     // vitest.config.ts
+     import { defineConfig } from 'vitest/config';
+     import * as path from 'path';
+     
+     export default defineConfig({
+       resolve: {
+         alias: {
+           '@packageName': path.resolve(__dirname, './src')
+         }
+       },
+       test: {
+         globals: true,
+         environment: 'node',
+         include: ['src/tests/**/*.test.ts'],
+       },
+     });
+     ```
 
 ## 最佳实践
 
