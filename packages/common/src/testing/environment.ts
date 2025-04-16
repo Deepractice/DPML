@@ -4,6 +4,8 @@
  * 提供测试环境的设置、隔离和清理功能
  */
 
+import { vi } from 'vitest';
+
 /**
  * 测试环境配置接口
  */
@@ -409,16 +411,16 @@ export async function createTestEnvWithSpies(config: TestEnvironmentConfig): Pro
 
   // 创建console spies
   const consoleSpy = {
-    log: jest.spyOn(console, 'log').mockImplementation(),
-    info: jest.spyOn(console, 'info').mockImplementation(),
-    warn: jest.spyOn(console, 'warn').mockImplementation(),
-    error: jest.spyOn(console, 'error').mockImplementation(),
-    debug: jest.spyOn(console, 'debug').mockImplementation()
+    log: vi.spyOn(console, 'log').mockImplementation(() => {}),
+    info: vi.spyOn(console, 'info').mockImplementation(() => {}),
+    warn: vi.spyOn(console, 'warn').mockImplementation(() => {}),
+    error: vi.spyOn(console, 'error').mockImplementation(() => {}),
+    debug: vi.spyOn(console, 'debug').mockImplementation(() => {})
   };
 
   // 创建process spies
   const processSpy = {
-    exit: jest.spyOn(process, 'exit').mockImplementation((() => {}) as any)
+    exit: vi.spyOn(process, 'exit').mockImplementation((() => {}) as any)
   };
 
   return {
