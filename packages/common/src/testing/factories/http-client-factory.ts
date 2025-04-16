@@ -40,6 +40,43 @@ export interface HttpError {
 }
 
 /**
+ * 模拟HTTP请求匹配器
+ */
+export interface MockHttpRequestMatcher {
+  /**
+   * 设置响应
+   * @param status 状态码
+   * @param data 响应数据
+   * @param headers 响应头
+   * @returns 模拟HTTP客户端
+   */
+  reply<T = any>(status: number, data: T, headers?: Record<string, string>): MockHttpClient;
+
+  /**
+   * 设置错误响应
+   * @param status 状态码
+   * @param message 错误消息
+   * @param code 错误代码
+   * @returns 模拟HTTP客户端
+   */
+  replyError(status: number, message: string, code?: string): MockHttpClient;
+
+  /**
+   * 设置网络错误
+   * @param message 错误消息
+   * @returns 模拟HTTP客户端
+   */
+  networkError(message?: string): MockHttpClient;
+
+  /**
+   * 设置超时错误
+   * @param message 错误消息
+   * @returns 模拟HTTP客户端
+   */
+  timeout(message?: string): MockHttpClient;
+}
+
+/**
  * 模拟HTTP客户端
  */
 export interface MockHttpClient {
@@ -142,6 +179,170 @@ export interface MockHttpClient {
    * 重置所有模拟配置
    */
   reset(): void;
+
+  /**
+   * 配置GET请求响应
+   * @param url URL字符串或正则表达式
+   * @returns 请求匹配器
+   */
+  onGet(url: string | RegExp): MockHttpRequestMatcher;
+
+  /**
+   * 配置POST请求响应
+   * @param url URL字符串或正则表达式
+   * @returns 请求匹配器
+   */
+  onPost(url: string | RegExp): MockHttpRequestMatcher;
+
+  /**
+   * 配置PUT请求响应
+   * @param url URL字符串或正则表达式
+   * @returns 请求匹配器
+   */
+  onPut(url: string | RegExp): MockHttpRequestMatcher;
+
+  /**
+   * 配置DELETE请求响应
+   * @param url URL字符串或正则表达式
+   * @returns 请求匹配器
+   */
+  onDelete(url: string | RegExp): MockHttpRequestMatcher;
+
+  /**
+   * 配置PATCH请求响应
+   * @param url URL字符串或正则表达式
+   * @returns 请求匹配器
+   */
+  onPatch(url: string | RegExp): MockHttpRequestMatcher;
+
+  /**
+   * 配置任意请求方法的响应
+   * @param url URL字符串或正则表达式
+   * @returns 请求匹配器
+   */
+  onAny(url: string | RegExp): MockHttpRequestMatcher;
+}
+
+/**
+ * 模拟HTTP请求匹配器实现
+ */
+class MockHttpRequestMatcherImpl implements MockHttpRequestMatcher {
+  private client: MockHttpClient;
+  private urlPattern: string | RegExp;
+  private method: HttpMethod | HttpMethod[];
+
+  /**
+   * 创建请求匹配器
+   *
+   * @param client 模拟HTTP客户端
+   * @param urlPattern URL匹配模式
+   * @param method 请求方法
+   */
+  constructor(client: MockHttpClient, urlPattern: string | RegExp, method: HttpMethod | HttpMethod[]) {
+    this.client = client;
+    this.urlPattern = urlPattern;
+    this.method = method;
+  }
+
+  /**
+   * 设置响应
+   *
+   * @param status 状态码
+   * @param data 响应数据
+   * @param headers 响应头
+   * @returns 模拟HTTP客户端
+   */
+  reply<T = any>(status: number, data: T, headers?: Record<string, string>): MockHttpClient {
+    if (Array.isArray(this.method)) {
+      for (const method of this.method) {
+        this.client.setResponse(this.urlPattern, method, (config) => {
+          return createHttpResponse(data, status, config);
+        });
+      }
+    } else {
+      this.client.setResponse(this.urlPattern, this.method, (config) => {
+        return createHttpResponse(data, status, config);
+      });
+    }
+
+    return this.client;
+  }
+
+  /**
+   * 设置错误响应
+   *
+   * @param status 状态码
+   * @param message 错误消息
+   * @param code 错误代码
+   * @returns 模拟HTTP客户端
+   */
+  replyError(status: number, message: string, code?: string): MockHttpClient {
+    if (Array.isArray(this.method)) {
+      for (const method of this.method) {
+        this.client.setError(this.urlPattern, method, (config) => {
+          return createHttpError(message, status, config);
+        });
+      }
+    } else {
+      this.client.setError(this.urlPattern, this.method, (config) => {
+        return createHttpError(message, status, config);
+      });
+    }
+
+    return this.client;
+  }
+
+  /**
+   * 设置网络错误
+   *
+   * @param message 错误消息
+   * @returns 模拟HTTP客户端
+   */
+  networkError(message: string = 'Network Error'): MockHttpClient {
+    if (Array.isArray(this.method)) {
+      for (const method of this.method) {
+        this.client.setError(this.urlPattern, method, (config) => {
+          const error = createHttpError(message, 0, config);
+          error.code = 'NETWORK_ERROR';
+          return error;
+        });
+      }
+    } else {
+      this.client.setError(this.urlPattern, this.method, (config) => {
+        const error = createHttpError(message, 0, config);
+        error.code = 'NETWORK_ERROR';
+        return error;
+      });
+    }
+
+    return this.client;
+  }
+
+  /**
+   * 设置超时错误
+   *
+   * @param message 错误消息
+   * @returns 模拟HTTP客户端
+   */
+  timeout(message: string = 'Timeout Error'): MockHttpClient {
+    if (Array.isArray(this.method)) {
+      for (const method of this.method) {
+        this.client.setError(this.urlPattern, method, (config) => {
+          const error = createHttpError(message, 0, config);
+          error.code = 'TIMEOUT_ERROR';
+          return error;
+        });
+      }
+    } else {
+      this.client.setError(this.urlPattern, this.method, (config) => {
+        const error = createHttpError(message, 0, config);
+        error.code = 'TIMEOUT_ERROR';
+        return error;
+      });
+    }
+
+    return this.client;
+  }
 }
 
 /**
@@ -240,75 +441,75 @@ export function createMockHttpClient(): MockHttpClient {
       response: T | HttpResponse<T> | ((config: HttpRequestConfig) => T | HttpResponse<T>)
     ): void {
       const key = getKey(url, method);
-      
+
       responseMap.set(key, async (config: HttpRequestConfig) => {
         let result: T | HttpResponse<T>;
-        
+
         if (typeof response === 'function') {
           result = (response as (config: HttpRequestConfig) => T | HttpResponse<T>)(config);
         } else {
           result = response;
         }
-        
+
         if (result && typeof result === 'object' && 'data' in result && 'status' in result) {
           return result as HttpResponse<T>;
         } else {
           return createHttpResponse(result as T, 200, config);
         }
       });
-      
+
       // 如果有错误，清除它
       errorMap.delete(key);
     },
-    
+
     setError(
       url: string | RegExp,
       method: HttpMethod,
       error: HttpError | ((config: HttpRequestConfig) => HttpError)
     ): void {
       const key = getKey(url, method);
-      
+
       errorMap.set(key, async (config: HttpRequestConfig) => {
         const result = typeof error === 'function' ? error(config) : error;
         return Promise.reject(result);
       });
-      
+
       // 如果有响应，清除它
       responseMap.delete(key);
     },
-    
+
     setDelay(url: string | RegExp, method: HttpMethod, delay: number): void {
       const key = getKey(url, method);
       delayMap.set(key, delay);
     },
-    
+
     async request<T>(config: HttpRequestConfig): Promise<HttpResponse<T>> {
       requestHistory.push(config);
-      
+
       const { url, method } = config;
       const key = findMatchingKey(url, method);
-      
+
       const delay = key ? (delayMap.get(key) || 0) : 0;
       if (delay > 0) {
         await new Promise(resolve => setTimeout(resolve, delay));
       }
-      
+
       if (key) {
         const errorHandler = errorMap.get(key);
         if (errorHandler) {
           return errorHandler(config) as Promise<never>;
         }
-        
+
         const responseHandler = responseMap.get(key);
         if (responseHandler) {
           return responseHandler(config) as Promise<HttpResponse<T>>;
         }
       }
-      
+
       // 默认返回404错误
       throw createHttpError('未找到请求处理程序', 404, config);
     },
-    
+
     async get<T>(
       url: string,
       config?: Omit<HttpRequestConfig, 'url' | 'method'>
@@ -319,7 +520,7 @@ export function createMockHttpClient(): MockHttpClient {
         ...config,
       });
     },
-    
+
     async post<T>(
       url: string,
       data?: any,
@@ -332,7 +533,7 @@ export function createMockHttpClient(): MockHttpClient {
         ...config,
       });
     },
-    
+
     async put<T>(
       url: string,
       data?: any,
@@ -345,7 +546,7 @@ export function createMockHttpClient(): MockHttpClient {
         ...config,
       });
     },
-    
+
     async delete<T>(
       url: string,
       config?: Omit<HttpRequestConfig, 'url' | 'method'>
@@ -356,15 +557,15 @@ export function createMockHttpClient(): MockHttpClient {
         ...config,
       });
     },
-    
+
     getRequestHistory(): HttpRequestConfig[] {
       return [...requestHistory];
     },
-    
+
     clearRequestHistory(): void {
       requestHistory.length = 0;
     },
-    
+
     reset(): void {
       responseMap.clear();
       errorMap.clear();
@@ -372,6 +573,6 @@ export function createMockHttpClient(): MockHttpClient {
       this.clearRequestHistory();
     },
   };
-  
+
   return mockClient;
-} 
+}
