@@ -34,8 +34,20 @@ export class ConfigManager {
    * @returns 是否成功加载
    */
   public load(): boolean {
-    // TODO: 实现加载配置的逻辑
-    return false;
+    try {
+      // 检查配置文件是否存在
+      if (!fs.existsSync(this.configPath)) {
+        return false;
+      }
+
+      // 读取配置文件
+      const configContent = fs.readFileSync(this.configPath, 'utf-8');
+      this.config = JSON.parse(configContent);
+      return true;
+    } catch (error) {
+      console.error(`加载配置失败: ${error instanceof Error ? error.message : String(error)}`);
+      return false;
+    }
   }
 
   /**
@@ -43,8 +55,20 @@ export class ConfigManager {
    * @returns 是否成功保存
    */
   public save(): boolean {
-    // TODO: 实现保存配置的逻辑
-    return false;
+    try {
+      // 确保配置目录存在
+      this.ensureConfigDir();
+
+      // 将配置对象序列化为JSON字符串
+      const configContent = JSON.stringify(this.config, null, 2);
+
+      // 写入配置文件
+      fs.writeFileSync(this.configPath, configContent, 'utf-8');
+      return true;
+    } catch (error) {
+      console.error(`保存配置失败: ${error instanceof Error ? error.message : String(error)}`);
+      return false;
+    }
   }
 
   /**
@@ -54,8 +78,13 @@ export class ConfigManager {
    * @returns 配置值
    */
   public get<T>(key: string, defaultValue?: T): T {
-    // TODO: 实现获取配置项的逻辑
-    return (defaultValue || null) as T;
+    // 如果配置中存在该键，返回对应值
+    if (key in this.config) {
+      return this.config[key] as T;
+    }
+
+    // 否则返回默认值
+    return (defaultValue !== undefined ? defaultValue : null) as T;
   }
 
   /**
@@ -64,7 +93,8 @@ export class ConfigManager {
    * @param value 配置值
    */
   public set<T>(key: string, value: T): void {
-    // TODO: 实现设置配置项的逻辑
+    // 设置配置项
+    this.config[key] = value;
   }
 
   /**
@@ -72,8 +102,17 @@ export class ConfigManager {
    * @returns 是否成功创建或确认目录
    */
   public ensureConfigDir(): boolean {
-    // TODO: 实现确保配置目录存在的逻辑
-    return false;
+    try {
+      // 检查目录是否存在
+      if (!fs.existsSync(this.configDir)) {
+        // 创建目录，包括中间目录
+        fs.mkdirSync(this.configDir, { recursive: true });
+      }
+      return true;
+    } catch (error) {
+      console.error(`创建配置目录失败: ${error instanceof Error ? error.message : String(error)}`);
+      return false;
+    }
   }
 
   /**

@@ -32,13 +32,10 @@ export default CLI;
 export const version = '0.1.0';
 
 /**
- * CLI模块的初始占位函数
- * 将在后续实现实际功能
+ * 运行CLI
+ * @param argv 命令行参数
+ * @returns Promise
  */
-export function run() {
-  console.log('DPML CLI', version);
-  return {
-    status: 'running',
-    version
-  };
+export async function run(argv: string[] = process.argv): Promise<void> {
+  return cli.run(argv);
 }

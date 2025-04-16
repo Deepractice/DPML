@@ -55,8 +55,33 @@ export function ensureDir(dirPath: string): boolean {
  * @returns node_modules目录列表
  */
 export function findNodeModules(): string[] {
-  // TODO: 实现查找node_modules的逻辑
-  return [];
+  const paths: string[] = [];
+
+  // 添加当前工作目录下的node_modules
+  const cwdNodeModules = path.join(process.cwd(), 'node_modules');
+  if (fs.existsSync(cwdNodeModules)) {
+    paths.push(cwdNodeModules);
+  }
+
+  // 添加全局node_modules目录
+  try {
+    // 使用npm root -g命令获取全局node_modules路径
+    const { execSync } = require('child_process');
+    const globalNodeModules = execSync('npm root -g').toString().trim();
+    if (fs.existsSync(globalNodeModules)) {
+      paths.push(globalNodeModules);
+    }
+  } catch (error) {
+    // 忽略错误，继续使用已找到的路径
+  }
+
+  // 添加可能的其他位置
+  const homeNodeModules = path.join(os.homedir(), 'node_modules');
+  if (fs.existsSync(homeNodeModules)) {
+    paths.push(homeNodeModules);
+  }
+
+  return paths;
 }
 
 /**
