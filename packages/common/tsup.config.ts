@@ -15,4 +15,7 @@ export default defineConfig({
   clean: true,
   treeshake: true,
   outDir: 'dist',
+  esbuildOptions(options) {
+    options.external = [...(options.external || []), './factories'];
+  },
 }); 

@@ -4,90 +4,91 @@
  * 提供DPML项目中共享的基础类型定义。
  */
 
-// 错误类型
-export interface DPMLError extends Error {
-  code: string;
-  details?: Record<string, unknown>;
-}
+// 导出模块
+export * from './errors';
+export * from './config';
+export * from './fs';
+export * from './http';
+export * from './events';
 
-// 创建DPML错误的工厂函数
-export function createDPMLError(
-  message: string,
-  code: string,
-  details?: Record<string, unknown>
-): DPMLError {
-  const error = new Error(message) as DPMLError;
-  error.code = code;
-  error.details = details;
-  return error;
-}
+// 使用具名导出utils模块避免名称冲突
+import * as utilsTypes from './utils';
+export { utilsTypes };
 
-// 配置类型
-export interface BaseConfig {
-  [key: string]: unknown;
-}
-
-// 文件系统抽象接口
-export interface FileSystem {
-  readFile(path: string): Promise<string>;
-  writeFile(path: string, content: string): Promise<void>;
-  exists(path: string): Promise<boolean>;
-  mkdir(path: string, recursive?: boolean): Promise<void>;
-  readdir(path: string): Promise<string[]>;
-  stat(path: string): Promise<FileStat>;
-}
-
-export interface FileStat {
-  isFile(): boolean;
-  isDirectory(): boolean;
-  size: number;
-  mtimeMs: number;
-}
-
-// HTTP客户端抽象接口
-export interface HttpClient {
-  get<T = any>(url: string, headers?: Record<string, string>): Promise<T>;
-  post<T = any>(url: string, data: any, headers?: Record<string, string>): Promise<T>;
-  put<T = any>(url: string, data: any, headers?: Record<string, string>): Promise<T>;
-  delete<T = any>(url: string, headers?: Record<string, string>): Promise<T>;
-}
-
-// 事件相关类型
-export interface EventEmitter<T extends Record<string, any[]>> {
-  on<K extends keyof T>(event: K, listener: (...args: T[K]) => void): this;
-  off<K extends keyof T>(event: K, listener: (...args: T[K]) => void): this;
-  once<K extends keyof T>(event: K, listener: (...args: T[K]) => void): this;
-  emit<K extends keyof T>(event: K, ...args: T[K]): boolean;
-}
-
-// 工具类型
-export type Nullable<T> = T | null;
-export type Optional<T> = T | undefined;
-export type DeepPartial<T> = T extends object ? { [P in keyof T]?: DeepPartial<T[P]> } : T;
-export type RecursiveRequired<T> = {
-  [K in keyof T]-?: RecursiveRequired<T[K]>
-};
-
-// 结果类型
-export type Result<T, E = Error> = Success<T> | Failure<E>;
-
-export interface Success<T> {
-  success: true;
-  value: T;
-}
-
-export interface Failure<E> {
-  success: false;
-  error: E;
-}
-
-export function success<T>(value: T): Success<T> {
-  return { success: true, value };
-}
-
-export function failure<E>(error: E): Failure<E> {
-  return { success: false, error };
-}
-
-// 异步操作结果类型
-export type AsyncResult<T, E = Error> = Promise<Result<T, E>>; 
+// 用例示例
+/**
+ * 以下是类型系统的使用示例：
+ * 
+ * ```typescript
+ * // 错误处理
+ * import { createDPMLError, ValidationError } from '@dpml/common/types';
+ * 
+ * try {
+ *   throw createDPMLError('操作失败', 'OPERATION_FAILED', { id: 123 });
+ * } catch (error) {
+ *   if (error instanceof ValidationError) {
+ *     console.error('验证错误:', error.fields);
+ *   }
+ * }
+ * 
+ * // 配置类型
+ * import { AppConfig } from '@dpml/common/types';
+ * 
+ * const config: AppConfig = {
+ *   logger: {
+ *     level: 'info',
+ *     formatter: {
+ *       type: 'json',
+ *       pretty: true
+ *     }
+ *   }
+ * };
+ * 
+ * // 文件系统接口
+ * import { FileSystem } from '@dpml/common/types';
+ * 
+ * class NodeFileSystem implements FileSystem {
+ *   // 实现文件系统接口方法
+ *   async readFile(path: string): Promise<string> {
+ *     // 实现代码
+ *     return '';
+ *   }
+ *   // ... 其他方法实现
+ * }
+ * 
+ * // HTTP客户端
+ * import { HttpClient, HttpRequestConfig } from '@dpml/common/types';
+ * 
+ * class FetchHttpClient implements HttpClient {
+ *   // 实现HTTP客户端接口方法
+ *   async request<T>(config: HttpRequestConfig): Promise<any> {
+ *     // 实现代码
+ *     return { data: {} as T, status: 200, statusText: 'OK', headers: {}, config };
+ *   }
+ *   // ... 其他方法实现
+ * }
+ * 
+ * // 事件系统
+ * import { EventBus, Event } from '@dpml/common/types';
+ * 
+ * interface UserLoginEvent extends Event {
+ *   type: 'user:login';
+ *   userId: string;
+ * }
+ * 
+ * // 工具类型
+ * import { utilsTypes } from '@dpml/common/types';
+ * const { DeepPartial, Result, AsyncResult } = utilsTypes;
+ * 
+ * type PartialConfig = DeepPartial<AppConfig>;
+ * 
+ * async function loadConfig(): AsyncResult<AppConfig> {
+ *   try {
+ *     const config = await fetchConfig();
+ *     return { success: true, value: config };
+ *   } catch (error) {
+ *     return { success: false, error: error as Error };
+ *   }
+ * }
+ * ```
+ */ 

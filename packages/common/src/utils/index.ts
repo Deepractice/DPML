@@ -5,12 +5,29 @@
  * 按功能分类组织，支持部分导入以减少依赖。
  */
 
-// 导出所有子模块
-export * from './string';
-export * from './array';
-export * from './object';
-export * from './async';
-export * from './path';
-export * from './platform';
-export * from './validation';
-export * from './error'; 
+// 使用具名导出避免命名冲突
+import * as stringUtils from './string';
+import * as arrayUtils from './array';
+import * as objectUtils from './object';
+import * as asyncUtils from './async';
+import * as pathUtils from './path';
+import * as platformUtils from './platform';
+import * as validationUtils from './validation';
+import * as errorUtils from './error';
+
+// 导出所有子模块，使用命名空间避免冲突
+export {
+  stringUtils,
+  arrayUtils,
+  objectUtils,
+  asyncUtils,
+  pathUtils,
+  platformUtils,
+  validationUtils,
+  errorUtils
+};
+
+// 也可以选择性地直接导出不冲突的函数，例如：
+// export { formatString, capitalize } from './string';
+// export { chunk, unique } from './array';
+// 等等... 

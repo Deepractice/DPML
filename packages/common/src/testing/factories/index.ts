@@ -238,12 +238,7 @@ export function randomUrl(
 }
 
 /**
- * 测试数据工厂函数集合
+ * 测试数据工厂模块
  * 
- * 提供创建测试数据的工厂函数，用于生成单元测试和集成测试所需的测试数据。
- */
-
-export * from './user-factory';
-export * from './project-factory';
-export * from './model-factory';
-export * from './dataset-factory'; 
+ * 提供创建测试数据的基础工厂函数。
+ */ 

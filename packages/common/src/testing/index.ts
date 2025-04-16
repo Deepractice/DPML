@@ -1,14 +1,29 @@
 /**
  * 测试工具模块
  * 
- * 提供测试辅助工具、模拟对象和测试数据工厂。
+ * 提供测试辅助工具、模拟对象和测试环境管理功能。
  */
 
-// 导出环境管理工具
-export * from './environment';
+// 使用具名导出避免命名冲突
+import * as asyncUtils from './async';
+import * as environmentUtils from './environment';
+import * as fixturesUtils from './fixtures';
+import * as fileSystemMock from './mocks/file-system';
+import * as httpClientMock from './mocks/http-client';
+import * as testingUtils from './utils';
 
-// 导出夹具管理工具
-export * from './fixtures';
+// 导出所有模块，使用命名空间避免冲突
+export {
+  asyncUtils,
+  environmentUtils,
+  fixturesUtils,
+  fileSystemMock,
+  httpClientMock,
+  testingUtils
+};
+
+// 导出工厂
+export * from './factories';
 
 // 导出核心功能 (原core.ts中的函数)
 export {
@@ -23,34 +38,7 @@ export {
 // 从core.ts导出wait，但重命名为coreWait以避免冲突
 export { wait as coreWait } from './core';
 
-// 导出异步测试工具
-export {
-  sleep,
-  withTimeout,
-  parallel,
-  waitForEvent,
-  serial,
-  createCancellablePromise,
-  CancellablePromise
-} from './async';
-
-// 重命名有冲突的异步函数
-export { 
-  waitForCondition as waitUntil,
-  retry as retryOperation
-} from './async';
-
-// 导出工厂
-export * from './factories';
-
-// 导出模拟对象
-export * from './mocks/file-system';
-export * from './mocks/http-client';
-
-// 导出测试工具
-export * from './utils';
-
-// 以下是接口定义
+// 提供接口定义
 // 模拟文件系统接口
 export interface MockFileSystem {
   readFile(path: string): Promise<string>;
