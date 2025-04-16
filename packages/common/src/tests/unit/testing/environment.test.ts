@@ -16,7 +16,7 @@ vi.mock('../../../testing/environment', async () => {
   const actual = await vi.importActual<{
     createTestEnvironment: typeof import('../../../testing/environment').createTestEnvironment;
     withTestEnvironment: typeof import('../../../testing/environment').withTestEnvironment;
-  }>('../../../testing/environment');
+      }>('../../../testing/environment');
 
   return {
     ...actual,

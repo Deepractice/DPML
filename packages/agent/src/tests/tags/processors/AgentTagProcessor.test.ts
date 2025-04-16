@@ -1,9 +1,10 @@
 import { NodeType } from '@dpml/core';
 import { describe, it, expect } from 'vitest';
 
+import { AgentTagProcessor } from '../../../tags/processors/AgentTagProcessor';
+
 import type { Element, ProcessingContext, Document } from '@dpml/core';
 
-import { AgentTagProcessor } from '../../../tags/processors/AgentTagProcessor';
 
 describe('AgentTagProcessor', () => {
   // 创建一个简单的处理上下文

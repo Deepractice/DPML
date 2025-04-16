@@ -4,11 +4,12 @@
  * 将标签处理器注册到TagProcessor
  */
 
-import type { TagProcessorRegistry } from '@dpml/core';
 
 import { AgentTagProcessor } from './AgentTagProcessor';
 import { LLMTagProcessor } from './LLMTagProcessor';
 import { PromptTagProcessor } from './PromptTagProcessor';
+
+import type { TagProcessorRegistry } from '@dpml/core';
 
 /**
  * 注册DPML Agent标签处理器

@@ -10,9 +10,10 @@
 import { NodeType } from '@dpml/core';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
+import { PromptTagProcessor } from '../../../tags/processors/PromptTagProcessor';
+
 import type { Element, Content, ProcessingContext } from '@dpml/core';
 
-import { PromptTagProcessor } from '../../../tags/processors/PromptTagProcessor';
 
 // 模拟@dpml/prompt包
 vi.mock('@dpml/prompt', () => ({

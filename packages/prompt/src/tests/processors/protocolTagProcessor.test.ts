@@ -1,9 +1,10 @@
 import { NodeType } from '@dpml/core';
 import { describe, it, expect, vi } from 'vitest';
 
+import { ProtocolTagProcessor } from '../../processors/protocolTagProcessor';
+
 import type { Element, Content, ProcessingContext } from '@dpml/core';
 
-import { ProtocolTagProcessor } from '../../processors/protocolTagProcessor';
 
 describe('ProtocolTagProcessor', () => {
   // 创建一个模拟的 ProcessingContext

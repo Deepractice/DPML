@@ -1,9 +1,10 @@
+import { TagRegistry, Validator } from '@core/core/parser';
+
 import type { ValidationResult } from '@core/errors';
 import type { Document } from '@core/types';
 
 import { DPMLAdapter } from '../../core/parser/DPMLAdapter';
-import { TagRegistry } from '../../core/parser/TagRegistry';
-import { Validator } from '../../core/parser/Validator';
+
 
 import type { ParseOptions, ParseResult } from '../../types/parser';
 

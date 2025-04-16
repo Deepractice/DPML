@@ -13,9 +13,10 @@
 import { NodeType } from '@dpml/core';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
+import { LLMTagProcessor } from '../../../tags/processors/LLMTagProcessor';
+
 import type { Element, Content } from '@dpml/core';
 
-import { LLMTagProcessor } from '../../../tags/processors/LLMTagProcessor';
 
 // 禁用整个文件的类型检查
 // @ts-nocheck

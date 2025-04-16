@@ -18,7 +18,7 @@ export type MockFunction<T extends (...args: any[]) => any> = T & {
  * @param implementation 可选的实现函数
  * @returns 带有跟踪功能的mock函数
  */
-export function createMockFunction<T extends (...args: any[]) => any>(
+export function createMockFunction<T extends(...args: any[]) => any>(
   implementation?: T
 ): MockFunction<T> {
   const calls: Parameters<T>[] = [];
@@ -57,7 +57,7 @@ export interface MockOptions {
  * @param options Mock选项
  * @returns Mock函数
  */
-export function createMockWithOptions<T extends (...args: any[]) => any>(
+export function createMockWithOptions<T extends(...args: any[]) => any>(
   options: MockOptions = {}
 ): MockFunction<T> {
   if (options.implementation) {

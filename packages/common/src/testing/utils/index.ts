@@ -93,7 +93,7 @@ export async function retry<T>(
  * @param delay 延迟时间
  * @returns 防抖函数
  */
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends(...args: any[]) => any>(
   fn: T,
   delay: number
 ): (...args: Parameters<T>) => void {
@@ -118,7 +118,7 @@ export function debounce<T extends (...args: any[]) => any>(
  * @param limit 时间限制
  * @returns 节流函数
  */
-export function throttle<T extends (...args: any[]) => any>(
+export function throttle<T extends(...args: any[]) => any>(
   fn: T,
   limit: number
 ): (...args: Parameters<T>) => void {
@@ -362,7 +362,7 @@ export function watchProperty<T, K extends keyof T>(
  * @param fn 要记录的函数
  * @returns 记录包装函数
  */
-export function recordCalls<T extends (...args: any[]) => any>(
+export function recordCalls<T extends(...args: any[]) => any>(
   fn: T
 ): {
   fn: (...args: Parameters<T>) => ReturnType<T>;
@@ -399,7 +399,7 @@ export function recordCalls<T extends (...args: any[]) => any>(
  * @param keyFn 键生成函数
  * @returns 缓存函数
  */
-export function memoize<T extends (...args: any[]) => any>(
+export function memoize<T extends(...args: any[]) => any>(
   fn: T,
   keyFn?: (...args: Parameters<T>) => string
 ): T {

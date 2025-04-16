@@ -4,11 +4,12 @@
 
 import { TagDefinition } from '@dpml/core';
 
-import type { TagRegistry } from '@dpml/core';
 
 import { agentTagDefinition } from './definitions/agentTag';
 import { llmTagDefinition } from './definitions/llmTag';
 import { promptTagDefinition } from './definitions/promptTag';
+
+import type { TagRegistry } from '@dpml/core';
 
 /**
  * 注册DPML Agent标签到TagRegistry

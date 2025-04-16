@@ -5,13 +5,6 @@
  */
 import { DefaultTransformer, Node, Document, NodeType } from '@dpml/core';
 
-import type {
-  TransformerVisitor,
-  Element,
-  Content,
-  ProcessedDocument,
-  TransformContext,
-} from '@dpml/core';
 
 import {
   defaultFormatTemplates,
@@ -24,6 +17,13 @@ import {
 } from './formatConfig';
 
 import type { FormatTemplate, FormatTemplates } from './formatConfig';
+import type {
+  TransformerVisitor,
+  Element,
+  Content,
+  ProcessedDocument,
+  TransformContext,
+} from '@dpml/core';
 
 /**
  * PromptTransformer选项

@@ -7,6 +7,8 @@
 
 import { isElement, AbstractTagProcessor } from '@dpml/core';
 
+import { AgentTagAttributes } from '../../types';
+
 import type {
   Element,
   ProcessingContext,
@@ -14,7 +16,6 @@ import type {
   ValidationWarning,
 } from '@dpml/core';
 
-import { AgentTagAttributes } from '../../types';
 
 /**
  * Agent标签处理器

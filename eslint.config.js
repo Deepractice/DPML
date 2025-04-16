@@ -4,6 +4,7 @@ import importPlugin from 'eslint-plugin-import';
 import unicorn from 'eslint-plugin-unicorn';
 import tseslint from 'typescript-eslint';
 
+import importRules from './rules/import-rules.js';
 import styleRules from './rules/style-rules.js';
 
 export default [
@@ -98,35 +99,6 @@ export default [
       },
     },
     rules: {
-      // 导入顺序
-      'import/order': [
-        'error',
-        {
-          groups: [
-            'builtin', // Node内置模块
-            'external', // 外部依赖包
-            'internal', // 工作区内其他包
-            'parent', // 父目录
-            'sibling', // 同级目录
-            'index', // 当前目录index
-            'object', // 对象导入
-            'type', // 类型导入
-          ],
-          pathGroups: [
-            // 为工作区内其他包设置规则
-            {
-              pattern: '@*/**',
-              group: 'internal',
-              position: 'before',
-            },
-          ],
-          'newlines-between': 'always', // 每组之间添加空行
-          alphabetize: {
-            order: 'asc', // 按字母顺序排序
-            caseInsensitive: true,
-          },
-        },
-      ],
       // 确保导入存在
       'import/no-unresolved': 'error',
       // 禁止重复导入
@@ -143,10 +115,10 @@ export default [
           disallowTypeAnnotations: false,
         },
       ],
-      // 禁止使用过多级的相对路径
-      'import/no-relative-parent-imports': 'off', // 可以设置为'error'如果不想使用很多../../../
       // 确保导入扩展名
       'import/extensions': ['error', 'never'],
     },
   },
+  // 导入新的导入规则配置
+  importRules,
 ];

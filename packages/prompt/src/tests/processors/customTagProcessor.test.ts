@@ -1,9 +1,10 @@
 import { NodeType } from '@dpml/core';
 import { describe, it, expect, vi } from 'vitest';
 
+import { CustomTagProcessor } from '../../processors/customTagProcessor';
+
 import type { Element, Content, ProcessingContext } from '@dpml/core';
 
-import { CustomTagProcessor } from '../../processors/customTagProcessor';
 
 describe('CustomTagProcessor', () => {
   // 创建一个模拟的 ProcessingContext

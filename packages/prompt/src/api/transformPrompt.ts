@@ -4,13 +4,13 @@
 
 import { NodeType, ErrorLevel } from '@dpml/core';
 
-import type { Document } from '@dpml/core';
 
 import { handlePromptError, TransformError, PromptErrorCode } from '../errors';
 import { PromptTransformer } from '../transformers/promptTransformer';
 
 import type { PromptTransformerOptions } from '../transformers/promptTransformer';
 import type { ProcessedPrompt, TransformOptions } from '../types';
+import type { Document } from '@dpml/core';
 
 /**
  * 将处理后的提示转换为文本

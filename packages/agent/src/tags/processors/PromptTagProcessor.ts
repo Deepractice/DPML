@@ -8,6 +8,7 @@
 import { AbstractTagProcessor, NodeType } from '@dpml/core';
 import { processPrompt } from '@dpml/prompt';
 
+import type { PromptTagAttributes } from '../../types';
 import type {
   Element,
   ProcessingContext,
@@ -15,7 +16,6 @@ import type {
   ValidationWarning,
 } from '@dpml/core';
 
-import type { PromptTagAttributes } from '../../types';
 
 /**
  * 提取元素内容文本

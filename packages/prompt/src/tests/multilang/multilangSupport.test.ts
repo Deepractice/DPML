@@ -13,9 +13,10 @@
 import { parse, process, NodeType } from '@dpml/core';
 import { describe, it, expect, beforeEach } from 'vitest';
 
+import { PromptTransformer } from '../../transformers/promptTransformer';
+
 import type { Element } from '@dpml/core';
 
-import { PromptTransformer } from '../../transformers/promptTransformer';
 
 // 测试用例，确保正确根据语言属性找到prompt元素
 function findPromptElement(processedDoc: any): Element | null {

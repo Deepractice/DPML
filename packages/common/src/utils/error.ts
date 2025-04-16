@@ -325,7 +325,7 @@ export function getErrorMessage(error: unknown): string {
  * @param errorHandler 错误处理函数
  * @returns 包装后的函数
  */
-export function safeCatch<T extends (...args: any[]) => any>(
+export function safeCatch<T extends(...args: any[]) => any>(
   fn: T,
   errorHandler: (error: unknown, ...args: Parameters<T>) => ReturnType<T>
 ): (...args: Parameters<T>) => ReturnType<T> {

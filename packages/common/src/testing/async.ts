@@ -188,7 +188,7 @@ export async function parallel<T>(
 export function waitForEvent<
   T,
   E extends {
-    on: (event: string, handler: (data: T) => void) => void;
+    on:(event: string, handler: (data: T) => void) => void;
     off: (event: string, handler: (data: T) => void) => void;
   },
 >(
