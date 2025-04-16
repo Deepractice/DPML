@@ -1,10 +1,13 @@
 import { describe, it, expect } from 'vitest';
+
 import { DefaultTransformer } from '../../transformer/defaultTransformer';
-import { TransformerVisitor } from '../../transformer/interfaces/transformerVisitor';
-import { ProcessedDocument } from '../../processor/interfaces/processor';
-import { NodeType, Element, Content, Node } from '../../types/node';
 import { TransformContext } from '../../transformer/interfaces/transformContext';
 import { TransformOptions } from '../../transformer/interfaces/transformOptions';
+import { NodeType, Node } from '../../types/node';
+
+import type { ProcessedDocument } from '../../processor/interfaces/processor';
+import type { TransformerVisitor } from '../../transformer/interfaces/transformerVisitor';
+import type { Element, Content } from '../../types/node';
 
 describe('访问者返回值处理机制', () => {
   // 创建一个测试文档
@@ -15,8 +18,8 @@ describe('访问者返回值处理机制', () => {
       value: '测试内容',
       position: {
         start: { line: 2, column: 6, offset: 15 },
-        end: { line: 2, column: 16, offset: 25 }
-      }
+        end: { line: 2, column: 16, offset: 25 },
+      },
     };
 
     // 创建元素节点
@@ -27,8 +30,8 @@ describe('访问者返回值处理机制', () => {
       children: [contentNode],
       position: {
         start: { line: 2, column: 1, offset: 10 },
-        end: { line: 2, column: 22, offset: 31 }
-      }
+        end: { line: 2, column: 22, offset: 31 },
+      },
     };
 
     // 创建文档
@@ -37,8 +40,8 @@ describe('访问者返回值处理机制', () => {
       children: [elementNode],
       position: {
         start: { line: 1, column: 1, offset: 0 },
-        end: { line: 3, column: 1, offset: 32 }
-      }
+        end: { line: 3, column: 1, offset: 32 },
+      },
     };
   };
 
@@ -49,21 +52,22 @@ describe('访问者返回值处理机制', () => {
       priority: 100,
       visitDocument: () => ({
         type: 'document',
-        meta: { title: '测试文档' }
-      })
+        meta: { title: '测试文档' },
+      }),
     };
 
     const visitor2: TransformerVisitor = {
       name: 'visitor2-合并多个访问者',
       priority: 90,
       visitDocument: () => ({
-        stats: { wordCount: 100 }
-      })
+        stats: { wordCount: 100 },
+      }),
     };
 
     const transformer = new DefaultTransformer();
+
     transformer.configure({
-      mergeReturnValues: true // 启用返回值合并
+      mergeReturnValues: true, // 启用返回值合并
     });
     transformer.registerVisitor(visitor1);
     transformer.registerVisitor(visitor2);
@@ -74,7 +78,7 @@ describe('访问者返回值处理机制', () => {
     expect(result).toEqual({
       type: 'document',
       meta: { title: '测试文档' },
-      stats: { wordCount: 100 }
+      stats: { wordCount: 100 },
     });
   });
 
@@ -84,11 +88,11 @@ describe('访问者返回值处理机制', () => {
       name: 'visitor1-深度合并',
       priority: 100,
       visitDocument: () => ({
-        meta: { 
+        meta: {
           title: '测试文档',
-          author: '张三'
-        }
-      })
+          author: '张三',
+        },
+      }),
     };
 
     const visitor2: TransformerVisitor = {
@@ -97,15 +101,16 @@ describe('访问者返回值处理机制', () => {
       visitDocument: () => ({
         meta: {
           version: '1.0',
-          author: '李四' // 重复的属性
-        }
-      })
+          author: '李四', // 重复的属性
+        },
+      }),
     };
 
     const transformer = new DefaultTransformer();
+
     transformer.configure({
       mergeReturnValues: true, // 启用返回值合并
-      deepMerge: true // 启用深度合并
+      deepMerge: true, // 启用深度合并
     });
     transformer.registerVisitor(visitor1);
     transformer.registerVisitor(visitor2);
@@ -114,11 +119,11 @@ describe('访问者返回值处理机制', () => {
 
     // 验证深度合并结果
     expect(result).toEqual({
-      meta: { 
+      meta: {
         title: '测试文档',
         author: '李四', // 后面访问者的值应覆盖前面的
-        version: '1.0'
-      }
+        version: '1.0',
+      },
     });
   });
 
@@ -128,22 +133,23 @@ describe('访问者返回值处理机制', () => {
       name: 'visitor1-数组合并',
       priority: 100,
       visitDocument: () => ({
-        tags: ['文档', '重要']
-      })
+        tags: ['文档', '重要'],
+      }),
     };
 
     const visitor2: TransformerVisitor = {
       name: 'visitor2-数组合并',
       priority: 90,
       visitDocument: () => ({
-        tags: ['参考']
-      })
+        tags: ['参考'],
+      }),
     };
 
     const transformer = new DefaultTransformer();
+
     transformer.configure({
       mergeReturnValues: true,
-      mergeArrays: true // 启用数组合并
+      mergeArrays: true, // 启用数组合并
     });
     transformer.registerVisitor(visitor1);
     transformer.registerVisitor(visitor2);
@@ -152,7 +158,7 @@ describe('访问者返回值处理机制', () => {
 
     // 验证数组已合并
     expect(result).toEqual({
-      tags: ['文档', '重要', '参考']
+      tags: ['文档', '重要', '参考'],
     });
   });
 
@@ -164,8 +170,8 @@ describe('访问者返回值处理机制', () => {
       visitDocument: () => ({
         type: 'document',
         title: '测试文档',
-        children: [] // 添加children数组以支持子节点处理
-      })
+        children: [], // 添加children数组以支持子节点处理
+      }),
     };
 
     // 元素节点访问者
@@ -176,8 +182,8 @@ describe('访问者返回值处理机制', () => {
         type: 'element',
         name: element.tagName,
         customAttr: 'test',
-        children: [] // 添加children数组以支持子节点处理
-      })
+        children: [], // 添加children数组以支持子节点处理
+      }),
     };
 
     // 内容节点访问者
@@ -187,11 +193,12 @@ describe('访问者返回值处理机制', () => {
       visitContent: (content: Content) => ({
         type: 'content',
         text: content.value,
-        format: 'plain'
-      })
+        format: 'plain',
+      }),
     };
 
     const transformer = new DefaultTransformer();
+
     transformer.registerVisitor(documentVisitor);
     transformer.registerVisitor(elementVisitor);
     transformer.registerVisitor(contentVisitor);
@@ -211,11 +218,11 @@ describe('访问者返回值处理机制', () => {
             {
               type: 'content',
               text: '测试内容',
-              format: 'plain'
-            }
-          ]
-        }
-      ]
+              format: 'plain',
+            },
+          ],
+        },
+      ],
     });
   });
 
@@ -226,8 +233,8 @@ describe('访问者返回值处理机制', () => {
       priority: 100,
       visitDocument: () => ({
         type: 'doc',
-        version: 1
-      })
+        version: 1,
+      }),
     };
 
     const visitor2: TransformerVisitor = {
@@ -235,42 +242,44 @@ describe('访问者返回值处理机制', () => {
       priority: 90,
       visitDocument: () => ({
         type: 'document',
-        version: 2
-      })
+        version: 2,
+      }),
     };
 
     // 使用"先胜"冲突解决策略
     const transformer1 = new DefaultTransformer();
+
     transformer1.configure({
       mergeReturnValues: true,
-      conflictStrategy: 'first-wins'
+      conflictStrategy: 'first-wins',
     });
     transformer1.registerVisitor(visitor1);
     transformer1.registerVisitor(visitor2);
 
     const result1 = transformer1.transform(createTestDocument());
-    
+
     // 验证使用第一个访问者的值
     expect(result1).toEqual({
       type: 'doc',
-      version: 1
+      version: 1,
     });
 
     // 使用"后胜"冲突解决策略
     const transformer2 = new DefaultTransformer();
+
     transformer2.configure({
       mergeReturnValues: true,
-      conflictStrategy: 'last-wins'
+      conflictStrategy: 'last-wins',
     });
     transformer2.registerVisitor(visitor1);
     transformer2.registerVisitor(visitor2);
 
     const result2 = transformer2.transform(createTestDocument());
-    
+
     // 验证使用第二个访问者的值
     expect(result2).toEqual({
       type: 'document',
-      version: 2
+      version: 2,
     });
   });
 
@@ -280,16 +289,16 @@ describe('访问者返回值处理机制', () => {
       name: 'visitor1',
       priority: 100,
       visitDocument: () => ({
-        count: 5
-      })
+        count: 5,
+      }),
     };
 
     const visitor2: TransformerVisitor = {
       name: 'visitor2',
       priority: 90,
       visitDocument: () => ({
-        count: 10
-      })
+        count: 10,
+      }),
     };
 
     // 自定义合并函数 - 固定返回特殊值以方便测试
@@ -297,14 +306,16 @@ describe('访问者返回值处理机制', () => {
       if (key === 'count') {
         return 15; // 固定结果
       }
+
       return value2; // 默认后者覆盖前者
     };
 
     // 创建一个转换器并启用返回值合并
     const transformer = new DefaultTransformer();
+
     transformer.configure({
       mergeReturnValues: true,
-      customMergeFn: customMerge
+      customMergeFn: customMerge,
     });
 
     // 注册访问者
@@ -313,10 +324,10 @@ describe('访问者返回值处理机制', () => {
 
     // 执行转换
     const result = transformer.transform(createTestDocument());
-    
+
     // 验证结果
     expect(result).toEqual({
-      count: 15
+      count: 15,
     });
   });
-}); 
+});

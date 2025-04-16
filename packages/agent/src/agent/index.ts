@@ -3,4 +3,4 @@
  */
 export * from './types';
 export * from './AgentImpl';
-export * from './AgentFactory'; 
+export * from './AgentFactory';

@@ -11,7 +11,7 @@
 ```xml
 <agent id="example-assistant" version="1.0">
   <llm model="gpt-4-turbo" auth-key-env="OPENAI_API_KEY" />
-  
+
   <prompt>
     你是一个有帮助的助手，能够回答用户问题并提供有用的信息。
   </prompt>
@@ -24,11 +24,11 @@
 
 ### 2.1 核心属性
 
-| 属性名 | 描述 | 类型 | 必填 | 默认值 | 示例 |
-|--------|------|------|------|--------|------|
-| `id` | 代理的唯一标识符 | 字符串 | 是 | - | `id="research-assistant"` |
-| `version` | 代理定义的版本 | 字符串 | 否 | "1.0" | `version="2.1"` |
-| `extends` | 继承其他代理定义 | 字符串 | 否 | - | `extends="./base-agent.dpml"` |
+| 属性名    | 描述             | 类型   | 必填 | 默认值 | 示例                          |
+| --------- | ---------------- | ------ | ---- | ------ | ----------------------------- |
+| `id`      | 代理的唯一标识符 | 字符串 | 是   | -      | `id="research-assistant"`     |
+| `version` | 代理定义的版本   | 字符串 | 否   | "1.0"  | `version="2.1"`               |
+| `extends` | 继承其他代理定义 | 字符串 | 否   | -      | `extends="./base-agent.dpml"` |
 
 这些属性由 @dpml/core 包提供，agent包不需要重新定义它们。这种设计保持了标签定义的简洁性，同时允许将来根据实际需求添加特定属性。
 
@@ -36,10 +36,10 @@
 
 `<agent>` 标签目前包含以下核心子标签：
 
-| 子标签 | 描述 | 必填 | 可重复 |
-|--------|------|------|--------|
-| `<llm>` | 大语言模型配置 | 是 | 否 |
-| `<prompt>` | 系统提示词定义 | 是 | 否 |
+| 子标签     | 描述           | 必填 | 可重复 |
+| ---------- | -------------- | ---- | ------ |
+| `<llm>`    | 大语言模型配置 | 是   | 否     |
+| `<prompt>` | 系统提示词定义 | 是   | 否     |
 
 ### 3.1 标签顺序
 
@@ -73,7 +73,7 @@
 ```xml
 <agent id="simple-assistant">
   <llm model="gpt-4-turbo" auth-key-env="OPENAI_API_KEY" />
-  
+
   <prompt>
     你是一个有帮助的助手，请简洁明了地回答用户问题。
   </prompt>
@@ -83,33 +83,33 @@
 ### 4.2 继承基础代理定义
 
 ```xml
-<agent 
-  id="research-assistant" 
-  version="1.2.0" 
+<agent
+  id="research-assistant"
+  version="1.2.0"
   extends="./base-agent.dpml"
 >
-  <llm 
-    api-type="openai" 
-    model="gpt-4-turbo" 
-    auth-key-env="OPENAI_API_KEY" 
+  <llm
+    api-type="openai"
+    model="gpt-4-turbo"
+    auth-key-env="OPENAI_API_KEY"
   />
-  
+
   <prompt>
     # 学术研究助手
-    
+
     你是一位专业的学术研究助手，擅长：
     - 文献检索和分析
     - 研究方法指导
     - 学术写作辅助
     - 数据解读
-    
+
     ## 工作准则
-    
+
     - 保持学术严谨性
     - 引用可靠的学术来源
     - 明确区分事实与观点
     - 承认知识的局限性
-    
+
     请以专业、准确、客观的方式回答研究相关问题。
   </prompt>
 </agent>
@@ -128,7 +128,7 @@
       </prompt>
     </agent>
   </step>
-  
+
   <step id="data-analysis">
     <agent id="data-analyst">
       <llm model="gpt-4-turbo" />
@@ -189,4 +189,4 @@
 
 ## 总结
 
-`<agent>` 标签作为DPML Agent包的根标签，提供了定义AI代理的入口点。其设计保持简单灵活，仅使用@dpml/core提供的基础属性，不引入不必要的特有属性，使其能够轻松适应各种使用场景。作为领域的顶层标签载体，它专注于自身的核心功能定义，同时可以作为更大系统（如工作流）中的一个组件。这种简洁的设计既满足了当前的基本需求，又为未来的扩展和集成提供了最大的灵活性。 
+`<agent>` 标签作为DPML Agent包的根标签，提供了定义AI代理的入口点。其设计保持简单灵活，仅使用@dpml/core提供的基础属性，不引入不必要的特有属性，使其能够轻松适应各种使用场景。作为领域的顶层标签载体，它专注于自身的核心功能定义，同时可以作为更大系统（如工作流）中的一个组件。这种简洁的设计既满足了当前的基本需求，又为未来的扩展和集成提供了最大的灵活性。

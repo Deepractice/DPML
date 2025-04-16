@@ -1,6 +1,6 @@
 /**
  * 事件相关类型定义
- * 
+ *
  * 提供强类型的事件处理和发布订阅模式支持。
  */
 
@@ -44,7 +44,7 @@ export enum EventPriority {
   /** 低优先级 */
   LOW = 25,
   /** 最低优先级 */
-  LOWEST = 0
+  LOWEST = 0,
 }
 
 /**
@@ -82,8 +82,12 @@ export interface EventBus {
    * @param options 选项
    * @returns 监听器ID
    */
-  on<T extends Event>(type: string, listener: EventListener<T>, options?: EventListenerOptions): string;
-  
+  on<T extends Event>(
+    type: string,
+    listener: EventListener<T>,
+    options?: EventListenerOptions
+  ): string;
+
   /**
    * 注册一次性事件监听器
    * @param type 事件类型
@@ -91,8 +95,12 @@ export interface EventBus {
    * @param options 选项
    * @returns 监听器ID
    */
-  once<T extends Event>(type: string, listener: EventListener<T>, options?: Omit<EventListenerOptions, 'once'>): string;
-  
+  once<T extends Event>(
+    type: string,
+    listener: EventListener<T>,
+    options?: Omit<EventListenerOptions, 'once'>
+  ): string;
+
   /**
    * 移除事件监听器
    * @param type 事件类型
@@ -100,33 +108,33 @@ export interface EventBus {
    * @returns 是否成功移除
    */
   off(type: string, listenerOrId: EventListener | string): boolean;
-  
+
   /**
    * 移除所有监听器
    * @param type 事件类型（可选，不提供则移除所有类型）
    */
   removeAllListeners(type?: string): void;
-  
+
   /**
    * 发布事件
    * @param event 事件对象
    * @returns 如果是异步监听器，返回所有完成的Promise
    */
   emit<T extends Event>(event: T): Promise<void>;
-  
+
   /**
    * 发布事件（同步版本）
    * @param event 事件对象
    */
   emitSync<T extends Event>(event: T): void;
-  
+
   /**
    * 检查是否有监听器
    * @param type 事件类型
    * @returns 是否有监听器
    */
   hasListeners(type: string): boolean;
-  
+
   /**
    * 获取监听器数量
    * @param type 事件类型（可选）
@@ -144,7 +152,7 @@ export interface EventPublisher {
    * @param event 事件对象
    */
   publish<T extends Event>(event: T): Promise<void>;
-  
+
   /**
    * 同步发布事件
    * @param event 事件对象
@@ -163,8 +171,12 @@ export interface EventSubscriber {
    * @param options 选项
    * @returns 订阅ID
    */
-  subscribe<T extends Event>(type: string, listener: EventListener<T>, options?: EventListenerOptions): string;
-  
+  subscribe<T extends Event>(
+    type: string,
+    listener: EventListener<T>,
+    options?: EventListenerOptions
+  ): string;
+
   /**
    * 取消订阅
    * @param subscriptionId 订阅ID
@@ -185,16 +197,16 @@ export interface EventHandler<T extends Event> {
 
 /**
  * 强类型事件映射
- * 
+ *
  * 用于创建具有特定事件类型的事件总线
- * 
+ *
  * @example
  * ```typescript
  * interface MyEvents {
  *   'user:login': UserLoginEvent;
  *   'user:logout': UserLogoutEvent;
  * }
- * 
+ *
  * const bus = createTypedEventBus<MyEvents>();
  * bus.on('user:login', (event) => {
  *   // event 类型为 UserLoginEvent
@@ -216,8 +228,12 @@ export interface TypedEventBus<T extends TypedEventMap> {
    * @param options 选项
    * @returns 监听器ID
    */
-  on<K extends keyof T>(type: K, listener: EventListener<T[K]>, options?: EventListenerOptions): string;
-  
+  on<K extends keyof T>(
+    type: K,
+    listener: EventListener<T[K]>,
+    options?: EventListenerOptions
+  ): string;
+
   /**
    * 注册一次性事件监听器
    * @param type 事件类型
@@ -225,22 +241,29 @@ export interface TypedEventBus<T extends TypedEventMap> {
    * @param options 选项
    * @returns 监听器ID
    */
-  once<K extends keyof T>(type: K, listener: EventListener<T[K]>, options?: Omit<EventListenerOptions, 'once'>): string;
-  
+  once<K extends keyof T>(
+    type: K,
+    listener: EventListener<T[K]>,
+    options?: Omit<EventListenerOptions, 'once'>
+  ): string;
+
   /**
    * 移除事件监听器
    * @param type 事件类型
    * @param listenerOrId 监听器函数或ID
    * @returns 是否成功移除
    */
-  off<K extends keyof T>(type: K, listenerOrId: EventListener<T[K]> | string): boolean;
-  
+  off<K extends keyof T>(
+    type: K,
+    listenerOrId: EventListener<T[K]> | string
+  ): boolean;
+
   /**
    * 移除所有监听器
    * @param type 事件类型（可选，不提供则移除所有类型）
    */
   removeAllListeners<K extends keyof T>(type?: K): void;
-  
+
   /**
    * 发布事件
    * @param type 事件类型
@@ -248,21 +271,21 @@ export interface TypedEventBus<T extends TypedEventMap> {
    * @returns 如果是异步监听器，返回所有完成的Promise
    */
   emit<K extends keyof T>(type: K, event: T[K]): Promise<void>;
-  
+
   /**
    * 发布事件（同步版本）
-   * @param type 事件类型 
+   * @param type 事件类型
    * @param event 事件对象
    */
   emitSync<K extends keyof T>(type: K, event: T[K]): void;
-  
+
   /**
    * 检查是否有监听器
    * @param type 事件类型
    * @returns 是否有监听器
    */
   hasListeners<K extends keyof T>(type: K): boolean;
-  
+
   /**
    * 获取监听器数量
    * @param type 事件类型（可选）
@@ -285,4 +308,4 @@ export interface EventSubscription {
   options: EventListenerOptions;
   /** 取消订阅 */
   unsubscribe(): void;
-} 
+}

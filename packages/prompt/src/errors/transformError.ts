@@ -2,7 +2,10 @@
  * 转换错误类
  */
 import { ErrorLevel } from '@dpml/core';
-import { PromptError, PromptErrorCode, PromptErrorOptions } from './promptError';
+
+import { PromptError, PromptErrorCode } from './promptError';
+
+import type { PromptErrorOptions } from './promptError';
 
 /**
  * 转换错误选项接口
@@ -21,12 +24,12 @@ export class TransformError extends PromptError {
    * 格式化器名称
    */
   formatter?: string;
-  
+
   /**
    * 标签名称
    */
   tagName?: string;
-  
+
   /**
    * 构造函数
    */
@@ -35,34 +38,34 @@ export class TransformError extends PromptError {
       ...options,
       stage: 'transform',
       // 如果没有指定代码，使用默认转换错误代码
-      code: options.code || PromptErrorCode.TRANSFORM_ERROR
+      code: options.code || PromptErrorCode.TRANSFORM_ERROR,
     });
-    
+
     this.formatter = options.formatter;
     this.tagName = options.tagName;
-    
+
     // 确保正确的原型链
     Object.setPrototypeOf(this, TransformError.prototype);
   }
-  
+
   /**
    * 将错误转换为字符串
    */
   toString(): string {
     let result = super.toString();
-    
+
     // 添加转换特定信息
     if (this.formatter) {
       result += ` | 格式化器: ${this.formatter}`;
     }
-    
+
     if (this.tagName) {
       result += ` | 标签: ${this.tagName}`;
     }
-    
+
     return result;
   }
-  
+
   /**
    * 格式化错误为对象
    */
@@ -70,10 +73,10 @@ export class TransformError extends PromptError {
     return {
       ...super.toJSON(),
       formatter: this.formatter,
-      tagName: this.tagName
+      tagName: this.tagName,
     };
   }
-  
+
   /**
    * 创建格式化器错误
    */
@@ -88,10 +91,10 @@ export class TransformError extends PromptError {
       level: ErrorLevel.ERROR,
       position,
       cause: error,
-      formatter
+      formatter,
     });
   }
-  
+
   /**
    * 创建无效输入错误
    */
@@ -103,7 +106,7 @@ export class TransformError extends PromptError {
       code: PromptErrorCode.TRANSFORM_ERROR,
       message,
       level: ErrorLevel.ERROR,
-      position
+      position,
     });
   }
-} 
+}

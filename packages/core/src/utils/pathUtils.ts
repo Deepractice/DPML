@@ -1,19 +1,19 @@
 /**
  * 路径处理工具类
- * 
+ *
  * 提供跨平台路径处理的工具函数
  */
+import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import * as url from 'url';
-import * as os from 'os';
-import * as fs from 'fs';
 
 /**
  * 平台类型
  */
 export enum PlatformType {
   WINDOWS = 'windows',
-  UNIX = 'unix'
+  UNIX = 'unix',
 }
 
 /**
@@ -31,33 +31,35 @@ export function getCurrentPlatform(): PlatformType {
  */
 export function normalizePath(filePath: string): string {
   if (!filePath) return filePath;
-  
+
   // 处理URL格式的路径
   if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
     return filePath;
   }
-  
+
   // 处理file:// 协议的URL
   if (filePath.startsWith('file://')) {
     try {
       // 使用URL API解析文件URL
       const fileUrl = new URL(filePath);
+
       return url.fileURLToPath(fileUrl);
     } catch (error) {
       // 如果解析失败，尝试直接移除协议部分
       filePath = filePath.substring(7);
     }
   }
-  
+
   // 替换反斜杠为正斜杠 (统一为UNIX格式，再让path.normalize根据平台转换)
   filePath = filePath.replace(/\\/g, '/');
-  
+
   try {
     // 使用path.normalize根据当前平台转换路径分隔符
     return path.normalize(filePath);
   } catch (error) {
     // 如果normalize失败，返回原始转换后的路径
     console.warn('路径规范化失败:', error);
+
     return filePath;
   }
 }
@@ -68,27 +70,31 @@ export function normalizePath(filePath: string): string {
  * @param platform 目标平台类型
  * @returns 转换后的路径
  */
-export function convertPathForPlatform(filePath: string, platform: PlatformType): string {
+export function convertPathForPlatform(
+  filePath: string,
+  platform: PlatformType
+): string {
   if (!filePath) return filePath;
-  
+
   // 处理URL格式的路径
   if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
     return filePath;
   }
-  
+
   // 处理file:// 协议的URL
   if (filePath.startsWith('file://')) {
     try {
       const fileUrl = new URL(filePath);
+
       filePath = url.fileURLToPath(fileUrl);
     } catch (error) {
       filePath = filePath.substring(7);
     }
   }
-  
+
   // 先统一为UNIX格式
   filePath = filePath.replace(/\\/g, '/');
-  
+
   // 根据指定平台进行转换
   if (platform === PlatformType.WINDOWS) {
     // 将正斜杠转换为反斜杠
@@ -105,10 +111,12 @@ export function convertPathForPlatform(filePath: string, platform: PlatformType)
  * @returns 是否为绝对路径
  */
 export function isAbsolutePath(filePath: string): boolean {
-  return path.isAbsolute(filePath) || 
-         /^[a-zA-Z]:[\\\/]/i.test(filePath) ||  // Windows盘符路径
-         filePath.startsWith('/') ||  // Unix绝对路径
-         /^([a-zA-Z]+):\/\//.test(filePath);  // URL格式路径
+  return (
+    path.isAbsolute(filePath) ||
+    /^[a-zA-Z]:[\\\/]/i.test(filePath) || // Windows盘符路径
+    filePath.startsWith('/') || // Unix绝对路径
+    /^([a-zA-Z]+):\/\//.test(filePath)
+  ); // URL格式路径
 }
 
 /**
@@ -117,33 +125,39 @@ export function isAbsolutePath(filePath: string): boolean {
  * @param relativePath 相对路径
  * @returns 解析后的绝对路径
  */
-export function resolveRelativePath(basePath: string, relativePath: string): string {
+export function resolveRelativePath(
+  basePath: string,
+  relativePath: string
+): string {
   if (!relativePath) return basePath;
   if (isAbsolutePath(relativePath)) return normalizePath(relativePath);
-  
+
   // 处理URL路径
   if (basePath.startsWith('http://') || basePath.startsWith('https://')) {
     try {
       const baseUrl = new URL(basePath);
       const resolvedUrl = new URL(relativePath, baseUrl);
+
       return resolvedUrl.href;
     } catch (error) {
       // 如果解析失败，回退到基本的路径拼接
       return normalizePath(`${basePath}/${relativePath}`);
     }
   }
-  
+
   // 获取basePath的目录部分
-  const baseDir = basePath.endsWith('/') || basePath.endsWith('\\') 
-    ? basePath 
-    : path.dirname(normalizePath(basePath));
-  
+  const baseDir =
+    basePath.endsWith('/') || basePath.endsWith('\\')
+      ? basePath
+      : path.dirname(normalizePath(basePath));
+
   try {
     // 解析路径
     return normalizePath(path.join(baseDir, relativePath));
   } catch (error) {
     // 如果path.join失败，使用简单的路径拼接
     console.warn('路径解析失败:', error);
+
     return normalizePath(`${baseDir}/${relativePath}`);
   }
 }
@@ -159,14 +173,16 @@ export function getFileName(filePath: string): string {
     try {
       const url = new URL(filePath);
       const pathName = url.pathname;
+
       return path.basename(pathName);
     } catch (error) {
       // 如果解析失败，尝试基本的路径处理
       const segments = filePath.split('/');
+
       return segments[segments.length - 1] || '';
     }
   }
-  
+
   return path.basename(normalizePath(filePath));
 }
 
@@ -182,14 +198,18 @@ export function getDirName(filePath: string): string {
       const urlObj = new URL(filePath);
       const pathName = urlObj.pathname;
       const dirPath = path.dirname(pathName);
+
       return `${urlObj.protocol}//${urlObj.host}${dirPath}`;
     } catch (error) {
       // 如果解析失败，尝试基本的路径处理
       const lastSlashIndex = filePath.lastIndexOf('/');
-      return lastSlashIndex >= 0 ? filePath.substring(0, lastSlashIndex) : filePath;
+
+      return lastSlashIndex >= 0
+        ? filePath.substring(0, lastSlashIndex)
+        : filePath;
     }
   }
-  
+
   return path.dirname(normalizePath(filePath));
 }
 
@@ -204,19 +224,21 @@ export function getExtension(filePath: string): string {
     try {
       const url = new URL(filePath);
       const pathName = url.pathname;
+
       return path.extname(pathName);
     } catch (error) {
       // 如果解析失败，尝试基本的路径处理
       const lastDotIndex = filePath.lastIndexOf('.');
       const lastSlashIndex = filePath.lastIndexOf('/');
-      
+
       if (lastDotIndex > lastSlashIndex && lastDotIndex >= 0) {
         return filePath.substring(lastDotIndex);
       }
+
       return '';
     }
   }
-  
+
   return path.extname(normalizePath(filePath));
 }
 
@@ -227,31 +249,38 @@ export function getExtension(filePath: string): string {
  */
 export function pathToFileUrl(filePath: string): string {
   // 如果已经是URL格式，直接返回
-  if (filePath.startsWith('http://') || filePath.startsWith('https://') || filePath.startsWith('file://')) {
+  if (
+    filePath.startsWith('http://') ||
+    filePath.startsWith('https://') ||
+    filePath.startsWith('file://')
+  ) {
     return filePath;
   }
-  
+
   // 标准化路径
   const normalizedPath = normalizePath(filePath);
-  
+
   // 使用URL API转换为file://格式
   try {
     return url.pathToFileURL(normalizedPath).href;
   } catch (error) {
     // 手动构建file://URL
     let fileUrl = 'file://';
-    
+
     // 处理Windows盘符路径
     if (/^[a-zA-Z]:[\\\/]/i.test(normalizedPath)) {
       // 移除盘符中的冒号，确保路径格式正确
       const driveLetter = normalizedPath.charAt(0);
       const restOfPath = normalizedPath.substring(2).replace(/\\/g, '/');
+
       fileUrl += `/${driveLetter}:${restOfPath}`;
     } else {
       // 确保路径以/开头
-      fileUrl += normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`;
+      fileUrl += normalizedPath.startsWith('/')
+        ? normalizedPath
+        : `/${normalizedPath}`;
     }
-    
+
     return fileUrl;
   }
-} 
+}

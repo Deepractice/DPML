@@ -59,7 +59,7 @@ classDiagram
     class ErrorHandler {
         +handleError(error: DPMLError)
     }
-    
+
     Parser --> TagRegistry: uses
     Processor --> TagRegistry: uses
     Processor --> ReferenceResolver: uses
@@ -74,13 +74,15 @@ classDiagram
 
 #### 2.2.1 核心模块职责
 
-- **Parser**: 
+- **Parser**:
+
   - 负责将DPML文本解析为基础AST
   - 识别XML标签结构和属性
   - 不负责处理标签继承或引用解析
   - 仅生成初始语法树结构
 
-- **Processor**: 
+- **Processor**:
+
   - 接收Parser生成的基础AST，进行高级处理
   - 处理标签继承（extends属性）
   - 识别和处理@引用
@@ -88,7 +90,8 @@ classDiagram
   - 输出增强的完整AST
   - 管理协议处理器和资源加载
 
-- **Transformer**: 
+- **Transformer**:
+
   - 作为框架而非具体实现
   - 提供AST到其他表示形式的转换接口
   - 定义访问者模式和工具类
@@ -107,28 +110,30 @@ classDiagram
 
 各模块间的职责划分严格遵循关注点分离原则：
 
-| 职责 | Parser | Processor | Transformer | 领域模块 |
-|------|--------|-----------|-------------|----------|
-| XML解析 | ✅ | ❌ | ❌ | ❌ |
-| 基础AST生成 | ✅ | ❌ | ❌ | ❌ |
-| 标签继承处理 | ❌ | ✅ | ❌ | ❌ |
-| @引用识别与解析 | ❌ | ✅ | ❌ | ❌ |
-| 属性处理 | ❌ | ✅ | ❌ | ❌ |
-| 协议处理 | ❌ | ✅ | ❌ | ❌ |
-| AST格式转换 | ❌ | ❌ | ✅(框架) | ✅(具体实现) |
-| 领域特定逻辑 | ❌ | ❌ | ❌ | ✅ |
+| 职责            | Parser | Processor | Transformer | 领域模块     |
+| --------------- | ------ | --------- | ----------- | ------------ |
+| XML解析         | ✅     | ❌        | ❌          | ❌           |
+| 基础AST生成     | ✅     | ❌        | ❌          | ❌           |
+| 标签继承处理    | ❌     | ✅        | ❌          | ❌           |
+| @引用识别与解析 | ❌     | ✅        | ❌          | ❌           |
+| 属性处理        | ❌     | ✅        | ❌          | ❌           |
+| 协议处理        | ❌     | ✅        | ❌          | ❌           |
+| AST格式转换     | ❌     | ❌        | ✅(框架)    | ✅(具体实现) |
+| 领域特定逻辑    | ❌     | ❌        | ❌          | ✅           |
 
 #### 2.2.3 核心扩展方向
 
 三个核心模块各自代表DPML系统不同层次的扩展能力：
 
 - **Parser - 扩展语法**：
+
   - 提供语法层面的扩展能力
   - 支持新的标签格式和语法规则
   - 允许定义新的标签结构和属性语法
   - 控制文本到AST的转换过程
 
 - **Processor - 扩展语义**：
+
   - 提供语义层面的扩展能力
   - 处理DPML文档的"意义"和"关系"
   - 定义标签间的继承和组合规则
@@ -155,7 +160,7 @@ flowchart TD
     Agent[/@dpml/agent/]
     Workflow[/@dpml/workflow/]
     CLI[/@dpml/cli/]
-    
+
     Core --> Prompt
     Prompt --> Agent
     Agent --> Workflow
@@ -174,6 +179,7 @@ flowchart TD
 ### 3.1 DPML文档模型
 
 DPML文档由不同类型的节点组成，包括：
+
 - **Document**: 文档根节点
 - **Element**: 标签节点，代表XML风格的标签
 - **Content**: 内容节点，代表可能包含Markdown格式的内容
@@ -207,7 +213,7 @@ classDiagram
         +path: string
         +resolved: any
     }
-    
+
     Node <|-- Document
     Node <|-- Element
     Node <|-- Content
@@ -217,6 +223,7 @@ classDiagram
 ### 3.2 标签注册机制
 
 Core包提供标签注册机制，允许定义：
+
 - 标签的属性规范
 - 标签的嵌套规则
 - 标签的验证规则
@@ -225,6 +232,7 @@ Core包提供标签注册机制，允许定义：
 ### 3.3 引用系统
 
 DPML支持通过@符号引用外部资源：
+
 - 支持多种协议（http, file等）
 - 提供可扩展的协议处理器
 - 支持引用解析和缓存
@@ -243,15 +251,15 @@ sequenceDiagram
     participant ReferenceResolver
     participant TransformerFramework
     participant DomainTransformer
-    
+
     Client->>Parser: parse(dpmlText)
     Parser-->>Client: basicDocument
-    
+
     Client->>Processor: process(basicDocument)
     Processor->>ReferenceResolver: resolve(reference)
     ReferenceResolver-->>Processor: resolvedReference
     Processor-->>Client: enhancedDocument
-    
+
     Client->>TransformerFramework: getTransformer(type)
     TransformerFramework-->>Client: transformer
     Client->>DomainTransformer: transform(enhancedDocument)
@@ -259,6 +267,7 @@ sequenceDiagram
 ```
 
 DPML文档处理的核心流程包括四个主要阶段：
+
 1. **解析阶段**：Parser将文本解析为基础AST
 2. **处理阶段**：Processor处理继承、引用等，生成增强AST
 3. **转换器选择**：选择适当的领域特定转换器
@@ -295,16 +304,14 @@ Transformer作为框架而非具体实现，提供：
 1. 基础转换器接口
    - 定义统一的转换方法
    - 提供类型安全保证
-   
 2. 访问者模式支持
    - 定义节点访问接口
    - 提供默认遍历实现
-   
 3. 通用工具方法
    - 节点查找和过滤
    - 内容提取辅助函数
-   
 4. 组合转换模式
+
    - 支持转换器链式组合
    - 中间结果处理
 
@@ -319,11 +326,13 @@ Transformer作为框架而非具体实现，提供：
 Core包围绕三个核心方向提供扩展点：
 
 - **语法扩展（Parser层）**：
+
   - 自定义标签定义：创建新的标签类型和结构
   - 属性语法扩展：定义新的属性格式和验证规则
   - 内容格式扩展：支持不同的内容格式解析
 
 - **语义扩展（Processor层）**：
+
   - 引用协议扩展：实现新的@引用协议处理器
   - 继承机制扩展：自定义继承规则和处理逻辑
   - 属性处理扩展：添加特殊属性的处理逻辑
@@ -378,6 +387,7 @@ flowchart TD
 ### 6.2 外部依赖
 
 Core包尽量减少外部依赖，但可能会使用以下类型的依赖：
+
 - 基础XML/HTML解析库
 - Markdown处理库
 - 通用工具库（如日期处理、路径处理等）
@@ -395,11 +405,13 @@ Core包尽量减少外部依赖，但可能会使用以下类型的依赖：
 领域模块（如prompt、agent、workflow）通过以下模式使用Core：
 
 1. **解析和处理**
+
    - 使用Parser解析DPML文本
    - 使用Processor处理基础AST
    - 获取增强AST
 
 2. **转换框架使用**
+
    - 基于Transformer框架实现特定转换器
    - 定义领域特定的访问者或转换器
    - 创建特定输出格式
@@ -429,4 +441,4 @@ Core包尽量减少外部依赖，但可能会使用以下类型的依赖：
 
 ---
 
-本文档定义了`@dpml/core`包的整体设计和职责。各模块的具体实现细节和接口定义将在各自的模块设计文档中详细说明。 
+本文档定义了`@dpml/core`包的整体设计和职责。各模块的具体实现细节和接口定义将在各自的模块设计文档中详细说明。

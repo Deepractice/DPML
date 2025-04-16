@@ -5,7 +5,7 @@ export enum ErrorLevel {
   FATAL = 'fatal',
   ERROR = 'error',
   WARNING = 'warning',
-  INFO = 'info'
+  INFO = 'info',
 }
 
 /**
@@ -28,7 +28,7 @@ export enum ErrorCode {
   // 引用错误
   REFERENCE_NOT_FOUND = 'reference-not-found',
   INVALID_REFERENCE = 'invalid-reference',
-  CIRCULAR_REFERENCE = 'circular-reference'
+  CIRCULAR_REFERENCE = 'circular-reference',
 }
 
 /**
@@ -111,7 +111,7 @@ export class DPMLError extends Error {
       code: this.code,
       message: this.message,
       level: this.level,
-      position: this.position
+      position: this.position,
     };
   }
 }
@@ -177,19 +177,22 @@ export class ValidationErrorImpl extends DPMLError {
     return {
       code: this.code,
       message: this.message,
-      position: this.position
+      position: this.position,
     };
   }
 
   /**
    * 从ValidationError创建ValidationErrorImpl实例
    */
-  static fromValidationData(data: ValidationError, level: ErrorLevel = ErrorLevel.ERROR): ValidationErrorImpl {
+  static fromValidationData(
+    data: ValidationError,
+    level: ErrorLevel = ErrorLevel.ERROR
+  ): ValidationErrorImpl {
     return new ValidationErrorImpl({
       code: data.code,
       message: data.message,
       level,
-      position: data.position
+      position: data.position,
     });
   }
 }
@@ -225,8 +228,6 @@ export interface ValidationWarning {
    */
   position?: any;
 }
-
-
 
 /**
  * 验证警告实现类
@@ -307,7 +308,7 @@ export class ReferenceError extends DPMLError {
   toJSON(): Record<string, any> {
     return {
       ...super.toJSON(),
-      referenceUri: this.referenceUri
+      referenceUri: this.referenceUri,
     };
   }
 }

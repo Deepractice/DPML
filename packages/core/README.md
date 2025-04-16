@@ -46,10 +46,10 @@ const ast = result.ast;
 
 // 使用选项
 const result = await parse(dpmlText, {
-  allowUnknownTags: true,  // 允许未知标签
-  validate: true,          // 启用验证
-  tolerant: false,         // 错误是否继续解析
-  preserveComments: false  // 是否保留注释
+  allowUnknownTags: true, // 允许未知标签
+  validate: true, // 启用验证
+  tolerant: false, // 错误是否继续解析
+  preserveComments: false, // 是否保留注释
 });
 ```
 
@@ -78,23 +78,23 @@ const promptTagDef: TagDefinition = {
   attributes: {
     id: {
       type: 'string',
-      required: true
+      required: true,
     },
     version: {
       type: 'string',
-      required: false
+      required: false,
     },
     extends: {
       type: 'string',
-      required: false
-    }
+      required: false,
+    },
   },
   allowedChildren: ['role', 'context', 'thinking', 'executing'],
   contentFormat: 'markdown',
   validate: (element, context) => {
     // 自定义验证逻辑
     return { valid: true };
-  }
+  },
 };
 
 // 方式2: 使用辅助函数创建（自动包含通用属性）
@@ -102,14 +102,14 @@ const promptTagDef2 = TagRegistry.createTagDefinition({
   // 只需添加特有属性，通用属性(id,version,extends)已包含
   attributes: {
     lang: { type: 'string', required: false },
-    model: { type: 'string', required: false }
+    model: { type: 'string', required: false },
   },
   // 自定义验证函数可以覆盖或扩展基础验证
   validate: (element, context) => {
     // 自定义验证逻辑
     return { valid: true };
   },
-  allowedChildren: ['role', 'context', 'thinking', 'executing']
+  allowedChildren: ['role', 'context', 'thinking', 'executing'],
 });
 
 // 方式3: 覆盖基础属性的默认设置
@@ -118,9 +118,9 @@ const strictTagDef = TagRegistry.createTagDefinition({
     // 覆盖id属性，设为必填
     id: { type: 'string', required: true },
     // 添加特有属性
-    custom: { type: 'string', required: false }
+    custom: { type: 'string', required: false },
   },
-  allowedChildren: ['child']
+  allowedChildren: ['child'],
 });
 
 // 注册标签
@@ -144,9 +144,9 @@ const processedDoc = await process(ast);
 
 // 使用处理选项
 const processedDoc = await process(ast, {
-  strictMode: false,     // 严格模式
-  errorRecovery: true,   // 出错时是否继续处理
-  basePath: './templates' // 解析相对路径的基础目录
+  strictMode: false, // 严格模式
+  errorRecovery: true, // 出错时是否继续处理
+  basePath: './templates', // 解析相对路径的基础目录
 });
 ```
 
@@ -163,17 +163,20 @@ class PromptTagProcessor implements TagProcessor {
   canProcess(element: Element): boolean {
     return element.tagName === 'prompt';
   }
-  
+
   // 处理元素
-  async process(element: Element, context: ProcessingContext): Promise<Element> {
+  async process(
+    element: Element,
+    context: ProcessingContext
+  ): Promise<Element> {
     // 实现处理逻辑
     // 例如：提取特定属性、验证语义正确性、添加元数据
     element.metadata = element.metadata || {};
     element.metadata.processed = true;
-    
+
     return element;
   }
-  
+
   // 设置优先级
   priority = 10;
 }
@@ -188,19 +191,22 @@ import { ReferenceResolver, Reference, ProcessingContext } from '@dpml/core';
 
 // 创建引用解析器
 class CustomReferenceResolver implements ReferenceResolver {
-  async resolveReference(reference: Reference, context: ProcessingContext): Promise<any> {
+  async resolveReference(
+    reference: Reference,
+    context: ProcessingContext
+  ): Promise<any> {
     // 处理文件协议
     if (reference.protocol === 'file') {
       // 实现文件读取逻辑
       return loadFileContent(reference.path);
     }
-    
+
     // 处理HTTP协议
     if (reference.protocol === 'http' || reference.protocol === 'https') {
       // 实现HTTP请求逻辑
       return fetchContent(reference.protocol + '://' + reference.path);
     }
-    
+
     throw new Error(`不支持的协议: ${reference.protocol}`);
   }
 }
@@ -222,21 +228,21 @@ class PromptTransformer extends DefaultTransformer<string> {
       // 处理prompt标签
       return `# ${element.attributes.id}\n\n${this.processChildren(element).join('\n')}`;
     }
-    
+
     if (element.tagName === 'role') {
       // 处理role标签
       return `## 角色\n\n${this.processChildren(element).join('')}`;
     }
-    
+
     // 默认处理
     return this.processChildren(element).join('');
   }
-  
+
   visitContent(content: Content): string {
     // 处理文本内容
     return content.value;
   }
-  
+
   transform(doc: ProcessedDocument): string {
     return this.visit(doc);
   }
@@ -263,7 +269,7 @@ class MarkdownOutputAdapter implements OutputAdapter {
     }
     return String(data);
   }
-  
+
   private formatObject(obj: any): string {
     // 实现对象到Markdown的转换逻辑
     // ...
@@ -286,7 +292,9 @@ try {
     console.error(`错误类型: ${error.code}`);
     console.error(`错误消息: ${error.message}`);
     if (error.location) {
-      console.error(`位置: 行 ${error.location.line}, 列 ${error.location.column}`);
+      console.error(
+        `位置: 行 ${error.location.line}, 列 ${error.location.column}`
+      );
     }
   } else {
     console.error('未知错误:', error);
@@ -304,7 +312,7 @@ enum NodeType {
   DOCUMENT = 'document',
   ELEMENT = 'element',
   CONTENT = 'content',
-  REFERENCE = 'reference'
+  REFERENCE = 'reference',
 }
 
 // 元素节点
@@ -333,15 +341,15 @@ interface ProcessedDocument extends Document {
 
 ### 主要模块
 
-| 模块 | 主要功能 |
-|-----|---------|
-| `Parser` | 解析DPML文本为AST |
-| `Processor` | 处理AST, 提供语义分析 |
-| `Transformer` | 转换处理后的文档为目标格式 |
-| `TagRegistry` | 管理标签定义 |
-| `ReferenceResolver` | 解析引用和资源链接 |
-| `OutputAdapter` | 格式化输出 |
-| `ErrorHandler` | 错误处理 |
+| 模块                | 主要功能                   |
+| ------------------- | -------------------------- |
+| `Parser`            | 解析DPML文本为AST          |
+| `Processor`         | 处理AST, 提供语义分析      |
+| `Transformer`       | 转换处理后的文档为目标格式 |
+| `TagRegistry`       | 管理标签定义               |
+| `ReferenceResolver` | 解析引用和资源链接         |
+| `OutputAdapter`     | 格式化输出                 |
+| `ErrorHandler`      | 错误处理                   |
 
 ## 扩展指南
 
@@ -364,28 +372,31 @@ class RoleTagProcessor implements TagProcessor {
   canProcess(element: Element): boolean {
     return element.tagName === 'role';
   }
-  
-  async process(element: Element, context: ProcessingContext): Promise<Element> {
+
+  async process(
+    element: Element,
+    context: ProcessingContext
+  ): Promise<Element> {
     // 初始化元数据
     element.metadata = element.metadata || {};
-    
+
     // 注意：不需要处理extends属性，已由InheritanceVisitor处理
     // 只提取领域特定属性
     const { name, type, ...otherAttrs } = element.attributes;
-    
+
     // 添加领域特定元数据
     element.metadata['role'] = {
       type: 'role',
       name,
       roleType: type,
       // 不包含extends属性
-      attributes: otherAttrs
+      attributes: otherAttrs,
     };
-    
+
     // 处理状态标记
     element.metadata.processed = true;
     element.metadata.processorName = 'RoleTagProcessor';
-    
+
     return element;
   }
 }
@@ -399,31 +410,34 @@ class InheritanceProcessor implements TagProcessor {
   canProcess(element: Element): boolean {
     return element.attributes.extends !== undefined;
   }
-  
-  async process(element: Element, context: ProcessingContext): Promise<Element> {
+
+  async process(
+    element: Element,
+    context: ProcessingContext
+  ): Promise<Element> {
     const extendsAttr = element.attributes.extends;
-    
+
     // 解析引用
     const referencedElement = await context.resolveReference(extendsAttr);
-    
+
     if (!referencedElement) {
       throw new DPMLError(
         ErrorCodes.REFERENCE_ERROR,
         `无法解析继承引用: ${extendsAttr}`
       );
     }
-    
+
     // 合并属性
     element.attributes = {
       ...referencedElement.attributes,
-      ...element.attributes
+      ...element.attributes,
     };
-    
+
     // 如果目标元素没有自己的内容，继承源元素的内容
     if (element.children.length === 0) {
       element.children = [...referencedElement.children];
     }
-    
+
     return element;
   }
 }
@@ -432,6 +446,7 @@ class InheritanceProcessor implements TagProcessor {
 ### 基础标签属性和简化标签定义
 
 DPML中的所有标签都支持一组基础属性，包括：
+
 - `id`: 唯一标识符
 - `class`: 类名，用于样式和分组
 - `style`: 行内样式
@@ -446,15 +461,15 @@ const baseAttrs = TagRegistry.getBaseAttributes();
 
 // 创建包含基础属性的标签定义
 const myTagAttributes = {
-  type: true,  // 自定义属性
-  format: true // 自定义属性
+  type: true, // 自定义属性
+  format: true, // 自定义属性
 };
 
 // 自定义属性将与基础属性合并
 const myTagDef = TagRegistry.createTagDefinition({
   name: 'myTag',
   attributes: myTagAttributes,
-  allowedChildren: ['text', 'code']
+  allowedChildren: ['text', 'code'],
 });
 
 // 简化标签注册过程
@@ -467,10 +482,10 @@ registry.registerTagDefinition('myTag', myTagDef);
 registry.registerTag('myTag', {
   attributes: {
     type: true,
-    format: true
+    format: true,
   },
   allowedChildren: ['text', 'code'],
-  selfClosing: false
+  selfClosing: false,
 });
 ```
 
@@ -493,12 +508,12 @@ async function processDPML(dpmlText: string): Promise<string> {
   try {
     // 1. 解析DPML文本
     const parseResult = await parse(dpmlText);
-    
+
     // 2. 处理AST
     const processedDoc = await process(parseResult.ast, {
-      basePath: './templates'
+      basePath: './templates',
     });
-    
+
     // 3. 转换为目标格式
     const transformer = new MyTransformer();
     return transformer.transform(processedDoc);
@@ -519,35 +534,43 @@ import { TagRegistry } from '@dpml/core';
 const registry = new TagRegistry();
 
 // 使用辅助函数注册自定义标签（自动包含id,version,extends等通用属性）
-registry.registerTagDefinition('my-tag', TagRegistry.createTagDefinition({
-  attributes: {
-    // 特定属性
-    type: {
-      type: 'string',
-      required: false,
-      validate: (value) => {
-        return ['a', 'b', 'c'].includes(value) || 
-          `无效的type属性值: ${value}，应为a, b或c`;
+registry.registerTagDefinition(
+  'my-tag',
+  TagRegistry.createTagDefinition({
+    attributes: {
+      // 特定属性
+      type: {
+        type: 'string',
+        required: false,
+        validate: value => {
+          return (
+            ['a', 'b', 'c'].includes(value) ||
+            `无效的type属性值: ${value}，应为a, b或c`
+          );
+        },
+      },
+    },
+    allowedChildren: ['sub-tag', 'content'],
+    validate: (element, context) => {
+      // 验证逻辑
+      let valid = true;
+      const errors = [];
+
+      if (
+        element.attributes.type &&
+        !['a', 'b', 'c'].includes(element.attributes.type)
+      ) {
+        valid = false;
+        errors.push({
+          code: 'INVALID_TYPE',
+          message: `无效的type属性值: ${element.attributes.type}，应为a, b或c`,
+        });
       }
-    }
-  },
-  allowedChildren: ['sub-tag', 'content'],
-  validate: (element, context) => {
-    // 验证逻辑
-    let valid = true;
-    const errors = [];
-    
-    if (element.attributes.type && !['a', 'b', 'c'].includes(element.attributes.type)) {
-      valid = false;
-      errors.push({
-        code: 'INVALID_TYPE',
-        message: `无效的type属性值: ${element.attributes.type}，应为a, b或c`
-      });
-    }
-    
-    return { valid, errors };
-  }
-}));
+
+      return { valid, errors };
+    },
+  })
+);
 
 // 直接注册（手动指定所有属性，包括通用属性）
 registry.registerTagDefinition('custom-tag', {
@@ -557,9 +580,9 @@ registry.registerTagDefinition('custom-tag', {
     version: { type: 'string', required: false },
     extends: { type: 'string', required: false },
     // 特定属性
-    format: { type: 'string', required: true }
+    format: { type: 'string', required: true },
   },
-  allowedChildren: ['child-tag']
+  allowedChildren: ['child-tag'],
 });
 ```
 
@@ -571,6 +594,7 @@ registry.registerTagDefinition('custom-tag', {
 Core包内置了强大的继承处理机制，通过`InheritanceVisitor`实现。重要说明：
 
 1. **继承处理职责分工**：
+
    - `InheritanceVisitor`（优先级100）：完全负责处理标签继承逻辑
      - 解析extends属性引用的元素
      - 合并属性（子标签优先）
@@ -590,28 +614,31 @@ class CorrectRoleTagProcessor implements TagProcessor {
   canProcess(element: Element): boolean {
     return element.tagName === 'role';
   }
-  
-  async process(element: Element, context: ProcessingContext): Promise<Element> {
+
+  async process(
+    element: Element,
+    context: ProcessingContext
+  ): Promise<Element> {
     // 初始化元数据
     element.metadata = element.metadata || {};
-    
+
     // 注意：不需要处理extends属性，已由InheritanceVisitor处理
     // 只提取领域特定属性
     const { name, type, ...otherAttrs } = element.attributes;
-    
+
     // 添加领域特定元数据
     element.metadata['role'] = {
       type: 'role',
       name,
       roleType: type,
       // 不包含extends属性
-      attributes: otherAttrs
+      attributes: otherAttrs,
     };
-    
+
     // 处理状态标记
     element.metadata.processed = true;
     element.metadata.processorName = 'RoleTagProcessor';
-    
+
     return element;
   }
 }

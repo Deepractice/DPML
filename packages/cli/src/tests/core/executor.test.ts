@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+
 import { CommandExecutor } from '../../core/executor';
 import { CommandRegistry } from '../../core/registry';
-import { Command } from '../../types/command';
+
+import type { Command } from '../../types/command';
 
 // 模拟Commander
 vi.mock('commander', () => {
@@ -19,20 +21,20 @@ vi.mock('commander', () => {
       hook: vi.fn().mockReturnThis(),
       parse: vi.fn().mockReturnThis(),
       opts: vi.fn().mockReturnValue({}),
-      parent: { args: [] }
-    }))
+      parent: { args: [] },
+    })),
   };
 });
 
 vi.mock('chalk', () => ({
   default: {
-    red: vi.fn((text) => text),
-    yellow: vi.fn((text) => text),
-    gray: vi.fn((text) => text),
-    cyan: vi.fn((text) => text),
-    green: vi.fn((text) => text),
-    blue: vi.fn((text) => text)
-  }
+    red: vi.fn(text => text),
+    yellow: vi.fn(text => text),
+    gray: vi.fn(text => text),
+    cyan: vi.fn(text => text),
+    green: vi.fn(text => text),
+    blue: vi.fn(text => text),
+  },
 }));
 
 vi.mock('../../src/core/registry');
@@ -53,7 +55,7 @@ describe.skip('CommandExecutor', () => {
     mockCommand = {
       name: 'test-command',
       description: 'Test command for executor',
-      execute: vi.fn().mockResolvedValue(undefined)
+      execute: vi.fn().mockResolvedValue(undefined),
     };
 
     // 创建模拟注册表
@@ -87,6 +89,7 @@ describe.skip('CommandExecutor', () => {
 
       // 验证Commander的方法被调用
       const program = (executor as any).program;
+
       expect(program.name).toHaveBeenCalledWith('dpml');
       expect(program.description).toHaveBeenCalledWith('DPML命令行工具');
       expect(program.version).toHaveBeenCalled();
@@ -98,22 +101,23 @@ describe.skip('CommandExecutor', () => {
       const commandWithOptions: Command = {
         name: 'command-with-options',
         description: 'Command with options and aliases',
-        options: [
-          { flag: '-t, --test', description: 'Test option' }
-        ],
+        options: [{ flag: '-t, --test', description: 'Test option' }],
         aliases: ['cmd', 'c'],
         examples: ['dpml test-domain command-with-options'],
-        execute: vi.fn().mockResolvedValue(undefined)
+        execute: vi.fn().mockResolvedValue(undefined),
       };
 
       // 更新模拟
-      mockRegistry.getDomainCommands = vi.fn().mockReturnValue([commandWithOptions]);
+      mockRegistry.getDomainCommands = vi
+        .fn()
+        .mockReturnValue([commandWithOptions]);
 
       // 执行
       executor.buildCommandStructure();
 
       // 验证Commander的方法被调用
       const program = (executor as any).program;
+
       expect(program.addCommand).toHaveBeenCalled();
     });
   });
@@ -122,11 +126,23 @@ describe.skip('CommandExecutor', () => {
   describe('executeCommand', () => {
     it('应该正确执行命令', async () => {
       // 执行
-      await executor.executeCommand('test-domain', 'test-command', ['arg1', 'arg2'], { option: 'value' });
+      await executor.executeCommand(
+        'test-domain',
+        'test-command',
+        ['arg1', 'arg2'],
+        { option: 'value' }
+      );
 
       // 验证
-      expect(mockRegistry.getCommand).toHaveBeenCalledWith('test-domain', 'test-command');
-      expect(mockCommand.execute).toHaveBeenCalledWith(['arg1', 'arg2'], { option: 'value' }, expect.anything());
+      expect(mockRegistry.getCommand).toHaveBeenCalledWith(
+        'test-domain',
+        'test-command'
+      );
+      expect(mockCommand.execute).toHaveBeenCalledWith(
+        ['arg1', 'arg2'],
+        { option: 'value' },
+        expect.anything()
+      );
     });
 
     it('当命令不存在时应抛出错误', async () => {
@@ -141,7 +157,9 @@ describe.skip('CommandExecutor', () => {
 
     it('应该包装命令执行错误', async () => {
       // 模拟命令执行失败
-      mockCommand.execute = vi.fn().mockRejectedValue(new Error('Command failed'));
+      mockCommand.execute = vi
+        .fn()
+        .mockRejectedValue(new Error('Command failed'));
 
       // 执行并验证
       await expect(
@@ -161,6 +179,7 @@ describe.skip('CommandExecutor', () => {
 
       // 验证Commander的parse方法被调用
       const program = (executor as any).program;
+
       expect(program.parse).toHaveBeenCalledWith(argv);
     });
   });
@@ -169,11 +188,17 @@ describe.skip('CommandExecutor', () => {
   describe('handleErrors', () => {
     it('应该正确处理命令不存在错误', () => {
       // 模拟控制台输出
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      const processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      const processExitSpy = vi
+        .spyOn(process, 'exit')
+        .mockImplementation(() => undefined as never);
 
       // 准备错误
-      const error = new Error('在 \'test-domain\' 领域中找不到命令 \'non-existent\'');
+      const error = new Error(
+        "在 'test-domain' 领域中找不到命令 'non-existent'"
+      );
 
       // 执行
       executor.handleErrors(error);
@@ -189,11 +214,15 @@ describe.skip('CommandExecutor', () => {
 
     it('应该正确处理领域不存在错误', () => {
       // 模拟控制台输出
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      const processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      const processExitSpy = vi
+        .spyOn(process, 'exit')
+        .mockImplementation(() => undefined as never);
 
       // 准备错误
-      const error = new Error('找不到领域 \'non-existent\'');
+      const error = new Error("找不到领域 'non-existent'");
 
       // 执行
       executor.handleErrors(error);
@@ -209,11 +238,16 @@ describe.skip('CommandExecutor', () => {
 
     it('在详细模式下应显示堆栈信息', () => {
       // 模拟控制台输出
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      const processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      const processExitSpy = vi
+        .spyOn(process, 'exit')
+        .mockImplementation(() => undefined as never);
 
       // 准备带堆栈的错误
       const error = new Error('测试错误');
+
       error.stack = 'Error: 测试错误\n    at Test.function';
 
       // 执行
@@ -237,6 +271,7 @@ describe.skip('CommandExecutor', () => {
 
       // 验证
       const context = (executor as any).context;
+
       expect(context.verbose).toBe(true);
       expect(context.quiet).toBe(false); // 默认值保持不变
       expect(context.customValue).toBe('test'); // 新值被添加
@@ -252,19 +287,22 @@ describe.skip('CommandExecutor', () => {
         description: 'Command with examples',
         examples: [
           'dpml test-domain command-with-examples',
-          'dpml test-domain command-with-examples --option value'
+          'dpml test-domain command-with-examples --option value',
         ],
-        execute: vi.fn().mockResolvedValue(undefined)
+        execute: vi.fn().mockResolvedValue(undefined),
       };
 
       // 更新模拟
-      mockRegistry.getDomainCommands = vi.fn().mockReturnValue([commandWithExamples]);
+      mockRegistry.getDomainCommands = vi
+        .fn()
+        .mockReturnValue([commandWithExamples]);
 
       // 执行
       executor.buildCommandStructure();
 
       // 验证Commander的addHelpText方法被调用
       const program = (executor as any).program;
+
       expect(program.addHelpText).toHaveBeenCalled();
     });
   });
@@ -277,17 +315,20 @@ describe.skip('CommandExecutor', () => {
         name: 'command-with-aliases',
         description: 'Command with aliases',
         aliases: ['cmd', 'c'],
-        execute: vi.fn().mockResolvedValue(undefined)
+        execute: vi.fn().mockResolvedValue(undefined),
       };
 
       // 更新模拟
-      mockRegistry.getDomainCommands = vi.fn().mockReturnValue([commandWithAliases]);
+      mockRegistry.getDomainCommands = vi
+        .fn()
+        .mockReturnValue([commandWithAliases]);
 
       // 执行
       executor.buildCommandStructure();
 
       // 验证Commander的aliases方法被调用
       const program = (executor as any).program;
+
       expect(program.aliases).toHaveBeenCalled();
     });
   });

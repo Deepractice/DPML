@@ -1,19 +1,25 @@
 /**
  * 协议处理器工厂函数
- * 
+ *
  * 提供创建各种协议处理器实例的工厂函数
  */
 
-import { HttpProtocolHandler, HttpProtocolHandlerOptions } from './httpProtocolHandler';
-import { IdProtocolHandler, IdProtocolHandlerContext } from './idProtocolHandler';
-import { FileProtocolHandler, FileProtocolHandlerOptions } from './fileProtocolHandler';
+import { FileProtocolHandler } from './fileProtocolHandler';
+import { HttpProtocolHandler } from './httpProtocolHandler';
+import { IdProtocolHandler } from './idProtocolHandler';
+
+import type { FileProtocolHandlerOptions } from './fileProtocolHandler';
+import type { HttpProtocolHandlerOptions } from './httpProtocolHandler';
+import type { IdProtocolHandlerContext } from './idProtocolHandler';
 
 /**
  * 创建HTTP协议处理器
  * @param options HTTP协议处理器选项
  * @returns HTTP协议处理器实例
  */
-export function createHttpProtocolHandler(options?: HttpProtocolHandlerOptions): HttpProtocolHandler {
+export function createHttpProtocolHandler(
+  options?: HttpProtocolHandlerOptions
+): HttpProtocolHandler {
   return new HttpProtocolHandler(options);
 }
 
@@ -22,11 +28,15 @@ export function createHttpProtocolHandler(options?: HttpProtocolHandlerOptions):
  * @param context ID协议处理器上下文
  * @returns ID协议处理器实例
  */
-export function createIdProtocolHandler(context?: IdProtocolHandlerContext): IdProtocolHandler {
+export function createIdProtocolHandler(
+  context?: IdProtocolHandlerContext
+): IdProtocolHandler {
   const handler = new IdProtocolHandler();
+
   if (context) {
     handler.setContext(context);
   }
+
   return handler;
 }
 
@@ -35,6 +45,8 @@ export function createIdProtocolHandler(context?: IdProtocolHandlerContext): IdP
  * @param options 文件协议处理器选项
  * @returns 文件协议处理器实例
  */
-export function createFileProtocolHandler(options?: FileProtocolHandlerOptions): FileProtocolHandler {
+export function createFileProtocolHandler(
+  options?: FileProtocolHandlerOptions
+): FileProtocolHandler {
   return new FileProtocolHandler(options);
 }

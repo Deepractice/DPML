@@ -21,15 +21,15 @@ const standards = {
     mainPattern: 'dist/index.cjs',
     modulePattern: 'dist/index.js',
     typesPattern: 'dist/index.d.ts',
-    exportsRequired: ['.']
+    exportsRequired: ['.'],
   },
   tsconfig: {
     required: ['extends', 'compilerOptions'],
-    compilerOptionsRequired: ['rootDir', 'outDir']
+    compilerOptionsRequired: ['rootDir', 'outDir'],
   },
   tsupConfig: {
-    required: ['baseConfig', 'entry', 'esbuildOptions']
-  }
+    required: ['baseConfig', 'entry', 'esbuildOptions'],
+  },
 };
 
 // 颜色用于终端输出
@@ -38,22 +38,25 @@ const colors = {
   green: '\x1b[32m',
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
-  reset: '\x1b[0m'
+  reset: '\x1b[0m',
 };
 
 // 获取所有包目录
 const getPackageDirs = () => {
-  return fs.readdirSync(packagesDir)
+  return fs
+    .readdirSync(packagesDir)
     .filter(dir => {
       const stats = fs.statSync(path.join(packagesDir, dir));
+
       return stats.isDirectory() && dir !== 'node_modules' && dir !== 'dist';
     })
     .map(dir => path.join(packagesDir, dir));
 };
 
 // 检查package.json
-const checkPackageJson = (packageDir) => {
+const checkPackageJson = packageDir => {
   const packageJsonPath = path.join(packageDir, 'package.json');
+
   if (!fs.existsSync(packageJsonPath)) {
     return { success: false, errors: ['package.json不存在'] };
   }
@@ -71,16 +74,22 @@ const checkPackageJson = (packageDir) => {
 
     // 检查type字段
     if (packageJson.type !== standards.packageJson.type) {
-      errors.push(`type应为"${standards.packageJson.type}", 实际为"${packageJson.type || '未设置'}"`);
+      errors.push(
+        `type应为"${standards.packageJson.type}", 实际为"${packageJson.type || '未设置'}"`
+      );
     }
 
     // 检查导出路径格式
     if (packageJson.main !== standards.packageJson.mainPattern) {
-      errors.push(`main字段应为"${standards.packageJson.mainPattern}", 实际为"${packageJson.main}"`);
+      errors.push(
+        `main字段应为"${standards.packageJson.mainPattern}", 实际为"${packageJson.main}"`
+      );
     }
 
     if (packageJson.module !== standards.packageJson.modulePattern) {
-      errors.push(`module字段应为"${standards.packageJson.modulePattern}", 实际为"${packageJson.module}"`);
+      errors.push(
+        `module字段应为"${standards.packageJson.modulePattern}", 实际为"${packageJson.module}"`
+      );
     }
 
     // 检查exports字段
@@ -91,8 +100,11 @@ const checkPackageJson = (packageDir) => {
         } else {
           // 检查导出格式
           const exportObj = packageJson.exports[field];
+
           if (!exportObj.types || !exportObj.import || !exportObj.require) {
-            errors.push(`exports["${field}"]缺少必需字段: types, import, require`);
+            errors.push(
+              `exports["${field}"]缺少必需字段: types, import, require`
+            );
           }
         }
       });
@@ -100,13 +112,17 @@ const checkPackageJson = (packageDir) => {
 
     return { success: errors.length === 0, errors };
   } catch (error) {
-    return { success: false, errors: [`解析package.json失败: ${error.message}`] };
+    return {
+      success: false,
+      errors: [`解析package.json失败: ${error.message}`],
+    };
   }
 };
 
 // 检查tsconfig.json
-const checkTsConfig = (packageDir) => {
+const checkTsConfig = packageDir => {
   const tsconfigPath = path.join(packageDir, 'tsconfig.json');
+
   if (!fs.existsSync(tsconfigPath)) {
     return { success: false, errors: ['tsconfig.json不存在'] };
   }
@@ -124,7 +140,9 @@ const checkTsConfig = (packageDir) => {
 
     // 检查extends是否正确
     if (tsconfig.extends !== '../../tsconfig.json') {
-      errors.push(`extends应为"../../tsconfig.json", 实际为"${tsconfig.extends}"`);
+      errors.push(
+        `extends应为"../../tsconfig.json", 实际为"${tsconfig.extends}"`
+      );
     }
 
     // 检查compilerOptions
@@ -137,23 +155,31 @@ const checkTsConfig = (packageDir) => {
 
       // 检查rootDir和outDir
       if (tsconfig.compilerOptions.rootDir !== './src') {
-        errors.push(`compilerOptions.rootDir应为"./src", 实际为"${tsconfig.compilerOptions.rootDir}"`);
+        errors.push(
+          `compilerOptions.rootDir应为"./src", 实际为"${tsconfig.compilerOptions.rootDir}"`
+        );
       }
 
       if (tsconfig.compilerOptions.outDir !== './dist') {
-        errors.push(`compilerOptions.outDir应为"./dist", 实际为"${tsconfig.compilerOptions.outDir}"`);
+        errors.push(
+          `compilerOptions.outDir应为"./dist", 实际为"${tsconfig.compilerOptions.outDir}"`
+        );
       }
     }
 
     return { success: errors.length === 0, errors };
   } catch (error) {
-    return { success: false, errors: [`解析tsconfig.json失败: ${error.message}`] };
+    return {
+      success: false,
+      errors: [`解析tsconfig.json失败: ${error.message}`],
+    };
   }
 };
 
 // 检查tsconfig.build.json
-const checkTsConfigBuild = (packageDir) => {
+const checkTsConfigBuild = packageDir => {
   const tsconfigBuildPath = path.join(packageDir, 'tsconfig.build.json');
+
   // 这个文件是可选的，所以如果不存在就不报错
   if (!fs.existsSync(tsconfigBuildPath)) {
     return { success: true, errors: [] };
@@ -165,7 +191,9 @@ const checkTsConfigBuild = (packageDir) => {
 
     // 检查extends是否正确
     if (tsconfig.extends !== '../../tsconfig.build.json') {
-      errors.push(`extends应为"../../tsconfig.build.json", 实际为"${tsconfig.extends}"`);
+      errors.push(
+        `extends应为"../../tsconfig.build.json", 实际为"${tsconfig.extends}"`
+      );
     }
 
     // 检查paths是否存在
@@ -175,13 +203,17 @@ const checkTsConfigBuild = (packageDir) => {
 
     return { success: errors.length === 0, errors };
   } catch (error) {
-    return { success: false, errors: [`解析tsconfig.build.json失败: ${error.message}`] };
+    return {
+      success: false,
+      errors: [`解析tsconfig.build.json失败: ${error.message}`],
+    };
   }
 };
 
 // 检查tsup.config.ts
-const checkTsupConfig = (packageDir) => {
+const checkTsupConfig = packageDir => {
   const tsupConfigPath = path.join(packageDir, 'tsup.config.ts');
+
   if (!fs.existsSync(tsupConfigPath)) {
     return { success: false, errors: ['tsup.config.ts不存在'] };
   }
@@ -209,25 +241,31 @@ const checkTsupConfig = (packageDir) => {
 
     return { success: errors.length === 0, errors };
   } catch (error) {
-    return { success: false, errors: [`读取tsup.config.ts失败: ${error.message}`] };
+    return {
+      success: false,
+      errors: [`读取tsup.config.ts失败: ${error.message}`],
+    };
   }
 };
 
 // 运行检查
 const main = () => {
   console.log(`${colors.blue}开始检查DPML包配置一致性...${colors.reset}\n`);
-  
+
   const packageDirs = getPackageDirs();
+
   console.log(`发现 ${packageDirs.length} 个包需要检查\n`);
-  
+
   let hasErrors = false;
-  
+
   packageDirs.forEach(packageDir => {
     const packageName = path.basename(packageDir);
+
     console.log(`${colors.blue}检查包: ${packageName}${colors.reset}`);
-    
+
     // 检查package.json
     const packageJsonResult = checkPackageJson(packageDir);
+
     if (packageJsonResult.success) {
       console.log(`${colors.green}✓ package.json 配置正确${colors.reset}`);
     } else {
@@ -237,9 +275,10 @@ const main = () => {
         console.log(`  - ${error}`);
       });
     }
-    
+
     // 检查tsconfig.json
     const tsconfigResult = checkTsConfig(packageDir);
+
     if (tsconfigResult.success) {
       console.log(`${colors.green}✓ tsconfig.json 配置正确${colors.reset}`);
     } else {
@@ -249,23 +288,29 @@ const main = () => {
         console.log(`  - ${error}`);
       });
     }
-    
+
     // 检查tsconfig.build.json (如果存在)
     const tsconfigBuildResult = checkTsConfigBuild(packageDir);
+
     if (fs.existsSync(path.join(packageDir, 'tsconfig.build.json'))) {
       if (tsconfigBuildResult.success) {
-        console.log(`${colors.green}✓ tsconfig.build.json 配置正确${colors.reset}`);
+        console.log(
+          `${colors.green}✓ tsconfig.build.json 配置正确${colors.reset}`
+        );
       } else {
         hasErrors = true;
-        console.log(`${colors.red}✗ tsconfig.build.json 存在问题:${colors.reset}`);
+        console.log(
+          `${colors.red}✗ tsconfig.build.json 存在问题:${colors.reset}`
+        );
         tsconfigBuildResult.errors.forEach(error => {
           console.log(`  - ${error}`);
         });
       }
     }
-    
+
     // 检查tsup.config.ts
     const tsupConfigResult = checkTsupConfig(packageDir);
+
     if (tsupConfigResult.success) {
       console.log(`${colors.green}✓ tsup.config.ts 配置正确${colors.reset}`);
     } else {
@@ -275,16 +320,18 @@ const main = () => {
         console.log(`  - ${error}`);
       });
     }
-    
+
     console.log('\n');
   });
-  
+
   if (hasErrors) {
-    console.log(`${colors.red}检查完成，发现配置问题，请参考 docs/package-configuration-guide.md 进行修复${colors.reset}`);
+    console.log(
+      `${colors.red}检查完成，发现配置问题，请参考 docs/package-configuration-guide.md 进行修复${colors.reset}`
+    );
     process.exit(1);
   } else {
     console.log(`${colors.green}恭喜！所有包配置都符合项目标准${colors.reset}`);
   }
 };
 
-main(); 
+main();

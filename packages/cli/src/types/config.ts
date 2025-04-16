@@ -35,7 +35,7 @@ export enum LogLevel {
   SUCCESS = 2,
   WARN = 3,
   ERROR = 4,
-  SILENT = 5
+  SILENT = 5,
 }
 
 /**
@@ -48,4 +48,4 @@ export interface LoggerOptions {
   console: boolean;
   /** 是否包含时间戳 */
   timestamp: boolean;
-} 
+}

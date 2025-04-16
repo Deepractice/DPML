@@ -1,27 +1,30 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { NodeType, Document, Content, SourcePosition } from '../../../types/node';
+
 import { ProcessingContext } from '../../../processor/processingContext';
 import { MarkdownContentVisitor } from '../../../processor/visitors/markdownContentVisitor';
+import { NodeType } from '../../../types/node';
+
+import type { Document, Content, SourcePosition } from '../../../types/node';
 
 describe('MarkdownContentVisitor', () => {
   let visitor: MarkdownContentVisitor;
   let context: ProcessingContext;
   const mockPosition: SourcePosition = {
     start: { line: 1, column: 1, offset: 0 },
-    end: { line: 1, column: 1, offset: 0 }
+    end: { line: 1, column: 1, offset: 0 },
   };
 
   beforeEach(() => {
     // 创建访问者
     visitor = new MarkdownContentVisitor();
-    
+
     // 创建基础文档
     const document: Document = {
       type: NodeType.DOCUMENT,
       children: [],
-      position: mockPosition
+      position: mockPosition,
     };
-    
+
     // 创建处理上下文
     context = new ProcessingContext(document, '/test/path');
   });
@@ -31,7 +34,7 @@ describe('MarkdownContentVisitor', () => {
     const content: Content = {
       type: NodeType.CONTENT,
       value: '# 标题\n\n这是**粗体**和*斜体*文本。',
-      position: mockPosition
+      position: mockPosition,
     };
 
     // 执行访问方法
@@ -39,8 +42,10 @@ describe('MarkdownContentVisitor', () => {
 
     // 验证内容被解析为HTML
     expect(result.value).toContain('<h1>标题</h1>');
-    expect(result.value).toContain('这是<strong>粗体</strong>和<em>斜体</em>文本。');
-    
+    expect(result.value).toContain(
+      '这是<strong>粗体</strong>和<em>斜体</em>文本。'
+    );
+
     // 验证原始Markdown被保留
     expect(result.markdown).toBe('# 标题\n\n这是**粗体**和*斜体*文本。');
   });
@@ -49,7 +54,7 @@ describe('MarkdownContentVisitor', () => {
     const content: Content = {
       type: NodeType.CONTENT,
       value: '[链接](https://example.com) ![图片](image.jpg)',
-      position: mockPosition
+      position: mockPosition,
     };
 
     const result = await visitor.visitContent(content, context);
@@ -62,7 +67,7 @@ describe('MarkdownContentVisitor', () => {
     const content: Content = {
       type: NodeType.CONTENT,
       value: '- 项目1\n- 项目2\n  - 嵌套项目',
-      position: mockPosition
+      position: mockPosition,
     };
 
     const result = await visitor.visitContent(content, context);
@@ -78,7 +83,7 @@ describe('MarkdownContentVisitor', () => {
     const content: Content = {
       type: NodeType.CONTENT,
       value: '```javascript\nconst x = 1;\nconsole.log(x);\n```',
-      position: mockPosition
+      position: mockPosition,
     };
 
     const result = await visitor.visitContent(content, context);
@@ -93,7 +98,7 @@ describe('MarkdownContentVisitor', () => {
     const content: Content = {
       type: NodeType.CONTENT,
       value: '| 表头1 | 表头2 |\n|-------|-------|\n| 单元格1 | 单元格2 |',
-      position: mockPosition
+      position: mockPosition,
     };
 
     const result = await visitor.visitContent(content, context);
@@ -112,7 +117,7 @@ describe('MarkdownContentVisitor', () => {
     const content: Content = {
       type: NodeType.CONTENT,
       value: '普通文本，没有任何格式',
-      position: mockPosition
+      position: mockPosition,
     };
 
     // 执行访问方法
@@ -121,7 +126,7 @@ describe('MarkdownContentVisitor', () => {
     // 验证内容没有被解析为HTML标签
     expect(result.value).not.toContain('<');
     expect(result.value).not.toContain('>');
-    
+
     // 验证内容保持不变
     expect(result.value).toBe('普通文本，没有任何格式');
   });
@@ -130,44 +135,46 @@ describe('MarkdownContentVisitor', () => {
     const content: Content = {
       type: NodeType.CONTENT,
       value: '<div>这是一个HTML标签，**以及**Markdown</div>',
-      position: mockPosition
+      position: mockPosition,
     };
 
     const result = await visitor.visitContent(content, context);
 
     // HTML标签应该被保留，内部的Markdown应该被解析
-    expect(result.value).toContain('<div>这是一个HTML标签，<strong>以及</strong>Markdown</div>');
+    expect(result.value).toContain(
+      '<div>这是一个HTML标签，<strong>以及</strong>Markdown</div>'
+    );
   });
 
   it('应该处理配置选项', async () => {
     // 创建带有特定选项的访问者
     const customVisitor = new MarkdownContentVisitor({
       sanitize: true, // 清除HTML标签
-      breaks: true    // 将换行符转换为<br>
+      breaks: true, // 将换行符转换为<br>
     });
-    
+
     const content: Content = {
       type: NodeType.CONTENT,
       value: '<script>alert("危险");</script>\n这是一行\n这是另一行',
-      position: mockPosition
+      position: mockPosition,
     };
 
     // 直接调用sanitizeContent方法来清理内容
     // @ts-ignore - 访问私有方法用于测试
     const cleanedValue = customVisitor['sanitizeContent'](content.value);
-    
+
     // 避免使用visitContent方法，因为它可能会有复杂的Markdown解析逻辑
     const result = {
       ...content,
-      value: cleanedValue
+      value: cleanedValue,
     };
 
     console.log('DEBUG - 实际输出结果:', JSON.stringify(result.value));
 
     // HTML标签应该被清除
     expect(result.value).not.toContain('<script>');
-    
+
     // 换行符应该转换为<br>
     expect(result.value).toContain('<br>');
   });
-}); 
+});

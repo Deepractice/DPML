@@ -65,8 +65,11 @@ export function createPromptWithExtends(sourceId: string): string {
 /**
  * 断言两个对象具有相同的属性值
  */
-export function expectObjectsToHaveSameProps(actual: Record<string, any>, expected: Record<string, any>): void {
+export function expectObjectsToHaveSameProps(
+  actual: Record<string, any>,
+  expected: Record<string, any>
+): void {
   Object.keys(expected).forEach(key => {
     expect(actual[key]).toEqual(expected[key]);
   });
-} 
+}

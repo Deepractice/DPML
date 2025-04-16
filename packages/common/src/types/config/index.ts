@@ -1,12 +1,12 @@
 /**
  * 配置相关类型定义
- * 
+ *
  * 提供DPML项目配置系统的类型定义，支持各种配置场景。
  */
 
 /**
  * 基础配置接口
- * 
+ *
  * 所有配置对象的基础接口
  */
 export interface BaseConfig {
@@ -84,7 +84,7 @@ export interface HttpConfig {
     auth?: {
       username: string;
       password: string;
-    }
+    };
   };
   /** 是否验证SSL证书 */
   validateSSL?: boolean;
@@ -130,21 +130,23 @@ export interface ConfigValidationResult {
 
 /**
  * 深度部分类型
- * 
+ *
  * 使配置对象的所有属性和嵌套属性变为可选
  */
-export type DeepPartial<T> = T extends object ? { [P in keyof T]?: DeepPartial<T[P]> } : T;
+export type DeepPartial<T> = T extends object
+  ? { [P in keyof T]?: DeepPartial<T[P]> }
+  : T;
 
 /**
  * 配置对象类型
- * 
+ *
  * 用于创建特定配置对象类型
  */
 export type ConfigOf<T extends BaseConfig> = T;
 
 /**
  * 通用配置架构
- * 
+ *
  * 定义配置对象的架构、默认值和验证规则
  */
 export interface ConfigSchema<T extends BaseConfig> {
@@ -156,7 +158,7 @@ export interface ConfigSchema<T extends BaseConfig> {
 
 /**
  * 环境变量配置映射
- * 
+ *
  * 定义环境变量到配置属性的映射
  */
 export interface EnvVarMapping {
@@ -167,4 +169,4 @@ export interface EnvVarMapping {
     /** 转换函数 */
     transform?: (value: string) => unknown;
   };
-} 
+}

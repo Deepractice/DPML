@@ -148,7 +148,9 @@ export class BaseTestEnvironment implements TestEnvironment {
     const path = require('path');
     const fs = require('fs');
 
-    this.tempDir = config.tempDirPath || path.join(os.tmpdir(), `dpml-test-${config.name}-${Date.now()}`);
+    this.tempDir =
+      config.tempDirPath ||
+      path.join(os.tmpdir(), `dpml-test-${config.name}-${Date.now()}`);
     if (!fs.existsSync(this.tempDir)) {
       fs.mkdirSync(this.tempDir, { recursive: true });
     }
@@ -172,11 +174,16 @@ export class BaseTestEnvironment implements TestEnvironment {
     }
 
     // 模拟浏览器环境，如果测试名称包含"browser"或"浏览器"
-    if (this.config.name.toLowerCase().includes('browser') || 
-        this.config.name.toLowerCase().includes('浏览器')) {
+    if (
+      this.config.name.toLowerCase().includes('browser') ||
+      this.config.name.toLowerCase().includes('浏览器')
+    ) {
       // 导入环境模块并设置为浏览器环境
       try {
-        const { _setEnvironmentOverrides } = require('../logger/core/environment');
+        const {
+          _setEnvironmentOverrides,
+        } = require('../logger/core/environment');
+
         _setEnvironmentOverrides(false, true);
       } catch (error) {
         console.warn('Failed to set browser environment:', error);
@@ -196,6 +203,7 @@ export class BaseTestEnvironment implements TestEnvironment {
         process.env[key] = value;
       }
     }
+
     this.envBackup = {};
 
     // 清理模拟时间
@@ -205,7 +213,10 @@ export class BaseTestEnvironment implements TestEnvironment {
 
     // 重置环境覆盖
     try {
-      const { _resetEnvironmentOverrides } = require('../logger/core/environment');
+      const {
+        _resetEnvironmentOverrides,
+      } = require('../logger/core/environment');
+
       _resetEnvironmentOverrides();
     } catch (error) {
       // 忽略错误
@@ -235,6 +246,7 @@ export class BaseTestEnvironment implements TestEnvironment {
         if (fs.existsSync(folderPath)) {
           fs.readdirSync(folderPath).forEach((file: string) => {
             const curPath = path.join(folderPath, file);
+
             if (fs.lstatSync(curPath).isDirectory()) {
               // 递归删除子目录
               deleteFolderRecursive(curPath);
@@ -250,7 +262,10 @@ export class BaseTestEnvironment implements TestEnvironment {
       try {
         deleteFolderRecursive(this.tempDir);
       } catch (error) {
-        console.warn(`Failed to clean up temp directory ${this.tempDir}:`, error);
+        console.warn(
+          `Failed to clean up temp directory ${this.tempDir}:`,
+          error
+        );
       }
     }
   }
@@ -293,8 +308,9 @@ export class BaseTestEnvironment implements TestEnvironment {
    */
   public setCurrentTime(date: Date): void {
     if (!this.config.mockTime) {
-      throw new Error("模拟时间未启用");
+      throw new Error('模拟时间未启用');
     }
+
     this.mockDate = new Date(date);
   }
 
@@ -303,8 +319,9 @@ export class BaseTestEnvironment implements TestEnvironment {
    */
   public advanceTimeBy(milliseconds: number): void {
     if (!this.config.mockTime || !this.mockDate) {
-      throw new Error("模拟时间未启用");
+      throw new Error('模拟时间未启用');
     }
+
     this.mockDate = new Date(this.mockDate.getTime() + milliseconds);
   }
 
@@ -350,6 +367,7 @@ export class BaseTestEnvironment implements TestEnvironment {
       global.Date = this.originalDate;
       this.originalDate = null;
     }
+
     this.mockDate = null;
   }
 }
@@ -360,7 +378,9 @@ export class BaseTestEnvironment implements TestEnvironment {
  * @param config 环境配置
  * @returns 测试环境实例
  */
-export function createTestEnvironment(config: TestEnvironmentConfig): TestEnvironment {
+export function createTestEnvironment(
+  config: TestEnvironmentConfig
+): TestEnvironment {
   return new BaseTestEnvironment(config);
 }
 
@@ -379,6 +399,7 @@ export async function withTestEnvironment<T>(
 
   try {
     await env.setup();
+
     return await fn(env);
   } finally {
     await env.teardown();
@@ -391,7 +412,9 @@ export async function withTestEnvironment<T>(
  * @param config 环境配置
  * @returns 带有spy的测试环境实例和spy对象
  */
-export async function createTestEnvWithSpies(config: TestEnvironmentConfig): Promise<{
+export async function createTestEnvWithSpies(
+  config: TestEnvironmentConfig
+): Promise<{
   env: TestEnvironment;
   spies: {
     console: {
@@ -407,6 +430,7 @@ export async function createTestEnvWithSpies(config: TestEnvironmentConfig): Pro
   };
 }> {
   const env = createTestEnvironment(config);
+
   await env.setup();
 
   // 创建console spies
@@ -415,19 +439,19 @@ export async function createTestEnvWithSpies(config: TestEnvironmentConfig): Pro
     info: vi.spyOn(console, 'info').mockImplementation(() => {}),
     warn: vi.spyOn(console, 'warn').mockImplementation(() => {}),
     error: vi.spyOn(console, 'error').mockImplementation(() => {}),
-    debug: vi.spyOn(console, 'debug').mockImplementation(() => {})
+    debug: vi.spyOn(console, 'debug').mockImplementation(() => {}),
   };
 
   // 创建process spies
   const processSpy = {
-    exit: vi.spyOn(process, 'exit').mockImplementation((() => {}) as any)
+    exit: vi.spyOn(process, 'exit').mockImplementation((() => {}) as any),
   };
 
   return {
     env,
     spies: {
       console: consoleSpy,
-      process: processSpy
-    }
+      process: processSpy,
+    },
   };
 }

@@ -17,7 +17,12 @@ pnpm add @dpml/common
 提供统一的日志接口和实现，支持多级别日志和不同输出目标：
 
 ```typescript
-import { createLogger, LogLevel, configureLogger, createFileTransport } from '@dpml/common/logger';
+import {
+  createLogger,
+  LogLevel,
+  configureLogger,
+  createFileTransport,
+} from '@dpml/common/logger';
 
 // 创建日志记录器
 const logger = createLogger('my-package');
@@ -35,7 +40,7 @@ logger.error('这是错误信息', { code: 500 });
 import { JsonFormatter } from '@dpml/common/logger';
 configureLogger({
   level: LogLevel.INFO,
-  formatter: new JsonFormatter({ pretty: true })
+  formatter: new JsonFormatter({ pretty: true }),
 });
 
 // 添加文件传输 (Node.js环境)
@@ -54,24 +59,24 @@ import { TextFormatter, JsonFormatter } from '@dpml/common/logger';
 const textFormatter = new TextFormatter({
   template: '[{timestamp}] [{packageName}] [{level}] {message}',
   showTimestamp: true,
-  showPackageName: true
+  showPackageName: true,
 });
 
 // JSON格式化器
 const jsonFormatter = new JsonFormatter({
   pretty: true,
   indent: 2,
-  includeMeta: true
+  includeMeta: true,
 });
 ```
 
 #### 传输通道
 
 ```typescript
-import { 
-  ConsoleTransport, 
-  MemoryTransport, 
-  createFileTransport 
+import {
+  ConsoleTransport,
+  MemoryTransport,
+  createFileTransport,
 } from '@dpml/common/logger';
 
 // 控制台传输
@@ -85,7 +90,7 @@ const logs = memoryTransport.getLogs();
 const fileTransport = createFileTransport({
   filename: './logs/app.log',
   append: true,
-  mkdir: true
+  mkdir: true,
 });
 ```
 
@@ -168,4 +173,4 @@ import { stringUtils } from '@dpml/common/utils';
 
 ## 许可证
 
-MIT 
+MIT

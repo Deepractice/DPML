@@ -1,11 +1,12 @@
-import { defineConfig } from 'vitest/config';
 import * as path from 'path';
+
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   resolve: {
     alias: {
-      '@prompt': path.resolve(__dirname, './src')
-    }
+      '@prompt': path.resolve(__dirname, './src'),
+    },
   },
   test: {
     globals: true,
@@ -33,4 +34,4 @@ export default defineConfig({
       reportsDirectory: './coverage',
     },
   },
-}); 
+});

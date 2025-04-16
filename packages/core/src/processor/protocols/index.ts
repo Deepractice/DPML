@@ -1,6 +1,6 @@
 /**
  * 协议处理器模块入口
- * 
+ *
  * 提供各种协议处理器
  */
 
@@ -10,4 +10,4 @@ export * from './idProtocolHandler';
 export * from './fileProtocolHandler';
 
 // 导出工厂函数
-export * from './factory'; 
+export * from './factory';

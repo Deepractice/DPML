@@ -1,6 +1,6 @@
 /**
  * @dpml/prompt 基本使用示例
- * 
+ *
  * 本示例演示了@dpml/prompt包的基本用法，包括：
  * 1. 基本的生成提示功能
  * 2. 使用自定义格式选项
@@ -30,10 +30,11 @@ async function basicExample() {
   try {
     console.log('示例1: 基本使用');
     console.log('----------------');
-    
+
     const promptText = await generatePrompt(basicDpml);
+
     console.log(promptText);
-    
+
     console.log('\n');
   } catch (err) {
     console.error('生成失败:', err.message);
@@ -45,26 +46,26 @@ async function customFormatExample() {
   try {
     console.log('示例2: 使用自定义格式');
     console.log('--------------------');
-    
+
     const promptText = await generatePrompt(basicDpml, {
       formatTemplates: {
         role: {
           title: '👨‍💻 角色',
-          wrapper: (content) => `**${content}**`
+          wrapper: content => `**${content}**`,
         },
         context: {
           title: '📝 上下文',
-          prefix: '• '
+          prefix: '• ',
         },
         thinking: {
           title: '🧠 思考框架',
-          prefix: '- '
-        }
-      }
+          prefix: '- ',
+        },
+      },
     });
-    
+
     console.log(promptText);
-    
+
     console.log('\n');
   } catch (err) {
     console.error('生成失败:', err.message);
@@ -76,7 +77,7 @@ async function errorHandlingExample() {
   try {
     console.log('示例3: 错误处理');
     console.log('---------------');
-    
+
     // 包含错误的DPML
     const invalidDpml = `
     <prompt>
@@ -84,8 +85,9 @@ async function errorHandlingExample() {
       <invalid_tag>这是无效标签</invalid_tag>
     </prompt>
     `;
-    
+
     const promptText = await generatePrompt(invalidDpml, { strictMode: true });
+
     console.log(promptText);
   } catch (err) {
     console.error('预期的错误:', err.message);
@@ -99,20 +101,20 @@ async function multiLanguageExample() {
   try {
     console.log('示例4: 多语言支持');
     console.log('----------------');
-    
+
     const chineseDpml = `
     <prompt lang="zh-CN">
       <role>中文助手</role>
       <context>帮助用户解决问题并用中文回答</context>
     </prompt>
     `;
-    
+
     const promptText = await generatePrompt(chineseDpml, {
-      addLanguageDirective: true // 添加语言指令
+      addLanguageDirective: true, // 添加语言指令
     });
-    
+
     console.log(promptText);
-    
+
     console.log('\n');
   } catch (err) {
     console.error('生成失败:', err.message);
@@ -139,5 +141,5 @@ module.exports = {
   customFormatExample,
   errorHandlingExample,
   multiLanguageExample,
-  runAllExamples
-}; 
+  runAllExamples,
+};

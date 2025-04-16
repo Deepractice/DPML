@@ -22,10 +22,10 @@ export function sleep(ms: number): Promise<void> {
  */
 export async function retry<T>(
   fn: () => Promise<T>,
-  options: { 
-    maxAttempts?: number; 
-    delay?: number; 
-    backoff?: boolean; 
+  options: {
+    maxAttempts?: number;
+    delay?: number;
+    backoff?: boolean;
     onRetry?: (attempt: number, error: Error) => void;
     // 兼容旧版本参数
     retries?: number;
@@ -37,9 +37,12 @@ export async function retry<T>(
   // 参数兼容处理
   const maxAttempts = options.maxAttempts || options.retries || 3;
   const delay = options.delay || options.minTimeout || 100;
-  const backoff = options.backoff !== undefined ? options.backoff : (options.factor !== undefined);
+  const backoff =
+    options.backoff !== undefined
+      ? options.backoff
+      : options.factor !== undefined;
   const onRetry = options.onRetry;
-  
+
   let lastError: Error;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -53,7 +56,10 @@ export async function retry<T>(
       }
 
       if (attempt < maxAttempts) {
-        const waitTime = backoff ? delay * Math.pow(options.factor || 2, attempt - 1) : delay;
+        const waitTime = backoff
+          ? delay * Math.pow(options.factor || 2, attempt - 1)
+          : delay;
+
         await sleep(waitTime);
       }
     }
@@ -77,9 +83,11 @@ export async function parallel<T>(
 
   async function runTask(taskIndex: number): Promise<void> {
     const result = await tasks[taskIndex]();
+
     results[taskIndex] = result;
 
     const nextIndex = currentIndex++;
+
     if (nextIndex < tasks.length) {
       await runTask(nextIndex);
     }
@@ -93,6 +101,7 @@ export async function parallel<T>(
   }
 
   await Promise.all(initialWorkers);
+
   return results;
 }
 
@@ -106,11 +115,17 @@ export async function parallel<T>(
 export function withTimeout<T>(
   promise: Promise<T>,
   timeoutMs: number,
-  timeoutError: string | Error = new Error(`Operation timed out after ${timeoutMs}ms`)
+  timeoutError: string | Error = new Error(
+    `Operation timed out after ${timeoutMs}ms`
+  )
 ): Promise<T> {
   const timeoutPromise = new Promise<never>((_, reject) => {
     setTimeout(() => {
-      reject(typeof timeoutError === 'string' ? new Error(timeoutError) : timeoutError);
+      reject(
+        typeof timeoutError === 'string'
+          ? new Error(timeoutError)
+          : timeoutError
+      );
     }, timeoutMs);
   });
 
@@ -135,7 +150,7 @@ export function createCancellablePromise<T>(): {
 
   return {
     promise,
-    cancel: cancelFn!
+    cancel: cancelFn!,
   };
 }
 
@@ -152,7 +167,10 @@ export function throttle<T extends (...args: any[]) => any>(
   let lastCall = 0;
   let lastResult: ReturnType<T>;
 
-  return function(this: any, ...args: Parameters<T>): ReturnType<T> | undefined {
+  return function (
+    this: any,
+    ...args: Parameters<T>
+  ): ReturnType<T> | undefined {
     const now = Date.now();
 
     if (now - lastCall >= delay) {
@@ -176,7 +194,7 @@ export function debounce<T extends (...args: any[]) => any>(
 ): (...args: Parameters<T>) => Promise<ReturnType<T>> {
   let timeoutId: NodeJS.Timeout;
 
-  return function(this: any, ...args: Parameters<T>): Promise<ReturnType<T>> {
+  return function (this: any, ...args: Parameters<T>): Promise<ReturnType<T>> {
     return new Promise(resolve => {
       if (timeoutId) {
         clearTimeout(timeoutId);
@@ -184,6 +202,7 @@ export function debounce<T extends (...args: any[]) => any>(
 
       timeoutId = setTimeout(() => {
         const result = fn.apply(this, args);
+
         resolve(result);
       }, delay);
     });
@@ -225,5 +244,5 @@ export const asyncUtils = {
   createCancellablePromise,
   throttle,
   debounce,
-  sequence
+  sequence,
 };

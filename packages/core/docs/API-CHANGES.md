@@ -28,7 +28,7 @@ import { ValidationError, ValidationErrorImpl } from '@dpml/core';
 // 创建错误实例
 const error = new ValidationErrorImpl({
   code: 'INVALID_VALUE',
-  message: '无效的值'
+  message: '无效的值',
 });
 
 // 转换为数据接口格式
@@ -55,18 +55,18 @@ TagDefinition接口现在明确推荐使用对象形式定义attributes，而不
 const tagDefinition: TagDefinition = {
   attributes: {
     id: { type: 'string', required: true },
-    name: { type: 'string', required: false }
-  }
+    name: { type: 'string', required: false },
+  },
 };
 
 // 不推荐的数组形式（⚠️）
 const oldTagDefinition: TagDefinition = {
   attributes: ['id', 'name'],
-  requiredAttributes: ['id']
+  requiredAttributes: ['id'],
 };
 ```
 
-注意：数组形式将继续支持以保持向后兼容性，但不建议在新代码中使用。 
+注意：数组形式将继续支持以保持向后兼容性，但不建议在新代码中使用。
 
 ## TagRegistry辅助方法新增
 
@@ -88,22 +88,22 @@ const baseAttributes = TagRegistry.getBaseAttributes();
 const tagDefinition = TagRegistry.createTagDefinition({
   attributes: {
     // 只需定义特有属性
-    custom: { type: 'string', required: true }
+    custom: { type: 'string', required: true },
     // id, version, extends 已自动包含
   },
-  allowedChildren: ['child-tag']
+  allowedChildren: ['child-tag'],
 });
 
 // 覆盖基础属性的默认设置
 const customTagDef = TagRegistry.createTagDefinition({
   attributes: {
     // 覆盖id属性默认值
-    id: { type: 'string', required: true }
-  }
+    id: { type: 'string', required: true },
+  },
 });
 ```
 
-这些辅助方法可以大幅减少标签定义的代码量，同时确保基础属性的一致性。 
+这些辅助方法可以大幅减少标签定义的代码量，同时确保基础属性的一致性。
 
 ## 3. TagRegistry 新增便捷方法
 
@@ -138,4 +138,4 @@ const baseAttrs = TagRegistry.getBaseAttributes();
 // 返回 { id: true, class: true, style: true, datatest: true }
 ```
 
-在使用 `createTagDefinition` 或 `registerTag` 方法时，自定义属性会与这些基础属性合并。 
+在使用 `createTagDefinition` 或 `registerTag` 方法时，自定义属性会与这些基础属性合并。

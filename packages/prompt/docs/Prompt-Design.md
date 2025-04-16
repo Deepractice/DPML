@@ -45,7 +45,7 @@ classDiagram
         +registerTags()
         +registerTransformers()
     }
-    
+
     PromptProcessor --> PromptRegistry: uses
     PromptTransformer --> PromptRegistry: uses
     PromptProcessor ..> "DPML Core Parser" : uses
@@ -57,31 +57,33 @@ classDiagram
 
 #### 2.2.1 核心模块职责
 
-- **PromptProcessor**: 
+- **PromptProcessor**:
+
   - 包装Core包的Parser和Processor功能
   - 提供简化的接口，适用于提示处理场景
   - 内置提示相关的标签验证逻辑
 
-- **PromptTransformer**: 
+- **PromptTransformer**:
+
   - 继承Core包的Transformer框架
   - 实现提示特定的转换逻辑
   - 将DPML结构转换为纯文本提示
 
-- **PromptRegistry**: 
+- **PromptRegistry**:
   - 注册所有提示相关标签和验证规则
   - 注册提示特定的转换器
   - 确保标签和转换器之间的映射关系
 
 #### 2.2.2 职责边界
 
-| 职责 | Core包 | Prompt包 | 应用层 |
-|------|-------|---------|--------|
-| XML解析 | ✅ | ❌ | ❌ |
-| AST构建和处理 | ✅ | ❌ | ❌ |
-| 提示标签定义 | ❌ | ✅ | ❌ |
-| 提示转换逻辑 | ❌ | ✅ | ❌ |
-| 应用特定配置 | ❌ | ❌ | ✅ |
-| 用户交互界面 | ❌ | ❌ | ✅ |
+| 职责          | Core包 | Prompt包 | 应用层 |
+| ------------- | ------ | -------- | ------ |
+| XML解析       | ✅     | ❌       | ❌     |
+| AST构建和处理 | ✅     | ❌       | ❌     |
+| 提示标签定义  | ❌     | ✅       | ❌     |
+| 提示转换逻辑  | ❌     | ✅       | ❌     |
+| 应用特定配置  | ❌     | ❌       | ✅     |
+| 用户交互界面  | ❌     | ❌       | ✅     |
 
 ## 3. 核心概念
 
@@ -103,7 +105,7 @@ classDiagram
         +value: string
         +format: "markdown" | "text" | "code"
     }
-    
+
     PromptDocument *-- PromptElement
     PromptElement *-- ContentNode
     PromptElement *-- PromptElement
@@ -127,12 +129,14 @@ Prompt包定义了8个核心标签，共同构成了完整的提示框架：
 ### 3.3 标签嵌套规则
 
 标签嵌套遵循以下规则：
+
 - `<prompt>` 是根标签，必须是文档的顶层元素
 - 其他7个核心标签只能作为 `<prompt>` 的直接子元素
 - 核心标签内不允许嵌套其他核心标签
 - 将来可能支持自定义嵌套扩展标签
 
 嵌套规则图：
+
 ```mermaid
 graph TD
     Prompt[prompt] --> Role[role]
@@ -151,12 +155,14 @@ graph TD
 作为根标签，定义整个提示的基本属性和元数据。
 
 #### 属性：
+
 - **id**: 唯一标识符，用于引用和复用
 - **version**: 提示版本号
 - **extends**: 继承另一个提示定义（支持跨文件继承）
 - **lang**: 提示文档的语言（如zh-CN, en-US），影响格式化和语言提示
 
 #### 用例：
+
 ```xml
 <prompt id="analytical-framework" version="1.0" lang="zh-CN">
   <!-- 子标签内容 -->
@@ -168,15 +174,17 @@ graph TD
 定义AI助手应该扮演的角色和身份特征。
 
 #### 属性：
+
 - **id**: 可选的标识符
 - **extends**: 可继承其他role标签
 
 #### 用例：
+
 ```xml
 <role>
   你是一位经验丰富的数据科学家，专长于探索性数据分析和统计建模。
   你善于从复杂数据中提取有意义的洞见，并以清晰方式解释发现。
-  
+
   你应使用专业而准确的语气，确保解释既有技术深度又能被非专业人士理解。
 </role>
 ```
@@ -186,15 +194,17 @@ graph TD
 提供背景信息和环境描述，帮助AI理解当前情境。
 
 #### 属性：
-- **id**: 可选的标识符 
+
+- **id**: 可选的标识符
 - **extends**: 可继承其他context标签
 
 #### 用例：
+
 ```xml
 <context>
   你正在与一个研究团队合作，他们需要从复杂的实验数据中提取有意义的洞见。
   这些数据包含时间序列观测值，可能存在噪声和异常值。
-  
+
   研究领域是生物医学，团队成员具有不同程度的统计背景。
 </context>
 ```
@@ -204,15 +214,17 @@ graph TD
 定义AI的思维方式、推理框架和方法论。
 
 #### 属性：
+
 - **id**: 可选的标识符
 - **extends**: 可继承其他thinking标签
 
 #### 用例：
+
 ```xml
 <thinking>
   分析问题时，先理解数据的结构和特性，然后探索变量间的关系，
   最后应用适当的统计方法验证假设。始终保持批判性思维，考虑多种可能的解释。
-  
+
   在形成结论前，评估以下方面：
   - 数据质量和完整性是否足够支持结论
   - 是否考虑了所有相关变量
@@ -226,17 +238,19 @@ graph TD
 规定AI执行任务的步骤和流程。
 
 #### 属性：
+
 - **id**: 可选的标识符
 - **extends**: 可继承其他executing标签
 
 #### 用例：
+
 ```xml
 <executing>
   1. 数据理解：先了解数据类型、范围和结构
   2. 探索性分析：通过可视化和描述性统计探索数据特征
   3. 深入分析：应用适当的统计方法和模型
   4. 解释与总结：清晰地解释发现和结论
-  
+
   在多轮对话中，我会：
   - 追踪已获取的用户信息，识别信息缺口
   - 在收到新信息后更新我的理解和分析
@@ -250,10 +264,12 @@ graph TD
 定义AI对自身输出的质量检验标准和流程。
 
 #### 属性：
+
 - **id**: 可选的标识符
 - **extends**: 可继承其他testing标签
 
 #### 用例：
+
 ```xml
 <testing>
   输出前，检查以下几点：
@@ -262,7 +278,7 @@ graph TD
   3. 是否考虑了多种可能性和边界情况
   4. 解释是否简洁清晰，适合目标受众
   5. 建议是否具体可行，符合实际约束
-  
+
   若发现不足，应重新审视分析过程并修正。
 </testing>
 ```
@@ -272,22 +288,24 @@ graph TD
 规定交互的格式标准和处理规则。
 
 #### 属性：
+
 - **id**: 可选的标识符
 - **extends**: 可继承其他protocol标签
 
 #### 用例：
+
 ```xml
 <protocol>
   输入规范：
   - 问题应明确表述分析目标和关键问题
   - 数据输入优先接受CSV、Excel或结构化JSON
   - 大型数据集应提供样本和概要统计信息
-  
+
   输出规范：
   - 每份分析报告包含：执行摘要(150字以内)、方法论简述、关键发现(带置信度)、建议
   - 统计结果使用Markdown表格格式展示
   - 重要数字保留两位小数，附带单位
-  
+
   对话控制：
   - 使用[总结]查看当前理解和分析状态
   - 使用[假设]探索特定情景的潜在结果
@@ -299,22 +317,24 @@ graph TD
 提供一个容器用于用户自定义内容，系统对此标签内容采取最小干预原则。
 
 #### 属性：
+
 - **id**: 可选的标识符
 - **extends**: 可继承其他custom标签
 
 #### 用例：
+
 ```xml
 <custom>
   特别注意事项：
-  
+
   1. 该用户是医疗专业人士，但非数据专家
   2. 尽量使用医学领域的类比来解释统计概念
   3. 在提供建议时考虑医疗实践的伦理约束
-  
+
   历史交互记录显示用户对可视化表达特别感兴趣，可适当增加图表描述。
-  
+
   ---
-  
+
   个性化交流指南：保持专业但亲切的语气，避免过于学术化的表达。
 </custom>
 ```
@@ -375,19 +395,19 @@ export class PromptTransformer extends DefaultTransformer<string> {
   constructor(options?: PromptTransformerOptions) {
     super(options);
   }
-  
+
   // 访问者模式实现各标签处理
   visitPromptTag(node: Element): string {
     const children = this.getChildResults(node);
     return children.join('\n\n');
   }
-  
+
   visitRoleTag(node: Element): string {
     return this.extractElementContent(node);
   }
-  
+
   // 其他标签访问方法...
-  
+
   transform(doc: ProcessedDocument): string {
     return this.visit(doc);
   }
@@ -410,7 +430,7 @@ sequenceDiagram
     participant CoreParser
     participant CoreProcessor
     participant PromptTransformer
-    
+
     Client->>CoreParser: parse(dpmlText)
     CoreParser-->>Client: ast
     Client->>CoreProcessor: process(ast)
@@ -447,7 +467,7 @@ private addLanguageDirective(lang: string): string {
     'ja-JP': '日本語で回答してください',
     // 其他语言指示
   };
-  
+
   return langDirectives[lang] || '';
 }
 ```
@@ -483,7 +503,7 @@ const defaultFormatTemplates = {
 // 语言特定的格式模板
 const langSpecificTemplates = {
   "zh-CN": {
-    thinking: { 
+    thinking: {
       title: "## 思考模式",
       prefix: "请使用以下思维框架:\n"
     },
@@ -503,7 +523,7 @@ const langSpecificTemplates = {
 visitCustomTag(node: Element): string {
   // 对于custom标签，采用最小处理策略
   const content = this.processChildren(node);
-  
+
   // 不添加标题，保持原始格式
   return content + "\n\n";
 }
@@ -528,7 +548,7 @@ visitCustomTag(node: Element): string {
 // 示例：处理role标签的tone属性
 private processToneAttribute(tone: string): string {
   switch(tone) {
-    case 'professional': 
+    case 'professional':
       return '使用专业、正式的语气';
     case 'friendly':
       return '使用友好、平易近人的语气';
@@ -568,33 +588,39 @@ class RoleTagProcessor implements TagProcessor {
   canProcess(element: Element): boolean {
     return element.tagName === 'role';
   }
-  
-  async process(element: Element, context: ProcessingContext): Promise<Element> {
+
+  async process(
+    element: Element,
+    context: ProcessingContext
+  ): Promise<Element> {
     // 初始化元数据
     element.metadata = element.metadata || {};
     element.metadata.roleInfo = {};
-    
+
     // 提取角色描述
     const description = element.children
       .filter(child => isContent(child))
       .map(child => (child as Content).value)
       .join('');
-    
+
     element.metadata.roleInfo.description = description;
-    
+
     // 处理继承关系
     if (element.attributes.extends) {
       await this.processExtends(element, context);
     }
-    
+
     return element;
   }
-  
-  private async processExtends(element: Element, context: ProcessingContext): Promise<void> {
+
+  private async processExtends(
+    element: Element,
+    context: ProcessingContext
+  ): Promise<void> {
     try {
       // 解析引用路径
       const refPath = element.attributes.extends;
-      
+
       // 使用引用解析器获取目标元素
       const sourceElement = await context.resolveReference(refPath);
       if (!sourceElement) {
@@ -603,25 +629,28 @@ class RoleTagProcessor implements TagProcessor {
           `无法解析role继承引用: ${refPath}`
         );
       }
-      
+
       // 合并属性（目标属性优先）
       element.attributes = {
         ...sourceElement.attributes,
-        ...element.attributes
+        ...element.attributes,
       };
-      
+
       // 如果目标无内容，继承源内容
-      if (element.children.length === 0 || 
-         (element.children.length === 1 && isContent(element.children[0]) && 
-         (element.children[0] as Content).value.trim() === '')) {
+      if (
+        element.children.length === 0 ||
+        (element.children.length === 1 &&
+          isContent(element.children[0]) &&
+          (element.children[0] as Content).value.trim() === '')
+      ) {
         element.children = [...sourceElement.children];
       }
-      
+
       // 合并元数据
       if (sourceElement.metadata?.roleInfo) {
         element.metadata.roleInfo = {
           ...sourceElement.metadata.roleInfo,
-          ...element.metadata.roleInfo
+          ...element.metadata.roleInfo,
         };
       }
     } catch (error) {
@@ -639,20 +668,28 @@ class RoleTagProcessor implements TagProcessor {
 // 注册标签定义
 function registerPromptTags() {
   const registry = new TagRegistry();
-  
+
   // 注册prompt标签
   registry.registerTagDefinition('prompt', {
     attributes: ['id', 'version', 'extends', 'lang'],
     requiredAttributes: ['id'],
-    allowedChildren: ['role', 'context', 'thinking', 'executing', 'testing', 'protocol', 'custom']
+    allowedChildren: [
+      'role',
+      'context',
+      'thinking',
+      'executing',
+      'testing',
+      'protocol',
+      'custom',
+    ],
   });
-  
+
   // 注册role标签
   registry.registerTagDefinition('role', {
     attributes: ['id', 'extends'],
-    allowedChildren: []  // 只允许文本内容
+    allowedChildren: [], // 只允许文本内容
   });
-  
+
   // 注册其他标签...
 }
 
@@ -660,10 +697,10 @@ function registerPromptTags() {
 function registerTagProcessors(processor: Processor) {
   // 注册prompt标签处理器
   processor.registerTagProcessor('prompt', new PromptTagProcessor());
-  
+
   // 注册role标签处理器
   processor.registerTagProcessor('role', new RoleTagProcessor());
-  
+
   // 注册其他标签处理器...
 }
 ```
@@ -676,9 +713,7 @@ Prompt包提供简洁的主要API：
 
 ```typescript
 // 主要入口函数
-function processPrompt(
-  dpmlText: string
-): Promise<ProcessedDocument>;
+function processPrompt(dpmlText: string): Promise<ProcessedDocument>;
 
 function transformPrompt(
   document: ProcessedDocument,
@@ -700,21 +735,21 @@ function generatePrompt(
 interface PromptOptions {
   // 处理相关
   validateOnly?: boolean;
-  
+
   // 语言相关
   lang?: string; // 覆盖文档中的lang属性
   addLanguageDirective?: boolean; // 是否添加语言指令
-  
+
   // 格式化相关
   formatTemplates?: {
     [tagName: string]: {
-      title?: string;     // 标签标题
-      prefix?: string;    // 内容前缀
-      suffix?: string;    // 内容后缀
+      title?: string; // 标签标题
+      prefix?: string; // 内容前缀
+      suffix?: string; // 内容后缀
       wrapper?: (content: string) => string; // 内容包装器
-    }
+    };
   };
-  
+
   // 结构相关
   tagOrder?: string[]; // 标签组织顺序
 }
@@ -726,20 +761,20 @@ interface PromptOptions {
 // 自定义中文格式模板
 const zhFormatTemplates = {
   thinking: {
-    title: "# 思维框架",
-    prefix: "请使用以下思维框架:\n"
+    title: '# 思维框架',
+    prefix: '请使用以下思维框架:\n',
   },
   role: {
-    title: "# 角色定义",
-    prefix: "你是"
-  }
+    title: '# 角色定义',
+    prefix: '你是',
+  },
 };
 
 // 应用自定义格式
 const prompt = await generatePrompt(dpmlText, {
-  lang: "zh-CN",
+  lang: 'zh-CN',
   formatTemplates: zhFormatTemplates,
-  addLanguageDirective: true
+  addLanguageDirective: true,
 });
 ```
 
@@ -762,9 +797,9 @@ async function generatePrompt(
     // 1. 解析DPML文本
     const parseResult = await parse(dpmlText, {
       validate: true,
-      allowUnknownTags: false
+      allowUnknownTags: false,
     });
-    
+
     // 解析错误处理
     if (parseResult.errors.length > 0) {
       const firstError = parseResult.errors[0];
@@ -774,27 +809,27 @@ async function generatePrompt(
         firstError.position
       );
     }
-    
+
     // 2. 处理文档
     const processOptions = {
       basePath: options.basePath || '.',
-      strictMode: options.strictMode || false
+      strictMode: options.strictMode || false,
     };
     const processedDoc = await process(parseResult.ast, processOptions);
-    
+
     // 3. 检查是否仅验证
     if (options.validateOnly) {
       return '';
     }
-    
+
     // 4. 创建转换器
     const transformer = new PromptTransformer({
       formatTemplates: options.formatTemplates,
       lang: options.lang,
       addLanguageDirective: options.addLanguageDirective,
-      tagOrder: options.tagOrder
+      tagOrder: options.tagOrder,
     });
-    
+
     // 5. 转换文档
     return transformer.transform(processedDoc);
   } catch (error) {
@@ -814,17 +849,17 @@ function handlePromptError(error: any): void {
     error.context.module = 'prompt';
     return;
   }
-  
+
   // 转换未知错误为DPML错误
   const dpmlError = new DPMLError(
     'PROMPT_ERROR',
     error.message || '处理提示时发生未知错误',
     undefined
   );
-  
+
   // 保存原始错误
   dpmlError.cause = error;
-  
+
   throw dpmlError;
 }
 ```
@@ -842,23 +877,23 @@ Prompt包实现以下错误处理策略：
 // 错误分类示例
 enum PromptErrorCode {
   // 解析错误
-  PARSE_ERROR = 'PARSE_ERROR',           // 一般解析错误
-  INVALID_TAG = 'INVALID_TAG',           // 无效标签
+  PARSE_ERROR = 'PARSE_ERROR', // 一般解析错误
+  INVALID_TAG = 'INVALID_TAG', // 无效标签
   INVALID_ATTRIBUTE = 'INVALID_ATTRIBUTE', // 无效属性
-  
+
   // 验证错误
   VALIDATION_ERROR = 'VALIDATION_ERROR', // 一般验证错误
   MISSING_REQUIRED_TAG = 'MISSING_REQUIRED_TAG', // 缺少必需标签
-  INVALID_NESTING = 'INVALID_NESTING',   // 无效嵌套
-  
+  INVALID_NESTING = 'INVALID_NESTING', // 无效嵌套
+
   // 处理错误
   PROCESSING_ERROR = 'PROCESSING_ERROR', // 一般处理错误
-  REFERENCE_ERROR = 'REFERENCE_ERROR',   // 引用错误
+  REFERENCE_ERROR = 'REFERENCE_ERROR', // 引用错误
   INHERITANCE_ERROR = 'INHERITANCE_ERROR', // 继承错误
-  
+
   // 转换错误
-  TRANSFORM_ERROR = 'TRANSFORM_ERROR',   // 一般转换错误
-  FORMATTER_ERROR = 'FORMATTER_ERROR'    // 格式化错误
+  TRANSFORM_ERROR = 'TRANSFORM_ERROR', // 一般转换错误
+  FORMATTER_ERROR = 'FORMATTER_ERROR', // 格式化错误
 }
 
 // 错误处理示例
@@ -870,17 +905,19 @@ try {
       case 'PARSE_ERROR':
         console.error(`解析错误: ${error.message}`);
         if (error.location) {
-          console.error(`位置: 行 ${error.location.line}, 列 ${error.location.column}`);
+          console.error(
+            `位置: 行 ${error.location.line}, 列 ${error.location.column}`
+          );
         }
         break;
-        
+
       case 'REFERENCE_ERROR':
         console.error(`引用错误: ${error.message}`);
         console.error('请检查extends属性引用的标签ID是否存在');
         break;
-        
+
       // 其他错误类型处理...
-      
+
       default:
         console.error(`DPML错误: ${error.message}`);
     }
@@ -928,26 +965,26 @@ async function main() {
         </testing>
       </prompt>
     `;
-    
+
     // 生成提示文本
     const prompt = await generatePrompt(dpmlText, {
       formatTemplates: {
         role: {
-          title: "# 角色",
-          prefix: "你是"
+          title: '# 角色',
+          prefix: '你是',
         },
         context: {
-          title: "# 背景",
+          title: '# 背景',
         },
         thinking: {
-          title: "# 思考方式",
-        }
+          title: '# 思考方式',
+        },
       },
-      addLanguageDirective: true
+      addLanguageDirective: true,
     });
-    
+
     console.log(prompt);
-    
+
     // 输出:
     /*
     # 角色
@@ -972,7 +1009,6 @@ async function main() {
     
     请用中文回复
     */
-    
   } catch (error) {
     console.error('处理DPML时出错:', error);
   }
@@ -997,7 +1033,7 @@ main();
   <role extends="./templates/analyst.dpml#base-analyst">
     作为金融分析师，你还精通财务建模和风险评估。
   </role>
-  
+
   <!-- 其他标签 -->
 </prompt>
 ```
@@ -1023,6 +1059,7 @@ main();
 ### 11.2 外部依赖
 
 尽量减少额外依赖：
+
 - @dpml/core（核心包）
 
 ## 12. 演进计划
@@ -1048,7 +1085,7 @@ main();
   <role id="analyst-base">
     你是一位分析师，擅长解读数据和发现洞见。
   </role>
-  
+
   <thinking id="analytical-thinking">
     分析过程中，我遵循以下步骤：
     1. 理解问题的核心目标
@@ -1057,7 +1094,7 @@ main();
     4. 评估多种可能的解释
     5. 得出基于证据的结论
   </thinking>
-  
+
   <custom id="base-guidelines">
     通用交流原则：
     - 使用清晰、精确的语言
@@ -1071,7 +1108,7 @@ main();
   <role extends="./base-templates.dpml#analyst-base">
     作为数据科学家，你精通统计分析、机器学习和数据可视化。
   </role>
-  
+
   <thinking extends="./base-templates.dpml#analytical-thinking">
     分析过程中，我遵循以下步骤：
     1. 理解问题的核心目标
@@ -1079,18 +1116,18 @@ main();
     3. 系统性分析数据中的模式
     4. 评估多种可能的解释
     5. 得出基于证据的结论
-    
+
     在数据科学领域，我还会特别关注：
     - 数据质量和代表性
     - 特征工程的有效性
     - 模型选择的适当性
     - 结果的统计显著性
   </thinking>
-  
+
   <context>
     你正在分析业务数据，需要发现有价值的洞见并提出actionable的建议。
   </context>
-  
+
   <executing>
     我将按照以下步骤进行数据分析：
     1. 数据理解与清洗
@@ -1099,7 +1136,7 @@ main();
     4. 模式识别
     5. 结论总结与建议
   </executing>
-  
+
   <testing>
     在提出结论前，我会检查：
     - 数据分析是否全面
@@ -1107,7 +1144,7 @@ main();
     - 结论是否有足够支持
     - 建议是否具体可行
   </testing>
-  
+
   <protocol>
     分析报告格式：
     - 摘要（1-2段）
@@ -1115,13 +1152,13 @@ main();
     - 主要发现（带置信度）
     - 建议事项（优先级排序）
   </protocol>
-  
+
   <custom extends="./base-templates.dpml#base-guidelines">
     通用交流原则：
     - 使用清晰、精确的语言
     - 避免专业术语过度使用
     - 提供具体例子说明抽象概念
-    
+
     数据科学特定指南：
     - 对于复杂模型，提供直观解释
     - 明确区分相关性和因果关系
@@ -1132,4 +1169,4 @@ main();
 
 ---
 
-本文档定义了`@dpml/prompt`包的整体设计和职责，聚焦于提示词结构化和基于extends的继承体系。实际实现过程中可能根据具体需求进行调整和优化。 
+本文档定义了`@dpml/prompt`包的整体设计和职责，聚焦于提示词结构化和基于extends的继承体系。实际实现过程中可能根据具体需求进行调整和优化。

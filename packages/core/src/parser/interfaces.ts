@@ -1,6 +1,9 @@
-import { Document } from '@core/types/node';
-import { ParseError as ParseErrorClass } from '@core/errors';
-import { ValidationError, ValidationResult, ValidationWarning } from '../errors/types';
+import type { ParseError as ParseErrorClass } from '@core/errors';
+import type { Document } from '@core/types/node';
+
+import { ValidationError, ValidationWarning } from '../errors/types';
+
+import type { ValidationResult } from '../errors/types';
 
 /**
  * 解析选项接口
@@ -11,30 +14,30 @@ export interface ParseOptions {
    * @default true
    */
   allowUnknownTags?: boolean;
-  
+
   /**
    * 是否忽略验证错误继续解析
    * @default false
    */
   tolerant?: boolean;
-  
+
   /**
    * 是否保留注释
    * @default false
    */
   preserveComments?: boolean;
-  
+
   /**
    * 是否启用验证
    * @default false
    */
   validate?: boolean;
-  
+
   /**
    * 解析模式，对应DPML的mode属性
    * @default "loose"
    */
-  mode?: "strict" | "loose";
+  mode?: 'strict' | 'loose';
 }
 
 /**
@@ -46,12 +49,12 @@ export interface ParserError {
    * 错误码
    */
   code: string;
-  
+
   /**
    * 错误消息
    */
   message: string;
-  
+
   /**
    * 错误位置
    */
@@ -70,12 +73,12 @@ export interface ParseWarning {
    * 警告码
    */
   code: string;
-  
+
   /**
    * 警告消息
    */
   message: string;
-  
+
   /**
    * 警告位置
    */
@@ -94,12 +97,12 @@ export interface ParseResult {
    * 解析生成的AST
    */
   ast: Document;
-  
+
   /**
    * 解析过程中的错误
    */
   errors: ParseErrorClass[];
-  
+
   /**
    * 解析过程中的警告
    */
@@ -117,11 +120,11 @@ export interface DPMLParser {
    * @returns 解析结果
    */
   parse(input: string, options?: ParseOptions): Promise<ParseResult>;
-  
+
   /**
    * 验证DPML AST是否有效
    * @param ast DPML AST
    * @returns 验证结果
    */
   validate(ast: Document): ValidationResult;
-} 
+}

@@ -26,10 +26,7 @@ export const logger = loggerExports;
 
 ```typescript
 // 不规范的导入
-import { 
-  createLogger, 
-  LogLevel
-} from '@dpml/common/dist/logger';
+import { createLogger, LogLevel } from '@dpml/common/dist/logger';
 
 // 或者使用命名空间，但体验不佳
 import { logger } from '@dpml/common';
@@ -100,4 +97,4 @@ export type { LogLevel, ILogger } from './logger/core/types';
 ---
 
 提交人: [Your Name]  
-日期: 2023-11-20 
+日期: 2023-11-20

@@ -1,30 +1,30 @@
-import { TransformContext } from './transformContext';
+import type { TransformContext } from './transformContext';
 
 /**
  * 输出适配器接口
- * 
+ *
  * 负责将转换结果适配为特定的输出格式
  */
 export interface OutputAdapter {
   /**
    * 适配方法
-   * 
+   *
    * 将转换结果适配为特定的输出格式
-   * 
+   *
    * @param result 待适配的结果
    * @param context 转换上下文
    * @returns 适配后的结果
    */
   adapt(result: any, context: TransformContext): any;
-  
+
   /**
    * 异步适配方法
-   * 
+   *
    * 异步将转换结果适配为特定的输出格式
-   * 
+   *
    * @param result 待适配的结果
    * @param context 转换上下文
    * @returns Promise<适配后的结果>
    */
   adaptAsync?(result: any, context: TransformContext): Promise<any>;
-} 
+}

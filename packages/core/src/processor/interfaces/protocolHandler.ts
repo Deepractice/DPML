@@ -1,10 +1,10 @@
 /**
  * ProtocolHandler接口
- * 
+ *
  * 定义处理不同协议引用的处理器接口
  */
 
-import { Reference } from '../../types/node';
+import type { Reference } from '../../types/node';
 
 /**
  * 协议处理器接口
@@ -17,11 +17,11 @@ export interface ProtocolHandler {
    * @returns 是否可以处理
    */
   canHandle(protocol: string): boolean;
-  
+
   /**
    * 处理引用
    * @param reference 引用节点
    * @returns 解析后的结果
    */
   handle(reference: Reference): Promise<any>;
-} 
+}

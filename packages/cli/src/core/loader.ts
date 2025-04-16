@@ -1,9 +1,16 @@
-import { CommandRegistry } from './registry';
-import { ConfigManager } from './config';
-import path from 'path';
 import fs from 'fs';
-import { Command, DomainCommandSet, DomainCommandConfig, DomainMapping } from '../types/command';
+import path from 'path';
+
+import { Command } from '../types/command';
 import * as pathUtils from '../utils/paths';
+
+import type { ConfigManager } from './config';
+import type { CommandRegistry } from './registry';
+import type {
+  DomainCommandSet,
+  DomainCommandConfig,
+  DomainMapping,
+} from '../types/command';
 
 /**
  * 命令加载器类
@@ -45,7 +52,9 @@ export class CommandLoader {
 
       return true;
     } catch (error) {
-      throw new Error(`加载映射文件失败: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `加载映射文件失败: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -61,9 +70,15 @@ export class CommandLoader {
       const mapping = this.registry.serialize();
 
       // 写入映射文件
-      fs.writeFileSync(this.mappingFilePath, JSON.stringify(mapping, null, 2), 'utf-8');
+      fs.writeFileSync(
+        this.mappingFilePath,
+        JSON.stringify(mapping, null, 2),
+        'utf-8'
+      );
     } catch (error) {
-      throw new Error(`保存映射文件失败: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `保存映射文件失败: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -88,6 +103,7 @@ export class CommandLoader {
 
         for (const modulePath of nodeModules) {
           const possiblePath = path.join(modulePath, pkg);
+
           if (fs.existsSync(possiblePath)) {
             packagePath = possiblePath;
             break;
@@ -103,6 +119,7 @@ export class CommandLoader {
         const configTsPath = path.join(packagePath, 'dpml.config.ts');
 
         let commandsPath = '';
+
         if (fs.existsSync(configJsPath)) {
           commandsPath = configJsPath;
         } else if (fs.existsSync(configTsPath)) {
@@ -112,10 +129,15 @@ export class CommandLoader {
         if (commandsPath) {
           // 获取包版本
           let version = '0.1.0'; // 默认版本
+
           try {
             const packageJsonPath = path.join(packagePath, 'package.json');
+
             if (fs.existsSync(packageJsonPath)) {
-              const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+              const packageJson = JSON.parse(
+                fs.readFileSync(packageJsonPath, 'utf-8')
+              );
+
               version = packageJson.version || version;
             }
           } catch (e) {
@@ -126,17 +148,19 @@ export class CommandLoader {
           domains[domainName] = {
             package: pkg,
             commandsPath,
-            version
+            version,
           };
         }
       }
 
       return {
         lastUpdated: new Date().toISOString(),
-        domains
+        domains,
       };
     } catch (error) {
-      throw new Error(`扫描包失败: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `扫描包失败: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -149,12 +173,14 @@ export class CommandLoader {
     try {
       // 获取领域信息
       const domain = this.registry.getDomain(domainName);
+
       if (!domain) {
         return false;
       }
 
       // 动态导入命令配置
       const config = await this.importCommandConfig(domain.commandsPath);
+
       if (!config || !this.validateCommandConfig(config)) {
         return false;
       }
@@ -166,7 +192,10 @@ export class CommandLoader {
 
       return true;
     } catch (error) {
-      console.error(`加载领域命令失败: ${error instanceof Error ? error.message : String(error)}`);
+      console.error(
+        `加载领域命令失败: ${error instanceof Error ? error.message : String(error)}`
+      );
+
       return false;
     }
   }
@@ -189,7 +218,7 @@ export class CommandLoader {
             package: domainInfo.package,
             commandsPath: domainInfo.commandsPath,
             version: domainInfo.version,
-            commands: new Map()
+            commands: new Map(),
           };
 
           this.registry.registerDomainCommandSet(domainSet);
@@ -201,6 +230,7 @@ export class CommandLoader {
 
         // 加载所有领域的命令
         const domains = this.registry.getAllDomains();
+
         for (const domain of domains) {
           await this.loadDomainCommands(domain);
         }
@@ -209,7 +239,9 @@ export class CommandLoader {
       // 保存映射文件
       this.saveMappingFile();
     } catch (error) {
-      throw new Error(`刷新命令映射失败: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `刷新命令映射失败: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -252,7 +284,9 @@ export class CommandLoader {
    * @param filePath 文件路径
    * @returns 领域命令配置
    */
-  private async importCommandConfig(filePath: string): Promise<DomainCommandConfig | null> {
+  private async importCommandConfig(
+    filePath: string
+  ): Promise<DomainCommandConfig | null> {
     try {
       // 动态导入模块
       const module = await import(filePath);
@@ -262,7 +296,10 @@ export class CommandLoader {
 
       return config as DomainCommandConfig;
     } catch (error) {
-      console.error(`导入命令配置失败: ${error instanceof Error ? error.message : String(error)}`);
+      console.error(
+        `导入命令配置失败: ${error instanceof Error ? error.message : String(error)}`
+      );
+
       return null;
     }
   }
@@ -279,12 +316,14 @@ export class CommandLoader {
       for (const modulePath of nodeModules) {
         // 检查@dpml目录是否存在
         const dpmlPath = path.join(modulePath, '@dpml');
+
         if (!fs.existsSync(dpmlPath)) {
           continue;
         }
 
         // 读取@dpml目录下的所有包
         const dpmlPackages = fs.readdirSync(dpmlPath);
+
         for (const pkg of dpmlPackages) {
           packages.push(`@dpml/${pkg}`);
         }
@@ -292,7 +331,10 @@ export class CommandLoader {
 
       return packages;
     } catch (error) {
-      console.error(`查找DPML包失败: ${error instanceof Error ? error.message : String(error)}`);
+      console.error(
+        `查找DPML包失败: ${error instanceof Error ? error.message : String(error)}`
+      );
+
       return [];
     }
   }

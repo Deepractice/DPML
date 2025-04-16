@@ -1,6 +1,6 @@
 /**
  * @dpml/prompt PromptTransformer测试
- * 
+ *
  * 测试ID:
  * - UT-PT-001: 基本转换功能
  * - UT-PT-002: 标签序列化测试
@@ -9,8 +9,9 @@
  * - UT-PT-005: Markdown转换
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
 import { parse, process } from '@dpml/core';
+import { describe, it, expect, beforeEach } from 'vitest';
+
 import { PromptTransformer } from '../../transformers/promptTransformer';
 
 describe('PromptTransformer基础功能测试', () => {
@@ -24,7 +25,7 @@ describe('PromptTransformer基础功能测试', () => {
 
   /**
    * UT-PT-001: 基本转换功能测试
-   * 
+   *
    * 测试基本的DPML提示转换为纯文本
    */
   it('基本转换功能 (UT-PT-001)', async () => {
@@ -52,7 +53,7 @@ describe('PromptTransformer基础功能测试', () => {
 
   /**
    * UT-PT-002: 标签序列化测试
-   * 
+   *
    * 测试不同标签的序列化格式是否符合预期
    */
   it('标签序列化测试 (UT-PT-002)', async () => {
@@ -84,15 +85,16 @@ describe('PromptTransformer基础功能测试', () => {
     expect(result).toContain('检查结果的正确性');
     expect(result).toContain('按照规定格式响应');
     expect(result).toContain('自定义内容');
-    
+
     // 验证标签顺序和分隔
     const sections = result.split(/\n{2,}/);
+
     expect(sections.length).toBeGreaterThanOrEqual(7); // 至少有7个部分
   });
 
   /**
    * UT-PT-003: 转换选项配置测试
-   * 
+   *
    * 测试转换选项如何影响输出结果
    */
   it('转换选项配置测试 (UT-PT-003)', async () => {
@@ -114,13 +116,13 @@ describe('PromptTransformer基础功能测试', () => {
         role: {
           title: '# 角色定义',
           prefix: '作为',
-          suffix: '，你需要提供帮助'
+          suffix: '，你需要提供帮助',
         },
         context: {
           title: '# 背景信息',
-          prefix: '当前情境：'
-        }
-      }
+          prefix: '当前情境：',
+        },
+      },
     });
 
     // 转换为文本
@@ -135,7 +137,7 @@ describe('PromptTransformer基础功能测试', () => {
 
   /**
    * UT-PT-004: 空值处理测试
-   * 
+   *
    * 测试空标签和空内容的处理
    */
   it('空值处理测试 (UT-PT-004)', async () => {
@@ -158,15 +160,16 @@ describe('PromptTransformer基础功能测试', () => {
 
     // 验证结果不包含多余空行
     expect(result).not.toContain('\n\n\n'); // 不应有连续三个换行
-    
+
     // 验证空标签处理
     const lines = result.split('\n').filter(line => line.trim() !== '');
+
     expect(lines.length).toBeGreaterThan(0); // 至少有一行内容
   });
 
   /**
    * UT-PT-005: Markdown转换测试
-   * 
+   *
    * 测试Markdown内容的转换
    */
   it('Markdown转换测试 (UT-PT-005)', async () => {
@@ -210,4 +213,4 @@ describe('PromptTransformer基础功能测试', () => {
     expect(result).toContain('```js');
     expect(result).toContain('function example()');
   });
-}); 
+});

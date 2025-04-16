@@ -2,35 +2,38 @@
  * AgentFactory单元测试
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
 import { AgentFactory } from '../../../agent/AgentFactory';
-import { AgentFactoryConfig } from '../../../agent/types';
 import { AgentErrorCode } from '../../../errors/types';
 import { AgentStateManagerFactory } from '../../../state/AgentStateManagerFactory';
-import { Agent } from '../../../agent/types';
 
-// 创建错误工厂mock 
+import type { AgentFactoryConfig, Agent } from '../../../agent/types';
+
+// 创建错误工厂mock
 vi.mock('../../errors/factory', () => {
   const createError = (message: string, code: string) => {
-    const error: Error & {code?: string} = new Error(message);
+    const error: Error & { code?: string } = new Error(message);
+
     error.code = code;
+
     return error;
   };
-  
+
   return {
     ErrorFactory: {
-      createConfigError: vi.fn().mockImplementation((message, code) => 
-        createError(message, code)
-      ),
-      createStateError: vi.fn().mockImplementation((message, code) => 
-        createError(message, code)
-      ),
-      createMemoryError: vi.fn().mockImplementation((message, code) => 
-        createError(message, code)
-      ),
-      createTagError: vi.fn().mockImplementation((message, code) => 
-        createError(message, code)
-      )
-    }
+      createConfigError: vi
+        .fn()
+        .mockImplementation((message, code) => createError(message, code)),
+      createStateError: vi
+        .fn()
+        .mockImplementation((message, code) => createError(message, code)),
+      createMemoryError: vi
+        .fn()
+        .mockImplementation((message, code) => createError(message, code)),
+      createTagError: vi
+        .fn()
+        .mockImplementation((message, code) => createError(message, code)),
+    },
   };
 });
 
@@ -43,13 +46,13 @@ vi.mock('../../connector/LLMConnectorFactory', () => ({
       isModelSupported: () => true,
       complete: vi.fn().mockResolvedValue({
         text: '这是一个测试响应',
-        usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 }
+        usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
       }),
       completeStream: vi.fn(),
       countTokens: vi.fn().mockReturnValue(10),
-      abortRequest: vi.fn()
-    })
-  }
+      abortRequest: vi.fn(),
+    }),
+  },
 }));
 
 // 模拟状态管理器工厂
@@ -59,21 +62,21 @@ vi.mock('../../state/AgentStateManagerFactory', () => ({
       initialize: vi.fn().mockResolvedValue(undefined),
       getState: vi.fn(),
       setState: vi.fn(),
-      resetState: vi.fn()
+      resetState: vi.fn(),
     }),
     createFileSystemStateManager: vi.fn().mockReturnValue({
       initialize: vi.fn().mockResolvedValue(undefined),
       getState: vi.fn(),
       setState: vi.fn(),
-      resetState: vi.fn()
-    })
-  }
+      resetState: vi.fn(),
+    }),
+  },
 }));
 
 // 模拟AgentImpl
 vi.mock('../../agent/AgentImpl', () => {
   return {
-    AgentImpl: vi.fn().mockImplementation((options) => {
+    AgentImpl: vi.fn().mockImplementation(options => {
       // 创建模拟Agent构造函数
       return {
         id: options.id,
@@ -86,35 +89,39 @@ vi.mock('../../agent/AgentImpl', () => {
           response: {
             text: '这是一个测试响应',
             timestamp: new Date().toISOString(),
-            usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 }
-          }
+            usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
+          },
         }),
         executeStream: vi.fn().mockImplementation(async function* () {
           yield {
             text: '这是一个测试响应',
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           };
         }),
         interrupt: vi.fn().mockResolvedValue(true),
         reset: vi.fn().mockResolvedValue(true),
-        getState: vi.fn().mockResolvedValue({})
+        getState: vi.fn().mockResolvedValue({}),
       };
-    })
+    }),
   };
 });
 
 // 模拟引入模块
 vi.mock('path', () => ({
   default: {
-    join: vi.fn((...args) => args.join('/'))
-  }
+    join: vi.fn((...args) => args.join('/')),
+  },
 }));
 
 vi.mock('fs/promises', () => ({
-  readFile: vi.fn().mockResolvedValue('<agent id="test-agent" version="1.0"><llm model="gpt-4" api-type="openai"></llm><prompt>你是一个测试助手</prompt></agent>'),
+  readFile: vi
+    .fn()
+    .mockResolvedValue(
+      '<agent id="test-agent" version="1.0"><llm model="gpt-4" api-type="openai"></llm><prompt>你是一个测试助手</prompt></agent>'
+    ),
   mkdir: vi.fn().mockResolvedValue(undefined),
   writeFile: vi.fn().mockResolvedValue(undefined),
-  access: vi.fn().mockResolvedValue(undefined)
+  access: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('@dpml/core', () => ({
@@ -131,17 +138,17 @@ vi.mock('@dpml/core', () => ({
             {
               type: 'element',
               tagName: 'llm',
-              attributes: { model: 'gpt-4', 'api-type': 'openai' }
+              attributes: { model: 'gpt-4', 'api-type': 'openai' },
             },
             {
               type: 'element',
               tagName: 'prompt',
-              children: [{ type: 'content', text: '你是一个测试助手' }]
-            }
-          ]
-        }
-      ]
-    }
+              children: [{ type: 'content', text: '你是一个测试助手' }],
+            },
+          ],
+        },
+      ],
+    },
   }),
   process: vi.fn().mockImplementation(ast => Promise.resolve(ast)),
   DPMLError: class DPMLError extends Error {
@@ -152,7 +159,7 @@ vi.mock('@dpml/core', () => ({
       this.code = code;
       this.details = details;
     }
-  }
+  },
 }));
 
 // 模拟记忆工厂
@@ -160,9 +167,9 @@ vi.mock('../../memory/AgentMemoryFactory', () => ({
   AgentMemoryFactory: {
     create: vi.fn().mockReturnValue({
       addMemory: vi.fn(),
-      getMemories: vi.fn().mockResolvedValue([])
-    })
-  }
+      getMemories: vi.fn().mockResolvedValue([]),
+    }),
+  },
 }));
 
 // 模拟事件系统
@@ -170,18 +177,18 @@ vi.mock('../../events', () => ({
   getGlobalEventSystem: vi.fn().mockReturnValue({
     on: vi.fn(),
     off: vi.fn(),
-    emit: vi.fn()
-  })
+    emit: vi.fn(),
+  }),
 }));
 
 describe('AgentFactory', () => {
   let mockAgent: Agent;
-  
+
   // 在每个测试前重置模拟和缓存
   beforeEach(() => {
     vi.resetAllMocks();
     AgentFactory.clearCache();
-    
+
     // 创建模拟agent对象
     mockAgent = {
       getId: vi.fn().mockReturnValue('test-agent'),
@@ -192,20 +199,20 @@ describe('AgentFactory', () => {
         response: {
           text: '这是一个测试响应',
           timestamp: new Date().toISOString(),
-          usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 }
-        }
+          usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
+        },
       }),
       executeStream: vi.fn().mockImplementation(async function* () {
         yield {
           text: '这是一个测试响应',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
       }),
       interrupt: vi.fn().mockResolvedValue(true),
       reset: vi.fn().mockResolvedValue(true),
-      getState: vi.fn().mockResolvedValue({})
+      getState: vi.fn().mockResolvedValue({}),
     };
-    
+
     // 模拟AgentFactory.createAgent返回模拟agent
     vi.spyOn(AgentFactory, 'createAgent').mockResolvedValue(mockAgent);
   });
@@ -218,8 +225,8 @@ describe('AgentFactory', () => {
       executionConfig: {
         defaultModel: 'gpt-4',
         apiType: 'openai',
-        systemPrompt: '你是一个助手'
-      }
+        systemPrompt: '你是一个助手',
+      },
     };
 
     // 调用工厂方法
@@ -239,7 +246,7 @@ describe('AgentFactory', () => {
     // 设置自定义agent属性
     (mockAgent.getId as any).mockReturnValue('custom-agent');
     (mockAgent.getVersion as any).mockReturnValue('2.0');
-    
+
     // 准备文件存储配置
     const config: AgentFactoryConfig = {
       id: 'custom-agent',
@@ -247,10 +254,10 @@ describe('AgentFactory', () => {
       executionConfig: {
         defaultModel: 'gpt-4',
         apiType: 'openai',
-        systemPrompt: '你是一个助手'
+        systemPrompt: '你是一个助手',
       },
       stateManagerType: 'file',
-      basePath: '/tmp/agent-data'
+      basePath: '/tmp/agent-data',
     };
 
     // 调用工厂方法
@@ -259,7 +266,7 @@ describe('AgentFactory', () => {
     // 验证配置传递
     expect(agent.getId()).toBe('custom-agent');
     expect(agent.getVersion()).toBe('2.0');
-    
+
     // 验证模拟被正确设置
     expect(AgentFactory.createAgent).toHaveBeenCalledWith(config);
   });
@@ -272,8 +279,8 @@ describe('AgentFactory', () => {
       executionConfig: {
         defaultModel: 'gpt-4',
         apiType: 'openai',
-        systemPrompt: '你是一个测试助手'
-      }
+        systemPrompt: '你是一个测试助手',
+      },
     };
 
     // 第一次调用
@@ -288,28 +295,34 @@ describe('AgentFactory', () => {
 
   it('应该正确处理错误', async () => {
     // 修改无效配置，确保创建的错误有code属性
-    const invalidConfigError = new Error('配置无效，缺少必要参数') as Error & {code?: string};
+    const invalidConfigError = new Error('配置无效，缺少必要参数') as Error & {
+      code?: string;
+    };
+
     invalidConfigError.code = AgentErrorCode.EXECUTION_ERROR;
-    const invalidApiError = new Error('无效的API类型') as Error & {code?: string};
+    const invalidApiError = new Error('无效的API类型') as Error & {
+      code?: string;
+    };
+
     invalidApiError.code = AgentErrorCode.INVALID_API_URL;
-    
+
     // 清空之前的mock
     (AgentFactory.createAgent as any).mockReset();
-    
+
     // 第一次调用抛出配置错误
     (AgentFactory.createAgent as any).mockRejectedValueOnce(invalidConfigError);
-    
+
     // 第二次调用抛出API错误
     (AgentFactory.createAgent as any).mockRejectedValueOnce(invalidApiError);
-    
+
     // 准备无效配置 - 缺少id
     const invalidConfig: any = {
       version: '1.0',
       executionConfig: {
         defaultModel: 'gpt-4',
         apiType: 'openai',
-        systemPrompt: '你是一个测试助手'
-      }
+        systemPrompt: '你是一个测试助手',
+      },
     };
 
     // 验证创建失败并提供明确错误信息 - 使用try/catch代替expect.rejects
@@ -328,10 +341,10 @@ describe('AgentFactory', () => {
       executionConfig: {
         defaultModel: 'gpt-4',
         apiType: 'invalid-api' as any,
-        systemPrompt: '你是一个测试助手'
-      }
+        systemPrompt: '你是一个测试助手',
+      },
     };
-    
+
     // 验证创建失败并提供明确错误信息
     try {
       await AgentFactory.createAgent(invalidConfig2);

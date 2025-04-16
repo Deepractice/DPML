@@ -63,4 +63,4 @@ import { stringUtils } from '@dpml/common/utils';
 
 ## 贡献
 
-如果您想为@dpml/common包做出贡献，请查看项目的[贡献指南](../../CONTRIBUTING.md)。 
+如果您想为@dpml/common包做出贡献，请查看项目的[贡献指南](../../CONTRIBUTING.md)。

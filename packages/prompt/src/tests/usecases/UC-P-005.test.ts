@@ -1,6 +1,8 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
+
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+
 import { generatePrompt } from '../..';
 
 describe('UC-P-005: 多语言提示测试', () => {
@@ -12,6 +14,7 @@ describe('UC-P-005: 多语言提示测试', () => {
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
+
     // 确保测试目录存在
     if (!fs.existsSync(testDir)) {
       fs.mkdirSync(testDir, { recursive: true });
@@ -49,13 +52,18 @@ describe('UC-P-005: 多语言提示测试', () => {
 
     // 保存测试DPML到文件
     const dpmlFilePathChinese = path.join(testDir, 'language-tutor-zh.dpml');
+
     fs.writeFileSync(dpmlFilePathChinese, dpmlContentChinese);
 
     // 生成中文提示文本
     const promptChinese = await generatePrompt(dpmlFilePathChinese);
-    
+
     // 保存生成的提示到输出文件
-    const outputPathChinese = path.join(outputDir, 'language-tutor-zh-output.txt');
+    const outputPathChinese = path.join(
+      outputDir,
+      'language-tutor-zh-output.txt'
+    );
+
     fs.writeFileSync(outputPathChinese, promptChinese);
 
     // 验证生成的中文提示内容
@@ -99,19 +107,24 @@ describe('UC-P-005: 多语言提示测试', () => {
 
     // 保存测试DPML到文件
     const dpmlFilePathEnglish = path.join(testDir, 'language-tutor-en.dpml');
+
     fs.writeFileSync(dpmlFilePathEnglish, dpmlContentEnglish);
 
     // 生成英文提示文本
     const promptEnglish = await generatePrompt(dpmlFilePathEnglish);
-    
+
     // 保存生成的提示到输出文件
-    const outputPathEnglish = path.join(outputDir, 'language-tutor-en-output.txt');
+    const outputPathEnglish = path.join(
+      outputDir,
+      'language-tutor-en-output.txt'
+    );
+
     fs.writeFileSync(outputPathEnglish, promptEnglish);
 
     // 验证生成的英文提示内容
     expect(promptEnglish).toContain('Language tutor');
     expect(promptEnglish).toContain('improve their language skills');
-    expect(promptEnglish).toContain('Analyze the student\'s language level');
+    expect(promptEnglish).toContain("Analyze the student's language level");
     // 验证英文格式（根据实际输出调整）
     expect(promptEnglish).toContain('角色');
     expect(promptEnglish).toContain('思维框架');
@@ -121,4 +134,4 @@ describe('UC-P-005: 多语言提示测试', () => {
   afterAll(() => {
     // 可以在这里添加清理代码，如果需要的话
   });
-}); 
+});

@@ -1,7 +1,8 @@
-import { TransformContext } from '../interfaces/transformContext';
 import { ProcessedDocument } from '../../processor/interfaces/processor';
-import { TransformOptions } from '../interfaces/transformOptions';
-import { Document } from '../../types/node';
+
+import type { Document } from '../../types/node';
+import type { TransformContext } from '../interfaces/transformContext';
+import type { TransformOptions } from '../interfaces/transformOptions';
 
 /**
  * 上下文管理器，负责创建和管理转换上下文
@@ -13,7 +14,10 @@ export class ContextManager {
    * @param options 转换选项
    * @returns 根上下文
    */
-  createRootContext(document: Document, options: TransformOptions): TransformContext {
+  createRootContext(
+    document: Document,
+    options: TransformOptions
+  ): TransformContext {
     return {
       document,
       options,
@@ -21,10 +25,10 @@ export class ContextManager {
       variables: { ...options.variables },
       path: [],
       parentResults: [],
-      nested: new Map()
+      nested: new Map(),
     };
   }
-  
+
   /**
    * 创建子上下文
    * @param parentContext 父上下文
@@ -42,12 +46,12 @@ export class ContextManager {
       path: [...parentContext.path, pathElement],
       variables: {
         ...parentContext.variables,
-        ...(variables || {})
+        ...(variables || {}),
       },
-      parentResults: [...parentContext.parentResults]
+      parentResults: [...parentContext.parentResults],
     };
   }
-  
+
   /**
    * 添加结果到上下文
    * @param context 上下文
@@ -57,10 +61,10 @@ export class ContextManager {
   addResult(context: TransformContext, result: any): TransformContext {
     return {
       ...context,
-      parentResults: [...context.parentResults, result]
+      parentResults: [...context.parentResults, result],
     };
   }
-  
+
   /**
    * 获取当前路径位置
    * @param context 上下文
@@ -70,10 +74,10 @@ export class ContextManager {
     if (context.path.length === 0) {
       return undefined;
     }
-    
+
     return context.path[context.path.length - 1];
   }
-  
+
   /**
    * 获取父路径位置
    * @param context 上下文
@@ -83,20 +87,23 @@ export class ContextManager {
     if (context.path.length < 2) {
       return undefined;
     }
-    
+
     return context.path[context.path.length - 2];
   }
-  
+
   /**
    * 获取路径标识符
    * @param context 上下文
    * @param separator 分隔符
    * @returns 路径标识符
    */
-  getPathIdentifier(context: TransformContext, separator: string = '/'): string {
+  getPathIdentifier(
+    context: TransformContext,
+    separator: string = '/'
+  ): string {
     return context.path.join(separator);
   }
-  
+
   /**
    * 检查上下文路径是否包含指定元素
    * @param context 上下文
@@ -106,7 +113,7 @@ export class ContextManager {
   pathContains(context: TransformContext, element: string): boolean {
     return context.path.includes(element);
   }
-  
+
   /**
    * 获取路径元素的索引
    * @param pathElement 路径元素
@@ -114,12 +121,14 @@ export class ContextManager {
    */
   getElementIndex(pathElement: string): number | undefined {
     const matches = pathElement.match(/\[(\d+)\]/);
+
     if (matches && matches.length > 1) {
       return parseInt(matches[1], 10);
     }
+
     return undefined;
   }
-  
+
   /**
    * 获取路径元素的名称（不含索引或标识符）
    * @param pathElement 路径元素
@@ -128,7 +137,7 @@ export class ContextManager {
   getElementName(pathElement: string): string {
     return pathElement.replace(/\[[^\]]*\]/, '');
   }
-  
+
   /**
    * 获取路径元素的标识符
    * @param pathElement 路径元素
@@ -136,12 +145,14 @@ export class ContextManager {
    */
   getElementIdentifier(pathElement: string): string | undefined {
     const matches = pathElement.match(/\[([^\d][^\]]*)\]/);
+
     if (matches && matches.length > 1) {
       return matches[1];
     }
+
     return undefined;
   }
-  
+
   /**
    * 设置变量
    * @param context 上下文
@@ -149,22 +160,26 @@ export class ContextManager {
    * @param value 变量值
    * @returns 更新后的上下文
    */
-  setVariable(context: TransformContext, name: string, value: any): TransformContext {
+  setVariable(
+    context: TransformContext,
+    name: string,
+    value: any
+  ): TransformContext {
     // 创建新的上下文，保留嵌套结构
     const updatedContext: TransformContext = {
       ...context,
       variables: {
         ...context.variables,
-        [name]: value
+        [name]: value,
       },
       // 保留现有的嵌套结构和父引用
       parent: context.parent,
-      nested: context.nested
+      nested: context.nested,
     };
 
     return updatedContext;
   }
-  
+
   /**
    * 获取变量
    * @param context 上下文
@@ -174,40 +189,43 @@ export class ContextManager {
    * @returns 变量值
    */
   getVariable(
-    context: TransformContext, 
-    name: string, 
-    defaultValue?: any, 
+    context: TransformContext,
+    name: string,
+    defaultValue?: any,
     searchParent: boolean = true
   ): any {
     // 首先在当前上下文中查找
     if (name in context.variables) {
       return context.variables[name];
     }
-    
+
     // 如果允许搜索父上下文且存在父上下文，则在父上下文中查找
     if (searchParent && context.parent) {
       return this.getVariable(context.parent, name, defaultValue);
     }
-    
+
     return defaultValue;
   }
-  
+
   /**
    * 批量设置变量
    * @param context 上下文
    * @param variables 变量映射
    * @returns 更新后的上下文
    */
-  setVariables(context: TransformContext, variables: Record<string, any>): TransformContext {
+  setVariables(
+    context: TransformContext,
+    variables: Record<string, any>
+  ): TransformContext {
     return {
       ...context,
       variables: {
         ...context.variables,
-        ...variables
-      }
+        ...variables,
+      },
     };
   }
-  
+
   /**
    * 创建新的上下文副本
    * @param context 原上下文
@@ -219,34 +237,40 @@ export class ContextManager {
       variables: { ...context.variables },
       path: [...context.path],
       parentResults: [...context.parentResults],
-      output: { ...context.output }
+      output: { ...context.output },
     };
   }
-  
+
   /**
    * 获取指定类型的父结果
    * @param context 上下文
    * @param type 结果类型
    * @returns 匹配的结果或undefined
    */
-  getParentResultByType(context: TransformContext, type: string): any | undefined {
+  getParentResultByType(
+    context: TransformContext,
+    type: string
+  ): any | undefined {
     return context.parentResults.find(result => result.type === type);
   }
-  
+
   /**
    * 获取指定索引的父结果
    * @param context 上下文
    * @param index 索引
    * @returns 结果或undefined
    */
-  getParentResultByIndex(context: TransformContext, index: number): any | undefined {
+  getParentResultByIndex(
+    context: TransformContext,
+    index: number
+  ): any | undefined {
     if (index < 0 || index >= context.parentResults.length) {
       return undefined;
     }
-    
+
     return context.parentResults[index];
   }
-  
+
   /**
    * 获取最近的父结果
    * @param context 上下文
@@ -256,10 +280,10 @@ export class ContextManager {
     if (context.parentResults.length === 0) {
       return undefined;
     }
-    
+
     return context.parentResults[context.parentResults.length - 1];
   }
-  
+
   /**
    * 获取所有指定类型的父结果
    * @param context 上下文
@@ -269,7 +293,7 @@ export class ContextManager {
   getAllParentResultsByType(context: TransformContext, type: string): any[] {
     return context.parentResults.filter(result => result.type === type);
   }
-  
+
   /**
    * 检查是否有指定类型的父结果
    * @param context 上下文
@@ -279,7 +303,7 @@ export class ContextManager {
   hasParentResultOfType(context: TransformContext, type: string): boolean {
     return context.parentResults.some(result => result.type === type);
   }
-  
+
   /**
    * 通过路径获取对应父结果
    * @param context 上下文
@@ -288,16 +312,21 @@ export class ContextManager {
    */
   getParentResultsByPath(context: TransformContext): Record<string, any> {
     const result: Record<string, any> = {};
-    
+
     // 将路径和父结果组合
-    for (let i = 0; i < context.path.length && i < context.parentResults.length; i++) {
+    for (
+      let i = 0;
+      i < context.path.length && i < context.parentResults.length;
+      i++
+    ) {
       const pathSegment = context.path[i];
+
       result[pathSegment] = context.parentResults[i];
     }
-    
+
     return result;
   }
-  
+
   /**
    * 合并父结果链
    * @param parentResults1 第一条父结果链
@@ -306,14 +335,14 @@ export class ContextManager {
    */
   mergeParentResults(parentResults1: any[], parentResults2: any[]): any[] {
     const merged = [...parentResults1];
-    
+
     // 合并第二条链的结果，避免重复
     for (const result of parentResults2) {
       if (!merged.includes(result)) {
         merged.push(result);
       }
     }
-    
+
     return merged;
   }
 
@@ -341,11 +370,13 @@ export class ContextManager {
 
     // 处理对象
     const result = {} as T;
+
     for (const key in obj) {
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
         result[key] = this.deepCloneObject(obj[key]);
       }
     }
+
     return result;
   }
 
@@ -363,7 +394,7 @@ export class ContextManager {
       variables: this.deepCloneObject(context.variables),
       path: this.deepCloneObject(context.path),
       parentResults: this.deepCloneObject(context.parentResults),
-      output: this.deepCloneObject(context.output)
+      output: this.deepCloneObject(context.output),
     };
   }
 
@@ -391,12 +422,12 @@ export class ContextManager {
       output: {},
       variables: {
         ...parentContext.variables,
-        ...(variables || {})
+        ...(variables || {}),
       },
       path: [...parentContext.path, pathElement],
       parentResults: [...parentContext.parentResults],
       parent: parentContext,
-      nested: new Map()
+      nested: new Map(),
     };
 
     // 将子上下文添加到父上下文的嵌套集合中
@@ -411,7 +442,10 @@ export class ContextManager {
    * @param level 祖先层级（0表示当前上下文，1表示父上下文，依此类推）
    * @returns 祖先上下文或undefined
    */
-  getAncestorContext(context: TransformContext, level: number): TransformContext | undefined {
+  getAncestorContext(
+    context: TransformContext,
+    level: number
+  ): TransformContext | undefined {
     if (level === 0) {
       return context;
     }
@@ -429,13 +463,17 @@ export class ContextManager {
    * @param pathElement 路径元素名称
    * @returns 匹配的祖先上下文或undefined
    */
-  getAncestorContextByPathElement(context: TransformContext, pathElement: string): TransformContext | undefined {
+  getAncestorContextByPathElement(
+    context: TransformContext,
+    pathElement: string
+  ): TransformContext | undefined {
     if (!context.parent) {
       return undefined;
     }
 
     // 检查父上下文的路径最后一个元素是否匹配
     const parentPathElement = this.getCurrentPathElement(context.parent);
+
     if (parentPathElement === pathElement) {
       return context.parent;
     }
@@ -468,12 +506,13 @@ export class ContextManager {
         parentResults: [...childContext.parentResults],
         output: { ...childContext.output }, // 保留子上下文的输出
         parent: context, // 更新父引用指向新的父上下文
-        nested: childContext.nested ? new Map(childContext.nested) : new Map()
+        nested: childContext.nested ? new Map(childContext.nested) : new Map(),
       };
 
       // 递归更新子上下文的子上下文
       if (updatedChild.nested && updatedChild.nested.size > 0) {
         const nestedUpdated = this.propagateChange(updatedChild);
+
         updatedChild.nested = nestedUpdated;
       }
 
@@ -500,32 +539,38 @@ export class ContextManager {
   getResultsByPath(context: TransformContext): Record<string, any> {
     const result: Record<string, any> = {};
     let currentContext: TransformContext | undefined = context;
-    
+
     // 从当前上下文开始逐层向上，收集路径和结果
     while (currentContext) {
       const currentPath = currentContext.path;
+
       if (currentPath.length > 0) {
         // 获取当前上下文的路径元素
         const pathElement = this.getCurrentPathElement(currentContext);
+
         if (pathElement) {
           const elementName = this.getElementName(pathElement);
           // 获取当前上下文的最近结果
           const latestResult = this.getLatestParentResult(currentContext);
+
           if (latestResult) {
             result[elementName] = latestResult;
           }
         }
       }
-      
+
       // 如果是根上下文但有结果，添加document键
-      if (currentContext.path.length === 0 && currentContext.parentResults.length > 0) {
+      if (
+        currentContext.path.length === 0 &&
+        currentContext.parentResults.length > 0
+      ) {
         result['document'] = currentContext.parentResults[0];
       }
-      
+
       // 向上移动到父上下文
       currentContext = currentContext.parent;
     }
-    
+
     return result;
   }
 
@@ -544,13 +589,14 @@ export class ContextManager {
       path: [...context.path],
       parentResults: this.deepCloneObject(context.parentResults),
       parent: context.parent, // 保持原始父引用
-      nested: new Map() // 确保nested一定存在
+      nested: new Map(), // 确保nested一定存在
     };
 
     // 递归克隆嵌套上下文
     if (context.nested && context.nested.size > 0) {
       for (const [key, nestedContext] of context.nested.entries()) {
         const clonedNested = this.deepCloneNestedContext(nestedContext);
+
         clonedNested.parent = cloned; // 更新父引用指向克隆后的上下文
         // 使用类型断言告诉TypeScript，我们确定cloned.nested存在
         (cloned.nested as Map<string, TransformContext>).set(key, clonedNested);
@@ -559,4 +605,4 @@ export class ContextManager {
 
     return cloned;
   }
-} 
+}

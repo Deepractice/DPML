@@ -68,18 +68,18 @@ const logger = createLogger('prompt:parser');
 export class PromptParser {
   parse(content: string) {
     logger.debug('开始解析提示词模板');
-    
+
     // 使用工具函数
     if (stringUtils.isEmpty(content)) {
       logger.warn('提示词模板为空');
       return null;
     }
-    
+
     // 处理路径
     const normalizedPath = pathUtils.normalize(templatePath);
-    
+
     // 业务逻辑...
-    
+
     logger.info('提示词模板解析完成');
     return result;
   }
@@ -99,16 +99,19 @@ const logger = createLogger('agent:llm-client');
 
 export class LLMClient {
   constructor(private httpClient: HttpClient) {}
-  
+
   async complete(prompt: string) {
     logger.debug('发送请求到LLM API');
-    
+
     try {
-      const response = await this.httpClient.post('https://api.example.com/v1/complete', {
-        prompt,
-        max_tokens: 1000
-      });
-      
+      const response = await this.httpClient.post(
+        'https://api.example.com/v1/complete',
+        {
+          prompt,
+          max_tokens: 1000,
+        }
+      );
+
       return response.data;
     } catch (error) {
       logger.error('LLM API请求失败', { error });
@@ -131,15 +134,15 @@ const logger = createLogger('cli:validate');
 
 export async function validateCommand(filePath: string, fs: FileSystem) {
   logger.info(`验证文件: ${filePath}`);
-  
+
   if (!(await fs.exists(filePath))) {
     logger.error(`文件不存在: ${filePath}`);
     return 1;
   }
-  
+
   const content = await fs.readFile(filePath, 'utf-8');
   // 验证逻辑...
-  
+
   logger.info('验证成功');
   return 0;
 }
@@ -150,37 +153,41 @@ export async function validateCommand(filePath: string, fs: FileSystem) {
 ### 日志系统集成
 
 1. **创建包专用日志记录器**：
+
    ```typescript
    // 为每个模块创建单独的日志记录器
    const logger = createLogger('package-name:module-name');
    ```
 
 2. **统一日志配置**：
+
    ```typescript
    // 在应用入口点配置
    import { configureLogger, LogLevel } from '@dpml/common/logger';
-   
+
    configureLogger({
-     level: process.env.NODE_ENV === 'production' ? LogLevel.INFO : LogLevel.DEBUG
+     level:
+       process.env.NODE_ENV === 'production' ? LogLevel.INFO : LogLevel.DEBUG,
    });
    ```
 
 3. **结构化日志**：
    ```typescript
    // 添加上下文信息
-   logger.info('用户操作', { 
-     userId: user.id, 
-     action: 'login', 
-     timestamp: new Date().toISOString() 
+   logger.info('用户操作', {
+     userId: user.id,
+     action: 'login',
+     timestamp: new Date().toISOString(),
    });
    ```
 
 ### 错误处理集成
 
 1. **使用标准错误类型**：
+
    ```typescript
    import { createDPMLError, DPMLErrorCode } from '@dpml/common/types';
-   
+
    function readConfig(path: string) {
      if (!fs.existsSync(path)) {
        throw createDPMLError(
@@ -193,15 +200,18 @@ export async function validateCommand(filePath: string, fs: FileSystem) {
    ```
 
 2. **使用Result类型处理可能的错误**：
+
    ```typescript
    import { Result, success, failure } from '@dpml/common/types';
-   
+
    async function processFile(path: string): Promise<Result<string, Error>> {
      try {
        const content = await fs.readFile(path, 'utf-8');
        return success(content);
      } catch (error) {
-       return failure(error instanceof Error ? error : new Error(String(error)));
+       return failure(
+         error instanceof Error ? error : new Error(String(error))
+       );
      }
    }
    ```
@@ -209,34 +219,36 @@ export async function validateCommand(filePath: string, fs: FileSystem) {
 ### 测试工具集成
 
 1. **使用模拟对象**：
+
    ```typescript
    import { createMockFileSystem } from '@dpml/common/testing';
-   
+
    describe('配置加载器', () => {
      it('应正确加载配置文件', async () => {
        const mockFs = createMockFileSystem({
-         '/app/config.json': '{"debug": true}'
+         '/app/config.json': '{"debug": true}',
        });
-       
+
        const loader = new ConfigLoader(mockFs);
        const config = await loader.load('/app/config.json');
-       
+
        expect(config.debug).toBe(true);
      });
    });
    ```
 
 2. **测试断言辅助**：
+
    ```typescript
    import { assertStructure } from '@dpml/common/testing';
-   
+
    test('用户对象应有正确的结构', () => {
      const user = createUser('test@example.com');
-     
+
      assertStructure(user, {
        id: 'string',
        email: 'string',
-       created: 'object' // Date类型
+       created: 'object', // Date类型
      });
    });
    ```
@@ -292,4 +304,4 @@ if (platformUtils.isNode()) {
 - [日志系统文档](./logger/README.md)
 - [测试工具文档](./testing/README.md)
 - [工具函数文档](./utils/README.md)
-- [类型定义文档](./types/README.md) 
+- [类型定义文档](./types/README.md)

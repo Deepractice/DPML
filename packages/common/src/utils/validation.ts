@@ -1,6 +1,6 @@
 /**
  * 验证工具模块
- * 
+ *
  * 提供数据验证、类型检查等功能。
  */
 
@@ -74,6 +74,7 @@ export function isArray(value: unknown): value is unknown[] {
  */
 export function isEmail(value: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   return emailRegex.test(value);
 }
 
@@ -85,6 +86,7 @@ export function isEmail(value: string): boolean {
 export function isUrl(value: string): boolean {
   try {
     new URL(value);
+
     return true;
   } catch {
     return false;
@@ -98,11 +100,13 @@ export function isUrl(value: string): boolean {
  */
 export function isIpAddress(value: string): boolean {
   // IPv4正则表达式
-  const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-  
+  const ipv4Regex =
+    /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+
   // IPv6正则表达式(简化版)
-  const ipv6Regex = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^([0-9a-fA-F]{1,4}:){0,6}::([0-9a-fA-F]{1,4}:){0,6}[0-9a-fA-F]{1,4}$/;
-  
+  const ipv6Regex =
+    /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^([0-9a-fA-F]{1,4}:){0,6}::([0-9a-fA-F]{1,4}:){0,6}[0-9a-fA-F]{1,4}$/;
+
   return ipv4Regex.test(value) || ipv6Regex.test(value);
 }
 
@@ -133,7 +137,10 @@ export function hasProperty<T>(obj: T, prop: PropertyKey): prop is keyof T {
  * @param message 错误消息
  * @throws 如果条件为false则抛出错误
  */
-export function assert(condition: boolean, message = 'Assertion failed'): asserts condition {
+export function assert(
+  condition: boolean,
+  message = 'Assertion failed'
+): asserts condition {
   if (!condition) {
     throw new Error(message);
   }
@@ -165,5 +172,5 @@ export const validationUtils = {
   inRange,
   hasProperty,
   assert,
-  isAlphanumeric
-}; 
+  isAlphanumeric,
+};

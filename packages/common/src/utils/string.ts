@@ -41,6 +41,7 @@ export function ensureStartsWith(str: string, char: string): string {
  */
 export function truncate(str: string, maxLength: number): string {
   if (str.length <= maxLength) return str;
+
   return str.substring(0, maxLength - 3) + '...';
 }
 
@@ -52,7 +53,7 @@ export function truncate(str: string, maxLength: number): string {
 export function toCamelCase(str: string): string {
   return str
     .replace(/[-_\s]+(.)?/g, (_, c) => (c ? c.toUpperCase() : ''))
-    .replace(/^(.)/, (c) => c.toLowerCase());
+    .replace(/^(.)/, c => c.toLowerCase());
 }
 
 /**
@@ -62,6 +63,7 @@ export function toCamelCase(str: string): string {
  */
 export function toPascalCase(str: string): string {
   const camelCase = toCamelCase(str);
+
   return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
 }
 
@@ -96,9 +98,8 @@ export function toSnakeCase(str: string): string {
  * @returns 格式化后的字符串
  */
 export function format(template: string, values: Record<string, any>): string {
-  return template.replace(
-    /{([^{}]+)}/g,
-    (_, key) => String(values[key.trim()] ?? `{${key}}`)
+  return template.replace(/{([^{}]+)}/g, (_, key) =>
+    String(values[key.trim()] ?? `{${key}}`)
   );
 }
 
@@ -113,9 +114,10 @@ export function escapeHtml(str: string): string {
     '<': '&lt;',
     '>': '&gt;',
     '"': '&quot;',
-    "'": '&#39;'
+    "'": '&#39;',
   };
-  return str.replace(/[&<>"']/g, (match) => htmlEscapes[match]);
+
+  return str.replace(/[&<>"']/g, match => htmlEscapes[match]);
 }
 
 /**
@@ -134,8 +136,10 @@ class SimpleURLSearchParams {
 
     // 解析查询参数
     const pairs = queryString.split('&');
+
     for (const pair of pairs) {
       const [key, value] = pair.split('=');
+
       if (key) {
         this.params.set(
           decodeURIComponent(key),
@@ -186,9 +190,11 @@ class SimpleURLSearchParams {
    */
   toString(): string {
     const pairs: string[] = [];
+
     this.params.forEach((value, key) => {
       pairs.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
     });
+
     return pairs.join('&');
   }
 }
@@ -216,6 +222,7 @@ export function parseUrl(url: string): {
   if (typeof URL !== 'undefined') {
     try {
       const parsedUrl = new URL(url);
+
       return {
         protocol: parsedUrl.protocol,
         host: parsedUrl.host,
@@ -225,7 +232,7 @@ export function parseUrl(url: string): {
         search: parsedUrl.search,
         hash: parsedUrl.hash,
         origin: parsedUrl.origin,
-        searchParams: parsedUrl.searchParams
+        searchParams: parsedUrl.searchParams,
       };
     } catch (error) {
       // URL解析失败，使用备用方法
@@ -233,7 +240,9 @@ export function parseUrl(url: string): {
   }
 
   // 备用方法：手动解析URL
-  const match = url.match(/^(?:(https?:)\/\/)?([^:\/\s]+)(?::(\d+))?((?:\/[^\s/]+)*)?(?:\?([^\s#]*))?(#.*)?$/);
+  const match = url.match(
+    /^(?:(https?:)\/\/)?([^:\/\s]+)(?::(\d+))?((?:\/[^\s/]+)*)?(?:\?([^\s#]*))?(#.*)?$/
+  );
 
   if (!match) {
     throw new Error(`Invalid URL: ${url}`);
@@ -260,7 +269,7 @@ export function parseUrl(url: string): {
     search,
     hash,
     origin,
-    searchParams
+    searchParams,
   };
 }
 
@@ -278,5 +287,5 @@ export const stringUtils = {
   toSnakeCase,
   format,
   escapeHtml,
-  parseUrl
+  parseUrl,
 };

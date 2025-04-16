@@ -1,6 +1,7 @@
-import { AgentMemory, AgentMemoryOptions } from './types';
-import { InMemoryAgentMemory } from './InMemoryAgentMemory';
 import { FileSystemAgentMemory } from './FileSystemAgentMemory';
+import { InMemoryAgentMemory } from './InMemoryAgentMemory';
+
+import type { AgentMemory, AgentMemoryOptions } from './types';
 
 /**
  * 代理记忆管理器工厂
@@ -20,20 +21,21 @@ export class AgentMemoryFactory {
 
     // 根据类型创建不同的存储实现
     const type = options.type || 'memory';
-    
+
     switch (type) {
       case 'memory':
         return new InMemoryAgentMemory(options);
-      
+
       case 'file':
         // 确保文件系统存储有基础路径
         if (!options.basePath) {
           throw new Error('FileSystemAgentMemory requires basePath option');
         }
+
         return new FileSystemAgentMemory(options);
-      
+
       default:
         throw new Error(`Unknown memory type: ${type}`);
     }
   }
-} 
+}

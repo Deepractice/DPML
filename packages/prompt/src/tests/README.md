@@ -47,4 +47,4 @@ packages/prompt/
     ├── migrate-tests.sh
     ├── fix-imports.sh
     └── fix-integration-tests.sh
-``` 
+```

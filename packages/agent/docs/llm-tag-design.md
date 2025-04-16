@@ -10,13 +10,13 @@
 
 ```xml
 <agent id="assistant">
-  <llm 
-    api-type="openai" 
+  <llm
+    api-type="openai"
     api-url="https://api.openai.com/v1"
-    model="gpt-4-turbo" 
+    model="gpt-4-turbo"
     key-env="OPENAI_API_KEY"
   />
-  
+
   <prompt>
     <!-- 系统提示词内容 -->
   </prompt>
@@ -27,12 +27,12 @@
 
 ### 2.1 核心属性（首版实现）
 
-| 属性名 | 描述 | 类型 | 必填 | 默认值 | 示例 |
-|--------|------|------|------|--------|------|
-| `api-type` | API规范/协议类型 | 字符串 | 否 | "openai" | `api-type="openai"` |
-| `api-url` | API端点URL | 字符串 | 是 | - | `api-url="https://api.openai.com/v1"` |
-| `model` | 模型标识符 | 字符串 | 是 | - | `model="gpt-4-turbo"` |
-| `key-env` | 存储API密钥的环境变量名 | 字符串 | 否¹ | - | `key-env="OPENAI_API_KEY"` |
+| 属性名     | 描述                    | 类型   | 必填 | 默认值   | 示例                                  |
+| ---------- | ----------------------- | ------ | ---- | -------- | ------------------------------------- |
+| `api-type` | API规范/协议类型        | 字符串 | 否   | "openai" | `api-type="openai"`                   |
+| `api-url`  | API端点URL              | 字符串 | 是   | -        | `api-url="https://api.openai.com/v1"` |
+| `model`    | 模型标识符              | 字符串 | 是   | -        | `model="gpt-4-turbo"`                 |
+| `key-env`  | 存储API密钥的环境变量名 | 字符串 | 否¹  | -        | `key-env="OPENAI_API_KEY"`            |
 
 ¹ 当API需要认证时，此属性为必填。如果使用本地无需认证的模型，可以省略此属性。
 
@@ -76,12 +76,12 @@
 
 ```xml
 <agent id="simple-assistant">
-  <llm 
+  <llm
     api-url="https://api.openai.com/v1"
-    model="gpt-4-turbo" 
+    model="gpt-4-turbo"
     key-env="OPENAI_API_KEY"
   />
-  
+
   <prompt>
     你是一个有帮助的助手，请简明扼要地回答问题。
   </prompt>
@@ -98,7 +98,7 @@
     model="gpt-4"
     key-env="AZURE_OPENAI_KEY"
   />
-  
+
   <prompt>
     你是一个部署在Azure上的助手。
   </prompt>
@@ -114,7 +114,7 @@
     api-url="http://localhost:1234/v1"
     model="llama3"
   />
-  
+
   <prompt>
     你是一个本地部署的助手。
   </prompt>
@@ -135,19 +135,19 @@
       <param name="max-tokens" value="4000" />
       <param name="top-p" value="0.95" />
     </parameters>
-    
+
     <!-- 高级认证 - 未来扩展通过子标签实现 -->
     <auth type="oauth">
       <client-id-env>CLIENT_ID</client-id-env>
       <client-secret-env>CLIENT_SECRET</client-secret-env>
       <scope>model.read</scope>
     </auth>
-    
+
     <!-- 高级控制 -->
     <rate-limit max-requests="60" window="1m" />
     <fallback model="gpt-3.5-turbo" />
   </llm>
-  
+
   <prompt>...</prompt>
 </agent>
 ```
@@ -199,4 +199,4 @@
 
 ## 总结
 
-`<llm>` 标签为DPML Agent提供了连接大语言模型的核心功能。设计保持简洁性的同时，通过必填的`api-url`属性明确强调了用户对选择模型和服务提供商的控制权。认证机制采用简单的环境变量方式，而更复杂的认证需求将在未来通过专门的子标签实现，这样既满足了当前的基本使用场景，又保留了应对复杂需求的扩展能力。 
+`<llm>` 标签为DPML Agent提供了连接大语言模型的核心功能。设计保持简洁性的同时，通过必填的`api-url`属性明确强调了用户对选择模型和服务提供商的控制权。认证机制采用简单的环境变量方式，而更复杂的认证需求将在未来通过专门的子标签实现，这样既满足了当前的基本使用场景，又保留了应对复杂需求的扩展能力。

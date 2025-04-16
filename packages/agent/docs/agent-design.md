@@ -48,7 +48,7 @@ classDiagram
     }
     class DPMLCore {
     }
-    
+
     AgentFactory --> Agent: creates
     Agent --> LLMConnector: uses
     Agent --> MemorySystem: uses
@@ -75,37 +75,40 @@ graph TD
 
 #### 2.3.1 核心模块职责
 
-- **AgentFactory**: 
+- **AgentFactory**:
+
   - 创建Agent实例
   - 配置代理组件
   - 协调标签处理
 
-- **Agent**: 
+- **Agent**:
+
   - 管理代理生命周期
   - 处理输入和生成输出
   - 协调LLM和记忆子系统
   - 管理状态和事件
 
-- **LLMConnector**: 
+- **LLMConnector**:
+
   - 抽象LLM交互接口
   - 管理模型配置和认证
   - 处理请求和响应
 
-- **MemorySystem**: 
+- **MemorySystem**:
   - 管理对话上下文和会话状态
   - 提供记忆存储和检索接口
   - 支持基本的上下文窗口管理
 
 #### 2.3.2 职责边界
 
-| 职责 | Core包 | Prompt包 | Agent包 | 应用层 |
-|------|-------|---------|--------|--------|
-| XML解析与文档模型 | ✅ | ❌ | ❌ | ❌ |
-| 提示词处理 | ❌ | ✅ | ❌ | ❌ |
-| 代理标签处理 | ❌ | ❌ | ✅ | ❌ |
-| 代理运行时和状态管理 | ❌ | ❌ | ✅ | ❌ |
-| 上下文管理 | ❌ | ❌ | ✅ | ❌ |
-| 应用特定逻辑 | ❌ | ❌ | ❌ | ✅ |
+| 职责                 | Core包 | Prompt包 | Agent包 | 应用层 |
+| -------------------- | ------ | -------- | ------- | ------ |
+| XML解析与文档模型    | ✅     | ❌       | ❌      | ❌     |
+| 提示词处理           | ❌     | ✅       | ❌      | ❌     |
+| 代理标签处理         | ❌     | ❌       | ✅      | ❌     |
+| 代理运行时和状态管理 | ❌     | ❌       | ✅      | ❌     |
+| 上下文管理           | ❌     | ❌       | ✅      | ❌     |
+| 应用特定逻辑         | ❌     | ❌       | ❌      | ✅     |
 
 ## 3. 核心概念
 
@@ -137,10 +140,12 @@ Agent包定义了以下核心标签，构成了完整的代理框架：
 ### 3.3 标签嵌套规则
 
 标签嵌套遵循以下规则：
+
 - `<agent>` 是根标签，必须是文档的顶层元素
 - `<llm>` 和 `<prompt>` 是 `<agent>` 的必需直接子元素
 
 嵌套规则图：
+
 ```mermaid
 graph TD
     Agent[agent] --> LLM[llm]
@@ -156,7 +161,7 @@ interface AgentState {
   // 基础状态
   id: string;
   status: 'idle' | 'thinking' | 'executing' | 'done';
-  
+
   // 上下文状态
   conversation: Message[];
   metadata: Record<string, any>;
@@ -177,10 +182,10 @@ Agent包提供简洁而灵活的记忆系统抽象，用于管理代理的对话
 interface Memory {
   // 唯一标识符（通常是会话ID）
   id: string;
-  
+
   // 记忆内容（可以是任何类型）
   content: any;
-  
+
   // 元数据（提供扩展性）
   metadata?: Record<string, any>;
 }
@@ -192,10 +197,10 @@ interface Memory {
 interface MemoryItem {
   // 内容文本
   text: string;
-  
+
   // 角色（用户、助手、系统）
   role: 'user' | 'assistant' | 'system';
-  
+
   // 创建时间
   timestamp: number;
 }
@@ -207,10 +212,10 @@ interface MemoryItem {
 interface AgentMemory {
   // 存储记忆
   store(memory: Memory): Promise<void>;
-  
+
   // 检索会话记忆（返回单个Memory对象，其content通常是MemoryItem数组）
   retrieve(sessionId: string): Promise<Memory>;
-  
+
   // 清除特定会话的记忆
   clear(sessionId: string): Promise<void>;
 }
@@ -232,11 +237,13 @@ interface AgentMemory {
 作为根标签，定义整个代理的基本属性和元数据。
 
 #### 核心属性 (由@dpml/core提供):
+
 - **id**: 唯一标识符，用于引用和复用（Core通用属性）
 - **version**: 版本号（Core通用属性）
 - **extends**: 继承另一个代理定义，由Core包的继承处理机制实现（Core通用属性）
 
 #### 标签特有属性:
+
 - 当前版本未定义特有属性，保持简洁设计
 
 详细规范请参考 [agent-tag-design.md](./agent-tag-design.md)。
@@ -246,9 +253,11 @@ interface AgentMemory {
 定义大语言模型的连接方式和参数配置。
 
 #### 核心属性 (由@dpml/core提供):
+
 - **id**: 可选的唯一标识符（Core通用属性）
 
 #### 标签特有属性:
+
 - **api-type**: API规范/协议类型
 - **api-url**: API端点URL
 - **model**: 模型标识符
@@ -261,10 +270,12 @@ interface AgentMemory {
 定义代理的系统提示词，委托给@dpml/prompt包处理。
 
 #### 核心属性 (由@dpml/core提供):
+
 - **id**: 可选的唯一标识符（Core通用属性）
 - **extends**: 继承其他提示词定义，由Core包的继承处理机制实现（Core通用属性）
 
 #### 标签特有属性:
+
 - 提示词特有属性由@dpml/prompt包定义和处理
 
 详细规范请参考 [prompt-tag-design.md](./prompt-tag-design.md)。
@@ -291,11 +302,11 @@ Agent包提供基于内存的默认实现：
  */
 class InMemoryAgentMemory implements AgentMemory {
   private memories: Map<string, Memory> = new Map();
-  
+
   async store(memory: Memory): Promise<void> {
     this.memories.set(memory.id, memory);
   }
-  
+
   async retrieve(sessionId: string): Promise<Memory> {
     const memory = this.memories.get(sessionId);
     if (!memory) {
@@ -303,12 +314,12 @@ class InMemoryAgentMemory implements AgentMemory {
       return {
         id: sessionId,
         content: [] as MemoryItem[],
-        metadata: { created: Date.now() }
+        metadata: { created: Date.now() },
       };
     }
     return memory;
   }
-  
+
   async clear(sessionId: string): Promise<void> {
     this.memories.delete(sessionId);
   }
@@ -323,20 +334,24 @@ class InMemoryAgentMemory implements AgentMemory {
 
 ```typescript
 // 存储用户消息
-async function storeUserMessage(agentMemory: AgentMemory, sessionId: string, text: string): Promise<void> {
+async function storeUserMessage(
+  agentMemory: AgentMemory,
+  sessionId: string,
+  text: string
+): Promise<void> {
   // 首先获取现有记忆
   const memory = await agentMemory.retrieve(sessionId);
-  
+
   // 确保content是MemoryItem数组
   const items = Array.isArray(memory.content) ? memory.content : [];
-  
+
   // 添加新的记忆项
   items.push({
     text,
     role: 'user',
-    timestamp: Date.now()
+    timestamp: Date.now(),
   });
-  
+
   // 更新并存储记忆
   memory.content = items;
   await agentMemory.store(memory);
@@ -347,26 +362,28 @@ async function storeUserMessage(agentMemory: AgentMemory, sessionId: string, tex
 
 ```typescript
 // 构建LLM对话上下文
-async function buildConversationContext(agentMemory: AgentMemory, sessionId: string, systemPrompt: string): Promise<Message[]> {
+async function buildConversationContext(
+  agentMemory: AgentMemory,
+  sessionId: string,
+  systemPrompt: string
+): Promise<Message[]> {
   // 获取会话记忆
   const memory = await agentMemory.retrieve(sessionId);
-  
+
   // 确保content是MemoryItem数组
   const items = Array.isArray(memory.content) ? memory.content : [];
-  
+
   // 构建消息数组，首先添加系统提示
-  const messages: Message[] = [
-    { role: 'system', content: systemPrompt }
-  ];
-  
+  const messages: Message[] = [{ role: 'system', content: systemPrompt }];
+
   // 添加对话历史
   for (const item of items) {
     messages.push({
       role: item.role,
-      content: item.text
+      content: item.text,
     });
   }
-  
+
   return messages;
 }
 ```
@@ -383,7 +400,7 @@ async function buildConversationContext(agentMemory: AgentMemory, sessionId: str
  */
 class FileSystemAgentMemory implements AgentMemory {
   private basePath: string;
-  
+
   constructor(basePath: string) {
     this.basePath = basePath;
     // 确保目录存在
@@ -391,22 +408,19 @@ class FileSystemAgentMemory implements AgentMemory {
       fs.mkdirSync(basePath, { recursive: true });
     }
   }
-  
+
   private getFilePath(sessionId: string): string {
     return path.join(this.basePath, `${sessionId}.json`);
   }
-  
+
   async store(memory: Memory): Promise<void> {
     const filePath = this.getFilePath(memory.id);
-    await fs.promises.writeFile(
-      filePath, 
-      JSON.stringify(memory, null, 2)
-    );
+    await fs.promises.writeFile(filePath, JSON.stringify(memory, null, 2));
   }
-  
+
   async retrieve(sessionId: string): Promise<Memory> {
     const filePath = this.getFilePath(sessionId);
-    
+
     try {
       const data = await fs.promises.readFile(filePath, 'utf-8');
       return JSON.parse(data) as Memory;
@@ -415,11 +429,11 @@ class FileSystemAgentMemory implements AgentMemory {
       return {
         id: sessionId,
         content: [] as MemoryItem[],
-        metadata: { created: Date.now() }
+        metadata: { created: Date.now() },
       };
     }
   }
-  
+
   async clear(sessionId: string): Promise<void> {
     const filePath = this.getFilePath(sessionId);
     try {
@@ -443,26 +457,26 @@ function truncateConversation(memory: Memory, maxItems: number): Memory {
   if (!Array.isArray(memory.content)) {
     return memory;
   }
-  
+
   const items = memory.content as MemoryItem[];
   if (items.length <= maxItems) {
     return memory;
   }
-  
+
   // 保留system消息和最近的消息
   const systemMessages = items.filter(item => item.role === 'system');
   const recentMessages = items
     .filter(item => item.role !== 'system')
     .slice(-maxItems + systemMessages.length);
-  
+
   return {
     ...memory,
     content: [...systemMessages, ...recentMessages],
     metadata: {
       ...memory.metadata,
       truncated: true,
-      originalLength: items.length
-    }
+      originalLength: items.length,
+    },
   };
 }
 ```
@@ -502,12 +516,13 @@ export function registerAgentTags(registry: TagRegistry): void {
     allowedChildren: ['llm', 'prompt'], // 允许的子标签
     requiredAttributes: ['id'], // 必需属性
     optionalAttributes: ['version', 'extends'], // 可选属性
-    attributeTypes: { // 属性类型定义
+    attributeTypes: {
+      // 属性类型定义
       id: 'string',
       version: 'string',
-      extends: 'string'
+      extends: 'string',
     },
-    validator: validateAgentTag // 自定义验证函数
+    validator: validateAgentTag, // 自定义验证函数
   });
 
   // 注册llm标签
@@ -519,12 +534,12 @@ export function registerAgentTags(registry: TagRegistry): void {
     optionalAttributes: ['api-url', 'key-env', 'temperature'], // 可选属性
     attributeTypes: {
       'api-type': 'string',
-      'model': 'string',
+      model: 'string',
       'api-url': 'string',
       'key-env': 'string',
-      'temperature': 'number'
+      temperature: 'number',
     },
-    validator: validateLLMTag
+    validator: validateLLMTag,
   });
 
   // prompt标签委托给@dpml/prompt包处理
@@ -535,8 +550,8 @@ export function registerAgentTags(registry: TagRegistry): void {
     allowedChildren: [], // 内部结构由prompt包处理
     optionalAttributes: ['extends'],
     attributeTypes: {
-      'extends': 'string'
-    }
+      extends: 'string',
+    },
   });
 }
 ```
@@ -549,76 +564,88 @@ export function registerAgentTags(registry: TagRegistry): void {
 /**
  * agent标签验证函数
  */
-function validateAgentTag(element: Element, context: ValidationContext): ValidationResult {
+function validateAgentTag(
+  element: Element,
+  context: ValidationContext
+): ValidationResult {
   const errors: ValidationError[] = [];
   const warnings: ValidationWarning[] = [];
-  
+
   // 验证ID格式
   const id = element.attributes.id;
   if (id && !/^[a-z0-9-_]+$/i.test(id)) {
     errors.push({
       code: 'INVALID_ID_FORMAT',
       message: 'Agent ID只能包含字母、数字、短横线和下划线',
-      element
+      element,
     });
   }
-  
+
   // 验证是否缺少必要的子标签
-  const hasLLM = element.children.some(child => 
-    isElement(child) && child.tagName === 'llm'
+  const hasLLM = element.children.some(
+    child => isElement(child) && child.tagName === 'llm'
   );
-  
+
   if (!hasLLM) {
     errors.push({
       code: 'MISSING_REQUIRED_CHILD',
       message: 'Agent标签必须包含llm子标签',
-      element
+      element,
     });
   }
-  
-  const hasPrompt = element.children.some(child => 
-    isElement(child) && child.tagName === 'prompt'
+
+  const hasPrompt = element.children.some(
+    child => isElement(child) && child.tagName === 'prompt'
   );
-  
+
   if (!hasPrompt) {
     errors.push({
       code: 'MISSING_REQUIRED_CHILD',
       message: 'Agent标签必须包含prompt子标签',
-      element
+      element,
     });
   }
-  
+
   return { errors, warnings };
 }
 
 /**
  * llm标签验证函数
  */
-function validateLLMTag(element: Element, context: ValidationContext): ValidationResult {
+function validateLLMTag(
+  element: Element,
+  context: ValidationContext
+): ValidationResult {
   const errors: ValidationError[] = [];
   const warnings: ValidationWarning[] = [];
-  
+
   // 验证api-type是否为支持的类型
   const apiType = element.attributes['api-type'];
-  const supportedApiTypes = ['openai', 'anthropic', 'azure', 'mistral', 'custom'];
-  
+  const supportedApiTypes = [
+    'openai',
+    'anthropic',
+    'azure',
+    'mistral',
+    'custom',
+  ];
+
   if (apiType && !supportedApiTypes.includes(apiType)) {
     warnings.push({
       code: 'UNSUPPORTED_API_TYPE',
       message: `不支持的API类型: ${apiType}。支持的类型: ${supportedApiTypes.join(', ')}`,
-      element
+      element,
     });
   }
-  
+
   // 检查是否缺少API密钥环境变量
   if (!element.attributes['key-env']) {
     warnings.push({
       code: 'MISSING_KEY_ENV',
       message: '建议设置key-env属性以指定API密钥的环境变量',
-      element
+      element,
     });
   }
-  
+
   return { errors, warnings };
 }
 ```
@@ -638,34 +665,36 @@ Agent包集成Core包提供的标签系统，通过以下机制实现标签定�
 export function initializeTagSystem(): TagRegistry {
   // 获取标签注册表实例
   const registry = new TagRegistry();
-  
+
   // 注册Agent包特定标签
   registerAgentTags(registry);
-  
+
   return registry;
 }
 
 /**
  * Agent工厂创建
  */
-export function createAgentFactory(options?: AgentFactoryOptions): AgentFactory {
+export function createAgentFactory(
+  options?: AgentFactoryOptions
+): AgentFactory {
   // 初始化标签系统
   const tagRegistry = options?.tagRegistry || initializeTagSystem();
-  
+
   // 创建解析器适配器
   const parserAdapter = new DpmlAdapter({
-    tagRegistry
+    tagRegistry,
   });
-  
+
   // 创建处理器
   const processor = new DefaultProcessor({
     tagRegistry,
     // 其他处理器选项...
   });
-  
+
   // 创建转换器
   const transformer = new AgentTransformer();
-  
+
   return new AgentFactoryImpl({
     parserAdapter,
     processor,
@@ -688,6 +717,7 @@ graph TD
 ```
 
 每个标签处理器负责：
+
 - 验证标签的属性和结构
 - 处理标签的继承和引用
 - 实现标签特定的转换逻辑
@@ -761,7 +791,7 @@ packages/agent/
 ### 8.4 扩展点
 
 1. **新LLM供应商**：在llm目录添加新的连接器实现
-2. **新记忆存储**：在memory目录添加新的存储实现 
+2. **新记忆存储**：在memory目录添加新的存储实现
 3. **新标签处理**：在tags目录添加新的标签处理器
 
 ## 9. 类图设计
@@ -779,7 +809,7 @@ classDiagram
             +chat(input: ChatInput): Promise~ChatOutput~
             +chatStream(input: ChatInput): AsyncIterable~ChatChunk~
         }
-        
+
         class AgentImpl {
             -id: string
             -version: string
@@ -793,7 +823,7 @@ classDiagram
             -remember(sessionId: string, role: string, content: string): Promise~void~
         }
     }
-    
+
     namespace memory {
         class AgentMemory {
             <<interface>>
@@ -801,14 +831,14 @@ classDiagram
             +retrieve(sessionId: string): Promise~Memory~
             +clear(sessionId: string): Promise~void~
         }
-        
+
         class InMemoryAgentMemory {
             -memories: Map~string, Memory~
             +store(memory: Memory): Promise~void~
             +retrieve(sessionId: string): Promise~Memory~
             +clear(sessionId: string): Promise~void~
         }
-        
+
         class FileSystemAgentMemory {
             -basePath: string
             +constructor(basePath: string)
@@ -817,27 +847,27 @@ classDiagram
             +clear(sessionId: string): Promise~void~
             -getFilePath(sessionId: string): string
         }
-        
+
         class Memory {
             +id: string
             +content: any
             +metadata?: Record~string, any~
         }
-        
+
         class MemoryItem {
             +text: string
             +role: string
             +timestamp: number
         }
     }
-    
+
     namespace llm {
         class LLMConnector {
             <<interface>>
             +complete(options: CompletionOptions): Promise~CompletionResult~
             +completeStream(options: CompletionOptions): AsyncIterable~CompletionChunk~
         }
-        
+
         class OpenAIConnector {
             -apiKey: string
             -apiUrl: string
@@ -846,7 +876,7 @@ classDiagram
             +complete(options: CompletionOptions): Promise~CompletionResult~
             +completeStream(options: CompletionOptions): AsyncIterable~CompletionChunk~
         }
-        
+
         class AnthropicConnector {
             -apiKey: string
             -apiUrl: string
@@ -855,33 +885,33 @@ classDiagram
             +complete(options: CompletionOptions): Promise~CompletionResult~
             +completeStream(options: CompletionOptions): AsyncIterable~CompletionChunk~
         }
-        
+
         class CompletionOptions {
             +model: string
             +messages: Message[]
             +temperature?: number
             +maxTokens?: number
         }
-        
+
         class CompletionResult {
             +text: string
             +usage: TokenUsage
             +metadata: Record~string, any~
         }
-        
+
         class CompletionChunk {
             +text: string
             +isComplete: boolean
             +metadata?: Record~string, any~
         }
     }
-    
+
     namespace factory {
         class AgentFactory {
             <<interface>>
             +createAgent(definition: string): Promise~Agent~
         }
-        
+
         class AgentFactoryImpl {
             -parserAdapter: DpmlAdapter
             -processor: DefaultProcessor
@@ -894,7 +924,7 @@ classDiagram
             -instantiateAgent(config: AgentConfig): Agent
         }
     }
-    
+
     namespace transformer {
         class AgentTransformer {
             +constructor()
@@ -902,27 +932,27 @@ classDiagram
             -registerVisitors(): void
         }
     }
-    
+
     namespace types {
         class ChatInput {
             +input: string
             +sessionId?: string
             +metadata?: Record~string, any~
         }
-        
+
         class ChatOutput {
             +output: string
             +usage?: TokenUsage
             +metadata?: Record~string, any~
         }
-        
+
         class ChatChunk {
             +type: string
             +content: string
             +metadata?: Record~string, any~
         }
     }
-    
+
     namespace utils {
         class MemoryUtils {
             <<static>>
@@ -931,7 +961,7 @@ classDiagram
             +storeAssistantMessage(memory: AgentMemory, sessionId: string, text: string): Promise~void~
         }
     }
-    
+
     %% 关系
     Agent <|.. AgentImpl : 实现
     AgentMemory <|.. InMemoryAgentMemory : 实现
@@ -939,11 +969,11 @@ classDiagram
     LLMConnector <|.. OpenAIConnector : 实现
     LLMConnector <|.. AnthropicConnector : 实现
     AgentFactory <|.. AgentFactoryImpl : 实现
-    
+
     AgentImpl --> LLMConnector : 使用
     AgentImpl --> AgentMemory : 使用
     AgentFactoryImpl --> AgentTransformer : 使用
-    
+
     Memory "1" *-- "many" MemoryItem : 包含
     AgentImpl ..> Memory : 创建/使用
     AgentImpl ..> ChatOutput : 创建
@@ -952,7 +982,7 @@ classDiagram
     OpenAIConnector ..> CompletionChunk : 创建
     AnthropicConnector ..> CompletionResult : 创建
     AnthropicConnector ..> CompletionChunk : 创建
-    
+
     AgentFactoryImpl ..> AgentImpl : 创建
     AgentFactoryImpl ..> InMemoryAgentMemory : 创建(默认)
     AgentFactoryImpl ..> OpenAIConnector : 可能创建
@@ -985,7 +1015,8 @@ classDiagram
 
 ### 9.4 设计要点
 
-1. **平衡的命名策略**: 
+1. **平衡的命名策略**:
+
    - 用户交互层使用拟人化命名（如chat、ChatInput）
    - 底层技术实现保持技术性命名（如LLMConnector、store）
    - 反映系统的双重性质：对外表现为智能体，内部基于计算机技术
@@ -997,6 +1028,7 @@ classDiagram
 6. **组合优于继承**: 使用组合关系构建系统，而非复杂的继承层次
 
 通过这种设计，开发人员可以:
+
 - 替换任何组件的实现而不影响其他部分
 - 轻松扩展新的LLM提供商支持
 - 实现自定义记忆存储策略
@@ -1015,7 +1047,7 @@ sequenceDiagram
     participant Core as CoreAPI
     participant Processor as AgentTagProcessor
     participant Transformer as AgentTransformer
-    
+
     Client->>Factory: createAgent(definition)
     Factory->>Core: parse(definition)
     Core-->>Factory: document
@@ -1036,11 +1068,11 @@ export async function createAgent(definition: string): Promise<Agent> {
   // 使用@dpml/core的API
   const document = await parse(definition);
   const processedDocument = await process(document);
-  
+
   // 使用Agent包的转换器
   const transformer = new AgentTransformer();
   const config = transformer.transform(processedDocument);
-  
+
   // 创建代理实例
   return instantiateAgent(config);
 }
@@ -1048,17 +1080,17 @@ export async function createAgent(definition: string): Promise<Agent> {
 function instantiateAgent(config: AgentConfig): Agent {
   // 创建LLM连接器
   const llmConnector = createLLMConnector(config.llm);
-  
+
   // 创建记忆系统
   const memorySystem = new InMemoryAgentMemory();
-  
+
   // 创建并返回代理实例
   return new AgentImpl({
     id: config.id,
     version: config.version,
     llmConnector,
     memorySystem,
-    prompt: config.prompt
+    prompt: config.prompt,
   });
 }
 ```
@@ -1083,17 +1115,17 @@ interface Agent {
    * 代理标识符
    */
   readonly id: string;
-  
+
   /**
    * 代理版本
    */
   readonly version: string;
-  
+
   /**
    * 与代理聊天
    */
   chat(input: ChatInput): Promise<ChatOutput>;
-  
+
   /**
    * 流式聊天
    */
@@ -1108,12 +1140,12 @@ interface ChatInput {
    * 用户输入文本
    */
   input: string;
-  
+
   /**
    * 会话ID，用于多轮对话
    */
   sessionId?: string;
-  
+
   /**
    * 额外元数据
    */
@@ -1128,7 +1160,7 @@ interface ChatOutput {
    * 代理输出文本
    */
   output: string;
-  
+
   /**
    * 使用的令牌数量
    */
@@ -1137,7 +1169,7 @@ interface ChatOutput {
     completionTokens: number;
     totalTokens: number;
   };
-  
+
   /**
    * 元数据
    */
@@ -1152,12 +1184,12 @@ type ChatChunk = {
    * 块类型
    */
   type: 'thinking' | 'output' | 'error';
-  
+
   /**
    * 块内容
    */
   content: string;
-  
+
   /**
    * 块元数据
    */
@@ -1180,32 +1212,32 @@ async function main() {
         </prompt>
       </agent>
     `);
-    
+
     // 使用会话ID跟踪对话
     const sessionId = 'user-123';
-    
+
     // 第一轮对话
     const result1 = await agent.chat({
       input: '中国历史上有哪些重要的朝代？',
-      sessionId
+      sessionId,
     });
-    
+
     console.log('代理回复:', result1.output);
-    
+
     // 第二轮对话 (引用上一轮对话)
     const result2 = await agent.chat({
       input: '在你刚才提到的历史中，哪个时期最重要？',
-      sessionId // 同一会话，代理能够记住前一轮对话内容
+      sessionId, // 同一会话，代理能够记住前一轮对话内容
     });
-    
+
     console.log('代理回复:', result2.output);
-    
+
     // 流式聊天示例
     console.log('流式聊天示例:');
-    
-    for await (const chunk of agent.chatStream({ 
+
+    for await (const chunk of agent.chatStream({
       input: '什么是深度学习？',
-      sessionId
+      sessionId,
     })) {
       if (chunk.type === 'thinking') {
         process.stdout.write('思考中...');
@@ -1213,7 +1245,6 @@ async function main() {
         process.stdout.write(chunk.content);
       }
     }
-    
   } catch (error) {
     console.error('与代理聊天时出错:', error);
   }
@@ -1230,7 +1261,7 @@ async function createSpecializedAgent() {
   try {
     // 模板路径
     const baseTemplatePath = './templates/base-agent.dpml';
-    
+
     // 专业化代理定义
     const definition = `
       <agent id="science-advisor" extends="${baseTemplatePath}">
@@ -1240,21 +1271,21 @@ async function createSpecializedAgent() {
         </prompt>
       </agent>
     `;
-    
+
     // base-agent.dpml内容:
     // <agent id="base-assistant">
     //   <llm api-type="openai" api-url="https://api.openai.com/v1" model="gpt-4-turbo" key-env="OPENAI_API_KEY" />
     //   <prompt>你是一个通用助手，能够回答问题并提供帮助。</prompt>
     // </agent>
-    
+
     // 创建代理
     const agent = await createAgent(definition);
-    
+
     // 运行代理
     const result = await agent.chat({
-      input: '请解释量子纠缠的概念'
+      input: '请解释量子纠缠的概念',
     });
-    
+
     console.log('科学顾问回复:', result.output);
   } catch (error) {
     console.error('创建专业化代理时出错:', error);
@@ -1289,7 +1320,7 @@ class OpenAIAdapter implements LLMAdapter {
   async complete(options: AdapterOptions): Promise<AdapterResult> {
     // 依赖注入外部库，不直接依赖
     const openai = options.apiClient;
-    
+
     // 调用API
     const response = await openai.chat.completions.create({
       model: options.model,
@@ -1297,19 +1328,19 @@ class OpenAIAdapter implements LLMAdapter {
       temperature: options.temperature,
       // 其他参数...
     });
-    
+
     // 转换为标准格式
     return {
       text: response.choices[0].message.content,
       usage: {
         promptTokens: response.usage.prompt_tokens,
         completionTokens: response.usage.completion_tokens,
-        totalTokens: response.usage.total_tokens
+        totalTokens: response.usage.total_tokens,
       },
       metadata: {
         model: response.model,
         // 其他元数据...
-      }
+      },
     };
   }
 }
@@ -1320,20 +1351,23 @@ class OpenAIAdapter implements LLMAdapter {
 ### 12.1 版本规划
 
 - **0.1 (初始版本)**
+
   - 基础标签定义和解析
   - 核心Agent接口和运行时
   - 简单的LLM连接器
   - 基础上下文管理(简单记忆系统)
 
 - **0.2 (功能扩展)**
+
   - 状态管理和事件系统
   - 流式处理支持
   - 完善的错误处理
   - 增强的记忆抽象
 
 - **0.5 (功能完善)**
+
   - 功能完整的API
-  - 增强型标签处理 
+  - 增强型标签处理
   - 更多模型支持
   - 增强型上下文管理
 
@@ -1374,6 +1408,7 @@ Agent包遵循语义化版本规范：
 - **补丁版本**（0.0.x）：包含向后兼容的错误修复
 
 核心承诺：
+
 - 标签结构和属性保持稳定
 - 公共API签名在次版本内保持不变
 - 废弃的API至少在一个主版本周期内保留并发出警告
@@ -1385,10 +1420,11 @@ Agent包遵循语义化版本规范：
 核心设计原则包括领域边界清晰、声明式定义、状态与行为分离等，这些原则共同保证了系统的可维护性、可扩展性和开发友好性。
 
 Agent包构建在@dpml/core和@dpml/prompt包的基础上，充分利用这些包提供的解析、处理和转换功能，避免重复实现基础设施。标签系统相关的详细规范请参考各自的设计文档：
+
 - [agent-tag-design.md](./agent-tag-design.md)
 - [llm-tag-design.md](./llm-tag-design.md)
 - [prompt-tag-design.md](./prompt-tag-design.md)
 
 API设计着重简洁性和灵活性，提供了一系列核心方法和配置选项，支持同步和流式处理模式。事件系统使开发者能够监控代理的运行状态和行为，实现可观察性和可调试性。
 
-记忆系统通过抽象接口实现关注点分离，确保上下文管理与LLM调用逻辑解耦，既保持当前设计简洁，又为未来功能扩展留下空间。 
+记忆系统通过抽象接口实现关注点分离，确保上下文管理与LLM调用逻辑解耦，既保持当前设计简洁，又为未来功能扩展留下空间。

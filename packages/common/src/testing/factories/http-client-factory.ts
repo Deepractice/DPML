@@ -3,7 +3,14 @@ import { faker } from '@faker-js/faker';
 /**
  * HTTP方法类型
  */
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
+export type HttpMethod =
+  | 'GET'
+  | 'POST'
+  | 'PUT'
+  | 'DELETE'
+  | 'PATCH'
+  | 'HEAD'
+  | 'OPTIONS';
 
 /**
  * HTTP请求配置
@@ -53,7 +60,11 @@ export interface MockHttpRequestMatcher {
    * @param headers 响应头
    * @returns 模拟HTTP客户端
    */
-  reply<T = any>(status: number, data: T, headers?: Record<string, string>): MockHttpClient;
+  reply<T = any>(
+    status: number,
+    data: T,
+    headers?: Record<string, string>
+  ): MockHttpClient;
 
   /**
    * 设置错误响应
@@ -92,7 +103,10 @@ export interface MockHttpClient {
   setResponse<T = any>(
     url: string | RegExp,
     method: HttpMethod,
-    response: T | HttpResponse<T> | ((config: HttpRequestConfig) => T | HttpResponse<T>)
+    response:
+      | T
+      | HttpResponse<T>
+      | ((config: HttpRequestConfig) => T | HttpResponse<T>)
   ): void;
 
   /**
@@ -128,7 +142,10 @@ export interface MockHttpClient {
    * @param config 请求配置
    * @returns Promise<HttpResponse>
    */
-  get<T = any>(url: string, config?: Omit<HttpRequestConfig, 'url' | 'method'>): Promise<HttpResponse<T>>;
+  get<T = any>(
+    url: string,
+    config?: Omit<HttpRequestConfig, 'url' | 'method'>
+  ): Promise<HttpResponse<T>>;
 
   /**
    * POST请求
@@ -224,7 +241,7 @@ export interface MockHttpClient {
    * @returns 请求匹配器
    */
   onAny(url: string | RegExp): MockHttpRequestMatcher;
-  
+
   /**
    * 请求历史记录
    * 按HTTP方法分类的请求历史
@@ -255,7 +272,11 @@ class MockHttpRequestMatcherImpl implements MockHttpRequestMatcher {
    * @param urlPattern URL匹配模式
    * @param method 请求方法
    */
-  constructor(client: MockHttpClient, urlPattern: string | RegExp, method: HttpMethod | HttpMethod[]) {
+  constructor(
+    client: MockHttpClient,
+    urlPattern: string | RegExp,
+    method: HttpMethod | HttpMethod[]
+  ) {
     this.client = client;
     this.urlPattern = urlPattern;
     this.method = method;
@@ -269,15 +290,19 @@ class MockHttpRequestMatcherImpl implements MockHttpRequestMatcher {
    * @param headers 响应头
    * @returns 模拟HTTP客户端
    */
-  reply<T = any>(status: number, data: T, headers?: Record<string, string>): MockHttpClient {
+  reply<T = any>(
+    status: number,
+    data: T,
+    headers?: Record<string, string>
+  ): MockHttpClient {
     if (Array.isArray(this.method)) {
       for (const method of this.method) {
-        this.client.setResponse(this.urlPattern, method, (config) => {
+        this.client.setResponse(this.urlPattern, method, config => {
           return createHttpResponse(data, status, config);
         });
       }
     } else {
-      this.client.setResponse(this.urlPattern, this.method, (config) => {
+      this.client.setResponse(this.urlPattern, this.method, config => {
         return createHttpResponse(data, status, config);
       });
     }
@@ -305,8 +330,8 @@ class MockHttpRequestMatcherImpl implements MockHttpRequestMatcher {
             statusText: 'Error',
             data: { message },
             headers: {},
-            config: { url: this.urlPattern.toString(), method }
-          }
+            config: { url: this.urlPattern.toString(), method },
+          },
         });
       }
     } else {
@@ -319,8 +344,8 @@ class MockHttpRequestMatcherImpl implements MockHttpRequestMatcher {
           statusText: 'Error',
           data: { message },
           headers: {},
-          config: { url: this.urlPattern.toString(), method: this.method }
-        }
+          config: { url: this.urlPattern.toString(), method: this.method },
+        },
       });
     }
 
@@ -336,16 +361,20 @@ class MockHttpRequestMatcherImpl implements MockHttpRequestMatcher {
   networkError(message: string = 'Network Error'): MockHttpClient {
     if (Array.isArray(this.method)) {
       for (const method of this.method) {
-        this.client.setError(this.urlPattern, method, (config) => {
+        this.client.setError(this.urlPattern, method, config => {
           const error = createHttpError(message, 0, config);
+
           error.code = 'NETWORK_ERROR';
+
           return error;
         });
       }
     } else {
-      this.client.setError(this.urlPattern, this.method, (config) => {
+      this.client.setError(this.urlPattern, this.method, config => {
         const error = createHttpError(message, 0, config);
+
         error.code = 'NETWORK_ERROR';
+
         return error;
       });
     }
@@ -362,16 +391,20 @@ class MockHttpRequestMatcherImpl implements MockHttpRequestMatcher {
   timeout(message: string = 'Timeout Error'): MockHttpClient {
     if (Array.isArray(this.method)) {
       for (const method of this.method) {
-        this.client.setError(this.urlPattern, method, (config) => {
+        this.client.setError(this.urlPattern, method, config => {
           const error = createHttpError(message, 0, config);
+
           error.code = 'TIMEOUT_ERROR';
+
           return error;
         });
       }
     } else {
-      this.client.setError(this.urlPattern, this.method, (config) => {
+      this.client.setError(this.urlPattern, this.method, config => {
         const error = createHttpError(message, 0, config);
+
         error.code = 'TIMEOUT_ERROR';
+
         return error;
       });
     }
@@ -395,7 +428,14 @@ export function createHttpResponse<T = any>(
   return {
     data,
     status,
-    statusText: status === 200 ? 'OK' : status === 201 ? 'Created' : status === 204 ? 'No Content' : '',
+    statusText:
+      status === 200
+        ? 'OK'
+        : status === 201
+          ? 'Created'
+          : status === 204
+            ? 'No Content'
+            : '',
     headers: {
       'content-type': 'application/json',
       'x-request-id': faker.string.uuid(),
@@ -427,8 +467,8 @@ export function createHttpError(
       statusText: 'Error',
       data,
       headers: {},
-      config
-    }
+      config,
+    },
   };
 }
 
@@ -437,11 +477,17 @@ export function createHttpError(
  * @returns MockHttpClient
  */
 export function createMockHttpClient(): MockHttpClient {
-  const responseMap = new Map<string, (config: HttpRequestConfig) => Promise<HttpResponse>>();
-  const errorMap = new Map<string, (config: HttpRequestConfig) => Promise<never>>();
+  const responseMap = new Map<
+    string,
+    (config: HttpRequestConfig) => Promise<HttpResponse>
+  >();
+  const errorMap = new Map<
+    string,
+    (config: HttpRequestConfig) => Promise<never>
+  >();
   const delayMap = new Map<string, number>();
   const requestHistory: HttpRequestConfig[] = [];
-  
+
   // 按HTTP方法分类的请求历史
   const methodHistory: Record<HttpMethod, HttpRequestConfig[]> = {
     GET: [],
@@ -450,53 +496,63 @@ export function createMockHttpClient(): MockHttpClient {
     DELETE: [],
     PATCH: [],
     HEAD: [],
-    OPTIONS: []
+    OPTIONS: [],
   };
 
   const getKey = (url: string | RegExp, method: HttpMethod): string => {
     return `${url.toString()}:${method}`;
   };
 
-  const findMatchingKey = (url: string, method: HttpMethod): string | undefined => {
+  const findMatchingKey = (
+    url: string,
+    method: HttpMethod
+  ): string | undefined => {
     console.log(`Finding match for ${method} ${url}`);
-    
+
     // 精确匹配
     const exactKey = getKey(url, method);
+
     console.log(`Checking exact key: ${exactKey}`);
-    
+
     if (responseMap.has(exactKey) || errorMap.has(exactKey)) {
       console.log(`Found exact match: ${exactKey}`);
+
       return exactKey;
     }
 
     // 遍历所有键寻找正则表达式匹配
     const allKeys = new Set([...responseMap.keys(), ...errorMap.keys()]);
+
     console.log(`Checking ${allKeys.size} keys for matches`);
-    
+
     for (const key of allKeys) {
       const [urlPattern, keyMethod] = key.split(':');
-      
+
       // 方法必须匹配
       if (keyMethod !== method) {
         continue;
       }
-      
+
       console.log(`Checking pattern: ${urlPattern} for method: ${keyMethod}`);
-      
+
       // 尝试作为字符串匹配
       if (urlPattern === url) {
         console.log(`Found string match: ${key}`);
+
         return key;
       }
-      
+
       // 尝试作为正则表达式匹配
       try {
         const regexMatch = urlPattern.match(/^\/(.*)\/([gimuy]*)$/);
+
         if (regexMatch) {
           const [, pattern, flags] = regexMatch;
           const regex = new RegExp(pattern, flags);
+
           if (regex.test(url)) {
             console.log(`Found regex match: ${key}`);
+
             return key;
           }
         } else {
@@ -506,8 +562,10 @@ export function createMockHttpClient(): MockHttpClient {
               .replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // 转义特殊字符
               .replace(/\\\*/g, '.*'); // 将 \* 替换为 .*
             const wildcardRegex = new RegExp(`^${escapedPattern}$`);
+
             if (wildcardRegex.test(url)) {
               console.log(`Found wildcard match: ${key}`);
+
               return key;
             }
           }
@@ -518,6 +576,7 @@ export function createMockHttpClient(): MockHttpClient {
     }
 
     console.log(`No match found for ${method} ${url}`);
+
     return undefined;
   };
 
@@ -525,7 +584,10 @@ export function createMockHttpClient(): MockHttpClient {
     setResponse<T>(
       url: string | RegExp,
       method: HttpMethod,
-      response: T | HttpResponse<T> | ((config: HttpRequestConfig) => T | HttpResponse<T>)
+      response:
+        | T
+        | HttpResponse<T>
+        | ((config: HttpRequestConfig) => T | HttpResponse<T>)
     ): void {
       const key = getKey(url, method);
 
@@ -533,12 +595,19 @@ export function createMockHttpClient(): MockHttpClient {
         let result: T | HttpResponse<T>;
 
         if (typeof response === 'function') {
-          result = (response as (config: HttpRequestConfig) => T | HttpResponse<T>)(config);
+          result = (
+            response as (config: HttpRequestConfig) => T | HttpResponse<T>
+          )(config);
         } else {
           result = response;
         }
 
-        if (result && typeof result === 'object' && 'data' in result && 'status' in result) {
+        if (
+          result &&
+          typeof result === 'object' &&
+          'data' in result &&
+          'status' in result
+        ) {
           return result as HttpResponse<T>;
         } else {
           return createHttpResponse(result as T, 200, config);
@@ -558,7 +627,7 @@ export function createMockHttpClient(): MockHttpClient {
 
       errorMap.set(key, async (config: HttpRequestConfig) => {
         const result = typeof error === 'function' ? error(config) : error;
-        
+
         // 确保错误对象具有response属性
         if (!result.response) {
           result.response = {
@@ -566,10 +635,10 @@ export function createMockHttpClient(): MockHttpClient {
             data: result.data || { error: result.message || '未知错误' },
             statusText: result.statusText || 'Error',
             headers: result.headers || {},
-            config: config
+            config: config,
           };
         }
-        
+
         return Promise.reject(result);
       });
 
@@ -579,12 +648,13 @@ export function createMockHttpClient(): MockHttpClient {
 
     setDelay(url: string | RegExp, method: HttpMethod, delay: number): void {
       const key = getKey(url, method);
+
       delayMap.set(key, delay);
     },
 
     async request<T>(config: HttpRequestConfig): Promise<HttpResponse<T>> {
       requestHistory.push(config);
-      
+
       // 添加到对应方法的历史记录中
       if (config.method) {
         methodHistory[config.method].push(config);
@@ -593,18 +663,21 @@ export function createMockHttpClient(): MockHttpClient {
       const { url, method } = config;
       const key = findMatchingKey(url, method);
 
-      const delay = key ? (delayMap.get(key) || 0) : 0;
+      const delay = key ? delayMap.get(key) || 0 : 0;
+
       if (delay > 0) {
         await new Promise(resolve => setTimeout(resolve, delay));
       }
 
       if (key) {
         const errorHandler = errorMap.get(key);
+
         if (errorHandler) {
           return errorHandler(config) as Promise<never>;
         }
 
         const responseHandler = responseMap.get(key);
+
         if (responseHandler) {
           return responseHandler(config) as Promise<HttpResponse<T>>;
         }
@@ -675,9 +748,9 @@ export function createMockHttpClient(): MockHttpClient {
       errorMap.clear();
       delayMap.clear();
       this.clearRequestHistory();
-      
+
       // 清除方法历史记录
-      Object.values(methodHistory).forEach(history => history.length = 0);
+      Object.values(methodHistory).forEach(history => (history.length = 0));
     },
 
     onGet(url: string | RegExp): MockHttpRequestMatcher {
@@ -701,9 +774,17 @@ export function createMockHttpClient(): MockHttpClient {
     },
 
     onAny(url: string | RegExp): MockHttpRequestMatcher {
-      return new MockHttpRequestMatcherImpl(this, url, ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS']);
+      return new MockHttpRequestMatcherImpl(this, url, [
+        'GET',
+        'POST',
+        'PUT',
+        'DELETE',
+        'PATCH',
+        'HEAD',
+        'OPTIONS',
+      ]);
     },
-    
+
     // 添加历史记录属性
     get history() {
       return {
@@ -713,9 +794,9 @@ export function createMockHttpClient(): MockHttpClient {
         delete: methodHistory.DELETE,
         patch: methodHistory.PATCH,
         head: methodHistory.HEAD,
-        options: methodHistory.OPTIONS
+        options: methodHistory.OPTIONS,
       };
-    }
+    },
   };
 
   return mockClient;

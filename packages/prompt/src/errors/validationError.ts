@@ -2,7 +2,10 @@
  * 验证错误类
  */
 import { ErrorLevel } from '@dpml/core';
-import { PromptError, PromptErrorCode, PromptErrorOptions } from './promptError';
+
+import { PromptError, PromptErrorCode } from './promptError';
+
+import type { PromptErrorOptions } from './promptError';
 
 /**
  * 验证错误选项接口
@@ -23,22 +26,22 @@ export class ValidationError extends PromptError {
    * 标签名
    */
   tagName?: string;
-  
+
   /**
    * 属性名
    */
   attributeName?: string;
-  
+
   /**
    * 预期值
    */
   expectedValue?: string | string[];
-  
+
   /**
    * 实际值
    */
   actualValue?: string;
-  
+
   /**
    * 构造函数
    */
@@ -47,47 +50,48 @@ export class ValidationError extends PromptError {
       ...options,
       stage: 'validate',
       // 如果没有指定代码，使用默认验证错误代码
-      code: options.code || PromptErrorCode.VALIDATION_ERROR
+      code: options.code || PromptErrorCode.VALIDATION_ERROR,
     });
-    
+
     this.tagName = options.tagName;
     this.attributeName = options.attributeName;
     this.expectedValue = options.expectedValue;
     this.actualValue = options.actualValue;
-    
+
     // 确保正确的原型链
     Object.setPrototypeOf(this, ValidationError.prototype);
   }
-  
+
   /**
    * 将错误转换为字符串
    */
   toString(): string {
     let result = super.toString();
-    
+
     // 添加验证特定信息
     if (this.tagName) {
       result += ` | 标签: ${this.tagName}`;
     }
-    
+
     if (this.attributeName) {
       result += ` | 属性: ${this.attributeName}`;
     }
-    
+
     if (this.expectedValue !== undefined) {
-      const expected = Array.isArray(this.expectedValue) 
-        ? this.expectedValue.join(', ') 
+      const expected = Array.isArray(this.expectedValue)
+        ? this.expectedValue.join(', ')
         : this.expectedValue;
+
       result += ` | 预期: ${expected}`;
     }
-    
+
     if (this.actualValue !== undefined) {
       result += ` | 实际: ${this.actualValue}`;
     }
-    
+
     return result;
   }
-  
+
   /**
    * 格式化错误为对象
    */
@@ -97,10 +101,10 @@ export class ValidationError extends PromptError {
       tagName: this.tagName,
       attributeName: this.attributeName,
       expectedValue: this.expectedValue,
-      actualValue: this.actualValue
+      actualValue: this.actualValue,
     };
   }
-  
+
   /**
    * 创建属性无效错误
    */
@@ -115,10 +119,10 @@ export class ValidationError extends PromptError {
       level: ErrorLevel.ERROR,
       position,
       tagName,
-      attributeName
+      attributeName,
     });
   }
-  
+
   /**
    * 创建缺少必需标签错误
    */
@@ -132,10 +136,10 @@ export class ValidationError extends PromptError {
       message: `缺少必需的标签: ${tagName}${parentTagName ? ` 在 ${parentTagName} 内` : ''}`,
       level: ErrorLevel.ERROR,
       position,
-      tagName
+      tagName,
     });
   }
-  
+
   /**
    * 创建无效嵌套错误
    */
@@ -149,7 +153,7 @@ export class ValidationError extends PromptError {
       message: `无效的嵌套: ${childTagName} 不能嵌套在 ${parentTagName} 内`,
       level: ErrorLevel.ERROR,
       position,
-      tagName: childTagName
+      tagName: childTagName,
     });
   }
-} 
+}

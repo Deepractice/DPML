@@ -1,4 +1,6 @@
-import { TagDefinition, AttributeDefinition } from './tag-definition';
+import { AttributeDefinition } from './tag-definition';
+
+import type { TagDefinition } from './tag-definition';
 
 /**
  * 标签注册表
@@ -10,14 +12,14 @@ export class TagRegistry {
    * 键为标签名，值为标签定义
    */
   private tags: Map<string, TagDefinition>;
-  
+
   /**
    * 构造函数
    */
   constructor() {
     this.tags = new Map<string, TagDefinition>();
   }
-  
+
   /**
    * 注册标签定义
    * @param tagName 标签名称
@@ -27,14 +29,14 @@ export class TagRegistry {
     if (!tagName) {
       throw new Error('标签名不能为空');
     }
-    
+
     // 标准化标签名称（小写）
     const normalizedName = tagName.toLowerCase();
-    
+
     // 存储标签定义
     this.tags.set(normalizedName, { ...definition });
   }
-  
+
   /**
    * 获取标签定义
    * @param tagName 标签名称
@@ -44,14 +46,14 @@ export class TagRegistry {
     if (!tagName) {
       return undefined;
     }
-    
+
     // 标准化标签名称（小写）
     const normalizedName = tagName.toLowerCase();
-    
+
     // 返回标签定义
     return this.tags.get(normalizedName);
   }
-  
+
   /**
    * 检查标签是否已注册
    * @param tagName 标签名称
@@ -61,14 +63,14 @@ export class TagRegistry {
     if (!tagName) {
       return false;
     }
-    
+
     // 标准化标签名称（小写）
     const normalizedName = tagName.toLowerCase();
-    
+
     // 检查标签是否存在
     return this.tags.has(normalizedName);
   }
-  
+
   /**
    * 获取所有已注册的标签名称
    * @returns 标签名称数组
@@ -76,7 +78,7 @@ export class TagRegistry {
   getAllTagNames(): string[] {
     return Array.from(this.tags.keys());
   }
-  
+
   /**
    * 移除标签定义
    * @param tagName 标签名称
@@ -86,21 +88,21 @@ export class TagRegistry {
     if (!tagName) {
       return false;
     }
-    
+
     // 标准化标签名称（小写）
     const normalizedName = tagName.toLowerCase();
-    
+
     // 移除标签定义
     return this.tags.delete(normalizedName);
   }
-  
+
   /**
    * 清空所有标签定义
    */
   clear(): void {
     this.tags.clear();
   }
-  
+
   /**
    * 获取通用基础标签属性
    * 包含id、class、style和datatest等所有标签共有的属性
@@ -111,7 +113,7 @@ export class TagRegistry {
       id: true,
       class: true,
       style: true,
-      datatest: true
+      datatest: true,
     };
   }
 
@@ -122,20 +124,20 @@ export class TagRegistry {
    */
   static createTagDefinition(config: Partial<TagDefinition>): TagDefinition {
     const baseAttributes = TagRegistry.getBaseAttributes();
-    
+
     return {
       // 合并属性，自定义属性优先级更高
-      attributes: config.attributes 
+      attributes: config.attributes
         ? { ...baseAttributes, ...config.attributes }
         : baseAttributes,
       allowedChildren: config.allowedChildren || [],
       selfClosing: config.selfClosing || false,
       validate: config.validate,
       contentFormat: config.contentFormat,
-      name: config.name
+      name: config.name,
     };
   }
-  
+
   /**
    * 简化的标签注册方法
    * 结合了createTagDefinition和registerTagDefinition
@@ -144,6 +146,7 @@ export class TagRegistry {
    */
   registerTag(tagName: string, config: Partial<TagDefinition>): void {
     const definition = TagRegistry.createTagDefinition(config);
+
     this.registerTagDefinition(tagName, definition);
   }
-} 
+}

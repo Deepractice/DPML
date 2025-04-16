@@ -1,7 +1,7 @@
 /**
  * 核心标签定义
  */
-import { TagDefinition } from '@dpml/core';
+import type { TagDefinition } from '@dpml/core';
 
 /**
  * 提示根标签定义
@@ -11,23 +11,31 @@ export const promptTagDefinition: TagDefinition = {
   attributes: {
     id: {
       type: 'string',
-      required: false
+      required: false,
     },
     version: {
       type: 'string',
-      required: false
+      required: false,
     },
     lang: {
       type: 'string',
-      required: false
+      required: false,
     },
     extends: {
       type: 'string',
-      required: false
-    }
+      required: false,
+    },
   },
-  allowedChildren: ['role', 'context', 'thinking', 'executing', 'testing', 'protocol', 'custom'],
-  contentFormat: 'markdown'
+  allowedChildren: [
+    'role',
+    'context',
+    'thinking',
+    'executing',
+    'testing',
+    'protocol',
+    'custom',
+  ],
+  contentFormat: 'markdown',
 };
 
 /**
@@ -38,15 +46,15 @@ export const roleTagDefinition: TagDefinition = {
   attributes: {
     id: {
       type: 'string',
-      required: false
+      required: false,
     },
     extends: {
       type: 'string',
-      required: false
-    }
+      required: false,
+    },
   },
   allowedChildren: [],
-  contentFormat: 'markdown'
+  contentFormat: 'markdown',
 };
 
 /**
@@ -57,15 +65,15 @@ export const contextTagDefinition: TagDefinition = {
   attributes: {
     id: {
       type: 'string',
-      required: false
+      required: false,
     },
     extends: {
       type: 'string',
-      required: false
-    }
+      required: false,
+    },
   },
   allowedChildren: [],
-  contentFormat: 'markdown'
+  contentFormat: 'markdown',
 };
 
 /**
@@ -76,15 +84,15 @@ export const thinkingTagDefinition: TagDefinition = {
   attributes: {
     id: {
       type: 'string',
-      required: false
+      required: false,
     },
     extends: {
       type: 'string',
-      required: false
-    }
+      required: false,
+    },
   },
   allowedChildren: [],
-  contentFormat: 'markdown'
+  contentFormat: 'markdown',
 };
 
 /**
@@ -95,15 +103,15 @@ export const executingTagDefinition: TagDefinition = {
   attributes: {
     id: {
       type: 'string',
-      required: false
+      required: false,
     },
     extends: {
       type: 'string',
-      required: false
-    }
+      required: false,
+    },
   },
   allowedChildren: [],
-  contentFormat: 'markdown'
+  contentFormat: 'markdown',
 };
 
 /**
@@ -114,15 +122,15 @@ export const testingTagDefinition: TagDefinition = {
   attributes: {
     id: {
       type: 'string',
-      required: false
+      required: false,
     },
     extends: {
       type: 'string',
-      required: false
-    }
+      required: false,
+    },
   },
   allowedChildren: [],
-  contentFormat: 'markdown'
+  contentFormat: 'markdown',
 };
 
 /**
@@ -133,15 +141,15 @@ export const protocolTagDefinition: TagDefinition = {
   attributes: {
     id: {
       type: 'string',
-      required: false
+      required: false,
     },
     extends: {
       type: 'string',
-      required: false
-    }
+      required: false,
+    },
   },
   allowedChildren: [],
-  contentFormat: 'markdown'
+  contentFormat: 'markdown',
 };
 
 /**
@@ -152,13 +160,13 @@ export const customTagDefinition: TagDefinition = {
   attributes: {
     id: {
       type: 'string',
-      required: false
+      required: false,
     },
     extends: {
       type: 'string',
-      required: false
-    }
+      required: false,
+    },
   },
   allowedChildren: [],
-  contentFormat: 'markdown'
-}; 
+  contentFormat: 'markdown',
+};

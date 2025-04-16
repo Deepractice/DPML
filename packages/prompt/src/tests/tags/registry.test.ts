@@ -5,8 +5,9 @@
  * 预期结果: 所有标签被正确注册到TagRegistry
  */
 
-import { describe, it, expect } from 'vitest';
 import { TagRegistry } from '@dpml/core';
+import { describe, it, expect } from 'vitest';
+
 import {
   promptTagDefinition,
   roleTagDefinition,
@@ -17,7 +18,7 @@ import {
   protocolTagDefinition,
   customTagDefinition,
   createPromptTagRegistry,
-  promptTagRegistry
+  promptTagRegistry,
 } from '../../tags';
 
 describe('PromptTagRegistry', () => {
@@ -26,7 +27,7 @@ describe('PromptTagRegistry', () => {
     it('应该正确注册所有8个核心标签', () => {
       // 检查单例是否已经创建
       expect(promptTagRegistry).toBeInstanceOf(TagRegistry);
-      
+
       // 检查核心标签是否被正确注册
       expect(promptTagRegistry.isTagRegistered('prompt')).toBe(true);
       expect(promptTagRegistry.isTagRegistered('role')).toBe(true);
@@ -37,15 +38,15 @@ describe('PromptTagRegistry', () => {
       expect(promptTagRegistry.isTagRegistered('protocol')).toBe(true);
       expect(promptTagRegistry.isTagRegistered('custom')).toBe(true);
     });
-    
+
     it('应该通过工厂函数创建新的注册表实例', () => {
       // 创建新的注册表实例
       const registry = createPromptTagRegistry();
-      
+
       // 检查是否创建了新的实例
       expect(registry).toBeInstanceOf(TagRegistry);
       expect(registry).not.toBe(promptTagRegistry); // 不应该是同一个实例
-      
+
       // 检查新实例是否包含所有标签
       expect(registry.isTagRegistered('prompt')).toBe(true);
       expect(registry.isTagRegistered('role')).toBe(true);
@@ -56,7 +57,7 @@ describe('PromptTagRegistry', () => {
       expect(registry.isTagRegistered('protocol')).toBe(true);
       expect(registry.isTagRegistered('custom')).toBe(true);
     });
-    
+
     it('应该能获取正确的标签定义', () => {
       // 获取标签定义 - 使用 getTagDefinition 方法替代 get
       const promptDef = promptTagRegistry.getTagDefinition('prompt');
@@ -67,7 +68,7 @@ describe('PromptTagRegistry', () => {
       const testingDef = promptTagRegistry.getTagDefinition('testing');
       const protocolDef = promptTagRegistry.getTagDefinition('protocol');
       const customDef = promptTagRegistry.getTagDefinition('custom');
-      
+
       // 验证标签定义内容
       expect(promptDef).toEqual(promptTagDefinition);
       expect(roleDef).toEqual(roleTagDefinition);
@@ -79,4 +80,4 @@ describe('PromptTagRegistry', () => {
       expect(customDef).toEqual(customTagDefinition);
     });
   });
-}); 
+});

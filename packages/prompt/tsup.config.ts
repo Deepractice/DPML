@@ -1,6 +1,8 @@
-import { defineConfig } from 'tsup';
-import { baseConfig } from '../../tsup.base.config';
 import * as path from 'path';
+
+import { defineConfig } from 'tsup';
+
+import { baseConfig } from '../../tsup.base.config';
 
 export default defineConfig({
   ...baseConfig,
@@ -8,7 +10,7 @@ export default defineConfig({
   esbuildOptions(options) {
     options.alias = {
       '@prompt': path.resolve(__dirname, './src'),
-      '@dpml/core': path.resolve(__dirname, '../core/src')
+      '@dpml/core': path.resolve(__dirname, '../core/src'),
     };
-  }
+  },
 });

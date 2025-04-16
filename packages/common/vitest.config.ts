@@ -1,5 +1,6 @@
-import { defineConfig } from 'vitest/config';
 import { resolve } from 'path';
+
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
@@ -13,7 +14,7 @@ export default defineConfig({
       reporter: ['text', 'json', 'html'],
       include: ['src/**/*.ts'],
       exclude: ['src/**/*.d.ts', 'src/**/index.ts', 'src/tests/**/*.ts'],
-      all: true
+      all: true,
     },
   },
   resolve: {
@@ -22,7 +23,7 @@ export default defineConfig({
       '@dpml/common/logger': resolve(__dirname, './src/logger'),
       '@dpml/common/testing': resolve(__dirname, './src/testing'),
       '@dpml/common/utils': resolve(__dirname, './src/utils'),
-      '@dpml/common/types': resolve(__dirname, './src/types')
+      '@dpml/common/types': resolve(__dirname, './src/types'),
     },
   },
 });

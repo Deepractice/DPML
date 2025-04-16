@@ -12,7 +12,6 @@
   - `processing/` - 文档处理示例
   - `transformers/` - 转换器示例
   - `complete-workflow/` - 完整工作流示例
-  
 - `prompt/` - `@dpml/prompt`包的示例（待添加）
 
 - `agent/` - `@dpml/agent`包的示例（待添加）
@@ -36,4 +35,4 @@ pnpm install
 ```bash
 # 例如运行基础解析示例
 pnpm swc examples/core/basic/parsing.ts
-``` 
+```

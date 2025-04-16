@@ -1,5 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Memory, MemoryItem, AgentMemory, AgentMemoryOptions } from './types';
+
+import type {
+  Memory,
+  MemoryItem,
+  AgentMemory,
+  AgentMemoryOptions,
+} from './types';
 
 /**
  * 基于内存的代理记忆存储实现
@@ -15,19 +21,20 @@ export class InMemoryAgentMemory implements AgentMemory {
    * 内存存储
    */
   private memories: Map<string, Memory> = new Map();
-  
+
   /**
    * 会话索引 - 按时间排序的会话ID
    * 用于快速检索最近会话
    */
-  private sessionIndex: Array<{id: string, lastUpdated: number}> = [];
-  
+  private sessionIndex: Array<{ id: string; lastUpdated: number }> = [];
+
   /**
    * 记忆检索缓存 - 存储最近的检索结果
    * 用于减少频繁检索同一会话的开销
    */
-  private retrieveCache: Map<string, {memory: Memory, timestamp: number}> = new Map();
-  
+  private retrieveCache: Map<string, { memory: Memory; timestamp: number }> =
+    new Map();
+
   /**
    * 检索缓存有效期(毫秒)
    */
@@ -37,13 +44,13 @@ export class InMemoryAgentMemory implements AgentMemory {
    * 最大记忆条目数
    */
   private readonly maxItems?: number;
-  
+
   /**
    * 最大会话数量
    * 超过此数量时，最旧的会话会被清除
    */
   private readonly maxSessions: number;
-  
+
   /**
    * 记忆压缩配置
    */
@@ -52,7 +59,7 @@ export class InMemoryAgentMemory implements AgentMemory {
      * 触发压缩的条目数阈值
      */
     threshold: number;
-    
+
     /**
      * 压缩比例，压缩后保留的条目数与阈值的比例
      */
@@ -68,10 +75,12 @@ export class InMemoryAgentMemory implements AgentMemory {
     this.maxItems = options.maxItems;
     this.maxSessions = options.maxSessions || 100;
     this.compressionConfig = {
-      threshold: options.compressionThreshold || (this.maxItems ? this.maxItems * 0.8 : 100),
-      ratio: options.compressionRatio || 0.6
+      threshold:
+        options.compressionThreshold ||
+        (this.maxItems ? this.maxItems * 0.8 : 100),
+      ratio: options.compressionRatio || 0.6,
     };
-    
+
     // 定期清理过期缓存和旧会话
     setInterval(() => this.performMaintenance(), 60000);
   }
@@ -97,22 +106,22 @@ export class InMemoryAgentMemory implements AgentMemory {
       ...memory,
       metadata: {
         ...memory.metadata,
-        updatedAt: now
-      }
+        updatedAt: now,
+      },
     };
 
     // 保存记忆
     this.memories.set(memory.id, updatedMemory);
-    
+
     // 更新会话索引
     this.updateSessionIndex(memory.id, now);
-    
+
     // 更新检索缓存
     this.retrieveCache.set(memory.id, {
       memory: updatedMemory,
-      timestamp: now
+      timestamp: now,
     });
-    
+
     // 如果会话数量超过限制，清除最旧的会话
     this.pruneOldSessions();
   }
@@ -126,43 +135,43 @@ export class InMemoryAgentMemory implements AgentMemory {
     // 检查缓存
     const cached = this.retrieveCache.get(sessionId);
     const now = Date.now();
-    
-    if (cached && (now - cached.timestamp <= this.cacheTTL)) {
+
+    if (cached && now - cached.timestamp <= this.cacheTTL) {
       return cached.memory;
     }
-    
+
     const memory = this.memories.get(sessionId);
-    
+
     if (!memory) {
       // 如果不存在，创建空记忆
       const emptyMemory = {
         id: sessionId,
         content: [] as MemoryItem[],
-        metadata: { 
+        metadata: {
           created: now,
           agentId: this.agentId,
-          updatedAt: now
-        }
+          updatedAt: now,
+        },
       };
-      
+
       // 缓存空记忆结果
       this.retrieveCache.set(sessionId, {
         memory: emptyMemory,
-        timestamp: now
+        timestamp: now,
       });
-      
+
       return emptyMemory;
     }
-    
+
     // 更新检索缓存
     this.retrieveCache.set(sessionId, {
       memory,
-      timestamp: now
+      timestamp: now,
     });
-    
+
     // 更新会话索引
     this.updateSessionIndex(sessionId, now);
-    
+
     return memory;
   }
 
@@ -173,9 +182,11 @@ export class InMemoryAgentMemory implements AgentMemory {
   async clear(sessionId: string): Promise<void> {
     this.memories.delete(sessionId);
     this.retrieveCache.delete(sessionId);
-    
+
     // 更新会话索引，移除该会话
-    this.sessionIndex = this.sessionIndex.filter(session => session.id !== sessionId);
+    this.sessionIndex = this.sessionIndex.filter(
+      session => session.id !== sessionId
+    );
   }
 
   /**
@@ -185,7 +196,7 @@ export class InMemoryAgentMemory implements AgentMemory {
   async getAllSessionIds(): Promise<string[]> {
     return this.sessionIndex.map(session => session.id);
   }
-  
+
   /**
    * 更新会话索引
    * @param sessionId 会话ID
@@ -194,31 +205,33 @@ export class InMemoryAgentMemory implements AgentMemory {
    */
   private updateSessionIndex(sessionId: string, timestamp: number): void {
     // 查找并移除现有索引
-    this.sessionIndex = this.sessionIndex.filter(session => session.id !== sessionId);
-    
+    this.sessionIndex = this.sessionIndex.filter(
+      session => session.id !== sessionId
+    );
+
     // 添加到索引，按时间戳降序排序
     this.sessionIndex.push({ id: sessionId, lastUpdated: timestamp });
     this.sessionIndex.sort((a, b) => b.lastUpdated - a.lastUpdated);
   }
-  
+
   /**
    * 清理过期缓存和执行维护工作
    * @private
    */
   private performMaintenance(): void {
     const now = Date.now();
-    
+
     // 清理过期检索缓存
     for (const [key, item] of this.retrieveCache.entries()) {
       if (now - item.timestamp > this.cacheTTL) {
         this.retrieveCache.delete(key);
       }
     }
-    
+
     // 清理过期会话
     this.pruneOldSessions();
   }
-  
+
   /**
    * 清理过旧会话
    * @private
@@ -227,21 +240,21 @@ export class InMemoryAgentMemory implements AgentMemory {
     if (this.sessionIndex.length <= this.maxSessions) {
       return;
     }
-    
+
     // 保留最近的会话，清除旧会话
     const sessionsToKeep = this.sessionIndex.slice(0, this.maxSessions);
     const sessionsToRemove = this.sessionIndex.slice(this.maxSessions);
-    
+
     // 更新索引
     this.sessionIndex = sessionsToKeep;
-    
+
     // 清除旧会话数据
     for (const session of sessionsToRemove) {
       this.memories.delete(session.id);
       this.retrieveCache.delete(session.id);
     }
   }
-  
+
   /**
    * 判断是否应该进行记忆压缩
    * @param memory 记忆对象
@@ -252,7 +265,7 @@ export class InMemoryAgentMemory implements AgentMemory {
     if (!Array.isArray(memory.content)) {
       return false;
     }
-    
+
     return memory.content.length > this.compressionConfig.threshold;
   }
 
@@ -268,21 +281,24 @@ export class InMemoryAgentMemory implements AgentMemory {
     }
 
     const items = memory.content as MemoryItem[];
-    
+
     // 确保使用正确的目标数量 (如果有maxItems设置)
-    const targetCount = this.maxItems || 
-      Math.floor(this.compressionConfig.threshold * this.compressionConfig.ratio);
-    
+    const targetCount =
+      this.maxItems ||
+      Math.floor(
+        this.compressionConfig.threshold * this.compressionConfig.ratio
+      );
+
     if (items.length <= targetCount) {
       return memory;
     }
 
     // 系统消息总是保留
     const systemMessages = items.filter(item => item.role === 'system');
-    
+
     // 计算需要从非系统消息中保留的数量
     const nonSystemToKeep = Math.max(0, targetCount - systemMessages.length);
-    
+
     if (nonSystemToKeep <= 0) {
       // 如果只能保留系统消息，则只返回系统消息
       return {
@@ -291,29 +307,34 @@ export class InMemoryAgentMemory implements AgentMemory {
         metadata: {
           ...memory.metadata,
           compressed: true,
-          originalLength: items.length
-        }
+          originalLength: items.length,
+        },
       };
     }
-    
+
     // 获取非系统消息
     const nonSystemMessages = items.filter(item => item.role !== 'system');
-    
+
     // 保留策略：
     // 1. 保留最近的一半消息
     // 2. 从剩余的消息中均匀采样
-    
+
     const recentCount = Math.ceil(nonSystemToKeep / 2);
     const recentMessages = nonSystemMessages.slice(-recentCount);
-    
+
     // 从较早的消息中采样
     const olderMessages = nonSystemMessages.slice(0, -recentCount);
-    const sampledOlderMessages = this.sampleMessages(olderMessages, nonSystemToKeep - recentCount);
-    
+    const sampledOlderMessages = this.sampleMessages(
+      olderMessages,
+      nonSystemToKeep - recentCount
+    );
+
     // 合并消息并按原始顺序排序
-    const selectedNonSystemMessages = [...sampledOlderMessages, ...recentMessages]
-      .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-    
+    const selectedNonSystemMessages = [
+      ...sampledOlderMessages,
+      ...recentMessages,
+    ].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
     // 返回压缩后的记忆
     return {
       ...memory,
@@ -322,11 +343,11 @@ export class InMemoryAgentMemory implements AgentMemory {
         ...memory.metadata,
         compressed: true,
         originalLength: items.length,
-        compressionTime: Date.now()
-      }
+        compressionTime: Date.now(),
+      },
     };
   }
-  
+
   /**
    * 从消息列表中均匀采样
    * @param messages 消息列表
@@ -338,22 +359,23 @@ export class InMemoryAgentMemory implements AgentMemory {
     if (messages.length <= count) {
       return messages;
     }
-    
+
     // 计算采样间隔
     const step = messages.length / count;
     const result: MemoryItem[] = [];
-    
+
     // 均匀采样
     for (let i = 0; i < count; i++) {
       const index = Math.floor(i * step);
+
       if (index < messages.length) {
         result.push(messages[index]);
       }
     }
-    
+
     return result;
   }
-  
+
   /**
    * 简单截断记忆，保持在最大条目数以内
    * @param memory 要截断的记忆
@@ -366,16 +388,17 @@ export class InMemoryAgentMemory implements AgentMemory {
     }
 
     const items = memory.content as MemoryItem[];
+
     if (items.length <= this.maxItems) {
       return memory;
     }
 
     // 保留system消息和最近的消息
     const systemMessages = items.filter(item => item.role === 'system');
-    
+
     // 计算可以保留的非系统消息数量
     const nonSystemToKeep = Math.max(0, this.maxItems - systemMessages.length);
-    
+
     // 获取最近的非系统消息
     const recentMessages = items
       .filter(item => item.role !== 'system')
@@ -391,8 +414,8 @@ export class InMemoryAgentMemory implements AgentMemory {
         ...memory.metadata,
         truncated: true,
         originalLength: items.length,
-        truncationTime: Date.now()
-      }
+        truncationTime: Date.now(),
+      },
     };
   }
-} 
+}

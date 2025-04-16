@@ -11,4 +11,4 @@ export * from './definitions/promptTag';
 export * from './processors';
 
 // 导出注册函数
-export { registerTags } from './registerTags'; 
+export { registerTags } from './registerTags';

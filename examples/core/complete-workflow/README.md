@@ -17,15 +17,15 @@
 
 ```typescript
 // prompt-processing.ts
-import { 
-  parse, 
-  process, 
-  DefaultTransformer, 
+import {
+  parse,
+  process,
+  DefaultTransformer,
   TagRegistry,
-  Element, 
-  Content, 
+  Element,
+  Content,
   ProcessingContext,
-  TagProcessor
+  TagProcessor,
 } from '@dpml/core';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -33,53 +33,53 @@ import * as path from 'path';
 // 1. 定义和注册自定义标签
 function setupTagRegistry() {
   const registry = new TagRegistry();
-  
+
   // 注册prompt标签
   registry.registerTag('prompt', {
     attributes: {
       id: { type: 'string', required: true },
       model: { type: 'string', required: false },
-      temperature: { type: 'number', required: false }
+      temperature: { type: 'number', required: false },
     },
-    allowedChildren: ['role', 'context', 'thinking', 'executing']
+    allowedChildren: ['role', 'context', 'thinking', 'executing'],
   });
-  
+
   // 注册role标签
   registry.registerTag('role', {
     attributes: {
       name: { type: 'string', required: true },
-      expertise: { type: 'string', required: false }
+      expertise: { type: 'string', required: false },
     },
-    allowedChildren: []
+    allowedChildren: [],
   });
-  
+
   // 注册其他标签...
   registry.registerTag('context', {
     attributes: {
-      domain: { type: 'string', required: false }
+      domain: { type: 'string', required: false },
     },
-    allowedChildren: []
+    allowedChildren: [],
   });
-  
+
   registry.registerTag('thinking', {
     attributes: {},
-    allowedChildren: ['code']
+    allowedChildren: ['code'],
   });
-  
+
   registry.registerTag('executing', {
     attributes: {
-      language: { type: 'string', required: false }
+      language: { type: 'string', required: false },
     },
-    allowedChildren: ['code']
+    allowedChildren: ['code'],
   });
-  
+
   registry.registerTag('code', {
     attributes: {
-      language: { type: 'string', required: false }
+      language: { type: 'string', required: false },
     },
-    allowedChildren: []
+    allowedChildren: [],
   });
-  
+
   return registry;
 }
 
@@ -88,33 +88,39 @@ class RoleTagProcessor implements TagProcessor {
   canProcess(element: Element): boolean {
     return element.tagName === 'role';
   }
-  
-  async process(element: Element, context: ProcessingContext): Promise<Element> {
+
+  async process(
+    element: Element,
+    context: ProcessingContext
+  ): Promise<Element> {
     // 提取角色信息
     const name = element.attributes.name;
     const expertise = element.attributes.expertise || '通用';
-    
+
     // 添加到元数据
     element.metadata = element.metadata || {};
     element.metadata.roleInfo = { name, expertise };
-    
+
     // 处理文档级别语义
     const doc = context.getDocument();
     doc.semantics = doc.semantics || {};
     doc.semantics.roles = doc.semantics.roles || [];
     doc.semantics.roles.push({ name, expertise });
-    
+
     return element;
   }
-  
+
   priority = 10;
 }
 
 // 3. 创建引用解析器
 class FileReferenceResolver {
   constructor(private basePath: string) {}
-  
-  async resolveReference(reference: any, context: ProcessingContext): Promise<any> {
+
+  async resolveReference(
+    reference: any,
+    context: ProcessingContext
+  ): Promise<any> {
     if (reference.protocol === 'file') {
       try {
         const filePath = path.resolve(this.basePath, reference.path);
@@ -134,63 +140,70 @@ class MarkdownTransformer extends DefaultTransformer<string> {
     switch (element.tagName) {
       case 'prompt':
         return `# ${element.attributes.id}\n\n${this.processChildren(element).join('')}`;
-      
+
       case 'role':
         return `## 角色: ${element.attributes.name}\n\n${this.processChildren(element).join('')}\n\n`;
-      
+
       case 'context':
         return `## 上下文\n\n${this.processChildren(element).join('')}\n\n`;
-      
+
       case 'thinking':
         return `## 思考过程\n\n${this.processChildren(element).join('')}\n\n`;
-      
+
       case 'executing':
         return `## 执行\n\n${this.processChildren(element).join('')}\n\n`;
-      
+
       case 'code':
         const language = element.attributes.language || '';
         return `\`\`\`${language}\n${this.processChildren(element).join('')}\n\`\`\`\n\n`;
-      
+
       default:
         return this.processChildren(element).join('');
     }
   }
-  
+
   visitContent(content: Content): string {
     return content.value;
   }
-  
+
   transform(doc: any): string {
     return this.visit(doc);
   }
 }
 
 // 5. 完整处理流程
-async function processDPML(dpmlText: string, options: any = {}): Promise<string> {
+async function processDPML(
+  dpmlText: string,
+  options: any = {}
+): Promise<string> {
   try {
     // 设置标签注册表
     const registry = setupTagRegistry();
-    
+
     // 创建处理上下文
     const context = new ProcessingContext({
       processors: [new RoleTagProcessor()],
-      referenceResolvers: [new FileReferenceResolver(options.basePath || '.')]
+      referenceResolvers: [new FileReferenceResolver(options.basePath || '.')],
     });
-    
+
     // 解析DPML文本
     const parseResult = await parse(dpmlText, {
       tagRegistry: registry,
       allowUnknownTags: false,
-      validate: true
+      validate: true,
     });
-    
+
     // 处理AST
-    const processedDoc = await process(parseResult.ast, {
-      strictMode: options.strictMode !== false,
-      errorRecovery: options.errorRecovery === true,
-      basePath: options.basePath || '.'
-    }, context);
-    
+    const processedDoc = await process(
+      parseResult.ast,
+      {
+        strictMode: options.strictMode !== false,
+        errorRecovery: options.errorRecovery === true,
+        basePath: options.basePath || '.',
+      },
+      context
+    );
+
     // 转换为目标格式
     const transformer = new MarkdownTransformer();
     return transformer.transform(processedDoc);
@@ -204,19 +217,22 @@ async function processDPML(dpmlText: string, options: any = {}): Promise<string>
 async function main() {
   try {
     // 读取DPML文件
-    const dpmlText = await fs.readFile('examples/core/complete-workflow/templates/base-prompt.xml', 'utf-8');
-    
+    const dpmlText = await fs.readFile(
+      'examples/core/complete-workflow/templates/base-prompt.xml',
+      'utf-8'
+    );
+
     // 处理DPML
     const output = await processDPML(dpmlText, {
       basePath: 'examples/core/complete-workflow/templates',
       strictMode: true,
-      errorRecovery: true
+      errorRecovery: true,
     });
-    
+
     // 输出结果
     console.log('处理结果:');
     console.log(output);
-    
+
     // 保存结果
     await fs.writeFile('examples/core/complete-workflow/output.md', output);
     console.log('结果已保存到 examples/core/complete-workflow/output.md');
@@ -233,12 +249,7 @@ main();
 
 ```typescript
 // error-handling.ts
-import { 
-  parse, 
-  process, 
-  DPMLError, 
-  ErrorCodes 
-} from '@dpml/core';
+import { parse, process, DPMLError, ErrorCodes } from '@dpml/core';
 
 // 错误处理示例
 async function errorHandlingExample() {
@@ -252,23 +263,25 @@ async function errorHandlingExample() {
       </context>
     </prompt>
   `;
-  
+
   try {
     // 尝试解析
     const parseResult = await parse(invalidDpmlText, {
-      allowUnknownTags: false,  // 不允许未知标签
-      validate: true,           // 启用验证
-      tolerant: false           // 错误时停止解析
+      allowUnknownTags: false, // 不允许未知标签
+      validate: true, // 启用验证
+      tolerant: false, // 错误时停止解析
     });
-    
+
     // 如果没有抛出错误但有警告
     if (parseResult.warnings.length > 0) {
       console.log('解析警告:');
       parseResult.warnings.forEach(warning => {
-        console.log(`- ${warning.message} (位置: 行 ${warning.location?.line}, 列 ${warning.location?.column})`);
+        console.log(
+          `- ${warning.message} (位置: 行 ${warning.location?.line}, 列 ${warning.location?.column})`
+        );
       });
     }
-    
+
     // 继续处理
     const processedDoc = await process(parseResult.ast);
     console.log('处理成功:', processedDoc);
@@ -276,32 +289,34 @@ async function errorHandlingExample() {
     // 处理DPML特定错误
     if (error instanceof DPMLError) {
       console.error(`DPML错误 (${error.code}): ${error.message}`);
-      
+
       // 根据错误类型提供特定处理
       switch (error.code) {
         case ErrorCodes.PARSE_ERROR:
           console.error('解析错误 - 请检查XML语法');
           break;
-        
+
         case ErrorCodes.VALIDATION_ERROR:
           console.error('验证错误 - 请检查标签属性和结构');
           break;
-        
+
         case ErrorCodes.UNKNOWN_TAG:
           console.error('未知标签 - 请检查标签名称或注册自定义标签');
           break;
-        
+
         case ErrorCodes.REFERENCE_ERROR:
           console.error('引用错误 - 请检查引用路径或协议');
           break;
-        
+
         default:
           console.error('其他DPML错误');
       }
-      
+
       // 输出错误位置信息
       if (error.location) {
-        console.error(`位置: 行 ${error.location.line}, 列 ${error.location.column}`);
+        console.error(
+          `位置: 行 ${error.location.line}, 列 ${error.location.column}`
+        );
       }
     } else {
       // 处理其他类型错误
@@ -333,68 +348,72 @@ interface DPMLProcessorConfig {
 // 创建工作流管理类
 class DPMLWorkflow {
   constructor(private config: DPMLProcessorConfig) {}
-  
+
   // 执行完整工作流
   async execute(): Promise<void> {
     try {
       // 1. 读取输入文件
       const dpmlText = await fs.readFile(this.config.inputFile, 'utf-8');
-      
+
       // 2. 解析DPML
       const parseResult = await parse(dpmlText, {
         allowUnknownTags: false,
-        validate: true
+        validate: true,
       });
-      
+
       // 3. 处理AST
       const processedDoc = await process(parseResult.ast, {
         strictMode: this.config.strictMode,
-        basePath: this.config.basePath
+        basePath: this.config.basePath,
       });
-      
+
       // 4. 根据配置选择转换器
       let output: any;
       switch (this.config.outputFormat) {
         case 'markdown':
           output = await this.transformToMarkdown(processedDoc);
           break;
-        
+
         case 'json':
           output = await this.transformToJSON(processedDoc);
           break;
-        
+
         case 'html':
           output = await this.transformToHTML(processedDoc);
           break;
-        
+
         default:
           throw new Error(`不支持的输出格式: ${this.config.outputFormat}`);
       }
-      
+
       // 5. 写入输出文件
       await fs.writeFile(this.config.outputFile, output);
-      
-      console.log(`处理完成: ${this.config.inputFile} -> ${this.config.outputFile}`);
+
+      console.log(
+        `处理完成: ${this.config.inputFile} -> ${this.config.outputFile}`
+      );
     } catch (error) {
       console.error('工作流执行失败:', error);
       throw error;
     }
   }
-  
+
   // 转换为Markdown
   private async transformToMarkdown(doc: any): Promise<string> {
-    const { MarkdownTransformer } = await import('./transformers/markdown-transformer');
+    const { MarkdownTransformer } = await import(
+      './transformers/markdown-transformer'
+    );
     const transformer = new MarkdownTransformer();
     return transformer.transform(doc);
   }
-  
+
   // 转换为JSON
   private async transformToJSON(doc: any): Promise<string> {
     const { JSONTransformer } = await import('./transformers/json-transformer');
     const transformer = new JSONTransformer();
     return JSON.stringify(transformer.transform(doc), null, 2);
   }
-  
+
   // 转换为HTML
   private async transformToHTML(doc: any): Promise<string> {
     const { HTMLTransformer } = await import('./transformers/html-transformer');
@@ -410,9 +429,9 @@ async function runWorkflow() {
     outputFile: 'examples/core/complete-workflow/output.md',
     outputFormat: 'markdown',
     strictMode: true,
-    basePath: 'examples/core/complete-workflow/templates'
+    basePath: 'examples/core/complete-workflow/templates',
   };
-  
+
   const workflow = new DPMLWorkflow(config);
   await workflow.execute();
 }
@@ -420,22 +439,26 @@ async function runWorkflow() {
 // 批量处理多个文件
 async function batchProcess() {
   const files = [
-    { input: 'template1.xml', output: 'output1.md', format: 'markdown' as const },
+    {
+      input: 'template1.xml',
+      output: 'output1.md',
+      format: 'markdown' as const,
+    },
     { input: 'template2.xml', output: 'output2.json', format: 'json' as const },
-    { input: 'template3.xml', output: 'output3.html', format: 'html' as const }
+    { input: 'template3.xml', output: 'output3.html', format: 'html' as const },
   ];
-  
+
   const basePath = 'examples/core/complete-workflow/templates';
-  
+
   for (const file of files) {
     const config: DPMLProcessorConfig = {
       inputFile: `${basePath}/${file.input}`,
       outputFile: `examples/core/complete-workflow/${file.output}`,
       outputFormat: file.format,
       strictMode: true,
-      basePath
+      basePath,
     };
-    
+
     try {
       const workflow = new DPMLWorkflow(config);
       await workflow.execute();
@@ -444,7 +467,7 @@ async function batchProcess() {
       // 继续处理下一个文件
     }
   }
-  
+
   console.log('批量处理完成');
 }
 
@@ -471,6 +494,7 @@ mkdir -p examples/core/complete-workflow/templates
 在`templates`目录中创建以下文件：
 
 **base-prompt.xml**:
+
 ```xml
 <prompt id="code-assistant">
   <role name="assistant" expertise="programming">
@@ -487,7 +511,7 @@ mkdir -p examples/core/complete-workflow/templates
         title: string;
         content: string;
       }
-      
+
       function ExampleComponent({ title, content }: Props) {
         return (
           <div>
@@ -515,4 +539,4 @@ ts-node examples/core/complete-workflow/custom-workflow.ts
 
 错误处理示例将展示如何处理不同类型的DPML错误，并提供有用的错误信息。
 
-自定义工作流示例将展示如何构建一个可配置的DPML处理工作流，支持不同的输入和输出格式。 
+自定义工作流示例将展示如何构建一个可配置的DPML处理工作流，支持不同的输入和输出格式。

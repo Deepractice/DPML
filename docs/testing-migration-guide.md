@@ -40,6 +40,7 @@ package-root/
 ## 迁移步骤
 
 所有包都应遵循以下步骤完成测试迁移。截至目前，已完成迁移的包括：
+
 - `@dpml/core`
 - `@dpml/agent`
 - `@dpml/prompt`
@@ -103,6 +104,7 @@ echo "导入路径修复完成！"
 2. **更新配置文件**：
 
 `vitest.config.ts`:
+
 ```typescript
 import { defineConfig } from 'vitest/config';
 import * as path from 'path';
@@ -110,8 +112,8 @@ import * as path from 'path';
 export default defineConfig({
   resolve: {
     alias: {
-      '@packageName': path.resolve(__dirname, './src')
-    }
+      '@packageName': path.resolve(__dirname, './src'),
+    },
   },
   test: {
     globals: true,
@@ -130,6 +132,7 @@ export default defineConfig({
 ```
 
 `tsconfig.json`:
+
 ```json
 {
   "extends": "../../tsconfig.json",
@@ -170,7 +173,7 @@ rm -rf tests/
 导入路径应使用相对路径或包内路径别名：
 
 ```typescript
-// 使用相对路径 
+// 使用相对路径
 import { formatter } from '../../utils/formatter';
 
 // 或使用包内路径别名
@@ -206,4 +209,4 @@ import { formatter } from '@packageName/utils/formatter';
 
 测试文件迁移到`src/tests/`目录是DPML项目测试实践的重要改进。它简化了导入路径，改善了开发体验，并使测试与源代码的关系更加紧密。
 
-所有包应该按照本指南完成测试迁移，确保项目中测试结构的一致性。 
+所有包应该按照本指南完成测试迁移，确保项目中测试结构的一致性。

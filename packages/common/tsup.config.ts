@@ -1,6 +1,8 @@
-import { defineConfig } from 'tsup';
-import { baseConfig } from '../../tsup.base.config';
 import * as path from 'path';
+
+import { defineConfig } from 'tsup';
+
+import { baseConfig } from '../../tsup.base.config';
 
 export default defineConfig({
   ...baseConfig,
@@ -14,7 +16,7 @@ export default defineConfig({
   esbuildOptions(options) {
     options.external = [...(options.external || []), './factories'];
     options.alias = {
-      '@common': path.resolve(__dirname, './src')
+      '@common': path.resolve(__dirname, './src'),
     };
   },
 });

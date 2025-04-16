@@ -1,5 +1,8 @@
 import chalk from 'chalk';
-import { LogLevel, LoggerOptions } from '../types/config';
+
+import { LogLevel } from '../types/config';
+
+import type { LoggerOptions } from '../types/config';
 
 /**
  * 默认日志器配置
@@ -7,7 +10,7 @@ import { LogLevel, LoggerOptions } from '../types/config';
 const DEFAULT_OPTIONS: LoggerOptions = {
   level: LogLevel.INFO,
   console: true,
-  timestamp: false
+  timestamp: false,
 };
 
 /**
@@ -40,8 +43,10 @@ export class Logger {
   private formatMessage(message: string): string {
     if (this.options.timestamp) {
       const now = new Date();
+
       return `[${now.toISOString()}] ${message}`;
     }
+
     return message;
   }
 

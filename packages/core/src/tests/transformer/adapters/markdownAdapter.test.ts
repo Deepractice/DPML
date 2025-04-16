@@ -1,9 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { TransformContext } from '../../../transformer/interfaces/transformContext';
-import { ContextManager } from '../../../transformer/context/contextManager';
-import { ProcessedDocument } from '../../../processor/interfaces/processor';
-import { NodeType } from '../../../types/node';
+
 import { MarkdownAdapter } from '../../../transformer/adapters/markdownAdapter';
+import { ContextManager } from '../../../transformer/context/contextManager';
+import { NodeType } from '../../../types/node';
+
+import type { ProcessedDocument } from '../../../processor/interfaces/processor';
+import type { TransformContext } from '../../../transformer/interfaces/transformContext';
 
 describe('MarkdownAdapter', () => {
   // 创建一个简单的文档结果用于测试
@@ -13,7 +15,7 @@ describe('MarkdownAdapter', () => {
       meta: {
         title: '测试文档',
         author: '测试作者',
-        date: '2023-05-15'
+        date: '2023-05-15',
       },
       children: [
         {
@@ -23,9 +25,9 @@ describe('MarkdownAdapter', () => {
           children: [
             {
               type: 'content',
-              text: '主标题'
-            }
-          ]
+              text: '主标题',
+            },
+          ],
         },
         {
           type: 'element',
@@ -33,9 +35,9 @@ describe('MarkdownAdapter', () => {
           children: [
             {
               type: 'content',
-              text: '这是一段测试内容。'
-            }
-          ]
+              text: '这是一段测试内容。',
+            },
+          ],
         },
         {
           type: 'element',
@@ -44,9 +46,9 @@ describe('MarkdownAdapter', () => {
           children: [
             {
               type: 'content',
-              text: '二级标题'
-            }
-          ]
+              text: '二级标题',
+            },
+          ],
         },
         {
           type: 'element',
@@ -54,9 +56,9 @@ describe('MarkdownAdapter', () => {
           children: [
             {
               type: 'content',
-              text: '这是二级标题下的段落。'
-            }
-          ]
+              text: '这是二级标题下的段落。',
+            },
+          ],
         },
         {
           type: 'element',
@@ -69,9 +71,9 @@ describe('MarkdownAdapter', () => {
               children: [
                 {
                   type: 'content',
-                  text: '无序列表项1'
-                }
-              ]
+                  text: '无序列表项1',
+                },
+              ],
             },
             {
               type: 'element',
@@ -79,11 +81,11 @@ describe('MarkdownAdapter', () => {
               children: [
                 {
                   type: 'content',
-                  text: '无序列表项2'
-                }
-              ]
-            }
-          ]
+                  text: '无序列表项2',
+                },
+              ],
+            },
+          ],
         },
         {
           type: 'element',
@@ -96,9 +98,9 @@ describe('MarkdownAdapter', () => {
               children: [
                 {
                   type: 'content',
-                  text: '有序列表项1'
-                }
-              ]
+                  text: '有序列表项1',
+                },
+              ],
             },
             {
               type: 'element',
@@ -106,11 +108,11 @@ describe('MarkdownAdapter', () => {
               children: [
                 {
                   type: 'content',
-                  text: '有序列表项2'
-                }
-              ]
-            }
-          ]
+                  text: '有序列表项2',
+                },
+              ],
+            },
+          ],
         },
         {
           type: 'element',
@@ -119,11 +121,11 @@ describe('MarkdownAdapter', () => {
           children: [
             {
               type: 'content',
-              text: 'function test() {\n  console.log("Hello");\n}'
-            }
-          ]
-        }
-      ]
+              text: 'function test() {\n  console.log("Hello");\n}',
+            },
+          ],
+        },
+      ],
     };
   };
 
@@ -135,13 +137,13 @@ describe('MarkdownAdapter', () => {
       children: [],
       position: {
         start: { line: 1, column: 1, offset: 0 },
-        end: { line: 1, column: 1, offset: 0 }
-      }
+        end: { line: 1, column: 1, offset: 0 },
+      },
     };
 
     // 创建上下文管理器
     const contextManager = new ContextManager();
-    
+
     // 返回根上下文
     return contextManager.createRootContext(document, {});
   };
@@ -151,34 +153,34 @@ describe('MarkdownAdapter', () => {
     const adapter = new MarkdownAdapter();
     const result = createSimpleResult();
     const context = createContext();
-    
+
     // 执行
     const adapted = adapter.adapt(result, context);
-    
+
     // 验证
     expect(typeof adapted).toBe('string');
-    
+
     // 验证标题格式
     expect(adapted).toContain('# 主标题');
     expect(adapted).toContain('## 二级标题');
-    
+
     // 验证段落格式
     expect(adapted).toContain('这是一段测试内容。');
     expect(adapted).toContain('这是二级标题下的段落。');
-    
+
     // 验证列表格式
     expect(adapted).toMatch(/\n- 无序列表项1\n/);
     expect(adapted).toMatch(/\n- 无序列表项2\n/);
     expect(adapted).toMatch(/\n1\. 有序列表项1\n/);
     expect(adapted).toMatch(/\n2\. 有序列表项2\n/);
-    
+
     // 验证代码块格式
     expect(adapted).toContain('```typescript');
     expect(adapted).toContain('function test() {');
     expect(adapted).toContain('  console.log("Hello");');
     expect(adapted).toContain('}');
     expect(adapted).toContain('```');
-    
+
     // 验证元数据（可选前言）
     expect(adapted).toContain('---');
     expect(adapted).toContain('title: 测试文档');
@@ -199,17 +201,17 @@ describe('MarkdownAdapter', () => {
           children: [
             {
               type: 'content',
-              text: '没有元数据的文档'
-            }
-          ]
-        }
-      ]
+              text: '没有元数据的文档',
+            },
+          ],
+        },
+      ],
     };
     const context = createContext();
-    
+
     // 执行
     const adapted = adapter.adapt(result, context);
-    
+
     // 验证 - 不应包含前言
     expect(adapted as string).not.toContain('---\n');
     expect(adapted as string).toBe('没有元数据的文档\n\n');
@@ -219,16 +221,16 @@ describe('MarkdownAdapter', () => {
     // 准备
     const adapter = new MarkdownAdapter();
     const context = createContext();
-    
+
     // 执行 - 传递null
     const adapted1 = adapter.adapt(null, context);
-    
+
     // 验证
     expect(adapted1).toBe('');
-    
+
     // 执行 - 传递undefined
     const adapted2 = adapter.adapt(undefined, context);
-    
+
     // 验证
     expect(adapted2).toBe('');
   });
@@ -245,7 +247,7 @@ describe('MarkdownAdapter', () => {
           children: [
             {
               type: 'content',
-              text: '普通文本'
+              text: '普通文本',
             },
             {
               type: 'element',
@@ -253,13 +255,13 @@ describe('MarkdownAdapter', () => {
               children: [
                 {
                   type: 'content',
-                  text: '粗体文本'
-                }
-              ]
+                  text: '粗体文本',
+                },
+              ],
             },
             {
               type: 'content',
-              text: '和'
+              text: '和',
             },
             {
               type: 'element',
@@ -267,13 +269,13 @@ describe('MarkdownAdapter', () => {
               children: [
                 {
                   type: 'content',
-                  text: '斜体文本'
-                }
-              ]
+                  text: '斜体文本',
+                },
+              ],
             },
             {
               type: 'content',
-              text: '以及'
+              text: '以及',
             },
             {
               type: 'element',
@@ -281,19 +283,19 @@ describe('MarkdownAdapter', () => {
               children: [
                 {
                   type: 'content',
-                  text: '代码'
-                }
-              ]
-            }
-          ]
-        }
-      ]
+                  text: '代码',
+                },
+              ],
+            },
+          ],
+        },
+      ],
     };
     const context = createContext();
-    
+
     // 执行
     const adapted = adapter.adapt(result, context);
-    
+
     // 验证
     expect(adapted).toContain('普通文本**粗体文本**和*斜体文本*以及`代码`');
   });
@@ -322,9 +324,9 @@ describe('MarkdownAdapter', () => {
                       children: [
                         {
                           type: 'content',
-                          text: '标题1'
-                        }
-                      ]
+                          text: '标题1',
+                        },
+                      ],
                     },
                     {
                       type: 'element',
@@ -332,13 +334,13 @@ describe('MarkdownAdapter', () => {
                       children: [
                         {
                           type: 'content',
-                          text: '标题2'
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
+                          text: '标题2',
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
             },
             {
               type: 'element',
@@ -354,9 +356,9 @@ describe('MarkdownAdapter', () => {
                       children: [
                         {
                           type: 'content',
-                          text: '数据1'
-                        }
-                      ]
+                          text: '数据1',
+                        },
+                      ],
                     },
                     {
                       type: 'element',
@@ -364,23 +366,23 @@ describe('MarkdownAdapter', () => {
                       children: [
                         {
                           type: 'content',
-                          text: '数据2'
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      ]
+                          text: '数据2',
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
     };
     const context = createContext();
-    
+
     // 执行
     const adapted = adapter.adapt(result, context);
-    
+
     // 验证表格格式
     expect(adapted).toContain('| 标题1 | 标题2 |');
     expect(adapted).toContain('| --- | --- |');
@@ -390,19 +392,19 @@ describe('MarkdownAdapter', () => {
   it('应该可以配置是否添加元数据前言', () => {
     // 准备
     const adapter = new MarkdownAdapter({
-      includeFrontmatter: false
+      includeFrontmatter: false,
     });
     const result = createSimpleResult();
     const context = createContext();
-    
+
     // 执行
     const adapted = adapter.adapt(result, context);
-    
+
     // 验证 - 不应包含前言
     expect(adapted as string).not.toContain('---\n');
     expect(adapted as string).not.toContain('title: 测试文档');
-    
+
     // 应该保留正文内容
     expect(adapted as string).toContain('# 主标题');
   });
-}); 
+});

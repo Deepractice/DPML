@@ -1,7 +1,7 @@
-import { CommandRegistry } from './registry';
-import { CommandLoader } from './loader';
-import { CommandExecutor } from './executor';
 import { ConfigManager } from './config';
+import { CommandExecutor } from './executor';
+import { CommandLoader } from './loader';
+import { CommandRegistry } from './registry';
 
 /**
  * CLI类
@@ -20,7 +20,10 @@ export class CLI {
     // 初始化组件
     this.configManager = new ConfigManager();
     this.commandRegistry = new CommandRegistry();
-    this.commandLoader = new CommandLoader(this.commandRegistry, this.configManager);
+    this.commandLoader = new CommandLoader(
+      this.commandRegistry,
+      this.configManager
+    );
     this.commandExecutor = new CommandExecutor(this.commandRegistry);
   }
 
@@ -68,6 +71,7 @@ export class CLI {
 
       // 加载领域命令
       const domains = this.commandRegistry.getAllDomains();
+
       for (const domain of domains) {
         await this.commandLoader.loadDomainCommands(domain);
       }

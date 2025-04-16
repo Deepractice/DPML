@@ -64,4 +64,4 @@ export interface XMLParserOptions {
    * @default true
    */
   cdataAsText?: boolean;
-} 
+}

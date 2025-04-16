@@ -1,11 +1,12 @@
-import { defineConfig } from 'vitest/config';
 import * as path from 'path';
+
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   resolve: {
     alias: {
-      '@agent': path.resolve(__dirname, './src')
-    }
+      '@agent': path.resolve(__dirname, './src'),
+    },
   },
   test: {
     globals: true,
@@ -13,11 +14,11 @@ export default defineConfig({
     include: ['src/tests/**/*.test.ts'],
     exclude: ['**/node_modules/**'],
     typecheck: {
-      enabled: false
+      enabled: false,
     },
     setupFiles: ['./vitest.setup.ts'],
     deps: {
-      inline: [/@dpml\/.*/]
+      inline: [/@dpml\/.*/],
     },
     coverage: {
       provider: 'v8',
@@ -38,6 +39,6 @@ export default defineConfig({
       },
       all: true,
       reportsDirectory: './coverage',
-    }
-  }
-}); 
+    },
+  },
+});

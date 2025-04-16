@@ -23,13 +23,13 @@ describe('文件处理测试', () => {
     // 创建模拟文件系统
     const mockFs = createMockFileSystem({
       '/path/to/file.txt': 'mock file content',
-      '/config/settings.json': '{"enabled": true}'
+      '/config/settings.json': '{"enabled": true}',
     });
-    
+
     // 测试文件操作
     const content = await mockFs.readFile('/path/to/file.txt', 'utf-8');
     expect(content).toBe('mock file content');
-    
+
     // 验证调用历史
     expect(mockFs.readFile.mock.calls.length).toBe(1);
     expect(mockFs.readFile.mock.calls[0][0]).toBe('/path/to/file.txt');
@@ -48,19 +48,19 @@ describe('API客户端测试', () => {
     const mockHttp = createMockHttpClient({
       'GET https://api.example.com/users': {
         status: 200,
-        data: { users: [{ id: 1, name: 'Test User' }] }
+        data: { users: [{ id: 1, name: 'Test User' }] },
       },
       'POST https://api.example.com/users': {
         status: 201,
-        data: { id: 2, name: 'New User' }
-      }
+        data: { id: 2, name: 'New User' },
+      },
     });
-    
+
     // 测试HTTP请求
     const response = await mockHttp.get('https://api.example.com/users');
     expect(response.status).toBe(200);
     expect(response.data.users[0].name).toBe('Test User');
-    
+
     // 验证调用历史
     expect(mockHttp.get.mock.calls.length).toBe(1);
   });
@@ -70,30 +70,30 @@ describe('API客户端测试', () => {
 ### 测试断言辅助
 
 ```typescript
-import { 
-  assertStructure, 
+import {
+  assertStructure,
   assertDeepEquals,
-  assertErrorType 
+  assertErrorType,
 } from '@dpml/common/testing';
 
 describe('断言辅助测试', () => {
   it('应验证对象结构', () => {
     const obj = { id: 1, name: 'Test', meta: { created: '2023-01-01' } };
-    
+
     // 验证对象结构
     assertStructure(obj, {
       id: 'number',
       name: 'string',
-      meta: 'object'
+      meta: 'object',
     });
-    
+
     // 深度对比，忽略特定字段
     assertDeepEquals(
-      obj, 
-      { id: 1, name: 'Test', meta: {} }, 
+      obj,
+      { id: 1, name: 'Test', meta: {} },
       { ignoreProps: ['meta.created'] }
     );
-    
+
     // 验证错误类型
     assertErrorType(() => {
       throw new TypeError('Test error');
@@ -115,16 +115,16 @@ createFixture('userDatabase', () => {
   const db = {
     users: [
       { id: 1, name: 'User 1' },
-      { id: 2, name: 'User 2' }
-    ]
+      { id: 2, name: 'User 2' },
+    ],
   };
-  
+
   // 返回夹具对象和清理函数
   return {
     fixture: db,
     cleanup: () => {
       db.users = [];
-    }
+    },
   };
 });
 
@@ -132,10 +132,10 @@ describe('用户管理测试', () => {
   it('应获取用户列表', () => {
     // 使用夹具
     const { fixture: db, cleanup } = useFixture('userDatabase');
-    
+
     // 测试逻辑
     expect(db.users.length).toBe(2);
-    
+
     // 自动清理
     cleanup();
   });
@@ -152,19 +152,19 @@ describe('时间相关功能测试', () => {
     // 模拟时间为特定日期
     mockTime('2023-05-15T10:00:00Z');
   });
-  
+
   it('应正确计算时间差', () => {
     const start = new Date();
-    
+
     // 前进时间30分钟
     advanceTime(30 * 60 * 1000);
-    
+
     const end = new Date();
     const diff = end.getTime() - start.getTime();
-    
+
     expect(diff).toBe(30 * 60 * 1000);
   });
-  
+
   afterEach(() => {
     // 重置时间模拟
     mockTime.reset();
@@ -178,4 +178,4 @@ describe('时间相关功能测试', () => {
 - [模拟HTTP客户端](./MockHttpClient.md)
 - [测试工具函数](./TestUtils.md)
 - [断言辅助](./Assertions.md)
-- [测试夹具](./Fixtures.md) 
+- [测试夹具](./Fixtures.md)

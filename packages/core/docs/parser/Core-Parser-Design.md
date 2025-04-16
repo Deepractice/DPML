@@ -25,12 +25,12 @@ flowchart LR
     Input[DPML 文本] --> XmlParser[XML解析库]
     XmlParser --> DpmlAdapter[DPML适配器]
     DpmlAdapter --> AST[基础DPML AST]
-    
+
     subgraph "辅助组件"
       TagRegistry[标签注册表]
       ErrorHandler[错误处理器]
     end
-    
+
     TagRegistry -.-> DpmlAdapter
     ErrorHandler -.-> XmlParser
     ErrorHandler -.-> DpmlAdapter
@@ -45,24 +45,24 @@ classDiagram
     class XmlParser {
         +parse(xml: string): XmlNode
     }
-    
+
     class DpmlAdapter {
         +adapt(xmlNode: XmlNode): DpmlNode
         -processElement(element: XmlElement): Element
         -processText(text: XmlText): Content
     }
-    
+
     class TagRegistry {
         +registerTagDefinition(name: string, def: TagDefinition)
         +getTagDefinition(name: string): TagDefinition
     }
-    
+
     class ParseResult {
         +ast: Document
         +errors: ParseError[]
         +warnings: ParseWarning[]
     }
-    
+
     XmlParser --> DpmlAdapter: provides XML nodes
     DpmlAdapter --> ParseResult: produces
     DpmlAdapter --> TagRegistry: uses
@@ -86,14 +86,14 @@ class XmlParserAdapter {
     // 调用具体的XML解析库
     return this.xmlLib.parse(xml, this.getParserOptions());
   }
-  
+
   /**
    * 获取解析选项
    */
   protected getParserOptions() {
     return {
       // 配置选项，如保留注释、属性等
-      attributeNamePrefix: "",
+      attributeNamePrefix: '',
       ignoreAttributes: false,
       parseAttributeValue: true,
     };
@@ -120,7 +120,7 @@ class DpmlAdapter {
     }
     // ...处理其他节点类型
   }
-  
+
   /**
    * 处理XML元素节点
    */
@@ -128,7 +128,7 @@ class DpmlAdapter {
     // 创建DPML元素节点
     // 处理属性、子节点等
   }
-  
+
   /**
    * 处理文本节点
    */
@@ -149,8 +149,8 @@ DPML 解析结果的节点类型：
 interface Node {
   type: string;
   position: {
-    start: { line: number; column: number; offset: number; };
-    end: { line: number; column: number; offset: number; };
+    start: { line: number; column: number; offset: number };
+    end: { line: number; column: number; offset: number };
   };
 }
 
@@ -182,17 +182,17 @@ interface TagDefinition {
    * 允许的属性
    */
   attributes?: string[];
-  
+
   /**
    * 必需的属性
    */
   requiredAttributes?: string[];
-  
+
   /**
    * 允许的子标签
    */
   allowedChildren?: string[];
-  
+
   /**
    * 是否自闭合标签
    */
@@ -225,7 +225,7 @@ interface DPMLParser {
    * @returns 解析结果
    */
   parse(input: string, options?: ParseOptions): Promise<ParseResult>;
-  
+
   /**
    * 验证DPML AST是否有效
    * @param ast DPML AST
@@ -240,24 +240,24 @@ interface ParseOptions {
    * @default true
    */
   allowUnknownTags?: boolean;
-  
+
   /**
    * 是否忽略验证错误继续解析
    * @default false
    */
   tolerant?: boolean;
-  
+
   /**
    * 是否保留注释
    * @default false
    */
   preserveComments?: boolean;
-  
+
   /**
    * 解析模式
    * @default "loose"
    */
-  mode?: "strict" | "loose";
+  mode?: 'strict' | 'loose';
 }
 
 interface ParseResult {
@@ -265,12 +265,12 @@ interface ParseResult {
    * 解析生成的AST
    */
   ast: Document;
-  
+
   /**
    * 解析过程中的错误
    */
   errors: ParseError[];
-  
+
   /**
    * 解析过程中的警告
    */
@@ -286,7 +286,7 @@ class ParseError extends Error {
    * 错误码
    */
   code: string;
-  
+
   /**
    * 错误位置
    */
@@ -298,12 +298,12 @@ class ParseWarning {
    * 警告码
    */
   code: string;
-  
+
   /**
    * 警告消息
    */
   message: string;
-  
+
   /**
    * 警告位置
    */
@@ -357,6 +357,7 @@ Parser 模块采用分级错误处理策略：
 3. **警告**：格式问题或最佳实践违反，不影响解析结果
 
 错误信息包含：
+
 - 错误类型和代码
 - 详细的错误消息
 - 准确的源码位置（行、列、偏移量）
@@ -372,6 +373,7 @@ Parser 模块的性能优化策略：
 4. **部分解析**：支持只解析文档的特定部分
 
 性能目标：
+
 - 100KB DPML文档解析时间 < 100ms
 - 内存占用：文档大小的 5-10 倍
 
@@ -411,7 +413,7 @@ import { createParser, tagRegistry } from '@dpml/core';
 tagRegistry.registerTagDefinition('custom-tag', {
   attributes: ['type', 'id'],
   requiredAttributes: ['type'],
-  allowedChildren: ['text']
+  allowedChildren: ['text'],
 });
 
 // 创建解析器
@@ -444,10 +446,10 @@ async function processDpml(dpmlText) {
   if (parseResult.errors.length > 0) {
     return { errors: parseResult.errors };
   }
-  
+
   // 步骤2: 处理AST（继承、引用等高级功能）
   const processedResult = await processor.process(parseResult.ast);
-  
+
   return processedResult;
 }
 ```
@@ -468,20 +470,20 @@ Parser 模块的未来扩展计划：
 
 为保持清晰的职责分离，Parser和Processor模块各自负责不同的处理阶段：
 
-| 职责 | Parser模块 | Processor模块 |
-|------|------------|--------------|
-| XML/标签解析 | ✅ | ❌ |
-| 生成基础AST | ✅ | ❌ |
-| 基础标签验证 | ✅ | ❌ |
-| 属性验证和处理 | ❌ | ✅ |
-| @引用识别与解析 | ❌ | ✅ |
-| 标签继承处理 | ❌ | ✅ |
-| 属性继承规则 | ❌ | ✅ |
-| 内容继承规则 | ❌ | ✅ |
-| 引用协议处理 | ❌ | ✅ |
+| 职责            | Parser模块 | Processor模块 |
+| --------------- | ---------- | ------------- |
+| XML/标签解析    | ✅         | ❌            |
+| 生成基础AST     | ✅         | ❌            |
+| 基础标签验证    | ✅         | ❌            |
+| 属性验证和处理  | ❌         | ✅            |
+| @引用识别与解析 | ❌         | ✅            |
+| 标签继承处理    | ❌         | ✅            |
+| 属性继承规则    | ❌         | ✅            |
+| 内容继承规则    | ❌         | ✅            |
+| 引用协议处理    | ❌         | ✅            |
 
 Parser模块专注于将DPML文本转换为结构化的基础AST，而Processor模块负责对AST进行高级处理和增强。Parser不进行任何属性处理、继承处理或引用解析。
 
 ---
 
-本文档定义了Parser模块的详细设计。实现时基于现有XML解析库，专注于将XML解析为AST结构，不进行任何额外的属性处理或继承解析。 
+本文档定义了Parser模块的详细设计。实现时基于现有XML解析库，专注于将XML解析为AST结构，不进行任何额外的属性处理或继承解析。

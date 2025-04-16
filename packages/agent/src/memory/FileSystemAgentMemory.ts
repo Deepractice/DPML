@@ -1,7 +1,14 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { Memory, MemoryItem, AgentMemory, AgentMemoryOptions } from './types';
+
 import { PathSanitizer } from '../security/PathSanitizer';
+
+import type {
+  Memory,
+  MemoryItem,
+  AgentMemory,
+  AgentMemoryOptions,
+} from './types';
 
 /**
  * 基于文件系统的代理记忆存储实现
@@ -29,13 +36,13 @@ export class FileSystemAgentMemory implements AgentMemory {
   constructor(options: AgentMemoryOptions) {
     this.agentId = options.agentId;
     this.maxItems = options.maxItems;
-    
+
     if (!options.basePath) {
       throw new Error('FileSystemAgentMemory requires basePath option');
     }
-    
+
     this.basePath = options.basePath;
-    
+
     // 确保目录存在
     this.ensureDirectoryExists();
   }
@@ -51,17 +58,17 @@ export class FileSystemAgentMemory implements AgentMemory {
     }
 
     const filePath = this.getFilePath(memory.id);
-    
+
     // 添加更新时间戳到元数据
     const memoryToSave = {
       ...memory,
       metadata: {
         ...memory.metadata,
         updatedAt: Date.now(),
-        agentId: this.agentId
-      }
+        agentId: this.agentId,
+      },
     };
-    
+
     // 写入文件
     await fs.promises.writeFile(
       filePath,
@@ -77,20 +84,21 @@ export class FileSystemAgentMemory implements AgentMemory {
    */
   async retrieve(sessionId: string): Promise<Memory> {
     const filePath = this.getFilePath(sessionId);
-    
+
     try {
       // 尝试读取文件
       const data = await fs.promises.readFile(filePath, 'utf-8');
+
       return JSON.parse(data) as Memory;
     } catch (error) {
       // 文件不存在或读取错误，返回空记忆
       return {
         id: sessionId,
         content: [] as MemoryItem[],
-        metadata: { 
+        metadata: {
           created: Date.now(),
-          agentId: this.agentId
-        }
+          agentId: this.agentId,
+        },
       };
     }
   }
@@ -101,7 +109,7 @@ export class FileSystemAgentMemory implements AgentMemory {
    */
   async clear(sessionId: string): Promise<void> {
     const filePath = this.getFilePath(sessionId);
-    
+
     try {
       await fs.promises.unlink(filePath);
     } catch (error) {
@@ -119,7 +127,7 @@ export class FileSystemAgentMemory implements AgentMemory {
   async getAllSessionIds(): Promise<string[]> {
     try {
       const files = await fs.promises.readdir(this.basePath);
-      
+
       // 过滤出.json文件并提取会话ID
       return files
         .filter(file => file.endsWith('.json'))
@@ -142,6 +150,7 @@ export class FileSystemAgentMemory implements AgentMemory {
     }
 
     const items = memory.content as MemoryItem[];
+
     if (items.length <= this.maxItems) {
       return memory;
     }
@@ -158,8 +167,8 @@ export class FileSystemAgentMemory implements AgentMemory {
       metadata: {
         ...memory.metadata,
         truncated: true,
-        originalLength: items.length
-      }
+        originalLength: items.length,
+      },
     };
   }
 
@@ -172,14 +181,14 @@ export class FileSystemAgentMemory implements AgentMemory {
   private getFilePath(sessionId: string): string {
     // 使用PathSanitizer创建安全的文件名
     const safeSessionId = PathSanitizer.createSafeFileName(sessionId);
-    
+
     // 使用PathSanitizer获取安全的完整路径
     return PathSanitizer.sanitizeFilePath(
       path.join(this.basePath, `${safeSessionId}.json`),
       {
-        allowAbsolutePath: true,  // 允许绝对路径，因为basePath可能是绝对路径
-        baseDir: this.basePath,   // 设置基础目录为当前记忆存储目录
-        allowedExtensions: ['.json'] // 只允许.json扩展名
+        allowAbsolutePath: true, // 允许绝对路径，因为basePath可能是绝对路径
+        baseDir: this.basePath, // 设置基础目录为当前记忆存储目录
+        allowedExtensions: ['.json'], // 只允许.json扩展名
       }
     );
   }
@@ -191,7 +200,7 @@ export class FileSystemAgentMemory implements AgentMemory {
   private ensureDirectoryExists(): void {
     // 使用PathSanitizer安全地创建目录
     PathSanitizer.safeCreateDirectory(this.basePath, {
-      allowAbsolutePath: true // 允许绝对路径
+      allowAbsolutePath: true, // 允许绝对路径
     });
   }
-} 
+}

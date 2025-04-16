@@ -1,6 +1,8 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
+
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+
 import { generatePrompt } from '../..';
 
 describe('UC-P-006: 继承复用提示测试', () => {
@@ -12,6 +14,7 @@ describe('UC-P-006: 继承复用提示测试', () => {
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
+
     // 确保测试目录存在
     if (!fs.existsSync(testDir)) {
       fs.mkdirSync(testDir, { recursive: true });
@@ -88,25 +91,34 @@ describe('UC-P-006: 继承复用提示测试', () => {
 
     // 保存测试DPML到文件
     const baseFilePath = path.join(testDir, 'writer-base.dpml');
+
     fs.writeFileSync(baseFilePath, basePromptContent);
-    
+
     const techWriterFilePath = path.join(testDir, 'tech-writer.dpml');
+
     fs.writeFileSync(techWriterFilePath, techWriterContent);
-    
+
     const creativeWriterFilePath = path.join(testDir, 'creative-writer.dpml');
+
     fs.writeFileSync(creativeWriterFilePath, creativeWriterContent);
 
     // 生成继承后的提示文本
     const techWriterPrompt = await generatePrompt(techWriterFilePath);
     const creativeWriterPrompt = await generatePrompt(creativeWriterFilePath);
-    
+
     // 保存生成的提示到输出文件
-    fs.writeFileSync(path.join(outputDir, 'tech-writer-output.txt'), techWriterPrompt);
-    fs.writeFileSync(path.join(outputDir, 'creative-writer-output.txt'), creativeWriterPrompt);
+    fs.writeFileSync(
+      path.join(outputDir, 'tech-writer-output.txt'),
+      techWriterPrompt
+    );
+    fs.writeFileSync(
+      path.join(outputDir, 'creative-writer-output.txt'),
+      creativeWriterPrompt
+    );
 
     // 输出实际内容，方便调试
-    console.log("技术写作者提示内容:\n", techWriterPrompt);
-    console.log("\n创意写作者提示内容:\n", creativeWriterPrompt);
+    console.log('技术写作者提示内容:\n', techWriterPrompt);
+    console.log('\n创意写作者提示内容:\n', creativeWriterPrompt);
 
     // 验证技术写作者提示是否正确继承和覆盖内容（根据实际输出调整）
     expect(techWriterPrompt).toContain('技术博客写作者');
@@ -127,4 +139,4 @@ describe('UC-P-006: 继承复用提示测试', () => {
   afterAll(() => {
     // 可以在这里添加清理代码，如果需要的话
   });
-}); 
+});

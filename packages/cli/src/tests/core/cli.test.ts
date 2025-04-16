@@ -1,9 +1,10 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+
 import { CLI } from '../../core/cli';
-import { CommandRegistry } from '../../core/registry';
-import { CommandLoader } from '../../core/loader';
-import { CommandExecutor } from '../../core/executor';
 import { ConfigManager } from '../../core/config';
+import { CommandExecutor } from '../../core/executor';
+import { CommandLoader } from '../../core/loader';
+import { CommandRegistry } from '../../core/registry';
 
 // 模拟依赖模块
 vi.mock('../../src/core/registry');
@@ -36,8 +37,9 @@ describe('CLI', () => {
     // 设置模拟方法
     mockConfig.ensureConfigDir = vi.fn().mockReturnValue(true);
     mockConfig.load = vi.fn().mockReturnValue(true);
-    mockConfig.get = vi.fn().mockImplementation((key) => {
+    mockConfig.get = vi.fn().mockImplementation(key => {
       if (key === 'initialized') return true;
+
       return null;
     });
     mockConfig.set = vi.fn();
@@ -50,13 +52,13 @@ describe('CLI', () => {
     mockRegistry.getAllDomains = vi.fn().mockReturnValue(['test-domain']);
 
     mockExecutor.buildCommandStructure = vi.fn().mockReturnValue({
-      parse: vi.fn()
+      parse: vi.fn(),
     });
     mockExecutor.handleErrors = vi.fn();
 
     // 创建CLI实例
     cli = new CLI();
-    
+
     // 替换CLI内部组件为模拟对象
     (cli as any).commandRegistry = mockRegistry;
     (cli as any).commandLoader = mockLoader;
@@ -84,8 +86,14 @@ describe('CLI', () => {
       await cli.initialize();
 
       expect(mockConfig.set).toHaveBeenCalledWith('initialized', true);
-      expect(mockConfig.set).toHaveBeenCalledWith('version', expect.any(String));
-      expect(mockConfig.set).toHaveBeenCalledWith('lastUpdated', expect.any(String));
+      expect(mockConfig.set).toHaveBeenCalledWith(
+        'version',
+        expect.any(String)
+      );
+      expect(mockConfig.set).toHaveBeenCalledWith(
+        'lastUpdated',
+        expect.any(String)
+      );
       expect(mockConfig.save).toHaveBeenCalled();
     });
   });
@@ -100,7 +108,9 @@ describe('CLI', () => {
       expect(mockLoader.loadMappingFile).toHaveBeenCalled();
       expect(mockLoader.loadDomainCommands).toHaveBeenCalledWith('test-domain');
       expect(mockExecutor.buildCommandStructure).toHaveBeenCalled();
-      expect(mockExecutor.buildCommandStructure().parse).toHaveBeenCalledWith(argv);
+      expect(mockExecutor.buildCommandStructure().parse).toHaveBeenCalledWith(
+        argv
+      );
     });
 
     it('当映射文件不存在时应刷新映射', async () => {
@@ -149,6 +159,7 @@ describe('CLI', () => {
     it('应该捕获并处理运行时错误', async () => {
       // 模拟初始化抛出错误
       const error = new Error('测试错误');
+
       mockConfig.ensureConfigDir = vi.fn().mockImplementation(() => {
         throw error;
       });

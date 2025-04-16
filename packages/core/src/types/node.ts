@@ -5,7 +5,7 @@ export enum NodeType {
   DOCUMENT = 'document',
   ELEMENT = 'element',
   CONTENT = 'content',
-  REFERENCE = 'reference'
+  REFERENCE = 'reference',
 }
 
 // 显式导出节点类型，确保可以被正确导入
@@ -87,57 +87,63 @@ export interface Reference extends Node {
  * 检查一个值是否为节点
  */
 export function isNode(value: any): value is Node {
-  return value !== null &&
-         typeof value === 'object' &&
-         typeof value.type === 'string' &&
-         (
-           value.type === NodeType.DOCUMENT ||
-           value.type === NodeType.ELEMENT ||
-           value.type === NodeType.CONTENT ||
-           value.type === NodeType.REFERENCE
-         ) &&
-         value.position !== undefined;
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    typeof value.type === 'string' &&
+    (value.type === NodeType.DOCUMENT ||
+      value.type === NodeType.ELEMENT ||
+      value.type === NodeType.CONTENT ||
+      value.type === NodeType.REFERENCE) &&
+    value.position !== undefined
+  );
 }
 
 /**
  * 检查一个值是否为文档节点
  */
 export function isDocument(value: any): value is Document {
-  return isNode(value) &&
-         value.type === NodeType.DOCUMENT &&
-         Array.isArray((value as any).children);
+  return (
+    isNode(value) &&
+    value.type === NodeType.DOCUMENT &&
+    Array.isArray((value as any).children)
+  );
 }
 
 /**
  * 检查一个值是否为元素节点
  */
 export function isElement(value: any): value is Element {
-  return isNode(value) &&
-         value.type === NodeType.ELEMENT &&
-         typeof (value as any).tagName === 'string' &&
-         typeof (value as any).attributes === 'object' &&
-         Array.isArray((value as any).children) &&
-         (
-           (value as any).metadata === undefined ||
-           typeof (value as any).metadata === 'object'
-         );
+  return (
+    isNode(value) &&
+    value.type === NodeType.ELEMENT &&
+    typeof (value as any).tagName === 'string' &&
+    typeof (value as any).attributes === 'object' &&
+    Array.isArray((value as any).children) &&
+    ((value as any).metadata === undefined ||
+      typeof (value as any).metadata === 'object')
+  );
 }
 
 /**
  * 检查一个值是否为内容节点
  */
 export function isContent(value: any): value is Content {
-  return isNode(value) &&
-         value.type === NodeType.CONTENT &&
-         typeof (value as any).value === 'string';
+  return (
+    isNode(value) &&
+    value.type === NodeType.CONTENT &&
+    typeof (value as any).value === 'string'
+  );
 }
 
 /**
  * 检查一个值是否为引用节点
  */
 export function isReference(value: any): value is Reference {
-  return isNode(value) &&
-         value.type === NodeType.REFERENCE &&
-         typeof (value as any).protocol === 'string' &&
-         typeof (value as any).path === 'string';
+  return (
+    isNode(value) &&
+    value.type === NodeType.REFERENCE &&
+    typeof (value as any).protocol === 'string' &&
+    typeof (value as any).path === 'string'
+  );
 }

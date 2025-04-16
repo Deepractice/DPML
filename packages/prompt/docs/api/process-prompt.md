@@ -8,15 +8,15 @@
 async function processPrompt(
   text: string,
   options?: PromptOptions
-): Promise<ProcessedPrompt>
+): Promise<ProcessedPrompt>;
 ```
 
 ### 参数
 
-| 参数名 | 类型 | 描述 |
-|-------|-----|------|
-| `text` | `string` | DPML文本内容或者文件路径 |
-| `options` | `PromptOptions` | 可选配置选项 |
+| 参数名    | 类型            | 描述                     |
+| --------- | --------------- | ------------------------ |
+| `text`    | `string`        | DPML文本内容或者文件路径 |
+| `options` | `PromptOptions` | 可选配置选项             |
 
 ### 返回值
 
@@ -30,22 +30,22 @@ async function processPrompt(
 interface ProcessedPrompt {
   // 元数据
   metadata: {
-    id?: string;           // 提示ID
-    version?: string;      // 版本
-    lang?: string;         // 语言
-    extends?: string;      // 继承源
-    [key: string]: any;    // 其他元数据
+    id?: string; // 提示ID
+    version?: string; // 版本
+    lang?: string; // 语言
+    extends?: string; // 继承源
+    [key: string]: any; // 其他元数据
   };
-  
+
   // 标签内容映射
   tags: {
     [tagName: string]: {
-      content?: string;               // 标签内容
+      content?: string; // 标签内容
       attributes?: Record<string, any>; // 标签属性
-      metadata?: Record<string, any>;   // 标签元数据
+      metadata?: Record<string, any>; // 标签元数据
     };
   };
-  
+
   // 原始文档
   rawDocument?: any;
 }
@@ -53,12 +53,12 @@ interface ProcessedPrompt {
 
 ## 选项 (PromptOptions)
 
-| 选项名 | 类型 | 默认值 | 描述 |
-|-------|-----|-------|------|
-| `mode` | `'strict' \| 'loose'` | `'loose'` | 解析模式，strict会更严格地验证 |
-| `validateOnly` | `boolean` | `false` | 是否只进行验证而不处理内容 |
-| `basePath` | `string` | `process.cwd()` | 解析相对路径引用的基础路径 |
-| `lang` | `string` | 文档中的设置 | 语言设置，覆盖文档中的lang属性 |
+| 选项名         | 类型                  | 默认值          | 描述                           |
+| -------------- | --------------------- | --------------- | ------------------------------ |
+| `mode`         | `'strict' \| 'loose'` | `'loose'`       | 解析模式，strict会更严格地验证 |
+| `validateOnly` | `boolean`             | `false`         | 是否只进行验证而不处理内容     |
+| `basePath`     | `string`              | `process.cwd()` | 解析相对路径引用的基础路径     |
+| `lang`         | `string`              | 文档中的设置    | 语言设置，覆盖文档中的lang属性 |
 
 ## 示例
 
@@ -100,10 +100,10 @@ const dpml = `
 
 processPrompt(dpml, {
   mode: 'strict',
-  lang: 'zh-CN'  // 覆盖文档中的lang属性
+  lang: 'zh-CN', // 覆盖文档中的lang属性
 }).then(processed => {
   console.log('处理结果:', processed);
-  console.log('语言设置:', processed.metadata.lang);  // 输出: 'zh-CN'
+  console.log('语言设置:', processed.metadata.lang); // 输出: 'zh-CN'
 });
 ```
 
@@ -114,7 +114,7 @@ import { processPrompt } from '@dpml/prompt';
 
 // 如果输入是文件路径，会自动读取文件内容
 processPrompt('./prompts/technical-writer.dpml', {
-  basePath: './templates'
+  basePath: './templates',
 }).then(processed => {
   console.log('处理结果:', processed);
 });
@@ -133,12 +133,14 @@ const dpml = `
 `;
 
 processPrompt(dpml, {
-  validateOnly: true
-}).then(() => {
-  console.log('DPML验证通过');
-}).catch(err => {
-  console.error('DPML验证失败:', err.message);
-});
+  validateOnly: true,
+})
+  .then(() => {
+    console.log('DPML验证通过');
+  })
+  .catch(err => {
+    console.error('DPML验证失败:', err.message);
+  });
 ```
 
 ## 错误处理
@@ -166,4 +168,4 @@ processPrompt(dpml)
 
 - [generatePrompt](./generate-prompt.md) - 一站式DPML处理
 - [transformPrompt](./transform-prompt.md) - 处理结果转换
-- [配置选项](./configuration.md) - 详细配置说明 
+- [配置选项](./configuration.md) - 详细配置说明

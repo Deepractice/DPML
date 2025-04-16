@@ -1,11 +1,14 @@
+import { NodeType } from '../../types/node';
+
 import { BaseVisitor } from './baseVisitor';
-import { ProcessedDocument } from '../../processor/interfaces/processor';
-import { Element, Content, Reference, NodeType } from '../../types/node';
-import { TransformContext } from '../interfaces/transformContext';
+
+import type { ProcessedDocument } from '../../processor/interfaces/processor';
+import type { Element, Content, Reference } from '../../types/node';
+import type { TransformContext } from '../interfaces/transformContext';
 
 /**
  * 文档结构访问者
- * 
+ *
  * 负责将DPML文档结构转换为适合输出的结构化数据
  */
 export class DocumentStructureVisitor extends BaseVisitor {
@@ -13,7 +16,7 @@ export class DocumentStructureVisitor extends BaseVisitor {
    * 访问者名称
    */
   name: string = 'document-structure';
-  
+
   /**
    * 构造函数
    * @param priority 优先级，默认为10
@@ -21,7 +24,7 @@ export class DocumentStructureVisitor extends BaseVisitor {
   constructor(priority: number = 10) {
     super(priority);
   }
-  
+
   /**
    * 访问文档节点，转换为结构化数据
    * @param document 文档节点
@@ -33,19 +36,20 @@ export class DocumentStructureVisitor extends BaseVisitor {
     const result: any = {
       type: 'document',
       sections: [],
-      elements: []
+      elements: [],
     };
-    
+
     // 复制文档元数据
     if (document.metadata) {
       result.metadata = { ...document.metadata };
     }
-    
+
     // 复制文档meta数据
     if (document.meta) {
       if (!result.metadata) {
         result.metadata = {};
       }
+
       // 合并meta到metadata，避免重复
       Object.keys(document.meta).forEach(key => {
         if (!result.metadata[key]) {
@@ -53,15 +57,17 @@ export class DocumentStructureVisitor extends BaseVisitor {
         }
       });
     }
-    
+
     // 处理文档子节点
     if (document.children && document.children.length > 0) {
       for (const child of document.children) {
         const childResult = this.visit(child, context);
+
         if (childResult) {
           // 根据节点类型和标签名分类处理
           if (child.type === NodeType.ELEMENT) {
             const element = child as Element;
+
             if (element.tagName === 'section') {
               result.sections.push(childResult);
             } else {
@@ -74,15 +80,15 @@ export class DocumentStructureVisitor extends BaseVisitor {
         }
       }
     }
-    
+
     // 如果没有元素，则移除空数组
     if (result.elements.length === 0) {
       delete result.elements;
     }
-    
+
     return result;
   }
-  
+
   /**
    * 访问元素节点，根据标签类型进行适当转换
    * @param element 元素节点
@@ -102,7 +108,7 @@ export class DocumentStructureVisitor extends BaseVisitor {
         return this.processGenericElement(element, context);
     }
   }
-  
+
   /**
    * 处理section元素
    * @param element section元素
@@ -114,21 +120,23 @@ export class DocumentStructureVisitor extends BaseVisitor {
     const result: any = {
       type: 'section',
       paragraphs: [],
-      subsections: []
+      subsections: [],
     };
-    
+
     // 复制属性
     if (element.attributes) {
       Object.assign(result, element.attributes);
     }
-    
+
     // 处理子节点
     if (element.children && element.children.length > 0) {
       for (const child of element.children) {
         const childResult = this.visit(child, context);
+
         if (childResult) {
           if (child.type === NodeType.ELEMENT) {
             const childElement = child as Element;
+
             if (childElement.tagName === 'paragraph') {
               result.paragraphs.push(childResult);
             } else if (childElement.tagName === 'subsection') {
@@ -138,6 +146,7 @@ export class DocumentStructureVisitor extends BaseVisitor {
               if (!result.elements) {
                 result.elements = [];
               }
+
               result.elements.push(childResult);
             }
           } else if (child.type === NodeType.CONTENT) {
@@ -153,19 +162,19 @@ export class DocumentStructureVisitor extends BaseVisitor {
         }
       }
     }
-    
+
     // 移除空数组
     if (result.paragraphs.length === 0) {
       delete result.paragraphs;
     }
-    
+
     if (result.subsections.length === 0) {
       delete result.subsections;
     }
-    
+
     return result;
   }
-  
+
   /**
    * 处理subsection元素
    * @param element subsection元素
@@ -176,21 +185,23 @@ export class DocumentStructureVisitor extends BaseVisitor {
   private processSubsection(element: Element, context: TransformContext): any {
     const result: any = {
       type: 'subsection',
-      paragraphs: []
+      paragraphs: [],
     };
-    
+
     // 复制属性
     if (element.attributes) {
       Object.assign(result, element.attributes);
     }
-    
+
     // 处理子节点
     if (element.children && element.children.length > 0) {
       for (const child of element.children) {
         const childResult = this.visit(child, context);
+
         if (childResult) {
           if (child.type === NodeType.ELEMENT) {
             const childElement = child as Element;
+
             if (childElement.tagName === 'paragraph') {
               result.paragraphs.push(childResult);
             } else {
@@ -198,6 +209,7 @@ export class DocumentStructureVisitor extends BaseVisitor {
               if (!result.elements) {
                 result.elements = [];
               }
+
               result.elements.push(childResult);
             }
           } else if (child.type === NodeType.CONTENT) {
@@ -213,15 +225,15 @@ export class DocumentStructureVisitor extends BaseVisitor {
         }
       }
     }
-    
+
     // 移除空数组
     if (result.paragraphs.length === 0) {
       delete result.paragraphs;
     }
-    
+
     return result;
   }
-  
+
   /**
    * 处理paragraph元素
    * @param element paragraph元素
@@ -231,41 +243,44 @@ export class DocumentStructureVisitor extends BaseVisitor {
    */
   private processParagraph(element: Element, context: TransformContext): any {
     const result: any = {
-      type: 'paragraph'
+      type: 'paragraph',
     };
-    
+
     // 复制属性
     if (element.attributes) {
       Object.assign(result, element.attributes);
     }
-    
+
     // 处理子节点
     if (element.children && element.children.length > 0) {
       let contentText = '';
-      
+
       for (const child of element.children) {
         if (child.type === NodeType.CONTENT) {
           const content = child as Content;
+
           contentText += content.value;
         } else {
           const childResult = this.visit(child, context);
+
           if (childResult) {
             if (!result.elements) {
               result.elements = [];
             }
+
             result.elements.push(childResult);
           }
         }
       }
-      
+
       if (contentText) {
         result.content = contentText;
       }
     }
-    
+
     return result;
   }
-  
+
   /**
    * 处理通用元素
    * @param element 元素节点
@@ -273,45 +288,50 @@ export class DocumentStructureVisitor extends BaseVisitor {
    * @returns 处理后的通用元素对象
    * @private
    */
-  private processGenericElement(element: Element, context: TransformContext): any {
+  private processGenericElement(
+    element: Element,
+    context: TransformContext
+  ): any {
     const result: any = {
-      type: element.tagName
+      type: element.tagName,
     };
-    
+
     // 复制属性
     if (element.attributes) {
       result.attributes = { ...element.attributes };
     }
-    
+
     // 处理子节点
     if (element.children && element.children.length > 0) {
       let contentText = '';
       const childElements = [];
-      
+
       for (const child of element.children) {
         if (child.type === NodeType.CONTENT) {
           const content = child as Content;
+
           contentText += content.value;
         } else {
           const childResult = this.visit(child, context);
+
           if (childResult) {
             childElements.push(childResult);
           }
         }
       }
-      
+
       if (contentText) {
         result.content = contentText;
       }
-      
+
       if (childElements.length > 0) {
         result.children = childElements;
       }
     }
-    
+
     return result;
   }
-  
+
   /**
    * 访问内容节点
    * @param content 内容节点
@@ -321,7 +341,7 @@ export class DocumentStructureVisitor extends BaseVisitor {
   visitContent(content: Content, context: TransformContext): any {
     return content.value;
   }
-  
+
   /**
    * 访问引用节点
    * @param reference 引用节点
@@ -332,17 +352,22 @@ export class DocumentStructureVisitor extends BaseVisitor {
     // 如果引用已解析，返回解析后的内容
     if (reference.resolved !== undefined) {
       // 如果解析后的内容是一个节点，递归处理
-      if (reference.resolved && typeof reference.resolved === 'object' && reference.resolved.type) {
+      if (
+        reference.resolved &&
+        typeof reference.resolved === 'object' &&
+        reference.resolved.type
+      ) {
         return this.visit(reference.resolved, context);
       }
+
       return reference.resolved;
     }
-    
+
     // 返回引用信息
     return {
       type: 'reference',
       protocol: reference.protocol,
-      path: reference.path
+      path: reference.path,
     };
   }
-} 
+}

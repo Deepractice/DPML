@@ -3,4 +3,8 @@
  */
 
 export { PromptTransformer } from './promptTransformer';
-export type { PromptTransformerOptions, FormatTemplate, FormatTemplates } from './promptTransformer'; 
+export type {
+  PromptTransformerOptions,
+  FormatTemplate,
+  FormatTemplates,
+} from './promptTransformer';

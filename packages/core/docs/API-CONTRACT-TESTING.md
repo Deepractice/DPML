@@ -46,12 +46,20 @@ describe('User API Contract Tests', () => {
   it('UserServiceImpl implements UserAPI', () => {
     // 静态类型验证
     const service: UserAPI = new UserServiceImpl();
-    
+
     // 方法签名验证
-    expectTypeOf(service.getUser).toMatchTypeOf<(id: string) => Promise<User>>();
-    expectTypeOf(service.createUser).toMatchTypeOf<(data: UserData) => Promise<User>>();
-    expectTypeOf(service.updateUser).toMatchTypeOf<(id: string, data: Partial<UserData>) => Promise<User>>();
-    expectTypeOf(service.deleteUser).toMatchTypeOf<(id: string) => Promise<boolean>>();
+    expectTypeOf(service.getUser).toMatchTypeOf<
+      (id: string) => Promise<User>
+    >();
+    expectTypeOf(service.createUser).toMatchTypeOf<
+      (data: UserData) => Promise<User>
+    >();
+    expectTypeOf(service.updateUser).toMatchTypeOf<
+      (id: string, data: Partial<UserData>) => Promise<User>
+    >();
+    expectTypeOf(service.deleteUser).toMatchTypeOf<
+      (id: string) => Promise<boolean>
+    >();
   });
 });
 ```
@@ -67,17 +75,17 @@ import { parse, process, transform } from '@dpml/core';
 
 test('Core API signatures', async () => {
   // 参数和返回值类型验证
-  
+
   // parse函数应接受字符串并返回带有ast属性的对象
   const parseResult = await parse('<test/>');
   expect(typeof parseResult).toBe('object');
   expect(parseResult).toHaveProperty('ast');
-  
+
   // process函数应接受ast并返回一个文档对象
   const processResult = await process(parseResult.ast);
   expect(typeof processResult).toBe('object');
   expect(processResult).toHaveProperty('type', 'document');
-  
+
   // transform函数应接受处理后的文档并返回字符串
   const transformResult = transform(processResult);
   expect(typeof transformResult).toBe('string');
@@ -96,10 +104,10 @@ import * as API from '@dpml/core';
 test('Core API structure snapshot', () => {
   // 收集公共API
   const publicApi = Object.keys(API).sort();
-  
+
   // 验证API结构未发生变化
   expect(publicApi).toMatchSnapshot();
-  
+
   // 验证关键API存在
   expect(publicApi).toContain('parse');
   expect(publicApi).toContain('process');
@@ -119,20 +127,20 @@ import { TagRegistry } from '@dpml/core';
 test('TagRegistry contract - get after register', () => {
   const registry = new TagRegistry();
   const tagDef = { name: 'test', attributes: { id: { type: 'string' } } };
-  
+
   // 契约：注册后应能获取到相同的定义
   registry.registerTagDefinition('test', tagDef);
   const retrieved = registry.getTagDefinition('test');
-  
+
   expect(retrieved).toEqual(tagDef);
 });
 
 test('TagRegistry contract - registration status', () => {
   const registry = new TagRegistry();
-  
+
   // 契约：未注册的标签，isRegistered应返回false
   expect(registry.isTagRegistered('unknown')).toBe(false);
-  
+
   // 契约：注册后，isRegistered应返回true
   registry.registerTagDefinition('test', {});
   expect(registry.isTagRegistered('test')).toBe(true);
@@ -152,11 +160,11 @@ import { mockLegacyCode } from './mocks/legacy-code';
 test('ValidationError backward compatibility', () => {
   // 模拟使用旧版API的代码
   const error = mockLegacyCode.createValidationError();
-  
+
   // 契约：新版本应兼容旧代码创建的错误
   expect(error).toHaveProperty('code');
   expect(error).toHaveProperty('message');
-  
+
   // 契约：新API应能处理旧格式的错误
   const result = mockLegacyCode.validateWithLegacyErrors();
   expect(result.valid).toBeDefined();
@@ -177,13 +185,13 @@ import * as fs from 'fs';
 function extractPublicApi(entryFile: string): Record<string, any> {
   const program = ts.createProgram([entryFile], {
     target: ts.ScriptTarget.ES2019,
-    module: ts.ModuleKind.CommonJS
+    module: ts.ModuleKind.CommonJS,
   });
-  
+
   const checker = program.getTypeChecker();
   const sourceFile = program.getSourceFile(entryFile);
   const exports: Record<string, any> = {};
-  
+
   if (sourceFile) {
     ts.forEachChild(sourceFile, node => {
       if (ts.isExportDeclaration(node)) {
@@ -201,15 +209,18 @@ function extractPublicApi(entryFile: string): Record<string, any> {
       }
     });
   }
-  
+
   return exports;
 }
 
 function extractSymbolInfo(symbol: ts.Symbol, checker: ts.TypeChecker): any {
-  const type = checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration!);
+  const type = checker.getTypeOfSymbolAtLocation(
+    symbol,
+    symbol.valueDeclaration!
+  );
   return {
     kind: getSymbolKindString(symbol),
-    type: checker.typeToString(type)
+    type: checker.typeToString(type),
   };
 }
 
@@ -239,26 +250,38 @@ test('Core package exports contract', () => {
   // 核心API检查
   const coreExports = [
     // 解析相关
-    'parse', 'Parser', 'TagRegistry', 'TagDefinition',
-    
+    'parse',
+    'Parser',
+    'TagRegistry',
+    'TagDefinition',
+
     // 处理相关
-    'process', 'Processor', 'TagProcessor',
-    
+    'process',
+    'Processor',
+    'TagProcessor',
+
     // 转换相关
-    'transform', 'Transformer', 'DefaultTransformer',
-    
+    'transform',
+    'Transformer',
+    'DefaultTransformer',
+
     // 错误处理
-    'DPMLError', 'ValidationError', 'ValidationErrorImpl',
-    
+    'DPMLError',
+    'ValidationError',
+    'ValidationErrorImpl',
+
     // 类型定义
-    'Element', 'Document', 'Content', 'Reference'
+    'Element',
+    'Document',
+    'Content',
+    'Reference',
   ];
-  
+
   // 验证所有核心API都已导出
   for (const api of coreExports) {
     expect(Core).toHaveProperty(api);
   }
-  
+
   // 验证没有意外导出内部API
   const internalAPIs = ['__internal', '_private'];
   for (const api of internalAPIs) {
@@ -280,12 +303,12 @@ import { promptTagDefinition } from '@dpml/prompt';
 test('prompt package uses core TagDefinition correctly', () => {
   // 验证prompt包中的TagDefinition遵循core包的契约
   const registry = new TagRegistry();
-  
+
   // 契约：promptTagDefinition应该可以注册到TagRegistry
   expect(() => {
     registry.registerTagDefinition('prompt', promptTagDefinition);
   }).not.toThrow();
-  
+
   // 契约：注册后应能获取到相同的定义
   const retrieved = registry.getTagDefinition('prompt');
   expect(retrieved).toMatchObject(promptTagDefinition);
@@ -315,12 +338,12 @@ name: API契约测试
 
 on:
   push:
-    branches: [ main, development ]
+    branches: [main, development]
     paths:
       - 'packages/*/src/**'
       - 'packages/*/package.json'
   pull_request:
-    branches: [ main, development ]
+    branches: [main, development]
 
 jobs:
   contract-tests:
@@ -352,8 +375,12 @@ import * as path from 'path';
 import { compare } from 'fast-deep-equal';
 
 // 加载API快照
-const oldApi = JSON.parse(fs.readFileSync('./api-snapshots/previous.json', 'utf8'));
-const newApi = JSON.parse(fs.readFileSync('./api-snapshots/current.json', 'utf8'));
+const oldApi = JSON.parse(
+  fs.readFileSync('./api-snapshots/previous.json', 'utf8')
+);
+const newApi = JSON.parse(
+  fs.readFileSync('./api-snapshots/current.json', 'utf8')
+);
 
 // 检测破坏性变更
 const breakingChanges = [];
@@ -364,7 +391,7 @@ for (const key in oldApi) {
     breakingChanges.push({
       type: 'removed',
       item: key,
-      description: `已移除的API: ${key}`
+      description: `已移除的API: ${key}`,
     });
   }
 }
@@ -374,14 +401,14 @@ for (const key in oldApi) {
   if (key in newApi) {
     const oldType = oldApi[key].type;
     const newType = newApi[key].type;
-    
+
     if (oldType !== newType) {
       breakingChanges.push({
         type: 'signature-changed',
         item: key,
         description: `签名已变更: ${key}`,
         oldSignature: oldType,
-        newSignature: newType
+        newSignature: newType,
       });
     }
   }
@@ -456,4 +483,4 @@ if (breakingChanges.length > 0) {
 2. **使用接口隔离**：通过接口分离定义和实现
 3. **渐进式废弃**：使用废弃注释而非直接删除
 4. **兼容层**：为破坏性变更提供适配层
-5. **版本策略**：遵循语义化版本规范 
+5. **版本策略**：遵循语义化版本规范

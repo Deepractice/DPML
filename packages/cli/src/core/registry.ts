@@ -1,4 +1,10 @@
-import { Command, DomainCommandSet, DomainCommandConfig, DomainMapping } from '../types/command';
+import { DomainCommandConfig } from '../types/command';
+
+import type {
+  Command,
+  DomainCommandSet,
+  DomainMapping,
+} from '../types/command';
 
 /**
  * 命令注册表类
@@ -30,14 +36,23 @@ export class CommandRegistry {
    * @param force 是否强制覆盖已存在的命令
    * @throws 当领域不存在或命令已存在且未指定强制覆盖时抛出错误
    */
-  public registerCommand(domainName: string, command: Command, force: boolean = false): void {
+  public registerCommand(
+    domainName: string,
+    command: Command,
+    force: boolean = false
+  ): void {
     const domain = this.domains.get(domainName);
+
     if (!domain) {
-      throw new Error(`Domain '${domainName}' does not exist. Cannot register command.`);
+      throw new Error(
+        `Domain '${domainName}' does not exist. Cannot register command.`
+      );
     }
 
     if (domain.commands.has(command.name) && !force) {
-      throw new Error(`Command '${command.name}' already exists in domain '${domainName}'. Use force option to override.`);
+      throw new Error(
+        `Command '${command.name}' already exists in domain '${domainName}'. Use force option to override.`
+      );
     }
 
     domain.commands.set(command.name, command);
@@ -58,11 +73,16 @@ export class CommandRegistry {
    * @param commandName 命令名称
    * @returns 命令对象，不存在则返回undefined
    */
-  public getCommand(domainName: string, commandName: string): Command | undefined {
+  public getCommand(
+    domainName: string,
+    commandName: string
+  ): Command | undefined {
     const domain = this.domains.get(domainName);
+
     if (!domain) {
       return undefined;
     }
+
     return domain.commands.get(commandName);
   }
 
@@ -74,9 +94,11 @@ export class CommandRegistry {
    */
   public hasCommand(domainName: string, commandName: string): boolean {
     const domain = this.domains.get(domainName);
+
     if (!domain) {
       return false;
     }
+
     return domain.commands.has(commandName);
   }
 
@@ -87,9 +109,11 @@ export class CommandRegistry {
    */
   public getDomainCommands(domainName: string): Command[] {
     const domain = this.domains.get(domainName);
+
     if (!domain) {
       return [];
     }
+
     return Array.from(domain.commands.values());
   }
 
@@ -101,9 +125,11 @@ export class CommandRegistry {
    */
   public removeCommand(domainName: string, commandName: string): boolean {
     const domain = this.domains.get(domainName);
+
     if (!domain) {
       return false;
     }
+
     return domain.commands.delete(commandName);
   }
 
@@ -126,13 +152,13 @@ export class CommandRegistry {
       serializedDomains[domainName] = {
         package: domainSet.package,
         commandsPath: domainSet.commandsPath,
-        version: domainSet.version
+        version: domainSet.version,
       };
     });
 
     return {
       lastUpdated: new Date().toISOString(),
-      domains: serializedDomains
+      domains: serializedDomains,
     };
   }
 
@@ -149,7 +175,7 @@ export class CommandRegistry {
         package: domainInfo.package,
         commandsPath: domainInfo.commandsPath,
         version: domainInfo.version,
-        commands: new Map()
+        commands: new Map(),
       };
 
       this.domains.set(domainName, domainSet);

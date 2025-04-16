@@ -14,16 +14,21 @@ export function groupBy<T, K extends PropertyKey>(
   array: T[],
   keyOrFn: ((item: T) => K) | keyof T
 ): Record<string, T[]> {
-  return array.reduce((result, item) => {
-    // 如果 keyOrFn 是函数，调用它获取分组键；否则使用属性值
-    const groupKey = typeof keyOrFn === 'function'
-      ? String(keyOrFn(item))
-      : String(item[keyOrFn as keyof T]);
+  return array.reduce(
+    (result, item) => {
+      // 如果 keyOrFn 是函数，调用它获取分组键；否则使用属性值
+      const groupKey =
+        typeof keyOrFn === 'function'
+          ? String(keyOrFn(item))
+          : String(item[keyOrFn as keyof T]);
 
-    result[groupKey] = result[groupKey] || [];
-    result[groupKey].push(item);
-    return result;
-  }, {} as Record<string, T[]>);
+      result[groupKey] = result[groupKey] || [];
+      result[groupKey].push(item);
+
+      return result;
+    },
+    {} as Record<string, T[]>
+  );
 }
 
 /**
@@ -42,9 +47,8 @@ export function unique<T>(array: T[]): T[] {
  * @returns 包含原数组拆分块的二维数组
  */
 export function chunk<T>(array: T[], size: number): T[][] {
-  return Array.from(
-    { length: Math.ceil(array.length / size) },
-    (_, index) => array.slice(index * size, index * size + size)
+  return Array.from({ length: Math.ceil(array.length / size) }, (_, index) =>
+    array.slice(index * size, index * size + size)
   );
 }
 
@@ -82,6 +86,7 @@ export function sum(array: number[]): number {
  */
 export function average(array: number[]): number {
   if (array.length === 0) return 0;
+
   return sum(array) / array.length;
 }
 
@@ -92,10 +97,13 @@ export function average(array: number[]): number {
  */
 export function shuffle<T>(array: T[]): T[] {
   const result = [...array];
+
   for (let i = result.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
+
     [result[i], result[j]] = [result[j], result[i]];
   }
+
   return result;
 }
 
@@ -107,6 +115,7 @@ export function shuffle<T>(array: T[]): T[] {
  */
 export function intersection<T>(a: T[], b: T[]): T[] {
   const setB = new Set(b);
+
   return [...new Set(a)].filter(x => setB.has(x));
 }
 
@@ -128,6 +137,7 @@ export function union<T>(a: T[], b: T[]): T[] {
  */
 export function difference<T>(a: T[], b: T[]): T[] {
   const setB = new Set(b);
+
   return a.filter(x => !setB.has(x));
 }
 
@@ -145,5 +155,5 @@ export const arrayUtils = {
   shuffle,
   intersection,
   union,
-  difference
+  difference,
 };

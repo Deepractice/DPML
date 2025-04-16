@@ -48,7 +48,11 @@ interface Command {
   // 可选：命令别名
   aliases?: string[];
   // 命令执行函数
-  execute: (args: string | string[], options: Record<string, any>, context?: any) => Promise<void>;
+  execute: (
+    args: string | string[],
+    options: Record<string, any>,
+    context?: any
+  ) => Promise<void>;
 }
 
 // 生命周期钩子
@@ -83,42 +87,40 @@ import { execute as runExecute } from './src/commands/run';
 import { execute as createExecute } from './src/commands/create';
 
 export default {
-  domain: "agent",
+  domain: 'agent',
   // 当用户输入 dpml agent <file> 时默认执行 run 命令
-  defaultCommand: "run",
+  defaultCommand: 'run',
   commands: [
     {
-      name: "run",
-      description: "运行指定的代理",
+      name: 'run',
+      description: '运行指定的代理',
       options: [
-        { flag: "-e, --env <environment>", description: "指定运行环境" },
-        { flag: "-v, --verbose", description: "显示详细日志" }
+        { flag: '-e, --env <environment>', description: '指定运行环境' },
+        { flag: '-v, --verbose', description: '显示详细日志' },
       ],
       examples: [
-        "dpml agent run assistant.dpml",
-        "dpml agent run --env production assistant.dpml"
+        'dpml agent run assistant.dpml',
+        'dpml agent run --env production assistant.dpml',
       ],
-      execute: runExecute
+      execute: runExecute,
     },
     {
-      name: "create",
-      description: "创建新代理",
-      options: [
-        { flag: "-t, --template <n>", description: "使用模板" }
-      ],
+      name: 'create',
+      description: '创建新代理',
+      options: [{ flag: '-t, --template <n>', description: '使用模板' }],
       examples: [
-        "dpml agent create myagent",
-        "dpml agent create --template chat myagent"
+        'dpml agent create myagent',
+        'dpml agent create --template chat myagent',
       ],
-      execute: createExecute
-    }
+      execute: createExecute,
+    },
   ],
   hooks: {
     initialize: async () => {
       // 初始化逻辑
-      console.log("Agent commands initialized");
-    }
-  }
+      console.log('Agent commands initialized');
+    },
+  },
 };
 ```
 
@@ -149,14 +151,16 @@ export interface RunOptions {
 }
 
 export async function execute(
-  filePath: string, 
+  filePath: string,
   options: RunOptions,
   context?: any
 ): Promise<void> {
-  console.log(`Running agent from ${filePath} in ${options.env || 'default'} environment`);
-  
+  console.log(
+    `Running agent from ${filePath} in ${options.env || 'default'} environment`
+  );
+
   // 命令实现...
-  
+
   // 返回结果或抛出异常
   if (error) {
     throw new Error(`Failed to run agent: ${error.message}`);
@@ -181,15 +185,18 @@ dpml agent assistant.dpml  # 等同于 dpml agent run assistant.dpml
 为了避免命令解析的歧义，CLI遵循以下严格的匹配规则：
 
 1. **命令识别优先级**
+
    - CLI首先检查领域后的第一个参数是否匹配已注册的命令名或别名
    - 如找到匹配的命令，则使用该命令，后续参数作为该命令的参数
    - 如未找到匹配命令，则应用默认命令，并将所有参数传递给该命令
 
 2. **命令名冲突处理**
+
    - 当参数可能与命令名冲突时（如文件名与命令名相同），已注册的命令名总是具有更高优先级
    - 例如：如果存在`create`命令，则`dpml agent create`一定会调用`create`命令，而不会将`create`作为参数传递给默认命令
 
 3. **参数强制标记**
+
    - 可使用双连字符`--`作为特殊标记，其后的所有内容都被强制视为参数而非命令
    - 例如：`dpml agent -- create`会将`create`作为参数传递给默认命令，即使存在名为`create`的命令
 
@@ -199,13 +206,13 @@ dpml agent assistant.dpml  # 等同于 dpml agent run assistant.dpml
 
 #### 示例场景
 
-| 命令行输入 | 解析结果 | 说明 |
-|---------|---------|------|
-| `dpml agent run file.dpml` | 执行`run`命令，参数为`file.dpml` | 明确指定命令 |
-| `dpml agent file.dpml` | 执行默认命令`run`，参数为`file.dpml` | 使用默认命令 |
-| `dpml agent create` | 执行`create`命令，无参数 | 命令名优先 |
-| `dpml agent -- create` | 执行默认命令`run`，参数为`create` | 使用`--`强制参数 |
-| `dpml agent unknown` | 若`unknown`不是命令名，执行默认命令，参数为`unknown` | 无匹配命令时使用默认命令 |
+| 命令行输入                 | 解析结果                                             | 说明                     |
+| -------------------------- | ---------------------------------------------------- | ------------------------ |
+| `dpml agent run file.dpml` | 执行`run`命令，参数为`file.dpml`                     | 明确指定命令             |
+| `dpml agent file.dpml`     | 执行默认命令`run`，参数为`file.dpml`                 | 使用默认命令             |
+| `dpml agent create`        | 执行`create`命令，无参数                             | 命令名优先               |
+| `dpml agent -- create`     | 执行默认命令`run`，参数为`create`                    | 使用`--`强制参数         |
+| `dpml agent unknown`       | 若`unknown`不是命令名，执行默认命令，参数为`unknown` | 无匹配命令时使用默认命令 |
 
 ### 帮助命令
 
@@ -240,4 +247,4 @@ CLI会自动为每个领域添加 `--help` 选项，显示该领域下的所有�
 2. **命令组织**：相关命令应组织在一起，形成逻辑分组
 3. **错误处理**：命令应妥善处理错误并提供清晰的错误信息
 4. **帮助文档**：为每个命令提供详细的描述和示例
-5. **选项命名**：保持选项命名的一致性，遵循CLI选项命名惯例 
+5. **选项命名**：保持选项命名的一致性，遵循CLI选项命名惯例

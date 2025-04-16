@@ -16,4 +16,4 @@ export * from '@prompt/processors/protocolTagProcessor';
 export * from '@prompt/processors/customTagProcessor';
 
 // 导出处理器注册表
-export * from '@prompt/processors/registry'; 
+export * from '@prompt/processors/registry';

@@ -11,11 +11,13 @@ dpml [全局选项] <领域> <命令> [命令选项] [参数]
 ```
 
 例如：
+
 ```
 dpml --verbose prompt validate --strict template.dpml
 ```
 
 其中：
+
 - `dpml` 是CLI的入口命令
 - `--verbose` 是全局选项
 - `prompt` 是领域名称
@@ -37,6 +39,7 @@ DPML CLI支持以下标准选项格式：
 ```
 
 示例：
+
 ```
 dpml prompt render --output=result.txt
 dpml prompt render --output result.txt
@@ -53,6 +56,7 @@ dpml prompt render --output result.txt
 ```
 
 示例：
+
 ```
 dpml prompt render -o result.txt
 ```
@@ -66,11 +70,13 @@ dpml prompt render -o result.txt
 ```
 
 等同于：
+
 ```
 -a -b -c
 ```
 
 示例：
+
 ```
 dpml -vf  # 等同于 dpml -v -f
 ```
@@ -85,6 +91,7 @@ dpml -vf  # 等同于 dpml -v -f
 ```
 
 示例：
+
 ```
 dpml --verbose
 dpml -v
@@ -97,6 +104,7 @@ dpml -v
 ```
 
 示例：
+
 ```
 dpml --verbose=false
 ```
@@ -111,6 +119,7 @@ dpml --verbose=false
 ```
 
 示例：
+
 ```
 dpml agent run --input file1.json --input file2.json
 dpml agent run -i file1.json -i file2.json
@@ -125,6 +134,7 @@ dpml 命令 -- --这是参数而非选项
 ```
 
 示例：
+
 ```
 dpml prompt render -- --filename.txt
 ```
@@ -137,26 +147,26 @@ dpml prompt render -- --filename.txt
 
 这些选项适用于所有命令：
 
-| 长选项           | 短选项  | 描述                        |
-|-----------------|--------|----------------------------|
-| `--help`        | `-h`   | 显示帮助信息                 |
-| `--version`     | `-V`   | 显示版本信息                 |
-| `--verbose`     | `-v`   | 显示详细输出                 |
-| `--quiet`       | `-q`   | 静默模式，减少输出            |
-| `--refresh`     |        | 刷新命令映射                 |
-| `--config`      | `-c`   | 指定配置文件                 |
+| 长选项      | 短选项 | 描述               |
+| ----------- | ------ | ------------------ |
+| `--help`    | `-h`   | 显示帮助信息       |
+| `--version` | `-V`   | 显示版本信息       |
+| `--verbose` | `-v`   | 显示详细输出       |
+| `--quiet`   | `-q`   | 静默模式，减少输出 |
+| `--refresh` |        | 刷新命令映射       |
+| `--config`  | `-c`   | 指定配置文件       |
 
 ### 命令特定选项
 
 每个命令可以定义自己的特定选项，但应遵循以下命名惯例：
 
-| 选项类型         | 命名惯例                      | 示例                     |
-|-----------------|------------------------------|--------------------------|
-| 输入文件/数据     | `--input`, `-i`              | `--input template.dpml`  |
-| 输出文件/位置     | `--output`, `-o`             | `--output result.txt`    |
-| 格式控制         | `--format`                   | `--format json`          |
-| 限制选项         | `--limit`, `--max-`, `--min-`| `--max-tokens 1000`      |
-| 模式选项         | `--mode`                     | `--mode development`     |
+| 选项类型      | 命名惯例                      | 示例                    |
+| ------------- | ----------------------------- | ----------------------- |
+| 输入文件/数据 | `--input`, `-i`               | `--input template.dpml` |
+| 输出文件/位置 | `--output`, `-o`              | `--output result.txt`   |
+| 格式控制      | `--format`                    | `--format json`         |
+| 限制选项      | `--limit`, `--max-`, `--min-` | `--max-tokens 1000`     |
+| 模式选项      | `--mode`                      | `--mode development`    |
 
 ## 参数规范
 
@@ -177,6 +187,7 @@ dpml 领域 命令 [选项] 参数1 参数2 ...
 3. 退出并返回非零状态码
 
 示例错误消息：
+
 ```
 错误：未知选项 '--invalidOption'
 使用 'dpml prompt validate --help' 查看有效选项
@@ -193,6 +204,7 @@ dpml prompt validate --help  # 显示命令帮助
 ```
 
 帮助信息应包含：
+
 - 命令语法
 - 选项描述
 - 参数描述
@@ -214,11 +226,11 @@ dpml --verbose prompt validate
 
 主要环境变量：
 
-| 环境变量        | 对应选项        | 描述                |
-|----------------|---------------|---------------------|
-| `DPML_VERBOSE` | `--verbose`   | 启用详细输出         |
-| `DPML_CONFIG`  | `--config`    | 默认配置文件路径      |
-| `DPML_FORMAT`  | `--format`    | 默认输出格式         |
+| 环境变量       | 对应选项    | 描述             |
+| -------------- | ----------- | ---------------- |
+| `DPML_VERBOSE` | `--verbose` | 启用详细输出     |
+| `DPML_CONFIG`  | `--config`  | 默认配置文件路径 |
+| `DPML_FORMAT`  | `--format`  | 默认输出格式     |
 
 ## 示例用法
 
@@ -245,4 +257,4 @@ dpml -vf prompt validate template.dpml
 
 # 使用环境变量设置详细输出
 DPML_VERBOSE=true dpml prompt validate template.dpml
-``` 
+```

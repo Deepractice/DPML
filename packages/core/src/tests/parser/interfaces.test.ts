@@ -1,9 +1,16 @@
 import { describe, it, expect } from 'vitest';
-import { 
-  DPMLParser, ParseOptions, ParseResult, ValidationResult, ParserError
-} from '../../parser/interfaces';
-import { Document, NodeType } from '../../types';
+
 import { ParseError } from '../../errors';
+import { ParserError } from '../../parser/interfaces';
+import { NodeType } from '../../types';
+
+import type {
+  DPMLParser,
+  ParseOptions,
+  ParseResult,
+  ValidationResult,
+} from '../../parser/interfaces';
+import type { Document } from '../../types';
 
 describe('解析器接口', () => {
   describe('ParseOptions 接口', () => {
@@ -13,7 +20,7 @@ describe('解析器接口', () => {
         tolerant: false,
         preserveComments: true,
         mode: 'strict',
-        processInheritance: false
+        processInheritance: false,
       };
 
       expect(options.allowUnknownTags).toBe(true);
@@ -30,15 +37,15 @@ describe('解析器接口', () => {
         type: NodeType.DOCUMENT,
         position: {
           start: { line: 1, column: 1, offset: 0 },
-          end: { line: 10, column: 1, offset: 100 }
+          end: { line: 10, column: 1, offset: 100 },
         },
-        children: []
+        children: [],
       };
 
       const result: ParseResult = {
         ast: mockDocument,
         errors: [],
-        warnings: []
+        warnings: [],
       };
 
       expect(result.ast).toBe(mockDocument);
@@ -52,7 +59,7 @@ describe('解析器接口', () => {
       const result: ValidationResult = {
         valid: true,
         errors: [],
-        warnings: []
+        warnings: [],
       };
 
       expect(result.valid).toBe(true);
@@ -60,42 +67,47 @@ describe('解析器接口', () => {
       expect(Array.isArray(result.warnings)).toBe(true);
     });
   });
-  
+
   describe('DPMLParser 接口', () => {
     it('应该有解析和验证方法', async () => {
       // 创建一个模拟解析器，只检查接口定义
       const mockParser: DPMLParser = {
-        parse: async (input: string, options?: ParseOptions): Promise<ParseResult> => {
+        parse: async (
+          input: string,
+          options?: ParseOptions
+        ): Promise<ParseResult> => {
           return {
             ast: {
               type: NodeType.DOCUMENT,
               position: {
                 start: { line: 1, column: 1, offset: 0 },
-                end: { line: 10, column: 1, offset: 100 }
+                end: { line: 10, column: 1, offset: 100 },
               },
-              children: []
+              children: [],
             },
             errors: [],
-            warnings: []
+            warnings: [],
           };
         },
-        
+
         validate: (ast: Document): ValidationResult => {
           return {
             valid: true,
             errors: [],
-            warnings: []
+            warnings: [],
           };
-        }
+        },
       };
-      
+
       // 检验解析器接口实现
       const result = await mockParser.parse('<root></root>');
+
       expect(result.ast).toBeDefined();
       expect(result.ast.type).toBe(NodeType.DOCUMENT);
-      
+
       const validationResult = mockParser.validate(result.ast);
+
       expect(validationResult.valid).toBe(true);
     });
   });
-}); 
+});

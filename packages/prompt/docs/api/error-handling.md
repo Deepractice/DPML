@@ -6,15 +6,15 @@
 
 `@dpml/prompt` 包中的错误主要分为以下几类：
 
-| 错误类型 | 错误码前缀 | 描述 |
-|---------|------------|------|
-| 解析错误 | `PARSE_` | DPML文本语法解析过程中的错误 |
-| 验证错误 | `VALIDATION_` | DPML标签结构或属性验证错误 |
-| 处理错误 | `PROCESSING_` | DPML处理过程中的错误 |
-| 转换错误 | `TRANSFORM_` | DPML转换为提示文本时的错误 |
-| 文件错误 | `FILE_` | 文件读取或写入错误 |
-| 引用错误 | `REFERENCE_` | 标签引用解析错误 |
-| 未知错误 | `UNKNOWN_` | 未分类的其他错误 |
+| 错误类型 | 错误码前缀    | 描述                         |
+| -------- | ------------- | ---------------------------- |
+| 解析错误 | `PARSE_`      | DPML文本语法解析过程中的错误 |
+| 验证错误 | `VALIDATION_` | DPML标签结构或属性验证错误   |
+| 处理错误 | `PROCESSING_` | DPML处理过程中的错误         |
+| 转换错误 | `TRANSFORM_`  | DPML转换为提示文本时的错误   |
+| 文件错误 | `FILE_`       | 文件读取或写入错误           |
+| 引用错误 | `REFERENCE_`  | 标签引用解析错误             |
+| 未知错误 | `UNKNOWN_`    | 未分类的其他错误             |
 
 ## PromptError 类
 
@@ -22,12 +22,12 @@
 
 ```typescript
 interface PromptErrorOptions {
-  code: PromptErrorCode;    // 错误代码
-  message: string;          // 错误消息
-  level: ErrorLevel;        // 错误级别
-  position?: Position;      // 错误位置
-  cause?: Error;            // 原始错误
-  suggestions?: string[];   // 错误修复建议
+  code: PromptErrorCode; // 错误代码
+  message: string; // 错误消息
+  level: ErrorLevel; // 错误级别
+  position?: Position; // 错误位置
+  cause?: Error; // 原始错误
+  suggestions?: string[]; // 错误修复建议
 }
 ```
 
@@ -36,26 +36,31 @@ interface PromptErrorOptions {
 以下是一些常见的错误代码及其含义：
 
 ### 解析错误
+
 - `PARSE_SYNTAX_ERROR` - DPML语法错误
 - `PARSE_INVALID_TAG` - 无效的标签名
 - `PARSE_UNCLOSED_TAG` - 未闭合的标签
 
 ### 验证错误
+
 - `VALIDATION_MISSING_REQUIRED_ATTRIBUTE` - 缺少必需属性
 - `VALIDATION_INVALID_ATTRIBUTE_VALUE` - 属性值无效
 - `VALIDATION_DISALLOWED_NESTED_TAG` - 不允许的嵌套标签
 
 ### 处理错误
+
 - `PROCESSING_TAG_NOT_FOUND` - 找不到指定标签
 - `PROCESSING_CIRCULAR_REFERENCE` - 循环引用
 - `PROCESSING_MISSING_PROCESSOR` - 缺少处理器
 
 ### 文件错误
+
 - `FILE_NOT_FOUND` - 文件未找到
 - `FILE_READ_ERROR` - 文件读取错误
 - `FILE_WRITE_ERROR` - 文件写入错误
 
 ### 引用错误
+
 - `REFERENCE_INVALID_PATH` - 无效的引用路径
 - `REFERENCE_BROKEN_LINK` - 引用断链
 - `REFERENCE_CYCLE_DETECTED` - 检测到引用循环
@@ -129,10 +134,12 @@ try {
   await processPrompt(dpml);
 } catch (err) {
   console.error('错误:', err.message);
-  
+
   if (err.position) {
-    console.error(`错误位置: 行 ${err.position.start.line}, 列 ${err.position.start.column}`);
-    
+    console.error(
+      `错误位置: 行 ${err.position.start.line}, 列 ${err.position.start.column}`
+    );
+
     // 显示错误上下文
     const lines = dpml.split('\n');
     const errorLine = lines[err.position.start.line - 1];
@@ -229,7 +236,7 @@ try {
   showPromptText(promptText);
 } catch (err) {
   let userFriendlyMessage = '生成提示词失败';
-  
+
   if (err.code?.startsWith('PARSE_')) {
     userFriendlyMessage = 'DPML语法错误，请检查您的提示词格式';
   } else if (err.code?.startsWith('VALIDATION_')) {
@@ -237,7 +244,7 @@ try {
   } else if (err.code?.startsWith('FILE_')) {
     userFriendlyMessage = '文件访问错误，请检查文件路径';
   }
-  
+
   showErrorMessage(userFriendlyMessage, err.message);
 }
 ```
@@ -255,7 +262,7 @@ async function generateWithLogging(dpml) {
     const processed = await processPrompt(dpml);
     console.log('处理成功，开始转换...');
     console.log('处理结果:', JSON.stringify(processed, null, 2));
-    
+
     const promptText = transformPrompt(processed);
     console.log('转换成功!');
     return promptText;
@@ -286,7 +293,7 @@ function monitorErrors(fn) {
         timestamp: new Date(),
         // 其他需要记录的信息
       });
-      
+
       // 重新抛出错误，以便调用者也能处理
       throw err;
     }
@@ -301,4 +308,4 @@ const safeGeneratePrompt = monitorErrors(generatePrompt);
 
 - [generatePrompt](./generate-prompt.md) - 一站式DPML处理
 - [processPrompt](./process-prompt.md) - DPML文本处理
-- [transformPrompt](./transform-prompt.md) - 处理结果转换 
+- [transformPrompt](./transform-prompt.md) - 处理结果转换

@@ -35,12 +35,7 @@ export const FRAGMENT_SYMBOL = '#';
 /**
  * Support URI protocols
  */
-export const SUPPORTED_PROTOCOLS = [
-  'http',
-  'https',
-  'file',
-  'data'
-];
+export const SUPPORTED_PROTOCOLS = ['http', 'https', 'file', 'data'];
 
 /**
  * Core tag names
@@ -52,5 +47,5 @@ export const CORE_TAGS = {
   THINKING: 'thinking',
   EXECUTING: 'executing',
   TASK: 'task',
-  REFERENCE: 'reference'
-}; 
+  REFERENCE: 'reference',
+};

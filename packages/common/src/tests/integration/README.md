@@ -37,7 +37,7 @@ export default defineConfig({
     environment: 'node',
     include: ['tests/**/*.test.ts'],
     exclude: ['node_modules'],
-    testTimeout: 10000
+    testTimeout: 10000,
   },
   resolve: {
     alias: {
@@ -45,9 +45,9 @@ export default defineConfig({
       '@dpml/common/logger': resolve(__dirname, './src/logger'),
       '@dpml/common/testing': resolve(__dirname, './src/testing'),
       '@dpml/common/utils': resolve(__dirname, './src/utils'),
-      '@dpml/common/types': resolve(__dirname, './src/types')
-    }
-  }
+      '@dpml/common/types': resolve(__dirname, './src/types'),
+    },
+  },
 });
 ```
 
@@ -90,6 +90,7 @@ pnpm vitest run tests/integration/performance.test.ts
 ### 跨包集成测试
 
 验证@dpml/common包可被其他DPML包正确使用：
+
 - 日志系统被其他包使用
 - 测试工具支持其他包的测试
 - 工具函数在其他包中的应用
@@ -97,6 +98,7 @@ pnpm vitest run tests/integration/performance.test.ts
 ### 性能测试
 
 针对关键功能进行性能测试和基准设定：
+
 - 日志记录性能
 - 深拷贝性能
 - 路径操作性能
@@ -106,6 +108,7 @@ pnpm vitest run tests/integration/performance.test.ts
 ### 兼容性测试
 
 测试在不同环境中的兼容性：
+
 - Node.js 不同版本
 - 浏览器环境兼容性
 - 平台差异处理
@@ -113,9 +116,8 @@ pnpm vitest run tests/integration/performance.test.ts
 ## 测试报告
 
 集成测试完成后会生成测试报告，包含以下信息：
+
 - 测试通过率
 - 各模块集成情况
 - 性能测试结果
 - 环境兼容性结果
-
- 

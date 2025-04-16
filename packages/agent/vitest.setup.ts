@@ -10,8 +10,8 @@ vi.mock('@dpml/prompt', () => {
     processPrompt: vi.fn().mockImplementation((text, options) => {
       return {
         result: text,
-        processed: true
+        processed: true,
       };
-    })
+    }),
   };
 });

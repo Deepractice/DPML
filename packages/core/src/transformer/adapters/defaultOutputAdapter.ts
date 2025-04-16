@@ -1,5 +1,5 @@
-import { OutputAdapter } from '../interfaces/outputAdapter';
-import { TransformContext } from '../interfaces/transformContext';
+import type { OutputAdapter } from '../interfaces/outputAdapter';
+import type { TransformContext } from '../interfaces/transformContext';
 
 /**
  * 默认输出适配器
@@ -16,4 +16,4 @@ export class DefaultOutputAdapter implements OutputAdapter {
     // 默认实现只是直接返回数据
     return data;
   }
-} 
+}

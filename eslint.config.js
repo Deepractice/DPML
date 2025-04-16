@@ -1,120 +1,131 @@
 import eslint from '@eslint/js';
-import tseslint from 'typescript-eslint';
 import prettierConfig from 'eslint-config-prettier';
-import unicorn from 'eslint-plugin-unicorn';
 import importPlugin from 'eslint-plugin-import';
+import unicorn from 'eslint-plugin-unicorn';
+import tseslint from 'typescript-eslint';
+
+import styleRules from './rules/style-rules.js';
 
 export default [
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   prettierConfig,
+  styleRules,
   {
     ignores: [
       '**/node_modules/**',
       '**/dist/**',
       '**/coverage/**',
       '**/temp/**',
-      '**/.turbo/**'
-    ]
+      '**/.turbo/**',
+    ],
   },
   {
     rules: {
       // 从旧配置迁移的规则
       '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/explicit-module-boundary-types': 'off'
-    }
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
+    },
   },
   {
     files: ['**/*.ts', '**/*.tsx'],
     plugins: {
-      unicorn
+      unicorn,
     },
     rules: {
       'unicorn/filename-case': [
         'error',
         {
-          case: 'kebabCase'
-        }
-      ]
-    }
+          case: 'kebabCase',
+        },
+      ],
+    },
   },
   {
-    files: ['**/src/components/**/*.{ts,tsx}', '**/src/models/**/*.ts', '**/src/**/types/**/*.ts'],
+    files: [
+      '**/src/components/**/*.{ts,tsx}',
+      '**/src/models/**/*.ts',
+      '**/src/**/types/**/*.ts',
+    ],
     rules: {
       'unicorn/filename-case': [
         'error',
         {
-          case: 'pascalCase'
-        }
-      ]
-    }
+          case: 'pascalCase',
+        },
+      ],
+    },
   },
   {
-    files: ['**/src/utils/**/*.ts', '**/src/helpers/**/*.ts', '**/src/functions/**/*.ts'],
+    files: [
+      '**/src/utils/**/*.ts',
+      '**/src/helpers/**/*.ts',
+      '**/src/functions/**/*.ts',
+    ],
     rules: {
       'unicorn/filename-case': [
         'error',
         {
-          case: 'camelCase'
-        }
-      ]
-    }
+          case: 'camelCase',
+        },
+      ],
+    },
   },
   {
     files: ['**/src/tests/**/*.test.{js,ts}', '**/*.spec.{js,ts}'],
     rules: {
-      'unicorn/filename-case': 'off'
-    }
+      'unicorn/filename-case': 'off',
+    },
   },
   // 导入规范配置
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
     plugins: {
-      import: importPlugin
+      import: importPlugin,
     },
     settings: {
       'import/resolver': {
         typescript: {
           alwaysTryTypes: true,
-          project: ['./tsconfig.json', './packages/*/tsconfig.json']
+          project: ['./tsconfig.json', './packages/*/tsconfig.json'],
         },
         node: {
-          extensions: ['.js', '.jsx', '.ts', '.tsx']
-        }
+          extensions: ['.js', '.jsx', '.ts', '.tsx'],
+        },
       },
       'import/parsers': {
-        '@typescript-eslint/parser': ['.ts', '.tsx']
-      }
+        '@typescript-eslint/parser': ['.ts', '.tsx'],
+      },
     },
     rules: {
       // 导入顺序
       'import/order': [
         'error',
         {
-          'groups': [
-            'builtin',           // Node内置模块
-            'external',          // 外部依赖包
-            'internal',          // 工作区内其他包
-            'parent',            // 父目录
-            'sibling',           // 同级目录
-            'index',             // 当前目录index
-            'object',            // 对象导入
-            'type'               // 类型导入
+          groups: [
+            'builtin', // Node内置模块
+            'external', // 外部依赖包
+            'internal', // 工作区内其他包
+            'parent', // 父目录
+            'sibling', // 同级目录
+            'index', // 当前目录index
+            'object', // 对象导入
+            'type', // 类型导入
           ],
-          'pathGroups': [
+          pathGroups: [
             // 为工作区内其他包设置规则
             {
-              'pattern': '@*/**',
-              'group': 'internal',
-              'position': 'before'
-            }
+              pattern: '@*/**',
+              group: 'internal',
+              position: 'before',
+            },
           ],
-          'newlines-between': 'always',  // 每组之间添加空行
-          'alphabetize': {
-            'order': 'asc',              // 按字母顺序排序
-            'caseInsensitive': true
-          }
-        }
+          'newlines-between': 'always', // 每组之间添加空行
+          alphabetize: {
+            order: 'asc', // 按字母顺序排序
+            caseInsensitive: true,
+          },
+        },
       ],
       // 确保导入存在
       'import/no-unresolved': 'error',
@@ -128,14 +139,14 @@ export default [
       '@typescript-eslint/consistent-type-imports': [
         'error',
         {
-          'prefer': 'type-imports',
-          'disallowTypeAnnotations': false
-        }
+          prefer: 'type-imports',
+          disallowTypeAnnotations: false,
+        },
       ],
       // 禁止使用过多级的相对路径
       'import/no-relative-parent-imports': 'off', // 可以设置为'error'如果不想使用很多../../../
       // 确保导入扩展名
-      'import/extensions': ['error', 'never']
-    }
-  }
-]; 
+      'import/extensions': ['error', 'never'],
+    },
+  },
+];

@@ -18,11 +18,9 @@
 import { DPMLError, DPMLErrorCode, createDPMLError } from '@dpml/common/types';
 
 // 创建标准错误
-const error = createDPMLError(
-  '无法读取文件', 
-  DPMLErrorCode.FILE_NOT_FOUND,
-  { path: '/path/to/file.txt' }
-);
+const error = createDPMLError('无法读取文件', DPMLErrorCode.FILE_NOT_FOUND, {
+  path: '/path/to/file.txt',
+});
 
 // 错误包含标准属性
 console.error(error.message); // 无法读取文件
@@ -59,9 +57,7 @@ import { Result, success, failure } from '@dpml/common/types';
 const successResult: Result<number, Error> = success(42);
 
 // 创建失败结果
-const failureResult: Result<number, Error> = failure(
-  new Error('操作失败')
-);
+const failureResult: Result<number, Error> = failure(new Error('操作失败'));
 
 // 处理结果
 function processResult<T>(result: Result<T, Error>): T | null {
@@ -75,7 +71,7 @@ function processResult<T>(result: Result<T, Error>): T | null {
 
 // 结果映射
 const mappedResult = successResult.map(value => value * 2);
-const flatMappedResult = successResult.flatMap(value => 
+const flatMappedResult = successResult.flatMap(value =>
   value > 0 ? success(value * 2) : failure(new Error('值必须为正'))
 );
 ```
@@ -91,16 +87,16 @@ class CustomFileSystem implements FileSystem {
     // 实现文件读取
     return '文件内容';
   }
-  
+
   async writeFile(path: string, data: string | Buffer): Promise<void> {
     // 实现文件写入
   }
-  
+
   async exists(path: string): Promise<boolean> {
     // 检查文件是否存在
     return true;
   }
-  
+
   // ...其他方法
 }
 
@@ -116,41 +112,52 @@ async function processFile(fs: FileSystem, path: string) {
 ### HTTP客户端接口
 
 ```typescript
-import { HttpClient, HttpResponse, HttpRequestOptions } from '@dpml/common/types';
+import {
+  HttpClient,
+  HttpResponse,
+  HttpRequestOptions,
+} from '@dpml/common/types';
 
 // 实现HTTP客户端接口
 class CustomHttpClient implements HttpClient {
-  async get<T = any>(url: string, options?: HttpRequestOptions): Promise<HttpResponse<T>> {
+  async get<T = any>(
+    url: string,
+    options?: HttpRequestOptions
+  ): Promise<HttpResponse<T>> {
     // 实现GET请求
     return {
       status: 200,
       data: { message: 'Success' } as T,
-      headers: { 'content-type': 'application/json' }
+      headers: { 'content-type': 'application/json' },
     };
   }
-  
-  async post<T = any>(url: string, data?: any, options?: HttpRequestOptions): Promise<HttpResponse<T>> {
+
+  async post<T = any>(
+    url: string,
+    data?: any,
+    options?: HttpRequestOptions
+  ): Promise<HttpResponse<T>> {
     // 实现POST请求
     return {
       status: 201,
       data: { id: 1 } as T,
-      headers: { 'content-type': 'application/json' }
+      headers: { 'content-type': 'application/json' },
     };
   }
-  
+
   // ...其他方法
 }
 
 // 使用HTTP客户端接口
 async function fetchUserData(http: HttpClient, userId: string) {
-  const response = await http.get<{name: string, email: string}>(
+  const response = await http.get<{ name: string; email: string }>(
     `https://api.example.com/users/${userId}`
   );
-  
+
   if (response.status === 200) {
     return response.data;
   }
-  
+
   throw new Error(`获取用户数据失败: ${response.status}`);
 }
 ```
@@ -158,12 +165,12 @@ async function fetchUserData(http: HttpClient, userId: string) {
 ### 工具类型
 
 ```typescript
-import { 
-  DeepPartial, 
-  Nullable, 
+import {
+  DeepPartial,
+  Nullable,
   StringKeyOf,
   RecursiveReadonly,
-  DeepRequired
+  DeepRequired,
 } from '@dpml/common/types';
 
 // 部分对象类型
@@ -179,8 +186,8 @@ interface User {
 const partialUser: DeepPartial<User> = {
   name: 'Test',
   profile: {
-    email: 'test@example.com'
-  }
+    email: 'test@example.com',
+  },
 };
 
 // 可空类型
@@ -195,8 +202,8 @@ const readonlyUser: RecursiveReadonly<User> = {
   name: 'Test',
   profile: {
     age: 30,
-    email: 'test@example.com'
-  }
+    email: 'test@example.com',
+  },
 };
 // readonlyUser.name = 'New'; // 错误: 只读属性不能修改
 // readonlyUser.profile.age = 31; // 错误: 嵌套属性也是只读的
@@ -208,4 +215,4 @@ const readonlyUser: RecursiveReadonly<User> = {
 - [结果类型](./ResultTypes.md)
 - [文件系统接口](./FileSystem.md)
 - [HTTP客户端接口](./HttpClient.md)
-- [工具类型](./UtilityTypes.md) 
+- [工具类型](./UtilityTypes.md)

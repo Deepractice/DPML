@@ -1,15 +1,17 @@
 /**
  * 存储工具模块
- * 
+ *
  * 提供跨平台的数据存储和检索功能。
  * 在浏览器环境中使用localStorage，在Node.js环境中使用文件系统。
  */
 
-import { isRunningInNode, isBrowser } from './platform';
-import { isBrowserEnvironment } from '../logger/core/environment';
-import * as path from './path';
 import * as fs from 'fs';
 import * as os from 'os';
+
+import { isBrowserEnvironment } from '../logger/core/environment';
+
+import * as path from './path';
+import { isRunningInNode, isBrowser } from './platform';
 
 // 内存存储，用于Node.js环境下的临时存储
 const memoryStorage: Record<string, string> = {};
@@ -24,13 +26,16 @@ function canUseLocalStorage(): boolean {
       if (typeof localStorage === 'undefined') {
         return false;
       }
-      
+
       // 检查localStorage是否可用
       const testKey = '__test_storage__';
+
       localStorage.setItem(testKey, 'test');
       localStorage.removeItem(testKey);
+
       return true;
     }
+
     return false;
   } catch (e) {
     // 可能的异常：SecurityError, QuotaExceededError等
@@ -46,15 +51,15 @@ function getStoragePath(): string {
   if (!isRunningInNode()) {
     throw new Error('getStoragePath is only available in Node.js environment');
   }
-  
+
   const homedir = os.homedir();
   const storagePath = path.join(homedir, '.dpml', 'storage');
-  
+
   // 确保目录存在
   if (!fs.existsSync(storagePath)) {
     fs.mkdirSync(storagePath, { recursive: true });
   }
-  
+
   return storagePath;
 }
 
@@ -65,12 +70,13 @@ function getStoragePath(): string {
  */
 export function set<T>(key: string, value: T): void {
   const serialized = JSON.stringify(value);
-  
+
   if (isRunningInNode()) {
     try {
       // 尝试使用文件系统
       const storagePath = getStoragePath();
       const filePath = path.join(storagePath, `${key}.json`);
+
       fs.writeFileSync(filePath, serialized, 'utf-8');
     } catch (error) {
       // 如果文件系统访问失败，回退到内存存储
@@ -98,13 +104,13 @@ export function set<T>(key: string, value: T): void {
  */
 export function get<T>(key: string): T | null {
   let serialized: string | null = null;
-  
+
   if (isRunningInNode()) {
     try {
       // 尝试从文件系统读取
       const storagePath = getStoragePath();
       const filePath = path.join(storagePath, `${key}.json`);
-      
+
       if (fs.existsSync(filePath)) {
         serialized = fs.readFileSync(filePath, 'utf-8');
       }
@@ -125,15 +131,16 @@ export function get<T>(key: string): T | null {
     // 其他环境使用内存存储
     serialized = memoryStorage[key] || null;
   }
-  
+
   if (serialized === null) {
     return null;
   }
-  
+
   try {
     return JSON.parse(serialized) as T;
   } catch (error) {
     console.warn(`Failed to parse stored data: ${error}`);
+
     return null;
   }
 }
@@ -148,14 +155,14 @@ export function remove(key: string): void {
       // 尝试从文件系统删除
       const storagePath = getStoragePath();
       const filePath = path.join(storagePath, `${key}.json`);
-      
+
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
     } catch (error) {
       // 忽略文件系统错误
     }
-    
+
     // 同时从内存存储中删除
     delete memoryStorage[key];
   } else if (canUseLocalStorage()) {
@@ -165,7 +172,7 @@ export function remove(key: string): void {
     } catch (error) {
       console.warn(`Failed to remove data from localStorage: ${error}`);
     }
-    
+
     // 同时从内存存储中删除
     delete memoryStorage[key];
   } else {
@@ -183,9 +190,10 @@ export function keys(): string[] {
     try {
       // 尝试从文件系统获取所有键
       const storagePath = getStoragePath();
-      
+
       if (fs.existsSync(storagePath)) {
-        return fs.readdirSync(storagePath)
+        return fs
+          .readdirSync(storagePath)
           .filter(file => file.endsWith('.json'))
           .map(file => file.slice(0, -5)); // 移除.json后缀
       }
@@ -197,20 +205,24 @@ export function keys(): string[] {
     // 浏览器环境使用localStorage
     try {
       const keys: string[] = [];
+
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
+
         if (key) {
           keys.push(key);
         }
       }
+
       return keys;
     } catch (error) {
       console.warn(`Failed to get keys from localStorage: ${error}`);
+
       // 如果localStorage访问失败，回退到内存存储
       return Object.keys(memoryStorage);
     }
   }
-  
+
   // 其他环境使用内存存储
   return Object.keys(memoryStorage);
 }
@@ -223,7 +235,7 @@ export function clear(): void {
     try {
       // 尝试清除文件系统存储
       const storagePath = getStoragePath();
-      
+
       if (fs.existsSync(storagePath)) {
         fs.readdirSync(storagePath)
           .filter(file => file.endsWith('.json'))
@@ -242,7 +254,7 @@ export function clear(): void {
       console.warn(`Failed to clear localStorage: ${error}`);
     }
   }
-  
+
   // 清除内存存储
   Object.keys(memoryStorage).forEach(key => {
     delete memoryStorage[key];
@@ -257,5 +269,5 @@ export const storageUtils = {
   get,
   remove,
   keys,
-  clear
+  clear,
 };

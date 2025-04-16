@@ -1,7 +1,9 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import * as fs from 'fs';
+
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
 import {
   getUserHome,
   getDpmlConfigDir,
@@ -17,7 +19,7 @@ import {
   getFileExtension,
   getFileName,
   getDirName,
-  joinPaths
+  joinPaths,
 } from '../../utils/paths';
 
 // 模拟模块
@@ -106,7 +108,9 @@ describe('路径工具测试', () => {
       // 验证结果
       expect(result).toBe(true);
       expect(fs.existsSync).toHaveBeenCalledWith('/path/to/dir');
-      expect(fs.mkdirSync).toHaveBeenCalledWith('/path/to/dir', { recursive: true });
+      expect(fs.mkdirSync).toHaveBeenCalledWith('/path/to/dir', {
+        recursive: true,
+      });
     });
 
     it('当目录已存在时不应创建目录', () => {
@@ -137,7 +141,9 @@ describe('路径工具测试', () => {
       // 验证结果
       expect(result).toBe(false);
       expect(fs.existsSync).toHaveBeenCalledWith('/path/to/dir');
-      expect(fs.mkdirSync).toHaveBeenCalledWith('/path/to/dir', { recursive: true });
+      expect(fs.mkdirSync).toHaveBeenCalledWith('/path/to/dir', {
+        recursive: true,
+      });
     });
   });
 
@@ -214,7 +220,9 @@ describe('路径工具测试', () => {
     it('应拒绝包含路径遍历的路径', () => {
       expect(isPathSafe('/base/dir', '/base/dir/file.txt')).toBe(true);
       expect(isPathSafe('/base/dir', '/base/dir/../file.txt')).toBe(false);
-      expect(isPathSafe('/base/dir', '/base/dir/subdir/../../file.txt')).toBe(false);
+      expect(isPathSafe('/base/dir', '/base/dir/subdir/../../file.txt')).toBe(
+        false
+      );
       expect(isPathSafe('/base/dir', '/other/dir/file.txt')).toBe(false);
     });
 
@@ -222,8 +230,12 @@ describe('路径工具测试', () => {
       vi.mocked(os.platform).mockReturnValue('win32');
 
       expect(isPathSafe('C:\\base\\dir', 'C:\\base\\dir\\file.txt')).toBe(true);
-      expect(isPathSafe('C:\\base\\dir', 'C:\\base\\dir\\..\\file.txt')).toBe(false);
-      expect(isPathSafe('C:\\base\\dir', 'D:\\base\\dir\\file.txt')).toBe(false);
+      expect(isPathSafe('C:\\base\\dir', 'C:\\base\\dir\\..\\file.txt')).toBe(
+        false
+      );
+      expect(isPathSafe('C:\\base\\dir', 'D:\\base\\dir\\file.txt')).toBe(
+        false
+      );
     });
   });
 

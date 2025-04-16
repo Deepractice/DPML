@@ -1,10 +1,11 @@
-import { TransformerVisitor } from '../interfaces/transformerVisitor';
 import { NodeType } from '../../types/node';
-import { TransformContext } from '../interfaces/transformContext';
+
+import type { TransformContext } from '../interfaces/transformContext';
+import type { TransformerVisitor } from '../interfaces/transformerVisitor';
 
 /**
  * 转换访问者基类
- * 
+ *
  * 为所有访问者提供基础功能和默认实现。
  * 各具体访问者通过继承此基类并重写相关方法来实现特定转换逻辑。
  */
@@ -13,12 +14,12 @@ export abstract class BaseVisitor implements TransformerVisitor {
    * 访问者名称，用于唯一标识和日志记录
    */
   abstract readonly name: string;
-  
+
   /**
    * 访问者优先级，较高的优先级会被先执行
    */
   priority: number;
-  
+
   /**
    * 构造函数
    * @param priority 访问者优先级，默认为0
@@ -26,7 +27,7 @@ export abstract class BaseVisitor implements TransformerVisitor {
   constructor(priority: number = 0) {
     this.priority = priority;
   }
-  
+
   /**
    * 获取访问者优先级
    * @returns 优先级数值
@@ -34,7 +35,7 @@ export abstract class BaseVisitor implements TransformerVisitor {
   getPriority(): number {
     return this.priority;
   }
-  
+
   /**
    * 通用访问方法，根据节点类型分发到具体访问方法
    * @param node 要访问的节点
@@ -45,7 +46,7 @@ export abstract class BaseVisitor implements TransformerVisitor {
     if (!node) {
       return null;
     }
-    
+
     switch (node.type) {
       case NodeType.DOCUMENT:
         return this.visitDocument(node, context);
@@ -59,7 +60,7 @@ export abstract class BaseVisitor implements TransformerVisitor {
         return this.visitUnknown(node, context);
     }
   }
-  
+
   /**
    * 异步访问方法，支持异步操作
    * @param node 要访问的节点
@@ -69,7 +70,7 @@ export abstract class BaseVisitor implements TransformerVisitor {
   async visitAsync(node: any, context: TransformContext): Promise<any> {
     return this.visit(node, context);
   }
-  
+
   /**
    * 访问文档节点
    * @param node 文档节点
@@ -79,7 +80,7 @@ export abstract class BaseVisitor implements TransformerVisitor {
   visitDocument(node: any, context: TransformContext): any {
     return null;
   }
-  
+
   /**
    * 访问元素节点
    * @param node 元素节点
@@ -89,7 +90,7 @@ export abstract class BaseVisitor implements TransformerVisitor {
   visitElement(node: any, context: TransformContext): any {
     return null;
   }
-  
+
   /**
    * 访问内容节点
    * @param node 内容节点
@@ -99,7 +100,7 @@ export abstract class BaseVisitor implements TransformerVisitor {
   visitContent(node: any, context: TransformContext): any {
     return null;
   }
-  
+
   /**
    * 访问引用节点
    * @param node 引用节点
@@ -109,7 +110,7 @@ export abstract class BaseVisitor implements TransformerVisitor {
   visitReference(node: any, context: TransformContext): any {
     return null;
   }
-  
+
   /**
    * 访问未知类型节点
    * @param node 未知类型节点
@@ -119,4 +120,4 @@ export abstract class BaseVisitor implements TransformerVisitor {
   visitUnknown(node: any, context: TransformContext): any {
     return null;
   }
-} 
+}

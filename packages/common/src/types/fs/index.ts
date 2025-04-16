@@ -1,6 +1,6 @@
 /**
  * 文件系统接口类型定义
- * 
+ *
  * 提供跨平台的文件系统操作抽象。
  */
 
@@ -80,7 +80,11 @@ export type WatchEvent = 'add' | 'change' | 'unlink' | 'addDir' | 'unlinkDir';
 /**
  * 文件系统监视回调
  */
-export type WatchCallback = (event: WatchEvent, path: string, stats?: FileStat) => void;
+export type WatchCallback = (
+  event: WatchEvent,
+  path: string,
+  stats?: FileStat
+) => void;
 
 /**
  * 文件系统监视器
@@ -114,7 +118,7 @@ export interface FileLock {
 
 /**
  * 文件系统接口
- * 
+ *
  * 提供统一的文件操作接口，适用于Node.js和浏览器环境
  */
 export interface FileSystem {
@@ -124,68 +128,76 @@ export interface FileSystem {
    * @param encoding 编码（默认utf-8）
    */
   readFile(path: string, encoding?: string): Promise<string>;
-  
+
   /**
    * 读取文件为二进制数据
    * @param path 文件路径
    */
   readFileBuffer(path: string): Promise<Uint8Array>;
-  
+
   /**
    * 写入文件
    * @param path 文件路径
    * @param content 文件内容
    * @param options 写入选项
    */
-  writeFile(path: string, content: string | Uint8Array, options?: WriteFileOptions): Promise<void>;
-  
+  writeFile(
+    path: string,
+    content: string | Uint8Array,
+    options?: WriteFileOptions
+  ): Promise<void>;
+
   /**
    * 追加内容到文件
    * @param path 文件路径
    * @param content 追加内容
    * @param options 写入选项
    */
-  appendFile(path: string, content: string | Uint8Array, options?: WriteFileOptions): Promise<void>;
-  
+  appendFile(
+    path: string,
+    content: string | Uint8Array,
+    options?: WriteFileOptions
+  ): Promise<void>;
+
   /**
    * 检查文件或目录是否存在
    * @param path 路径
    */
   exists(path: string): Promise<boolean>;
-  
+
   /**
    * 获取文件或目录状态
    * @param path 路径
    */
   stat(path: string): Promise<FileStat>;
-  
+
   /**
    * 创建目录
    * @param path 目录路径
    * @param recursive 是否递归创建
    */
   mkdir(path: string, recursive?: boolean): Promise<void>;
-  
+
   /**
    * 读取目录内容
    * @param path 目录路径
    * @param options 读取选项
    */
   readdir(path: string, options?: ReadDirOptions): Promise<string[]>;
-  
+
   /**
    * 删除文件
    * @param path 文件路径
    */
   unlink(path: string): Promise<void>;
-  
+
   /**
    * 删除目录
    * @param path 目录路径
    * @param recursive 是否递归删除内容
    */
   rmdir(path: string, recursive?: boolean): Promise<void>;
-  
+
   /**
    * 复制文件
    * @param src 源文件路径
@@ -193,7 +205,7 @@ export interface FileSystem {
    * @param options 复制选项
    */
   copyFile(src: string, dest: string, options?: CopyFileOptions): Promise<void>;
-  
+
   /**
    * 移动文件
    * @param src 源文件路径
@@ -201,29 +213,33 @@ export interface FileSystem {
    * @param overwrite 是否覆盖目标文件
    */
   moveFile(src: string, dest: string, overwrite?: boolean): Promise<void>;
-  
+
   /**
    * 监视文件或目录变化
    * @param path 监视路径
    * @param callback 变化回调
    * @param options 监视选项
    */
-  watch(path: string, callback: WatchCallback, options?: WatchOptions): FSWatcher;
-  
+  watch(
+    path: string,
+    callback: WatchCallback,
+    options?: WatchOptions
+  ): FSWatcher;
+
   /**
    * 尝试获取文件锁
    * @param path 文件路径
    * @param options 锁定选项
    */
   lock?(path: string, options?: FileLockOptions): Promise<FileLock>;
-  
+
   /**
    * 获取临时文件路径
    * @param prefix 文件名前缀
    * @param suffix 文件名后缀
    */
   tmpFile?(prefix?: string, suffix?: string): Promise<string>;
-  
+
   /**
    * 获取临时目录路径
    * @param prefix 目录名前缀
@@ -233,7 +249,7 @@ export interface FileSystem {
 
 /**
  * 本地文件系统能力
- * 
+ *
  * 标识文件系统提供的高级能力
  */
 export interface FileSystemCapabilities {
@@ -269,7 +285,7 @@ export interface FileSystemInfo {
 
 /**
  * 文件系统工厂
- * 
+ *
  * 用于创建文件系统实例
  */
 export interface FileSystemFactory {
@@ -278,9 +294,9 @@ export interface FileSystemFactory {
    * @param options 文件系统选项
    */
   create(options?: Record<string, unknown>): FileSystem;
-  
+
   /**
    * 获取文件系统信息
    */
   getInfo(): FileSystemInfo;
-} 
+}

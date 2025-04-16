@@ -1,13 +1,20 @@
 /**
  * HTTP客户端接口类型定义
- * 
+ *
  * 提供统一的HTTP请求抽象，支持不同环境。
  */
 
 /**
  * HTTP请求方法
  */
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
+export type HttpMethod =
+  | 'GET'
+  | 'POST'
+  | 'PUT'
+  | 'DELETE'
+  | 'PATCH'
+  | 'HEAD'
+  | 'OPTIONS';
 
 /**
  * HTTP响应
@@ -67,7 +74,7 @@ export interface HttpRequestConfig {
       username: string;
       /** 密码 */
       password: string;
-    }
+    };
   };
   /** 自定义选项 */
   [key: string]: any;
@@ -76,7 +83,8 @@ export interface HttpRequestConfig {
 /**
  * HTTP客户端实例配置
  */
-export interface HttpClientConfig extends Omit<HttpRequestConfig, 'url' | 'method' | 'data'> {
+export interface HttpClientConfig
+  extends Omit<HttpRequestConfig, 'url' | 'method' | 'data'> {
   /** 基础URL */
   baseURL?: string;
   /** 默认请求头 */
@@ -100,20 +108,24 @@ export interface HttpClientConfig extends Omit<HttpRequestConfig, 'url' | 'metho
  * HTTP拦截器
  */
 export interface HttpInterceptor {
-  /** 
+  /**
    * 拦截请求配置
    * @param config 请求配置
    * @returns 修改后的配置或Promise
    */
-  onRequest?: (config: HttpRequestConfig) => HttpRequestConfig | Promise<HttpRequestConfig>;
-  
+  onRequest?: (
+    config: HttpRequestConfig
+  ) => HttpRequestConfig | Promise<HttpRequestConfig>;
+
   /**
    * 拦截响应
    * @param response 响应对象
    * @returns 修改后的响应或Promise
    */
-  onResponse?: <T>(response: HttpResponse<T>) => HttpResponse<T> | Promise<HttpResponse<T>>;
-  
+  onResponse?: <T>(
+    response: HttpResponse<T>
+  ) => HttpResponse<T> | Promise<HttpResponse<T>>;
+
   /**
    * 拦截错误
    * @param error 错误对象
@@ -126,11 +138,11 @@ export interface HttpInterceptor {
  * 取消令牌
  */
 export interface CancelToken {
-  /** 
+  /**
    * 是否已取消
    */
   readonly isCancelled: boolean;
-  
+
   /**
    * 注册取消回调
    * @param callback 取消时执行的回调
@@ -157,84 +169,112 @@ export interface HttpClient {
    * @param config 请求配置
    */
   request<T = any>(config: HttpRequestConfig): Promise<HttpResponse<T>>;
-  
+
   /**
    * 发送GET请求
    * @param url 请求URL
    * @param config 请求配置
    */
-  get<T = any>(url: string, config?: Omit<HttpRequestConfig, 'url' | 'method'>): Promise<HttpResponse<T>>;
-  
+  get<T = any>(
+    url: string,
+    config?: Omit<HttpRequestConfig, 'url' | 'method'>
+  ): Promise<HttpResponse<T>>;
+
   /**
    * 发送POST请求
    * @param url 请求URL
    * @param data 请求数据
    * @param config 请求配置
    */
-  post<T = any>(url: string, data?: any, config?: Omit<HttpRequestConfig, 'url' | 'method' | 'data'>): Promise<HttpResponse<T>>;
-  
+  post<T = any>(
+    url: string,
+    data?: any,
+    config?: Omit<HttpRequestConfig, 'url' | 'method' | 'data'>
+  ): Promise<HttpResponse<T>>;
+
   /**
    * 发送PUT请求
    * @param url 请求URL
    * @param data 请求数据
    * @param config 请求配置
    */
-  put<T = any>(url: string, data?: any, config?: Omit<HttpRequestConfig, 'url' | 'method' | 'data'>): Promise<HttpResponse<T>>;
-  
+  put<T = any>(
+    url: string,
+    data?: any,
+    config?: Omit<HttpRequestConfig, 'url' | 'method' | 'data'>
+  ): Promise<HttpResponse<T>>;
+
   /**
    * 发送DELETE请求
    * @param url 请求URL
    * @param config 请求配置
    */
-  delete<T = any>(url: string, config?: Omit<HttpRequestConfig, 'url' | 'method'>): Promise<HttpResponse<T>>;
-  
+  delete<T = any>(
+    url: string,
+    config?: Omit<HttpRequestConfig, 'url' | 'method'>
+  ): Promise<HttpResponse<T>>;
+
   /**
    * 发送PATCH请求
    * @param url 请求URL
    * @param data 请求数据
    * @param config 请求配置
    */
-  patch<T = any>(url: string, data?: any, config?: Omit<HttpRequestConfig, 'url' | 'method' | 'data'>): Promise<HttpResponse<T>>;
-  
+  patch<T = any>(
+    url: string,
+    data?: any,
+    config?: Omit<HttpRequestConfig, 'url' | 'method' | 'data'>
+  ): Promise<HttpResponse<T>>;
+
   /**
    * 发送HEAD请求
    * @param url 请求URL
    * @param config 请求配置
    */
-  head<T = any>(url: string, config?: Omit<HttpRequestConfig, 'url' | 'method'>): Promise<HttpResponse<T>>;
-  
+  head<T = any>(
+    url: string,
+    config?: Omit<HttpRequestConfig, 'url' | 'method'>
+  ): Promise<HttpResponse<T>>;
+
   /**
    * 发送OPTIONS请求
    * @param url 请求URL
    * @param config 请求配置
    */
-  options<T = any>(url: string, config?: Omit<HttpRequestConfig, 'url' | 'method'>): Promise<HttpResponse<T>>;
-  
+  options<T = any>(
+    url: string,
+    config?: Omit<HttpRequestConfig, 'url' | 'method'>
+  ): Promise<HttpResponse<T>>;
+
   /**
    * 创建取消令牌
    */
   createCancelToken(): CancelTokenSource;
-  
+
   /**
    * 判断是否为取消错误
    * @param error 错误对象
    */
   isCancel(error: any): boolean;
-  
+
   /**
    * 添加请求拦截器
    * @param interceptor 拦截器对象
    * @returns 拦截器ID
    */
-  addRequestInterceptor(interceptor: Pick<HttpInterceptor, 'onRequest'>): number;
-  
+  addRequestInterceptor(
+    interceptor: Pick<HttpInterceptor, 'onRequest'>
+  ): number;
+
   /**
    * 添加响应拦截器
    * @param interceptor 拦截器对象
    * @returns 拦截器ID
    */
-  addResponseInterceptor(interceptor: Pick<HttpInterceptor, 'onResponse' | 'onError'>): number;
-  
+  addResponseInterceptor(
+    interceptor: Pick<HttpInterceptor, 'onResponse' | 'onError'>
+  ): number;
+
   /**
    * 移除拦截器
    * @param id 拦截器ID
@@ -262,7 +302,7 @@ export interface HttpClientFactory {
 
 /**
  * HTTP传输层适配器
- * 
+ *
  * 底层HTTP实现适配器（如基于fetch、XMLHttpRequest、node-fetch等）
  */
 export interface HttpTransport {
@@ -271,7 +311,7 @@ export interface HttpTransport {
    * @param config 请求配置
    */
   request<T>(config: HttpRequestConfig): Promise<HttpResponse<T>>;
-  
+
   /**
    * 取消请求
    * @param token 取消令牌
@@ -282,7 +322,7 @@ export interface HttpTransport {
 
 /**
  * HTTP请求池
- * 
+ *
  * 管理并发请求
  */
 export interface HttpRequestPool {
@@ -292,26 +332,26 @@ export interface HttpRequestPool {
    * @param priority 优先级
    */
   add<T>(request: () => Promise<T>, priority?: number): Promise<T>;
-  
+
   /**
    * 取消所有请求
    * @param reason 取消原因
    */
   cancelAll(reason?: string): void;
-  
+
   /**
    * 获取活跃请求数量
    */
   getActiveCount(): number;
-  
+
   /**
    * 获取等待请求数量
    */
   getPendingCount(): number;
-  
+
   /**
    * 设置最大并发数
    * @param limit 并发限制
    */
   setLimit(limit: number): void;
-} 
+}

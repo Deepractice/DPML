@@ -5,4 +5,4 @@
 export * from './types';
 export * from './logger';
 export * from './logger-factory';
-export * from './environment'; 
+export * from './environment';

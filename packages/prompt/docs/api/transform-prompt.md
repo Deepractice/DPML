@@ -8,15 +8,15 @@
 function transformPrompt(
   processedPrompt: ProcessedPrompt,
   options?: TransformOptions
-): string
+): string;
 ```
 
 ### 参数
 
-| 参数名 | 类型 | 描述 |
-|-------|-----|------|
-| `processedPrompt` | `ProcessedPrompt` | 已处理的DPML结构，通常是processPrompt的输出 |
-| `options` | `TransformOptions` | 可选配置选项 |
+| 参数名            | 类型               | 描述                                        |
+| ----------------- | ------------------ | ------------------------------------------- |
+| `processedPrompt` | `ProcessedPrompt`  | 已处理的DPML结构，通常是processPrompt的输出 |
+| `options`         | `TransformOptions` | 可选配置选项                                |
 
 ### 返回值
 
@@ -24,11 +24,11 @@ function transformPrompt(
 
 ## 选项 (TransformOptions)
 
-| 选项名 | 类型 | 默认值 | 描述 |
-|-------|-----|-------|------|
-| `format` | `FormatOptions` | 默认格式 | 自定义格式模板配置 |
-| `addLanguageDirective` | `boolean` | `false` | 是否在输出末尾添加语言指令 |
-| `tagOrder` | `string[]` | 默认顺序 | 自定义标签输出顺序 |
+| 选项名                 | 类型            | 默认值   | 描述                       |
+| ---------------------- | --------------- | -------- | -------------------------- |
+| `format`               | `FormatOptions` | 默认格式 | 自定义格式模板配置         |
+| `addLanguageDirective` | `boolean`       | `false`  | 是否在输出末尾添加语言指令 |
+| `tagOrder`             | `string[]`      | 默认顺序 | 自定义标签输出顺序         |
 
 ## 格式选项 (FormatOptions)
 
@@ -40,9 +40,9 @@ interface FormatOptions {
 }
 
 interface TagFormatOptions {
-  title?: string;                       // 标题
-  prefix?: string;                      // 前缀
-  suffix?: string;                      // 后缀
+  title?: string; // 标题
+  prefix?: string; // 前缀
+  suffix?: string; // 后缀
   wrapper?: (content: string) => string; // 内容包装器函数
 }
 ```
@@ -52,26 +52,26 @@ interface TagFormatOptions {
 ```javascript
 const defaultFormatTemplates = {
   role: {
-    title: '# 角色'
+    title: '# 角色',
   },
   context: {
-    title: '# 上下文'
+    title: '# 上下文',
   },
   thinking: {
-    title: '# 思考框架'
+    title: '# 思考框架',
   },
   executing: {
-    title: '# 执行步骤'
+    title: '# 执行步骤',
   },
   testing: {
-    title: '# 质量检查'
+    title: '# 质量检查',
   },
   protocol: {
-    title: '# 交互协议'
+    title: '# 交互协议',
   },
   custom: {
-    title: '# 自定义'
-  }
+    title: '# 自定义',
+  },
 };
 ```
 
@@ -120,7 +120,7 @@ processPrompt(dpml).then(processed => {
     format: {
       role: {
         title: '💼 职责',
-        wrapper: (content) => `【${content}】`
+        wrapper: content => `【${content}】`,
       },
       context: {
         title: '📋 工作内容',
@@ -129,18 +129,18 @@ processPrompt(dpml).then(processed => {
       protocol: {
         title: '🤝 沟通方式',
         prefix: '> ',
-      }
-    }
+      },
+    },
   });
-  
+
   console.log(promptText);
   // 输出:
   // 💼 职责
   // 【客服代表】
-  // 
+  //
   // 📋 工作内容
   // • 帮助解决产品问题
-  // 
+  //
   // 🤝 沟通方式
   // > 使用礼貌友好的语气
 });
@@ -163,9 +163,9 @@ const dpml = `
 processPrompt(dpml).then(processed => {
   // 自定义标签输出顺序
   const promptText = transformPrompt(processed, {
-    tagOrder: ['protocol', 'role', 'context', 'thinking']
+    tagOrder: ['protocol', 'role', 'context', 'thinking'],
   });
-  
+
   console.log(promptText);
   // 输出会按照指定的顺序排列标签内容
 });
@@ -186,9 +186,9 @@ const dpml = `
 processPrompt(dpml).then(processed => {
   // 添加语言指令
   const promptText = transformPrompt(processed, {
-    addLanguageDirective: true
+    addLanguageDirective: true,
   });
-  
+
   console.log(promptText);
   // 输出末尾会添加：请用中文回答
 });
@@ -205,24 +205,24 @@ async function generateCustomPrompt(dpmlText) {
   try {
     // 第一步：处理DPML
     const processed = await processPrompt(dpmlText);
-    
+
     // 可以在这里检查或修改处理后的结构
     if (!processed.tags.role) {
       throw new Error('提示必须包含角色标签');
     }
-    
+
     // 添加额外的元数据
     processed.metadata.generatedAt = new Date().toISOString();
-    
+
     // 第二步：转换为最终文本
     const promptText = transformPrompt(processed, {
       format: {
         role: { title: '## 角色定义' },
-        context: { title: '## 工作上下文' }
+        context: { title: '## 工作上下文' },
       },
-      addLanguageDirective: processed.metadata.lang === 'zh-CN'
+      addLanguageDirective: processed.metadata.lang === 'zh-CN',
     });
-    
+
     return promptText;
   } catch (err) {
     console.error('生成失败:', err.message);
@@ -235,4 +235,4 @@ async function generateCustomPrompt(dpmlText) {
 
 - [generatePrompt](./generate-prompt.md) - 一站式DPML处理
 - [processPrompt](./process-prompt.md) - DPML文本处理
-- [配置选项](./configuration.md) - 详细配置说明 
+- [配置选项](./configuration.md) - 详细配置说明

@@ -80,10 +80,11 @@ pnpm prompt node scripts/custom-script.js
 1. **路径处理**：所有命令都在各自的目录上下文中执行，因此使用相对路径时要小心
 
 2. **组合命令**：如需执行多条相关命令，可以使用：
+
    ```bash
    # 串联多个命令（不同目录）
    pnpm prompt test && pnpm core test
-   
+
    # 同一包内串联多个命令
    pnpm prompt "npm run lint && npm run test"
    ```
@@ -92,4 +93,4 @@ pnpm prompt node scripts/custom-script.js
 
 4. **实时反馈**：这些命令支持交互式输出，适合需要实时反馈的工具
 
-这种项目级的命令设置避免了修改系统配置，同时提供了方便的目录导航和命令执行功能。 
+这种项目级的命令设置避免了修改系统配置，同时提供了方便的目录导航和命令执行功能。

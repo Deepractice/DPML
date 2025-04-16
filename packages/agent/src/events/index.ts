@@ -5,20 +5,16 @@
 
 // 导出事件类型和数据接口
 import { EventType } from './EventTypes';
+
 import type {
   EventData,
   AgentEventData,
   SessionEventData,
-  ErrorEventData
+  ErrorEventData,
 } from './EventTypes';
 
 export { EventType };
-export type {
-  EventData,
-  AgentEventData,
-  SessionEventData,
-  ErrorEventData
-};
+export type { EventData, AgentEventData, SessionEventData, ErrorEventData };
 
 // 导出事件系统接口和监听器类型
 import type { EventSystem, EventListener } from './EventSystem';
@@ -46,6 +42,7 @@ export function getGlobalEventSystem(): EventSystem {
   if (!globalEventSystem) {
     globalEventSystem = createEventSystem();
   }
+
   return globalEventSystem;
 }
 

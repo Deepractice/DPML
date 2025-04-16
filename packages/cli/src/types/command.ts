@@ -49,7 +49,11 @@ export interface Command {
   /** 子命令列表 */
   subcommands?: Command[];
   /** 命令执行函数 */
-  execute: (args: string | string[], options: Record<string, any>, context?: any) => Promise<void>;
+  execute: (
+    args: string | string[],
+    options: Record<string, any>,
+    context?: any
+  ) => Promise<void>;
 }
 
 /**
@@ -115,12 +119,15 @@ export interface DomainMapping {
   /** 上次更新时间 */
   lastUpdated: string;
   /** 领域到包的映射 */
-  domains: Record<string, {
-    /** 包名 */
-    package: string;
-    /** 命令配置文件路径 */
-    commandsPath: string;
-    /** 包版本 */
-    version: string;
-  }>;
+  domains: Record<
+    string,
+    {
+      /** 包名 */
+      package: string;
+      /** 命令配置文件路径 */
+      commandsPath: string;
+      /** 包版本 */
+      version: string;
+    }
+  >;
 }

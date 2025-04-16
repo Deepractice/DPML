@@ -43,6 +43,7 @@ dpml [全局选项] <领域> <命令> [命令选项] [参数]
 ```
 
 例如：
+
 ```
 dpml --verbose prompt validate --strict template.dpml
 ```
@@ -168,15 +169,15 @@ async function firstTimeSetup(): Promise<void> {
       type: 'confirm',
       name: 'scanPackages',
       message: '这是您首次运行DPML CLI，是否扫描可用包？',
-      default: true
+      default: true,
     },
     {
       type: 'checkbox',
       name: 'domains',
       message: '选择要启用的领域：',
       choices: ['prompt', 'agent', 'workflow'],
-      when: (answers) => answers.scanPackages
-    }
+      when: answers => answers.scanPackages,
+    },
   ]);
 
   if (answers.scanPackages) {
@@ -190,8 +191,8 @@ async function promptMissingArgs(command: string): Promise<string> {
     {
       type: 'input',
       name: 'filePath',
-      message: `请输入要${command}的文件路径：`
-    }
+      message: `请输入要${command}的文件路径：`,
+    },
   ]);
   return filePath;
 }
@@ -207,7 +208,7 @@ import ora from 'ora';
 
 async function updateMappings(): Promise<void> {
   const spinner = ora('正在扫描可用包...').start();
-  
+
   try {
     // 执行扫描操作...
     await scanPackages();
@@ -221,7 +222,7 @@ async function updateMappings(): Promise<void> {
 // 执行长时间运行命令的进度显示
 async function executeCommand(command: Command, args: any): Promise<void> {
   const spinner = ora('正在执行命令...').start();
-  
+
   try {
     await command.execute(args);
     spinner.succeed('命令执行成功');
@@ -244,19 +245,19 @@ class Logger {
   static info(message: string): void {
     console.log(chalk.blue('info'), message);
   }
-  
+
   static success(message: string): void {
     console.log(chalk.green('✓'), message);
   }
-  
+
   static warn(message: string): void {
     console.log(chalk.yellow('warning'), message);
   }
-  
+
   static error(message: string): void {
     console.error(chalk.red('error'), message);
   }
-  
+
   static help(command: string, description: string): void {
     console.log(`  ${chalk.cyan(command.padEnd(20))}${description}`);
   }
@@ -265,7 +266,7 @@ class Logger {
 // 帮助信息美化
 function printHelp(commands: Command[]): void {
   console.log(chalk.bold('\n可用命令:\n'));
-  
+
   commands.forEach(cmd => {
     Logger.help(`${cmd.name}`, cmd.description);
   });
@@ -284,14 +285,14 @@ import chalk from 'chalk';
 function showVersion(): void {
   const version = '0.1.0';
   const message = chalk.white.bold(`DPML CLI v${version}`);
-  
+
   const box = boxen(message, {
     padding: 1,
     margin: 1,
     borderStyle: 'round',
-    borderColor: 'cyan'
+    borderColor: 'cyan',
   });
-  
+
   console.log(box);
 }
 
@@ -299,13 +300,13 @@ function showVersion(): void {
 function showImportantMessage(message: string): void {
   const box = boxen(chalk.yellow(message), {
     padding: 1,
-    margin: {top: 1, bottom: 1},
+    margin: { top: 1, bottom: 1 },
     borderStyle: 'single',
     borderColor: 'yellow',
     title: '提示',
-    titleAlignment: 'center'
+    titleAlignment: 'center',
   });
-  
+
   console.log(box);
 }
 ```
@@ -412,24 +413,28 @@ CLI在用户主目录创建`.dpml`目录，用于存储配置和缓存：
 初期实现采用简化的错误处理方案，主要关注以下关键错误场景：
 
 1. **参数错误**: 显示正确的命令用法
+
    ```
    错误: 无效的命令选项 '--invalidOption'
    提示: 使用 'dpml prompt validate --help' 查看有效选项
    ```
 
 2. **领域不存在**: 提示可用领域
+
    ```
    错误: 找不到领域 'invalid'
    提示: 可用领域有: prompt, agent, workflow
    ```
 
 3. **命令不存在**: 提示可用命令
+
    ```
    错误: 在 'prompt' 领域中找不到命令 'invalid'
    提示: 可用命令有: validate, render, list
    ```
 
 4. **映射文件错误**: 提示使用更新选项
+
    ```
    错误: 命令映射文件不存在或已损坏
    提示: 请使用 'dpml --update' 创建或更新命令映射
@@ -449,12 +454,14 @@ CLI在用户主目录创建`.dpml`目录，用于存储配置和缓存：
 // 核心错误处理函数
 function handleError(error: Error, context?: any): void {
   console.error(`错误: ${error.message}`);
-  
+
   // 根据错误类型提供基本建议
   if (error.message.includes('command not found')) {
     const domain = context?.domain;
     const availableCommands = context?.availableCommands || [];
-    console.error(`提示: 在 '${domain}' 领域中可用的命令: ${availableCommands.join(', ')}`);
+    console.error(
+      `提示: 在 '${domain}' 领域中可用的命令: ${availableCommands.join(', ')}`
+    );
     console.error(`使用 'dpml ${domain} --help' 查看详细帮助`);
   } else if (error.message.includes('domain not found')) {
     const availableDomains = context?.availableDomains || [];
@@ -463,13 +470,13 @@ function handleError(error: Error, context?: any): void {
   } else if (error.message.includes('mapping file')) {
     console.error(`提示: 使用 'dpml --update' 更新命令映射`);
   }
-  
+
   // 在详细模式下输出堆栈信息
   if (context?.verbose) {
     console.error('\n堆栈信息:');
     console.error(error.stack);
   }
-  
+
   process.exit(1);
 }
 ```
@@ -529,4 +536,4 @@ function handleError(error: Error, context?: any): void {
 
 本设计指南为DPML CLI的实现提供了详细的技术路线。CLI采用基于领域的命令结构，实现了命令的自动发现和注册，为用户提供一致、高效的命令行体验。同时，设计保持了系统的可扩展性，支持未来新领域和第三方扩展的集成。
 
-开发团队应参照本文档进行实现，同时根据实际情况进行必要的调整和优化。 
+开发团队应参照本文档进行实现，同时根据实际情况进行必要的调整和优化。

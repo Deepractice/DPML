@@ -1,6 +1,8 @@
-import { defineConfig } from 'tsup';
-import { baseConfig } from '../../tsup.base.config';
 import * as path from 'path';
+
+import { defineConfig } from 'tsup';
+
+import { baseConfig } from '../../tsup.base.config';
 
 export default defineConfig({
   ...baseConfig,
@@ -21,7 +23,7 @@ export default defineConfig({
   },
   esbuildOptions(options) {
     options.alias = {
-      '@cli': path.resolve(__dirname, './src')
+      '@cli': path.resolve(__dirname, './src'),
     };
-  }
+  },
 });

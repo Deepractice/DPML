@@ -4,7 +4,10 @@
  * 提供运行环境检测、平台特性探测等功能。
  */
 
-import { _overrideNodeEnv, _overrideBrowserEnv } from '../logger/core/environment';
+import {
+  _overrideNodeEnv,
+  _overrideBrowserEnv,
+} from '../logger/core/environment';
 
 /**
  * 检查代码是否运行在Node.js环境中
@@ -15,7 +18,7 @@ export function isRunningInNode(): boolean {
   if (_overrideNodeEnv !== null) {
     return _overrideNodeEnv;
   }
-  
+
   return (
     typeof process !== 'undefined' &&
     process.versions != null &&
@@ -32,11 +35,8 @@ export function isRunningInBrowser(): boolean {
   if (_overrideBrowserEnv !== null) {
     return _overrideBrowserEnv;
   }
-  
-  return (
-    typeof window !== 'undefined' &&
-    typeof document !== 'undefined'
-  );
+
+  return typeof window !== 'undefined' && typeof document !== 'undefined';
 }
 
 /**
@@ -48,7 +48,7 @@ export function isRunningInWebWorker(): boolean {
   if (_overrideBrowserEnv !== null) {
     return false; // 如果明确设置为浏览器环境，则不是Worker
   }
-  
+
   return (
     typeof self !== 'undefined' &&
     typeof window === 'undefined' &&
@@ -115,6 +115,7 @@ export function getNodeVersion(): string | null {
   if (isRunningInNode()) {
     return process.versions.node;
   }
+
   return null;
 }
 
@@ -158,16 +159,19 @@ export function isIE(): boolean {
   if (!isRunningInBrowser()) {
     return false;
   }
-  
+
   if (typeof navigator === 'undefined') {
     return false;
   }
-  
+
   // 检测IE
   const ua = navigator.userAgent;
-  return ua.indexOf('MSIE ') > -1 || 
-         ua.indexOf('Trident/') > -1 || 
-         ua.indexOf('Edge/') > -1;
+
+  return (
+    ua.indexOf('MSIE ') > -1 ||
+    ua.indexOf('Trident/') > -1 ||
+    ua.indexOf('Edge/') > -1
+  );
 }
 
 /**
@@ -197,5 +201,5 @@ export const platformUtils = {
   hasFeatureSupport,
   // 别名
   isNode,
-  isBrowser
+  isBrowser,
 };

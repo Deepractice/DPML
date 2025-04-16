@@ -12,9 +12,9 @@ interface FormatTemplates {
 }
 
 interface TagFormatOptions {
-  title?: string;                       // 标签标题
-  prefix?: string;                      // 内容前缀
-  suffix?: string;                      // 内容后缀
+  title?: string; // 标签标题
+  prefix?: string; // 内容前缀
+  suffix?: string; // 内容后缀
   wrapper?: (content: string) => string; // 内容包装函数
 }
 ```
@@ -75,13 +75,13 @@ const processed = await processPrompt(dpml);
 const promptText = transformPrompt(processed, {
   format: {
     role: {
-      title: '## 角色定义'
+      title: '## 角色定义',
     },
     context: {
       title: '## 工作背景',
-      prefix: '> '
-    }
-  }
+      prefix: '> ',
+    },
+  },
 });
 ```
 
@@ -93,13 +93,13 @@ import { generatePrompt } from '@dpml/prompt';
 const promptText = await generatePrompt(dpml, {
   formatTemplates: {
     role: {
-      title: '## 角色定义'
+      title: '## 角色定义',
     },
     context: {
       title: '## 工作背景',
-      prefix: '> '
-    }
-  }
+      prefix: '> ',
+    },
+  },
 });
 ```
 
@@ -114,21 +114,21 @@ const myFormatTemplates = {
   ...defaultFormatTemplates,
   role: {
     title: '👤 角色',
-    wrapper: (content) => `**${content}**`
+    wrapper: content => `**${content}**`,
   },
   // 覆盖已有标签的格式
   context: {
     title: '📋 上下文',
-    prefix: '- '
+    prefix: '- ',
   },
   // 添加自定义标签的格式
   custom_tag: {
-    title: '🔖 自定义内容'
-  }
+    title: '🔖 自定义内容',
+  },
 };
 
 const promptText = transformPrompt(processed, {
-  format: myFormatTemplates
+  format: myFormatTemplates,
 });
 ```
 
@@ -141,7 +141,7 @@ const promptText = transformPrompt(processed, {
 ```javascript
 format: {
   role: {
-    title: '# 角色定义'
+    title: '# 角色定义';
   }
 }
 
@@ -267,7 +267,7 @@ const dpml = `
 
 // 或在选项中指定语言
 const promptText = await generatePrompt(dpml, {
-  lang: 'zh-CN'
+  lang: 'zh-CN',
 });
 ```
 
@@ -281,26 +281,26 @@ import { transformPrompt } from '@dpml/prompt';
 // 定义法语格式模板
 const frFormatTemplates = {
   role: {
-    title: '# Rôle'
+    title: '# Rôle',
   },
   context: {
-    title: '# Contexte'
+    title: '# Contexte',
   },
   thinking: {
-    title: '# Cadre de Réflexion'
+    title: '# Cadre de Réflexion',
   },
   executing: {
-    title: '# Étapes d\'Exécution'
+    title: "# Étapes d'Exécution",
   },
   testing: {
-    title: '# Contrôle de Qualité'
+    title: '# Contrôle de Qualité',
   },
   protocol: {
-    title: '# Protocole d\'Interaction'
+    title: "# Protocole d'Interaction",
   },
   custom: {
-    title: '# Personnalisé'
-  }
+    title: '# Personnalisé',
+  },
 };
 
 // 使用自定义语言格式
@@ -310,8 +310,8 @@ const promptText = transformPrompt(processed, {
     // 基本格式（适用于所有语言）
     ...myBaseFormat,
     // 特定于法语的格式覆盖
-    ['fr']: frFormatTemplates
-  }
+    ['fr']: frFormatTemplates,
+  },
 });
 ```
 
@@ -326,31 +326,31 @@ const promptText = transformPrompt(processed, {
 const appStandardFormat = {
   role: {
     title: '## 角色',
-    wrapper: (content) => `**${content}**`
+    wrapper: content => `**${content}**`,
   },
   context: {
     title: '## 上下文',
-    prefix: '> '
+    prefix: '> ',
   },
   thinking: {
-    title: '## 思维方式'
+    title: '## 思维方式',
   },
   executing: {
     title: '## 操作步骤',
-    prefix: '- '
+    prefix: '- ',
   },
   testing: {
     title: '## 质量标准',
-    prefix: '✓ '
+    prefix: '✓ ',
   },
   protocol: {
-    title: '## 交流准则'
-  }
+    title: '## 交流准则',
+  },
 };
 
 // 在所有地方使用这个标准格式
 const result = await generatePrompt(dpml, {
-  formatTemplates: appStandardFormat
+  formatTemplates: appStandardFormat,
 });
 ```
 
@@ -363,36 +363,36 @@ const result = await generatePrompt(dpml, {
 const markdownFormat = {
   role: {
     title: '## 角色',
-    wrapper: (content) => `**${content}**`
+    wrapper: content => `**${content}**`,
   },
   context: {
     title: '## 上下文',
-    prefix: '> '
-  }
+    prefix: '> ',
+  },
 };
 
 // HTML格式（适合网页）
 const htmlFormat = {
   role: {
     title: '<h2>角色</h2>',
-    wrapper: (content) => `<strong>${content}</strong>`
+    wrapper: content => `<strong>${content}</strong>`,
   },
   context: {
     title: '<h2>上下文</h2>',
-    wrapper: (content) => `<blockquote>${content}</blockquote>`
-  }
+    wrapper: content => `<blockquote>${content}</blockquote>`,
+  },
 };
 
 // 纯文本格式（适合控制台）
 const plainTextFormat = {
   role: {
     title: '角色:',
-    suffix: '\n---'
+    suffix: '\n---',
   },
   context: {
     title: '上下文:',
-    suffix: '\n---'
-  }
+    suffix: '\n---',
+  },
 };
 ```
 
@@ -405,30 +405,30 @@ const plainTextFormat = {
 const technicalDocFormat = {
   role: {
     title: '## Technical Writer',
-    prefix: '> '
+    prefix: '> ',
   },
   context: {
     title: '## Documentation Scope',
-    prefix: '- '
+    prefix: '- ',
   },
   thinking: {
     title: '## Technical Considerations',
-    prefix: '* '
-  }
+    prefix: '* ',
+  },
 };
 
 // 问答模板
 const qnaFormat = {
   role: {
-    title: '## Expert Type'
+    title: '## Expert Type',
   },
   context: {
-    title: '## Domain Knowledge'
+    title: '## Domain Knowledge',
   },
   protocol: {
     title: '## Response Format',
-    wrapper: (content) => `\`\`\`\n${content}\n\`\`\``
-  }
+    wrapper: content => `\`\`\`\n${content}\n\`\`\``,
+  },
 };
 ```
 
@@ -436,35 +436,35 @@ const qnaFormat = {
 
 ### 创建不同角色的自定义格式
 
-```javascript
+````javascript
 // 编程助手格式
 const programmerFormat = {
   role: {
-    title: '```js\n// 角色定义\n```'
+    title: '```js\n// 角色定义\n```',
   },
   thinking: {
-    title: '```js\n// 思路分析\n```'
+    title: '```js\n// 思路分析\n```',
   },
   executing: {
-    title: '```js\n// 执行步骤\n```'
-  }
+    title: '```js\n// 执行步骤\n```',
+  },
 };
 
 // 医疗顾问格式
 const medicalFormat = {
   role: {
-    title: '🩺 医疗专业人员'
+    title: '🩺 医疗专业人员',
   },
   context: {
     title: '📋 医学背景',
-    prefix: '• '
+    prefix: '• ',
   },
   protocol: {
     title: '⚠️ 免责声明',
-    wrapper: (content) => `*${content}*`
-  }
+    wrapper: content => `*${content}*`,
+  },
 };
-```
+````
 
 ### 使用包装函数增强内容
 
@@ -473,24 +473,26 @@ const medicalFormat = {
 const enhancedMarkdown = {
   role: {
     title: '## 角色',
-    wrapper: (content) => content.replace(/重要/g, '**重要**')
-                                .replace(/注意/g, '*注意*')
+    wrapper: content =>
+      content.replace(/重要/g, '**重要**').replace(/注意/g, '*注意*'),
   },
   thinking: {
-    wrapper: (content) => {
+    wrapper: content => {
       const lines = content.split('\n');
-      return lines.map(line => {
-        if (line.trim().startsWith('-')) {
-          return line; // 保持原有格式
-        }
-        return `> ${line}`; // 其他行添加引用格式
-      }).join('\n');
-    }
-  }
+      return lines
+        .map(line => {
+          if (line.trim().startsWith('-')) {
+            return line; // 保持原有格式
+          }
+          return `> ${line}`; // 其他行添加引用格式
+        })
+        .join('\n');
+    },
+  },
 };
 ```
 
 ## 相关API
 
 - [transformPrompt](./transform-prompt.md) - 使用格式模板转换DPML
-- [配置选项](./configuration.md) - 所有配置选项的详细说明 
+- [配置选项](./configuration.md) - 所有配置选项的详细说明

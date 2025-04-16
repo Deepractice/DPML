@@ -29,7 +29,7 @@ classDiagram
         -static validateConfig(config): void
         -static generateCacheKey(config): string
     }
-    
+
     class AgentImpl {
         +constructor(options: AgentImplOptions)
         +getId(): string
@@ -40,21 +40,21 @@ classDiagram
         +interrupt(sessionId): Promise<void>
         +reset(sessionId): Promise<void>
     }
-    
+
     class LLMConnectorFactory {
         +static createConnector(config: LLMConfig): LLMConnector
     }
-    
+
     class AgentStateManagerFactory {
         +static create(config): AgentStateManager
         +static createMemoryStateManager(options): InMemoryAgentStateManager
         +static createFileSystemStateManager(options): FileSystemAgentStateManager
     }
-    
+
     class AgentMemoryFactory {
         +static create(options: AgentMemoryOptions): AgentMemory
     }
-    
+
     AgentFactory ..> AgentImpl : creates
     AgentFactory ..> LLMConnectorFactory : uses
     AgentFactory ..> AgentStateManagerFactory : uses
@@ -76,38 +76,38 @@ sequenceDiagram
     participant StateManagerFactory
     participant MemoryFactory
     participant AgentImpl
-    
+
     Client->>AgentFactory: createAgent(configOrPath)
-    
+
     alt is string
         AgentFactory->>DPMLParser: parse(path/content)
         DPMLParser-->>AgentFactory: config
     end
-    
+
     AgentFactory->>AgentFactory: validateConfig(config)
     AgentFactory->>AgentFactory: generateCacheKey(config)
     AgentFactory->>AgentFactory: checkCache(cacheKey)
-    
+
     alt not in cache
         AgentFactory->>LLMConnectorFactory: createConnector(config)
         LLMConnectorFactory-->>AgentFactory: connector
-        
+
         AgentFactory->>StateManagerFactory: create(config)
         StateManagerFactory-->>AgentFactory: stateManager
-        
+
         AgentFactory->>MemoryFactory: create(config)
         MemoryFactory-->>AgentFactory: memory
-        
+
         AgentFactory->>AgentFactory: createEventSystem()
-        
+
         AgentFactory->>AgentFactory: initializeComponents()
-        
+
         AgentFactory->>AgentImpl: new AgentImpl(options)
         AgentImpl-->>AgentFactory: agent
-        
+
         AgentFactory->>AgentFactory: addToCache(cacheKey, agent)
     end
-    
+
     AgentFactory-->>Client: agent
 ```
 
@@ -119,36 +119,38 @@ sequenceDiagram
 export class AgentFactory {
   // 缓存已创建的 Agent 实例
   private static agentCache = new Map<string, Agent>();
-  
+
   /**
    * 创建 Agent 实例
    * @param configOrPath 配置对象或 DPML 文件路径/内容
    * @returns Agent 实例
    */
-  static async createAgent(configOrPath: AgentFactoryConfig | string): Promise<Agent> {
+  static async createAgent(
+    configOrPath: AgentFactoryConfig | string
+  ): Promise<Agent> {
     try {
       // 1. 解析配置
       const config = await this.parseConfig(configOrPath);
-      
+
       // 2. 验证配置
       this.validateConfig(config);
-      
+
       // 3. 检查缓存
       const cacheKey = this.generateCacheKey(config);
       const cachedAgent = this.agentCache.get(cacheKey);
       if (cachedAgent) {
         return cachedAgent;
       }
-      
+
       // 4. 创建组件
       const connector = this.createLLMConnector(config);
       const stateManager = this.createStateManager(config);
       const memory = this.createMemory(config);
       const eventSystem = this.createEventSystem();
-      
+
       // 5. 初始化组件
       await stateManager.initialize();
-      
+
       // 6. 创建 Agent 实例
       const agent = new AgentImpl({
         id: config.id,
@@ -157,88 +159,94 @@ export class AgentFactory {
         memory,
         connector,
         eventSystem,
-        executionConfig: config.executionConfig
+        executionConfig: config.executionConfig,
       });
-      
+
       // 7. 缓存 Agent 实例
       this.agentCache.set(cacheKey, agent);
-      
+
       return agent;
     } catch (error) {
       // 处理错误
       throw this.handleError(error, configOrPath);
     }
   }
-  
+
   /**
    * 清除缓存
    */
   static clearCache(): void {
     this.agentCache.clear();
   }
-  
+
   /**
    * 解析配置
    * @param configOrPath 配置对象或 DPML 文件路径/内容
    * @returns 解析后的配置对象
    */
-  private static async parseConfig(configOrPath: AgentFactoryConfig | string): Promise<AgentFactoryConfig> {
+  private static async parseConfig(
+    configOrPath: AgentFactoryConfig | string
+  ): Promise<AgentFactoryConfig> {
     // 如果是配置对象，直接返回
     if (typeof configOrPath !== 'string') {
       return configOrPath;
     }
-    
+
     // 如果是文件路径，加载并解析文件
     if (configOrPath.endsWith('.dpml') || configOrPath.endsWith('.xml')) {
       return this.parseFromFile(configOrPath);
     }
-    
+
     // 如果是 DPML 内容，直接解析
     return this.parseFromContent(configOrPath);
   }
-  
+
   /**
    * 从文件解析配置
    * @param filePath 文件路径
    * @returns 解析后的配置对象
    */
-  private static async parseFromFile(filePath: string): Promise<AgentFactoryConfig> {
+  private static async parseFromFile(
+    filePath: string
+  ): Promise<AgentFactoryConfig> {
     try {
       // 读取文件内容
       const fs = await import('fs/promises');
       const content = await fs.readFile(filePath, 'utf-8');
-      
+
       // 解析 DPML 内容
       return this.parseFromContent(content);
     } catch (error) {
       throw new Error(`解析 DPML 文件失败: ${error.message}`);
     }
   }
-  
+
   /**
    * 从 DPML 内容解析配置
    * @param content DPML 内容
    * @returns 解析后的配置对象
    */
-  private static async parseFromContent(content: string): Promise<AgentFactoryConfig> {
+  private static async parseFromContent(
+    content: string
+  ): Promise<AgentFactoryConfig> {
     try {
       // 使用 DPML 核心包解析内容
       const { parse, process } = await import('@dpml/core');
       const parseResult = await parse(content);
-      
+
       if (parseResult.errors.length > 0) {
         throw new Error(`解析 DPML 内容失败: ${parseResult.errors[0].message}`);
       }
-      
+
       const processedDoc = await process(parseResult.ast);
-      
+
       // 转换为配置对象
       return this.extractConfigFromDocument(processedDoc);
     } catch (error) {
       throw new Error(`解析 DPML 内容失败: ${error.message}`);
     }
   }
-  
+
   /**
    * 从处理后的文档提取配置
    * @param document 处理后的文档
@@ -250,17 +258,17 @@ export class AgentFactory {
     if (!agentElement) {
       throw new Error('DPML 文档中未找到 agent 元素');
     }
-    
+
     // 提取基本属性
     const id = agentElement.attributes?.id || 'default-agent';
     const version = agentElement.attributes?.version || '1.0';
-    
+
     // 提取 LLM 配置
     const llmConfig = this.extractLLMConfig(agentElement);
-    
+
     // 提取系统提示
     const systemPrompt = this.extractSystemPrompt(agentElement);
-    
+
     // 构建配置对象
     return {
       id,
@@ -270,11 +278,11 @@ export class AgentFactory {
         apiType: llmConfig.apiType,
         apiUrl: llmConfig.apiUrl,
         keyEnv: llmConfig.keyEnv,
-        systemPrompt
-      }
+        systemPrompt,
+      },
     };
   }
-  
+
   /**
    * 查找 agent 元素
    * @param document 处理后的文档
@@ -285,7 +293,7 @@ export class AgentFactory {
     if (document.type === 'element' && document.tagName === 'agent') {
       return document;
     }
-    
+
     // 如果文档是 document 节点，查找其子元素
     if (document.type === 'document' && Array.isArray(document.children)) {
       for (const child of document.children) {
@@ -294,10 +302,10 @@ export class AgentFactory {
         }
       }
     }
-    
+
     return null;
   }
-  
+
   /**
    * 提取 LLM 配置
    * @param agentElement agent 元素
@@ -308,26 +316,26 @@ export class AgentFactory {
     const llmElement = agentElement.children.find(
       (child: any) => child.type === 'element' && child.tagName === 'llm'
     );
-    
+
     if (!llmElement) {
       // 使用默认配置
       return {
         model: 'gpt-4',
         apiType: 'openai',
         apiUrl: 'https://api.openai.com/v1',
-        keyEnv: 'OPENAI_API_KEY'
+        keyEnv: 'OPENAI_API_KEY',
       };
     }
-    
+
     // 提取配置
     return {
       model: llmElement.attributes?.model || 'gpt-4',
       apiType: llmElement.attributes?.['api-type'] || 'openai',
       apiUrl: llmElement.attributes?.['api-url'] || 'https://api.openai.com/v1',
-      keyEnv: llmElement.attributes?.['key-env'] || 'OPENAI_API_KEY'
+      keyEnv: llmElement.attributes?.['key-env'] || 'OPENAI_API_KEY',
     };
   }
-  
+
   /**
    * 提取系统提示
    * @param agentElement agent 元素
@@ -338,25 +346,25 @@ export class AgentFactory {
     const promptElement = agentElement.children.find(
       (child: any) => child.type === 'element' && child.tagName === 'prompt'
     );
-    
+
     if (!promptElement) {
       return '你是一个有帮助的助手。';
     }
-    
+
     // 提取内容
     if (Array.isArray(promptElement.children)) {
       const contentElements = promptElement.children.filter(
         (child: any) => child.type === 'content'
       );
-      
+
       if (contentElements.length > 0) {
         return contentElements.map((el: any) => el.text).join('');
       }
     }
-    
+
     return '你是一个有帮助的助手。';
   }
-  
+
   /**
    * 验证配置对象
    * @param config 配置对象
@@ -366,30 +374,34 @@ export class AgentFactory {
     if (!config.id) {
       throw new Error('配置中必须包含 id 字段');
     }
-    
+
     if (!config.version) {
       throw new Error('配置中必须包含 version 字段');
     }
-    
+
     if (!config.executionConfig) {
       throw new Error('配置中必须包含 executionConfig 字段');
     }
-    
+
     if (!config.executionConfig.defaultModel) {
       throw new Error('executionConfig 中必须包含 defaultModel 字段');
     }
-    
+
     if (!config.executionConfig.apiType) {
       throw new Error('executionConfig 中必须包含 apiType 字段');
     }
-    
+
     // 检查 API 类型是否支持
     const supportedApiTypes = ['openai', 'anthropic'];
-    if (!supportedApiTypes.includes(config.executionConfig.apiType.toLowerCase())) {
-      throw new Error(`不支持的 API 类型: ${config.executionConfig.apiType}，支持的类型: ${supportedApiTypes.join(', ')}`);
+    if (
+      !supportedApiTypes.includes(config.executionConfig.apiType.toLowerCase())
+    ) {
+      throw new Error(
+        `不支持的 API 类型: ${config.executionConfig.apiType}，支持的类型: ${supportedApiTypes.join(', ')}`
+      );
     }
   }
-  
+
   /**
    * 生成缓存键
    * @param config 配置对象
@@ -398,7 +410,7 @@ export class AgentFactory {
   private static generateCacheKey(config: AgentFactoryConfig): string {
     return `${config.id}:${config.version}`;
   }
-  
+
   /**
    * 创建 LLM 连接器
    * @param config 配置对象
@@ -407,37 +419,43 @@ export class AgentFactory {
   private static createLLMConnector(config: AgentFactoryConfig): LLMConnector {
     const llmConfig: LLMConfig = {
       apiType: config.executionConfig.apiType,
-      apiUrl: config.executionConfig.apiUrl || this.getDefaultApiUrl(config.executionConfig.apiType),
-      keyEnv: config.executionConfig.keyEnv || this.getDefaultKeyEnv(config.executionConfig.apiType)
+      apiUrl:
+        config.executionConfig.apiUrl ||
+        this.getDefaultApiUrl(config.executionConfig.apiType),
+      keyEnv:
+        config.executionConfig.keyEnv ||
+        this.getDefaultKeyEnv(config.executionConfig.apiType),
     };
-    
+
     return LLMConnectorFactory.createConnector(llmConfig);
   }
-  
+
   /**
    * 创建状态管理器
    * @param config 配置对象
    * @returns 状态管理器
    */
-  private static createStateManager(config: AgentFactoryConfig): AgentStateManager {
+  private static createStateManager(
+    config: AgentFactoryConfig
+  ): AgentStateManager {
     const type = config.stateManagerType || 'memory';
-    
+
     if (type === 'file') {
       if (!config.basePath) {
         throw new Error('使用文件状态管理器时必须提供 basePath');
       }
-      
+
       return AgentStateManagerFactory.createFileSystemStateManager({
         agentId: config.id,
-        storageDir: path.join(config.basePath, 'state')
+        storageDir: path.join(config.basePath, 'state'),
       });
     } else {
       return AgentStateManagerFactory.createMemoryStateManager({
-        agentId: config.id
+        agentId: config.id,
       });
     }
   }
-  
+
   /**
    * 创建记忆系统
    * @param config 配置对象
@@ -445,23 +463,23 @@ export class AgentFactory {
    */
   private static createMemory(config: AgentFactoryConfig): AgentMemory {
     const type = config.memoryType || 'memory';
-    
+
     const memoryOptions: AgentMemoryOptions = {
       agentId: config.id,
-      type
+      type,
     };
-    
+
     if (type === 'file') {
       if (!config.basePath) {
         throw new Error('使用文件记忆系统时必须提供 basePath');
       }
-      
+
       memoryOptions.basePath = path.join(config.basePath, 'memory');
     }
-    
+
     return AgentMemoryFactory.create(memoryOptions);
   }
-  
+
   /**
    * 创建事件系统
    * @returns 事件系统
@@ -470,7 +488,7 @@ export class AgentFactory {
     // 使用默认事件系统
     return getGlobalEventSystem();
   }
-  
+
   /**
    * 获取默认 API URL
    * @param apiType API 类型
@@ -486,7 +504,7 @@ export class AgentFactory {
         throw new Error(`不支持的 API 类型: ${apiType}`);
     }
   }
-  
+
   /**
    * 获取默认 API 密钥环境变量名
    * @param apiType API 类型
@@ -502,25 +520,28 @@ export class AgentFactory {
         throw new Error(`不支持的 API 类型: ${apiType}`);
     }
   }
-  
+
   /**
    * 处理错误
    * @param error 错误对象
    * @param configOrPath 配置对象或 DPML 文件路径/内容
    * @returns 处理后的错误对象
    */
-  private static handleError(error: any, configOrPath: AgentFactoryConfig | string): Error {
+  private static handleError(
+    error: any,
+    configOrPath: AgentFactoryConfig | string
+  ): Error {
     // 如果已经是 Error 对象，添加上下文信息
     if (error instanceof Error) {
       error.message = `创建 Agent 失败: ${error.message}`;
       return error;
     }
-    
+
     // 如果是字符串，创建 Error 对象
     if (typeof error === 'string') {
       return new Error(`创建 Agent 失败: ${error}`);
     }
-    
+
     // 如果是其他类型，创建通用错误
     return new Error(`创建 Agent 失败: 未知错误`);
   }
@@ -532,15 +553,18 @@ export class AgentFactory {
 ### 4.1 实现阶段
 
 1. **基础实现阶段**：
+
    - 实现 AgentFactory.createAgent 方法的基本功能
    - 实现组件创建方法
    - 实现缓存机制
 
 2. **DPML 解析阶段**：
+
    - 实现从 DPML 文件/内容解析配置的功能
    - 实现配置验证功能
 
 3. **错误处理阶段**：
+
    - 实现错误处理机制
    - 添加详细的错误信息
 
@@ -552,12 +576,14 @@ export class AgentFactory {
 ### 4.2 测试计划
 
 1. **单元测试**：
+
    - 测试 AgentFactory.createAgent 方法
    - 测试组件创建方法
    - 测试配置验证功能
    - 测试错误处理机制
 
 2. **集成测试**：
+
    - 测试从配置对象创建 Agent
    - 测试从 DPML 文件创建 Agent
    - 测试从 DPML 内容创建 Agent
@@ -569,10 +595,12 @@ export class AgentFactory {
 ### 4.3 文档计划
 
 1. **API 文档**：
+
    - 详细说明 AgentFactory.createAgent 方法的参数和返回值
    - 说明配置对象的结构和字段
 
 2. **使用示例**：
+
    - 从配置对象创建 Agent 的示例
    - 从 DPML 文件创建 Agent 的示例
    - 从 DPML 内容创建 Agent 的示例

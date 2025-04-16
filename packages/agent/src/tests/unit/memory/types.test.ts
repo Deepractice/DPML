@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { Memory, MemoryItem, AgentMemory, AgentMemoryOptions } from '../../../memory';
+
+import { AgentMemory } from '../../../memory';
+
+import type { Memory, MemoryItem, AgentMemoryOptions } from '../../../memory';
 
 describe('Memory Types', () => {
   describe('Memory Interface', () => {
@@ -7,7 +10,7 @@ describe('Memory Types', () => {
       // 创建一个符合Memory接口的对象
       const memory: Memory = {
         id: 'test-session',
-        content: []
+        content: [],
       };
 
       // 验证属性
@@ -21,8 +24,8 @@ describe('Memory Types', () => {
         content: [],
         metadata: {
           created: Date.now(),
-          custom: 'value'
-        }
+          custom: 'value',
+        },
       };
 
       expect(memoryWithMetadata.metadata).toBeDefined();
@@ -36,7 +39,7 @@ describe('Memory Types', () => {
       const userItem: MemoryItem = {
         text: 'Hello, agent!',
         role: 'user',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       // 验证属性
@@ -48,7 +51,7 @@ describe('Memory Types', () => {
       const assistantItem: MemoryItem = {
         text: 'How can I help you?',
         role: 'assistant',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       expect(assistantItem.role).toBe('assistant');
@@ -57,7 +60,7 @@ describe('Memory Types', () => {
       const systemItem: MemoryItem = {
         text: 'You are a helpful agent.',
         role: 'system',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       expect(systemItem.role).toBe('system');
@@ -68,7 +71,7 @@ describe('Memory Types', () => {
     it('should define memory options with required and optional properties', () => {
       // 最小配置
       const minOptions: AgentMemoryOptions = {
-        agentId: 'test-agent'
+        agentId: 'test-agent',
       };
 
       expect(minOptions.agentId).toBe('test-agent');
@@ -81,7 +84,7 @@ describe('Memory Types', () => {
         agentId: 'test-agent',
         type: 'file',
         basePath: '/tmp/agent-memory',
-        maxItems: 50
+        maxItems: 50,
       };
 
       expect(fullOptions.type).toBe('file');
@@ -89,4 +92,4 @@ describe('Memory Types', () => {
       expect(fullOptions.maxItems).toBe(50);
     });
   });
-}); 
+});

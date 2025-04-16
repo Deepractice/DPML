@@ -46,14 +46,14 @@ async function parsingWithOptions() {
 
   try {
     const result = await parse(dpmlText, {
-      allowUnknownTags: true,    // 允许未知标签
-      validate: true,            // 启用验证
-      tolerant: true,            // 错误时继续解析
-      preserveComments: true     // 保留注释
+      allowUnknownTags: true, // 允许未知标签
+      validate: true, // 启用验证
+      tolerant: true, // 错误时继续解析
+      preserveComments: true, // 保留注释
     });
-    
+
     console.log('带选项的解析结果:', JSON.stringify(result.ast, null, 2));
-    
+
     // 查看解析警告
     if (result.warnings.length > 0) {
       console.log('解析警告:', result.warnings);
@@ -86,4 +86,4 @@ pnpm exmaple:core:parsing
 
 基本解析将输出解析后的AST结构，包含`prompt`元素及其子元素。
 
-带选项的解析将输出包含未知标签和注释的AST，以及关于未知标签的警告信息。 
+带选项的解析将输出包含未知标签和注释的AST，以及关于未知标签的警告信息。

@@ -41,17 +41,23 @@ import { createLogger, TextFormatter } from '@dpml/common/logger';
 const logger = createLogger('my-package');
 
 // 自定义文本格式
-logger.setFormatter(new TextFormatter({
-  template: '[{timestamp}] [{packageName}] [{level}] {message}',
-  showTimestamp: true,
-  timestampFormat: 'YYYY-MM-DD HH:mm:ss'
-}));
+logger.setFormatter(
+  new TextFormatter({
+    template: '[{timestamp}] [{packageName}] [{level}] {message}',
+    showTimestamp: true,
+    timestampFormat: 'YYYY-MM-DD HH:mm:ss',
+  })
+);
 ```
 
 ### 添加输出目标
 
 ```typescript
-import { createLogger, ConsoleTransport, createFileTransport } from '@dpml/common/logger';
+import {
+  createLogger,
+  ConsoleTransport,
+  createFileTransport,
+} from '@dpml/common/logger';
 
 const logger = createLogger('my-package');
 
@@ -78,7 +84,7 @@ import { configureLogger, LogLevel, JsonFormatter } from '@dpml/common/logger';
 configureLogger({
   level: LogLevel.INFO,
   formatter: new JsonFormatter({ pretty: true }),
-  transports: [new ConsoleTransport()]
+  transports: [new ConsoleTransport()],
 });
 ```
 
@@ -105,4 +111,4 @@ logger.info('用户登出', { userId: 'user-123' });
 - [日志记录器API](./Logger.md)
 - [格式化器](./Formatters.md)
 - [传输通道](./Transports.md)
-- [配置系统](./Configuration.md) 
+- [配置系统](./Configuration.md)

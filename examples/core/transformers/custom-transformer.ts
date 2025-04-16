@@ -1,6 +1,9 @@
-import { parse, process, Element, Content, Node, NodeType } from '../../../packages/core';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+
+import { parse, process, NodeType } from '../../../packages/core';
+
+import type { Element, Content, Node } from '../../../packages/core';
 
 /**
  * HTML转换器 - 将DPML文档转换为HTML格式
@@ -14,9 +17,10 @@ class HTMLTransformer {
     if (document.children && document.children.length > 0) {
       return this.visit(document.children[0]);
     }
+
     return '';
   }
-  
+
   /**
    * 处理元素节点
    */
@@ -25,79 +29,87 @@ class HTMLTransformer {
     const attrs = Object.entries(element.attributes || {})
       .map(([key, value]) => `${key}="${value}"`)
       .join(' ');
-    
+
     // 处理不同类型的标签
     switch (element.tagName) {
       case 'prompt':
         return `<div class="prompt" ${attrs ? attrs : ''}>${this.processChildren(element)}</div>`;
-      
+
       case 'metadata':
         return `<div class="metadata" ${attrs ? attrs : ''}>${this.processChildren(element)}</div>`;
-      
+
       case 'title':
         return `<h2 class="title" ${attrs ? attrs : ''}>${this.processChildren(element)}</h2>`;
-      
+
       case 'author':
         return `<div class="author" ${attrs ? attrs : ''}>作者: ${this.processChildren(element)}</div>`;
-      
+
       case 'created':
         return `<div class="created" ${attrs ? attrs : ''}>创建日期: ${this.processChildren(element)}</div>`;
-      
+
       case 'role':
         const name = element.attributes.name || '未命名';
-        const expertise = element.attributes.expertise ? `<span class="expertise">(专长: ${element.attributes.expertise})</span>` : '';
+        const expertise = element.attributes.expertise
+          ? `<span class="expertise">(专长: ${element.attributes.expertise})</span>`
+          : '';
+
         return `<div class="role" ${attrs ? attrs : ''}>
           <h3>角色: ${name} ${expertise}</h3>
           <div class="role-content">${this.processChildren(element)}</div>
         </div>`;
-      
+
       case 'context':
         return `<div class="context" ${attrs ? attrs : ''}>
           <h3>上下文</h3>
           <div class="context-content">${this.processChildren(element)}</div>
         </div>`;
-      
+
       case 'thinking':
         return `<div class="thinking" ${attrs ? attrs : ''}>
           <h3>思考过程</h3>
           <div class="thinking-content">${this.processChildren(element)}</div>
         </div>`;
-      
+
       case 'executing':
         return `<div class="executing" ${attrs ? attrs : ''}>
           <h3>执行步骤</h3>
           <div class="executing-content">${this.processChildren(element)}</div>
         </div>`;
-      
+
       case 'step':
-        const stepId = element.attributes.id ? `<span class="step-id">[${element.attributes.id}]</span>` : '';
+        const stepId = element.attributes.id
+          ? `<span class="step-id">[${element.attributes.id}]</span>`
+          : '';
+
         return `<div class="step" ${attrs ? attrs : ''}>
           ${stepId} ${this.processChildren(element)}
         </div>`;
-      
+
       case 'code':
         const language = element.attributes.language || '';
+
         return `<pre class="code" data-language="${language}"><code>${this.escapeHTML(this.processChildren(element))}</code></pre>`;
-      
+
       case 'references':
         return `<div class="references" ${attrs ? attrs : ''}>
           <h3>参考资料</h3>
           <div class="references-content">${this.processChildren(element)}</div>
         </div>`;
-      
+
       case 'reference':
         const refId = element.attributes.id || '未命名';
         const url = element.attributes.url || '#';
+
         return `<div class="reference" ${attrs ? attrs : ''}>
           <a href="${url}" target="_blank">${refId}</a>
         </div>`;
-      
+
       // 处理其他元素 - 创建通用div
       default:
         return `<div class="${element.tagName}" ${attrs ? attrs : ''}>${this.processChildren(element)}</div>`;
     }
   }
-  
+
   /**
    * 处理文本内容
    */
@@ -105,13 +117,13 @@ class HTMLTransformer {
     // 对普通文本内容进行HTML转义
     return this.escapeHTML(content.value);
   }
-  
+
   /**
    * 处理节点
    */
   visit(node: Node): string {
     if (!node) return '';
-    
+
     switch (node.type) {
       case NodeType.DOCUMENT:
         return this.visitDocument(node);
@@ -123,18 +135,16 @@ class HTMLTransformer {
         return '';
     }
   }
-  
+
   /**
    * 处理子节点
    */
   processChildren(element: Element): string {
     if (!element.children) return '';
-    
-    return element.children
-      .map(child => this.visit(child))
-      .join('');
+
+    return element.children.map(child => this.visit(child)).join('');
   }
-  
+
   /**
    * 辅助方法：HTML转义
    */
@@ -146,7 +156,7 @@ class HTMLTransformer {
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
   }
-  
+
   /**
    * 转换方法
    */
@@ -283,32 +293,34 @@ async function useHTMLTransformer(): Promise<void> {
     // 读取示例DPML文件
     const filePath = path.resolve(__dirname, 'sample-dpml.xml');
     const dpmlContent = await fs.readFile(filePath, 'utf-8');
+
     console.log('已加载DPML文件:', filePath);
-    
+
     // 1. 解析DPML文本
     console.log('\n解析DPML文档...');
     const parseResult = await parse(dpmlContent);
-    
+
     if (!parseResult.ast) {
       console.log('解析失败，无法继续');
+
       return;
     }
-    
+
     // 2. 处理AST
     console.log('处理DPML文档...');
     const processedDoc = await process(parseResult.ast);
-    
+
     // 3. 使用转换器
     console.log('转换为HTML格式...');
     const transformer = new HTMLTransformer();
     const html = transformer.transform(processedDoc);
-    
+
     // 保存到文件
     const outputPath = path.resolve(__dirname, 'output.html');
+
     await fs.writeFile(outputPath, html);
     console.log(`\nHTML已保存到: ${outputPath}`);
     console.log('请在浏览器中打开此文件查看效果');
-    
   } catch (error: any) {
     console.error('转换错误:', error.message);
   }
@@ -323,4 +335,4 @@ if (require.main === module) {
 }
 
 // 导出供其他模块使用
-export { HTMLTransformer, useHTMLTransformer }; 
+export { HTMLTransformer, useHTMLTransformer };

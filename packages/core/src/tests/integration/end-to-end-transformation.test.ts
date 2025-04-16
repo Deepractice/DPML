@@ -1,20 +1,21 @@
 /**
  * 端到端转换集成测试
  * 测试ID: IT-T-005
- * 
+ *
  * 测试从解析到转换的完整流程:
  * - 文档解析
  * - 处理器处理
  * - 转换器转换
  * - 适配器输出
  */
-import { describe, it, expect, beforeEach } from 'vitest';
 import { DpmlAdapter } from '@core/parser/dpml-adapter';
 import { DefaultProcessor } from '@core/processor/defaultProcessor';
-import { DefaultTransformerFactory } from '@core/transformer/defaultTransformerFactory';
 import { DefaultOutputAdapterFactory } from '@core/transformer/adapters/defaultOutputAdapterFactory';
-import { TransformOptions } from '@core/transformer/interfaces/transformOptions';
-import { OutputAdapterFactory } from '@core/transformer/interfaces/outputAdapterFactory';
+import { DefaultTransformerFactory } from '@core/transformer/defaultTransformerFactory';
+import { describe, it, expect, beforeEach } from 'vitest';
+
+import type { OutputAdapterFactory } from '@core/transformer/interfaces/outputAdapterFactory';
+import type { TransformOptions } from '@core/transformer/interfaces/transformOptions';
 
 describe('端到端转换集成测试', () => {
   // 测试组件
@@ -22,29 +23,29 @@ describe('端到端转换集成测试', () => {
   let processor: DefaultProcessor;
   let transformerFactory: DefaultTransformerFactory;
   let adapterFactory: OutputAdapterFactory;
-  
+
   beforeEach(() => {
     // 初始化测试组件
     parser = new DpmlAdapter();
     processor = new DefaultProcessor();
     transformerFactory = new DefaultTransformerFactory();
     adapterFactory = new DefaultOutputAdapterFactory();
-    
+
     // 注册输出适配器 (使用函数返回模拟适配器)
-    adapterFactory.registerAdapter('json', () => ({ 
-      adapt: (result: any) => result 
+    adapterFactory.registerAdapter('json', () => ({
+      adapt: (result: any) => result,
     }));
-    adapterFactory.registerAdapter('xml', () => ({ 
-      adapt: (result: any) => `<xml>${JSON.stringify(result)}</xml>` 
+    adapterFactory.registerAdapter('xml', () => ({
+      adapt: (result: any) => `<xml>${JSON.stringify(result)}</xml>`,
     }));
-    adapterFactory.registerAdapter('markdown', () => ({ 
-      adapt: (result: any) => `# ${JSON.stringify(result)}` 
+    adapterFactory.registerAdapter('markdown', () => ({
+      adapt: (result: any) => `# ${JSON.stringify(result)}`,
     }));
-    
+
     // 设置默认适配器
     adapterFactory.setDefaultAdapter('json');
   });
-  
+
   it('应该能完成完整的解析-处理-转换流程 (JSON格式)', async () => {
     // 1. 准备测试文档
     const dpmlContent = `
@@ -64,33 +65,40 @@ describe('端到端转换集成测试', () => {
         </section>
       </document>
     `;
-    
+
     // 2. 解析文档
     const parseResult = await parser.parse(dpmlContent);
-    
+
     // 确保解析成功
     expect(parseResult.errors.length).toBe(0);
     const document = parseResult.ast;
-    
+
     // 3. 记录解析结果的基本信息
     console.log('解析文档类型:', document.type);
     console.log('文档子节点数量:', document.children?.length || 0);
-    
+
     // 4. 处理文档
     const processedDoc = processor.process(document);
+
     expect(processedDoc).toBeDefined();
-    
+
     // 5. 记录处理后文档的基本信息
     console.log('处理后文档类型:', processedDoc.type);
     console.log('处理后文档子节点数量:', processedDoc.children?.length || 0);
-    
+
     // 6. 创建转换器
-    const transformer = transformerFactory.createTransformer(undefined, adapterFactory);
-    
+    const transformer = transformerFactory.createTransformer(
+      undefined,
+      adapterFactory
+    );
+
     // 7. 转换为JSON
-    const jsonOutput = transformer.transform(processedDoc, { format: 'json' } as TransformOptions);
+    const jsonOutput = transformer.transform(processedDoc, {
+      format: 'json',
+    } as TransformOptions);
+
     expect(jsonOutput).toBeDefined();
-    
+
     // 8. 验证转换结果
     expect(typeof jsonOutput).toBe('object');
     expect(jsonOutput.document).toBeDefined();
@@ -104,7 +112,7 @@ describe('端到端转换集成测试', () => {
     expect(jsonOutput.document.section.list.item).toBeInstanceOf(Array);
     expect(jsonOutput.document.section.list.item.length).toBe(2);
   });
-  
+
   it('应该能完成完整的解析-处理-转换流程 (XML格式)', async () => {
     // 1. 准备测试文档
     const dpmlContent = `
@@ -130,25 +138,32 @@ describe('端到端转换集成测试', () => {
         </section>
       </document>
     `;
-    
+
     // 2. 解析文档
     const parseResult = await parser.parse(dpmlContent);
-    
+
     // 确保解析成功
     expect(parseResult.errors.length).toBe(0);
     const document = parseResult.ast;
-    
+
     // 3. 处理文档
     const processedDoc = processor.process(document);
+
     expect(processedDoc).toBeDefined();
-    
+
     // 4. 创建转换器
-    const transformer = transformerFactory.createTransformer(undefined, adapterFactory);
-    
+    const transformer = transformerFactory.createTransformer(
+      undefined,
+      adapterFactory
+    );
+
     // 5. 转换为XML
-    const xmlOutput = transformer.transform(processedDoc, { format: 'xml' } as TransformOptions);
+    const xmlOutput = transformer.transform(processedDoc, {
+      format: 'xml',
+    } as TransformOptions);
+
     expect(xmlOutput).toBeDefined();
-    
+
     // 6. 验证转换结果
     expect(typeof xmlOutput).toBe('string');
     expect(xmlOutput).toContain('<xml>');
@@ -157,7 +172,7 @@ describe('端到端转换集成测试', () => {
     expect(xmlOutput).toContain('metadata');
     expect(xmlOutput).toContain('XML端到端测试');
   });
-  
+
   it('应该能完成完整的解析-处理-转换流程 (Markdown格式)', async () => {
     // 1. 准备测试文档
     const dpmlContent = `
@@ -175,25 +190,32 @@ describe('端到端转换集成测试', () => {
         </section>
       </document>
     `;
-    
+
     // 2. 解析文档
     const parseResult = await parser.parse(dpmlContent);
-    
+
     // 确保解析成功
     expect(parseResult.errors.length).toBe(0);
     const document = parseResult.ast;
-    
+
     // 3. 处理文档
     const processedDoc = processor.process(document);
+
     expect(processedDoc).toBeDefined();
-    
+
     // 4. 创建转换器
-    const transformer = transformerFactory.createTransformer(undefined, adapterFactory);
-    
+    const transformer = transformerFactory.createTransformer(
+      undefined,
+      adapterFactory
+    );
+
     // 5. 转换为Markdown
-    const mdOutput = transformer.transform(processedDoc, { format: 'markdown' } as TransformOptions);
+    const mdOutput = transformer.transform(processedDoc, {
+      format: 'markdown',
+    } as TransformOptions);
+
     expect(mdOutput).toBeDefined();
-    
+
     // 6. 验证转换结果
     expect(typeof mdOutput).toBe('string');
     expect(mdOutput).toContain('#');
@@ -202,7 +224,7 @@ describe('端到端转换集成测试', () => {
     expect(mdOutput).toContain('section');
     expect(mdOutput).toContain('Markdown测试');
   });
-  
+
   it('应该能处理大型文档和深度嵌套结构', async () => {
     // 1. 准备深度嵌套测试文档
     const nestedContent = `
@@ -239,44 +261,54 @@ describe('端到端转换集成测试', () => {
         </section>
       </document>
     `;
-    
+
     // 2. 解析文档
     const parseResult = await parser.parse(nestedContent);
-    
+
     // 确保解析成功
     expect(parseResult.errors.length).toBe(0);
     const document = parseResult.ast;
-    
+
     // 3. 处理文档
     const processedDoc = processor.process(document);
+
     expect(processedDoc).toBeDefined();
-    
+
     // 4. 创建转换器
-    const transformer = transformerFactory.createTransformer(undefined, adapterFactory);
-    
+    const transformer = transformerFactory.createTransformer(
+      undefined,
+      adapterFactory
+    );
+
     // 5. 转换为各种格式
-    const jsonOutput = transformer.transform(processedDoc, { format: 'json' } as TransformOptions);
-    const xmlOutput = transformer.transform(processedDoc, { format: 'xml' } as TransformOptions);
-    const mdOutput = transformer.transform(processedDoc, { format: 'markdown' } as TransformOptions);
-    
+    const jsonOutput = transformer.transform(processedDoc, {
+      format: 'json',
+    } as TransformOptions);
+    const xmlOutput = transformer.transform(processedDoc, {
+      format: 'xml',
+    } as TransformOptions);
+    const mdOutput = transformer.transform(processedDoc, {
+      format: 'markdown',
+    } as TransformOptions);
+
     // 6. 验证输出存在
     expect(jsonOutput).toBeDefined();
     expect(xmlOutput).toBeDefined();
     expect(mdOutput).toBeDefined();
-    
+
     // 7. 检查JSON输出结构
     expect(jsonOutput.document).toBeDefined();
     expect(jsonOutput.document.section).toBeDefined();
-    
+
     // 8. 检查XML输出
     expect(typeof xmlOutput).toBe('string');
     expect(xmlOutput).toContain('<xml>');
-    
+
     // 9. 检查Markdown输出
     expect(typeof mdOutput).toBe('string');
     expect(mdOutput).toContain('#');
   });
-  
+
   it('应该能处理错误和异常情况', async () => {
     // 1. 准备含有错误的文档
     const invalidContent = `
@@ -288,30 +320,36 @@ describe('端到端转换集成测试', () => {
         </section>
       </document>
     `;
-    
+
     try {
       // 2. 尝试解析文档
       const parseResult = await parser.parse(invalidContent);
-      
+
       // 3. 获取解析警告
       console.log('解析警告数量:', parseResult.warnings?.length || 0);
       if (parseResult.warnings && parseResult.warnings.length > 0) {
         console.log('第一个警告:', parseResult.warnings[0]);
       }
-      
+
       // 4. 处理文档
       const processedDoc = processor.process(parseResult.ast);
-      
+
       // 5. 创建转换器
-      const transformer = transformerFactory.createTransformer({
-        // 使用宽松模式处理错误
-        mode: 'lenient'
-      } as TransformOptions, adapterFactory);
-      
+      const transformer = transformerFactory.createTransformer(
+        {
+          // 使用宽松模式处理错误
+          mode: 'lenient',
+        } as TransformOptions,
+        adapterFactory
+      );
+
       // 6. 尝试转换
-      const output = transformer.transform(processedDoc, { format: 'json' } as TransformOptions);
+      const output = transformer.transform(processedDoc, {
+        format: 'json',
+      } as TransformOptions);
+
       expect(output).toBeDefined();
-      
+
       // 7. 验证结果
       console.log('转换结果类型:', typeof output);
       if (typeof output === 'object') {
@@ -323,7 +361,7 @@ describe('端到端转换集成测试', () => {
       expect(error).toBeDefined();
     }
   });
-  
+
   it('应该能处理自定义变量替换', async () => {
     // 1. 准备带变量的测试文档
     const documentWithVars = `
@@ -338,21 +376,25 @@ describe('端到端转换集成测试', () => {
         </section>
       </document>
     `;
-    
+
     // 2. 解析文档
     const parseResult = await parser.parse(documentWithVars);
-    
+
     // 确保解析成功
     expect(parseResult.errors.length).toBe(0);
     const document = parseResult.ast;
-    
+
     // 3. 处理文档
     const processedDoc = processor.process(document);
+
     expect(processedDoc).toBeDefined();
-    
+
     // 4. 创建转换器
-    const transformer = transformerFactory.createTransformer(undefined, adapterFactory);
-    
+    const transformer = transformerFactory.createTransformer(
+      undefined,
+      adapterFactory
+    );
+
     // 5. 转换文档，提供变量
     const jsonOutput = transformer.transform(processedDoc, {
       format: 'json',
@@ -360,17 +402,17 @@ describe('端到端转换集成测试', () => {
         title: '变量替换测试',
         version: '2.0.0',
         user: {
-          name: '张三'
-        }
-      }
+          name: '张三',
+        },
+      },
     } as TransformOptions);
-    
+
     // 6. 验证变量替换结果
     expect(jsonOutput).toBeDefined();
     expect(jsonOutput.document).toBeDefined();
     expect(jsonOutput.document.section).toBeDefined();
   });
-  
+
   it('应该能处理混合内容类型', async () => {
     // 1. 准备混合内容文档
     const mixedContent = `
@@ -387,33 +429,43 @@ describe('端到端转换集成测试', () => {
         </section>
       </document>
     `;
-    
+
     // 2. 解析文档
     const parseResult = await parser.parse(mixedContent);
-    
+
     // 确保解析成功
     expect(parseResult.errors.length).toBe(0);
     const document = parseResult.ast;
-    
+
     // 3. 处理文档
     const processedDoc = processor.process(document);
+
     expect(processedDoc).toBeDefined();
-    
+
     // 4. 创建转换器
-    const transformer = transformerFactory.createTransformer(undefined, adapterFactory);
-    
+    const transformer = transformerFactory.createTransformer(
+      undefined,
+      adapterFactory
+    );
+
     // 5. 转换为各种格式
-    const jsonOutput = transformer.transform(processedDoc, { format: 'json' } as TransformOptions);
-    const xmlOutput = transformer.transform(processedDoc, { format: 'xml' } as TransformOptions);
-    const mdOutput = transformer.transform(processedDoc, { format: 'markdown' } as TransformOptions);
-    
+    const jsonOutput = transformer.transform(processedDoc, {
+      format: 'json',
+    } as TransformOptions);
+    const xmlOutput = transformer.transform(processedDoc, {
+      format: 'xml',
+    } as TransformOptions);
+    const mdOutput = transformer.transform(processedDoc, {
+      format: 'markdown',
+    } as TransformOptions);
+
     // 6. 验证各格式能否正确处理混合内容
     expect(jsonOutput).toBeDefined();
     expect(xmlOutput).toBeDefined();
     expect(mdOutput).toBeDefined();
-    
+
     // 检查JSON结构
     expect(jsonOutput.document).toBeDefined();
     expect(jsonOutput.document.section).toBeDefined();
   });
-}); 
+});

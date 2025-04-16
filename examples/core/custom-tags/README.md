@@ -24,67 +24,71 @@ function defineCustomTags() {
   // 自定义卡片标签
   const cardTagDef = TagRegistry.createTagDefinition({
     attributes: {
-      type: { 
-        type: 'string', 
+      type: {
+        type: 'string',
         required: true,
-        validate: (value) => {
-          return ['info', 'warning', 'error'].includes(value) || 
-            `无效的卡片类型: ${value}，应为info, warning或error`;
-        }
+        validate: value => {
+          return (
+            ['info', 'warning', 'error'].includes(value) ||
+            `无效的卡片类型: ${value}，应为info, warning或error`
+          );
+        },
       },
-      title: { type: 'string', required: false }
+      title: { type: 'string', required: false },
     },
     allowedChildren: ['content', 'image'],
     validate: (element, context) => {
       // 自定义验证逻辑
       if (element.attributes.type === 'error' && !element.attributes.title) {
-        return { 
-          valid: false, 
-          errors: [{ code: 'MISSING_TITLE', message: 'error类型的卡片必须有标题' }] 
+        return {
+          valid: false,
+          errors: [
+            { code: 'MISSING_TITLE', message: 'error类型的卡片必须有标题' },
+          ],
         };
       }
       return { valid: true };
-    }
+    },
   });
 
   // 注册标签
   registry.registerTagDefinition('card', cardTagDef);
-  
+
   // 方式2: 直接使用registerTag简化方法
   registry.registerTag('image', {
     attributes: {
       src: { type: 'string', required: true },
       alt: { type: 'string', required: false },
       width: { type: 'number', required: false },
-      height: { type: 'number', required: false }
+      height: { type: 'number', required: false },
     },
-    selfClosing: true
+    selfClosing: true,
   });
-  
+
   return registry;
 }
 
 // 使用自定义标签
 async function useCustomTags() {
   const { parse } = await import('@dpml/core');
-  
+
   // 初始化注册表
   const registry = defineCustomTags();
-  
+
   const dpmlText = `
     <card type="info" title="提示信息">
       这是一个信息卡片
       <image src="info.png" alt="信息图标" />
     </card>
   `;
-  
+
   try {
     // 使用自定义标签注册表解析
-    const result = await parse(dpmlText, { 
+    const result = await parse(dpmlText, {
       tagRegistry: registry,
-      validate: true
+      validate: true,
     });
-    
+
     console.log('解析结果:', JSON.stringify(result.ast, null, 2));
   } catch (error) {
     console.error('解析错误:', error);
@@ -111,41 +115,44 @@ registry.registerTag('data-table', {
     columns: { type: 'string', required: true },
     sortable: { type: 'boolean', required: false },
     pagination: { type: 'boolean', required: false },
-    pageSize: { type: 'number', required: false }
+    pageSize: { type: 'number', required: false },
   },
   allowedChildren: ['data-row'],
   validate: (element, context) => {
     const errors = [];
     let valid = true;
-    
+
     // 1. columns属性应为逗号分隔的列名列表
-    const columns = element.attributes.columns?.split(',')?.map(c => c.trim()) || [];
+    const columns =
+      element.attributes.columns?.split(',')?.map(c => c.trim()) || [];
     if (columns.length === 0) {
-      errors.push({ 
-        code: 'INVALID_COLUMNS', 
-        message: 'columns属性必须是逗号分隔的列名列表' 
+      errors.push({
+        code: 'INVALID_COLUMNS',
+        message: 'columns属性必须是逗号分隔的列名列表',
       });
       valid = false;
     }
-    
+
     // 2. 如果启用分页，pageSize必须存在且大于0
-    if (element.attributes.pagination === true && 
-        (!element.attributes.pageSize || element.attributes.pageSize <= 0)) {
-      errors.push({ 
-        code: 'INVALID_PAGE_SIZE', 
-        message: '启用分页时，pageSize必须大于0' 
+    if (
+      element.attributes.pagination === true &&
+      (!element.attributes.pageSize || element.attributes.pageSize <= 0)
+    ) {
+      errors.push({
+        code: 'INVALID_PAGE_SIZE',
+        message: '启用分页时，pageSize必须大于0',
       });
       valid = false;
     }
-    
+
     return { valid, errors };
-  }
+  },
 });
 
 // 注册子标签
 registry.registerTag('data-row', {
   attributes: {
-    values: { type: 'string', required: true }
+    values: { type: 'string', required: true },
   },
   allowedChildren: [],
   validate: (element, context) => {
@@ -154,20 +161,22 @@ registry.registerTag('data-row', {
     if (parent?.tagName === 'data-table') {
       const tableColumns = parent.attributes.columns?.split(',') || [];
       const rowValues = element.attributes.values?.split(',') || [];
-      
+
       if (tableColumns.length !== rowValues.length) {
         return {
           valid: false,
-          errors: [{
-            code: 'COLUMN_COUNT_MISMATCH',
-            message: `行值数量(${rowValues.length})与列数量(${tableColumns.length})不匹配`
-          }]
+          errors: [
+            {
+              code: 'COLUMN_COUNT_MISMATCH',
+              message: `行值数量(${rowValues.length})与列数量(${tableColumns.length})不匹配`,
+            },
+          ],
         };
       }
     }
-    
+
     return { valid: true };
-  }
+  },
 });
 ```
 
@@ -190,4 +199,4 @@ ts-node examples/core/custom-tags/custom-validation.ts
 
 标签定义示例将输出包含自定义标签的解析AST。
 
-自定义验证示例将展示如何进行复杂的标签验证，并在验证失败时输出详细的错误信息。 
+自定义验证示例将展示如何进行复杂的标签验证，并在验证失败时输出详细的错误信息。

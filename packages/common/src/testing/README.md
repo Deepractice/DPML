@@ -41,8 +41,8 @@ const mockFs = createMockFileSystem({
   // 初始文件系统状态
   '/path/to/file.txt': 'file content',
   '/path/to/dir': {
-    'nested.txt': 'nested content'
-  }
+    'nested.txt': 'nested content',
+  },
 });
 
 // 使用模拟文件系统
@@ -59,13 +59,13 @@ const mockHttp = createMockHttpClient({
   responses: {
     'GET https://api.example.com/users': {
       status: 200,
-      data: [{ id: 1, name: 'User 1' }]
+      data: [{ id: 1, name: 'User 1' }],
     },
     'POST https://api.example.com/users': {
       status: 201,
-      data: { id: 2, name: 'New User' }
-    }
-  }
+      data: { id: 2, name: 'New User' },
+    },
+  },
 });
 
 // 使用模拟HTTP客户端
@@ -90,13 +90,16 @@ const users = userFactory.createMany(3, { isActive: true });
 ### 测试环境管理 (Test Environment)
 
 ```typescript
-import { createTestEnvironment, withTestEnvironment } from '@dpml/common/testing';
+import {
+  createTestEnvironment,
+  withTestEnvironment,
+} from '@dpml/common/testing';
 
 // 创建和管理测试环境
 const env = createTestEnvironment({
   name: 'test-env',
   mockTime: true,
-  env: { TEST_VAR: 'value' }
+  env: { TEST_VAR: 'value' },
 });
 
 await env.setup();
@@ -106,12 +109,9 @@ env.advanceTimeBy(60000); // 前进1分钟
 await env.teardown();
 
 // 或使用辅助函数
-await withTestEnvironment(
-  { name: 'test-env', mockTime: true },
-  async (env) => {
-    // 在环境中运行测试...
-  }
-);
+await withTestEnvironment({ name: 'test-env', mockTime: true }, async env => {
+  // 在环境中运行测试...
+});
 ```
 
 ### 测试夹具管理 (Test Fixtures)
@@ -131,16 +131,16 @@ fixtures.add({
   },
   teardown: async () => {
     // 清理夹具...
-  }
+  },
 });
 
 // 使用夹具
 await withFixture(
   {
     name: 'userFixture',
-    data: { id: 1, name: 'Test User' }
+    data: { id: 1, name: 'Test User' },
   },
-  async (fixture) => {
+  async fixture => {
     // 使用fixture.data...
   }
 );
@@ -154,7 +154,7 @@ import {
   waitUntil,
   withTimeout,
   retryOperation,
-  parallel
+  parallel,
 } from '@dpml/common/testing';
 
 // 等待指定时间
@@ -168,7 +168,9 @@ const result = await withTimeout(longRunningPromise, 5000);
 
 // 重试操作
 const result = await retryOperation(
-  async () => { /* 可能失败的操作 */ },
+  async () => {
+    /* 可能失败的操作 */
+  },
   { maxAttempts: 3, delay: 100 }
 );
 
@@ -176,7 +178,7 @@ const result = await retryOperation(
 const { successes, errors } = await parallel([
   () => promise1(),
   () => promise2(),
-  () => promise3()
+  () => promise3(),
 ]);
 ```
 
@@ -189,32 +191,32 @@ import {
   createMockFileSystem,
   createMockHttpClient,
   withTestEnvironment,
-  withFixture
+  withFixture,
 } from '@dpml/common/testing';
 
 // 在测试中组合使用多个工具
 await withTestEnvironment(
   { name: 'integration-test', mockTime: true },
-  async (env) => {
+  async env => {
     const mockFs = createMockFileSystem({
-      '/config.json': JSON.stringify({ apiUrl: 'https://api.example.com' })
+      '/config.json': JSON.stringify({ apiUrl: 'https://api.example.com' }),
     });
-    
+
     const mockHttp = createMockHttpClient({
       responses: {
         'GET https://api.example.com/status': {
           status: 200,
-          data: { status: 'ok' }
-        }
-      }
+          data: { status: 'ok' },
+        },
+      },
     });
-    
+
     await withFixture(
       {
         name: 'testContext',
-        data: { fs: mockFs, http: mockHttp }
+        data: { fs: mockFs, http: mockHttp },
       },
-      async (fixture) => {
+      async fixture => {
         // 执行测试...
       }
     );
@@ -232,4 +234,4 @@ await withTestEnvironment(
 
 ## 贡献
 
-欢迎提交Issues和Pull Requests来改进测试工具。 
+欢迎提交Issues和Pull Requests来改进测试工具。

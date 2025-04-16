@@ -1,5 +1,5 @@
-import { OutputAdapter } from '../interfaces/outputAdapter';
-import { TransformContext } from '../interfaces/transformContext';
+import type { OutputAdapter } from '../interfaces/outputAdapter';
+import type { TransformContext } from '../interfaces/transformContext';
 
 /**
  * 通用适配器选项
@@ -13,7 +13,7 @@ export interface GenericAdapterOptions {
 
 /**
  * 通用输出适配器
- * 
+ *
  * 保持输入结果结构不变，仅提供接口一致性
  */
 export class GenericAdapter implements OutputAdapter {
@@ -33,9 +33,9 @@ export class GenericAdapter implements OutputAdapter {
 
   /**
    * 适配方法
-   * 
+   *
    * 对于通用适配器，默认保持输入结果结构不变
-   * 
+   *
    * @param result 待适配的结果
    * @param context 转换上下文
    * @returns 适配后的结果
@@ -45,8 +45,8 @@ export class GenericAdapter implements OutputAdapter {
     if (this.options.customAdapter) {
       return this.options.customAdapter(result, context);
     }
-    
+
     // 默认行为：保持结果不变
     return result;
   }
-} 
+}

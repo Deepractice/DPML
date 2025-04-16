@@ -1,6 +1,6 @@
-import path from 'path';
-import os from 'os';
 import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import { URL } from 'url';
 
 /**
@@ -45,6 +45,7 @@ export function ensureDir(dirPath: string): boolean {
     if (!fs.existsSync(dirPath)) {
       fs.mkdirSync(dirPath, { recursive: true });
     }
+
     return true;
   } catch (error) {
     return false;
@@ -60,6 +61,7 @@ export function findNodeModules(): string[] {
 
   // 添加当前工作目录下的node_modules
   const cwdNodeModules = path.join(process.cwd(), 'node_modules');
+
   if (fs.existsSync(cwdNodeModules)) {
     paths.push(cwdNodeModules);
   }
@@ -69,6 +71,7 @@ export function findNodeModules(): string[] {
     // 使用npm root -g命令获取全局node_modules路径
     const { execSync } = require('child_process');
     const globalNodeModules = execSync('npm root -g').toString().trim();
+
     if (fs.existsSync(globalNodeModules)) {
       paths.push(globalNodeModules);
     }
@@ -78,6 +81,7 @@ export function findNodeModules(): string[] {
 
   // 添加可能的其他位置
   const homeNodeModules = path.join(os.homedir(), 'node_modules');
+
   if (fs.existsSync(homeNodeModules)) {
     paths.push(homeNodeModules);
   }
@@ -110,6 +114,7 @@ export function resolveRelativePath(relativePath: string): string {
  */
 export function getUserDataDir(appName?: string): string {
   const dataDir = path.join(getDpmlConfigDir(), 'data');
+
   return appName ? path.join(dataDir, appName) : dataDir;
 }
 
@@ -150,6 +155,7 @@ export function normalizePath(filePath: string): string {
     try {
       // 使用URL API解析文件URL
       const fileUrl = new URL(filePath);
+
       return fileUrl.pathname;
     } catch (error) {
       // 如果解析失败，尝试直接移除协议部分
@@ -164,6 +170,7 @@ export function normalizePath(filePath: string): string {
       // 如果包含正斜杠，转换为反斜杠
       return filePath.replace(/\//g, '\\');
     }
+
     return filePath;
   } else {
     // Unix平台，将反斜杠转换为正斜杠
@@ -190,6 +197,7 @@ export function getFileName(filePath: string): string {
   if (filePath.endsWith('/') || filePath.endsWith('\\')) {
     return '';
   }
+
   return path.basename(filePath);
 }
 
@@ -203,6 +211,7 @@ export function getDirName(filePath: string): string {
   if (filePath.endsWith('/') || filePath.endsWith('\\')) {
     return filePath.slice(0, -1);
   }
+
   return path.dirname(filePath);
 }
 
@@ -213,9 +222,11 @@ export function getDirName(filePath: string): string {
  */
 export function joinPaths(...paths: string[]): string {
   const joined = path.join(...paths);
+
   // 如果是Windows平台，返回使用反斜杠的路径
   if (os.platform() === 'win32') {
     return joined.replace(/\//g, '\\');
   }
+
   return joined;
 }

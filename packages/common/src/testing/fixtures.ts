@@ -1,6 +1,6 @@
 /**
  * 测试夹具管理机制
- * 
+ *
  * 提供测试数据夹具创建、访问和生命周期管理
  */
 
@@ -12,12 +12,12 @@ export interface FixtureLifecycle<T> {
    * 初始化夹具
    */
   setup?: () => Promise<void> | void;
-  
+
   /**
    * 清理夹具
    */
   teardown?: () => Promise<void> | void;
-  
+
   /**
    * 重置夹具状态
    */
@@ -32,12 +32,12 @@ export interface Fixture<T> extends FixtureLifecycle<T> {
    * 夹具数据
    */
   data: T;
-  
+
   /**
    * 夹具名称
    */
   name: string;
-  
+
   /**
    * 更新夹具数据
    */
@@ -52,7 +52,7 @@ export interface FixtureOptions<T> extends FixtureLifecycle<T> {
    * 夹具名称
    */
   name: string;
-  
+
   /**
    * 初始夹具数据
    */
@@ -65,50 +65,50 @@ export interface FixtureOptions<T> extends FixtureLifecycle<T> {
 export interface FixtureCollection {
   /**
    * 获取夹具
-   * 
+   *
    * @param name 夹具名称
    * @returns 夹具实例
    */
   get<T>(name: string): Fixture<T>;
-  
+
   /**
    * 添加夹具
-   * 
+   *
    * @param options 夹具选项
    * @returns 夹具实例
    */
   add<T>(options: FixtureOptions<T>): Fixture<T>;
-  
+
   /**
    * 初始化所有夹具
    */
   setupAll(): Promise<void>;
-  
+
   /**
    * 清理所有夹具
    */
   teardownAll(): Promise<void>;
-  
+
   /**
    * 重置所有夹具
    */
   resetAll(): Promise<void>;
-  
+
   /**
    * 获取所有夹具名称
    */
   names(): string[];
-  
+
   /**
    * 检查夹具是否存在
-   * 
+   *
    * @param name 夹具名称
    */
   has(name: string): boolean;
-  
+
   /**
    * 移除夹具
-   * 
+   *
    * @param name 夹具名称
    */
   remove(name: string): void;
@@ -123,7 +123,7 @@ class BaseFixture<T> implements Fixture<T> {
   public setup?: () => Promise<void> | void;
   public teardown?: () => Promise<void> | void;
   public reset?: () => Promise<void> | void;
-  
+
   constructor(options: FixtureOptions<T>) {
     this.name = options.name;
     this.data = { ...options.data } as T;
@@ -131,7 +131,7 @@ class BaseFixture<T> implements Fixture<T> {
     this.teardown = options.teardown;
     this.reset = options.reset;
   }
-  
+
   public update(newData: Partial<T>): void {
     this.data = { ...this.data, ...newData };
   }
@@ -142,18 +142,20 @@ class BaseFixture<T> implements Fixture<T> {
  */
 class FixtureCollectionImpl implements FixtureCollection {
   private fixtures: Map<string, Fixture<any>> = new Map();
-  
+
   /**
    * 获取夹具
    */
   public get<T>(name: string): Fixture<T> {
     const fixture = this.fixtures.get(name);
+
     if (!fixture) {
       throw new Error(`夹具 "${name}" 不存在`);
     }
+
     return fixture as Fixture<T>;
   }
-  
+
   /**
    * 添加夹具
    */
@@ -161,12 +163,14 @@ class FixtureCollectionImpl implements FixtureCollection {
     if (this.fixtures.has(options.name)) {
       throw new Error(`夹具 "${options.name}" 已存在`);
     }
-    
+
     const fixture = new BaseFixture<T>(options);
+
     this.fixtures.set(options.name, fixture);
+
     return fixture;
   }
-  
+
   /**
    * 初始化所有夹具
    */
@@ -177,7 +181,7 @@ class FixtureCollectionImpl implements FixtureCollection {
       }
     }
   }
-  
+
   /**
    * 清理所有夹具
    */
@@ -188,7 +192,7 @@ class FixtureCollectionImpl implements FixtureCollection {
       }
     }
   }
-  
+
   /**
    * 重置所有夹具
    */
@@ -199,21 +203,21 @@ class FixtureCollectionImpl implements FixtureCollection {
       }
     }
   }
-  
+
   /**
    * 获取所有夹具名称
    */
   public names(): string[] {
     return Array.from(this.fixtures.keys());
   }
-  
+
   /**
    * 检查夹具是否存在
    */
   public has(name: string): boolean {
     return this.fixtures.has(name);
   }
-  
+
   /**
    * 移除夹具
    */
@@ -224,7 +228,7 @@ class FixtureCollectionImpl implements FixtureCollection {
 
 /**
  * 创建夹具集合
- * 
+ *
  * @returns 夹具集合实例
  */
 export function createFixtureCollection(): FixtureCollection {
@@ -233,7 +237,7 @@ export function createFixtureCollection(): FixtureCollection {
 
 /**
  * 使用夹具运行测试函数
- * 
+ *
  * @param fixtureOptions 夹具选项
  * @param fn 测试函数
  * @returns 函数返回值的Promise
@@ -243,11 +247,12 @@ export async function withFixture<T, R>(
   fn: (fixture: Fixture<T>) => Promise<R>
 ): Promise<R> {
   const fixture = new BaseFixture<T>(fixtureOptions);
-  
+
   try {
     if (fixture.setup) {
       await fixture.setup();
     }
+
     return await fn(fixture);
   } finally {
     if (fixture.teardown) {
@@ -258,7 +263,7 @@ export async function withFixture<T, R>(
 
 /**
  * 使用多个夹具运行测试函数
- * 
+ *
  * @param fixtures 夹具集合
  * @param fn 测试函数
  * @returns 函数返回值的Promise
@@ -269,8 +274,9 @@ export async function withFixtures<R>(
 ): Promise<R> {
   try {
     await fixtures.setupAll();
+
     return await fn(fixtures);
   } finally {
     await fixtures.teardownAll();
   }
-} 
+}

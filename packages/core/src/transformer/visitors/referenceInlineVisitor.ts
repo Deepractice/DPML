@@ -1,7 +1,10 @@
-import { TransformerVisitor } from '../interfaces/transformerVisitor';
-import { TransformContext } from '../interfaces/transformContext';
 import { cloneDeep } from 'lodash';
-import { NodeType, Reference } from '../../types/node';
+
+import { NodeType } from '../../types/node';
+
+import type { Reference } from '../../types/node';
+import type { TransformContext } from '../interfaces/transformContext';
+import type { TransformerVisitor } from '../interfaces/transformerVisitor';
 
 /**
  * 引用内联访问者配置
@@ -22,7 +25,7 @@ export interface ReferenceInlineOptions {
 
 /**
  * 引用解析和内联访问者
- * 
+ *
  * 这个访问者负责处理引用节点，将引用的内容内联到当前文档中。
  * 支持以下功能：
  * 1. 处理已解析的引用，将引用内容内联
@@ -35,12 +38,12 @@ export class ReferenceInlineVisitor implements TransformerVisitor {
    * 访问者名称
    */
   readonly name: string = 'reference-inline';
-  
+
   /**
    * 访问者优先级
    */
   priority: number;
-  
+
   /**
    * 内联选项
    */
@@ -56,10 +59,10 @@ export class ReferenceInlineVisitor implements TransformerVisitor {
     this.options = {
       mode: 'reference',
       addSourceInfo: false,
-      ...options
+      ...options,
     };
   }
-  
+
   /**
    * 获取访问者优先级
    * @returns 优先级数值
@@ -67,7 +70,7 @@ export class ReferenceInlineVisitor implements TransformerVisitor {
   getPriority(): number {
     return this.priority;
   }
-  
+
   /**
    * 访问节点（通用）
    * @param node 节点
@@ -78,12 +81,12 @@ export class ReferenceInlineVisitor implements TransformerVisitor {
     if (!node) {
       return null;
     }
-    
+
     // 只处理引用节点
     if (node.type === NodeType.REFERENCE) {
       return this.visitReference(node, context);
     }
-    
+
     // 其他类型节点原样返回
     return node;
   }
@@ -123,6 +126,7 @@ export class ReferenceInlineVisitor implements TransformerVisitor {
     if (this.options.mode === 'clone') {
       return cloneDeep(node.resolved);
     }
+
     return node.resolved;
   }
 
@@ -142,14 +146,18 @@ export class ReferenceInlineVisitor implements TransformerVisitor {
 
       // 处理对象的子节点
       if (Array.isArray(content.children)) {
-        content.children = content.children.map((child: any) => 
+        content.children = content.children.map((child: any) =>
           this.processResolvedContent(child, context)
         );
       }
 
       // 处理对象的其他属性
       for (const key in content) {
-        if (key !== 'children' && typeof content[key] === 'object' && content[key] !== null) {
+        if (
+          key !== 'children' &&
+          typeof content[key] === 'object' &&
+          content[key] !== null
+        ) {
           content[key] = this.processResolvedContent(content[key], context);
         }
       }
@@ -174,8 +182,8 @@ export class ReferenceInlineVisitor implements TransformerVisitor {
       content.meta.source = {
         protocol: reference.protocol,
         path: reference.path,
-        reference: true
+        reference: true,
       };
     }
   }
-} 
+}

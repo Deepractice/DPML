@@ -11,16 +11,19 @@
 #### 主要变更
 
 1. **包结构调整**
+
    - 采用更模块化的结构，支持部分导入
    - 命名空间导出取代直接导出
    - 完善的TypeScript类型定义
 
 2. **日志系统改进**
+
    - 引入新的日志格式化器API
    - 添加可配置的传输通道
    - 支持上下文和元数据
 
 3. **错误处理增强**
+
    - 标准化错误代码
    - 引入Result类型
    - 更完善的错误详情支持
@@ -35,11 +38,13 @@
 ##### 1. 更新导入语句
 
 **旧版本:**
+
 ```typescript
 import { createLogger, isEmpty, MockFileSystem } from '@dpml/common';
 ```
 
 **新版本:**
+
 ```typescript
 import { createLogger } from '@dpml/common/logger';
 import { stringUtils } from '@dpml/common/utils';
@@ -55,6 +60,7 @@ const { createMockFileSystem } = testing;
 ##### 2. 日志系统迁移
 
 **旧版本:**
+
 ```typescript
 import { createLogger, LogLevel } from '@dpml/common';
 
@@ -64,6 +70,7 @@ logger.log('info', 'This is a message');
 ```
 
 **新版本:**
+
 ```typescript
 import { createLogger, LogLevel, ConsoleTransport } from '@dpml/common/logger';
 
@@ -76,6 +83,7 @@ logger.info('This is a message');
 ##### 3. 错误处理迁移
 
 **旧版本:**
+
 ```typescript
 import { DPMLError } from '@dpml/common';
 
@@ -83,19 +91,19 @@ throw new DPMLError('Something went wrong', 'ERROR_CODE');
 ```
 
 **新版本:**
+
 ```typescript
 import { createDPMLError, DPMLErrorCode } from '@dpml/common/types';
 
-throw createDPMLError(
-  'Something went wrong', 
-  DPMLErrorCode.OPERATION_FAILED,
-  { details: 'Additional information' }
-);
+throw createDPMLError('Something went wrong', DPMLErrorCode.OPERATION_FAILED, {
+  details: 'Additional information',
+});
 ```
 
 ##### 4. 使用Result类型
 
 **旧版本:**
+
 ```typescript
 function processData(data: string): string | Error {
   try {
@@ -116,6 +124,7 @@ if (result instanceof Error) {
 ```
 
 **新版本:**
+
 ```typescript
 import { Result, success, failure } from '@dpml/common/types';
 
@@ -140,20 +149,22 @@ if (result.success) {
 ##### 5. 测试工具迁移
 
 **旧版本:**
+
 ```typescript
 import { MockFileSystem } from '@dpml/common';
 
 const mockFs = new MockFileSystem({
-  '/test/file.txt': 'content'
+  '/test/file.txt': 'content',
 });
 ```
 
 **新版本:**
+
 ```typescript
 import { createMockFileSystem } from '@dpml/common/testing';
 
 const mockFs = createMockFileSystem({
-  '/test/file.txt': 'content'
+  '/test/file.txt': 'content',
 });
 ```
 
@@ -244,4 +255,4 @@ function process(logger: ILogger) {}
 
 - [API参考文档](./API-Reference.md)
 - [GitHub问题跟踪器](https://github.com/your-org/dpml/issues)
-- [社区论坛](https://community.yourorg.com) 
+- [社区论坛](https://community.yourorg.com)

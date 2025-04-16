@@ -8,8 +8,9 @@ import type {
   LLMConnector,
   CompletionOptions,
   CompletionResult,
-  CompletionChunk
+  CompletionChunk,
 } from './LLMConnector';
+
 import { LLMErrorType, LLMConnectorError } from './LLMConnector';
 
 // 重新导出类型和类
@@ -17,12 +18,13 @@ export type {
   LLMConnector,
   CompletionOptions,
   CompletionResult,
-  CompletionChunk
+  CompletionChunk,
 };
 export { LLMErrorType, LLMConnectorError };
 
 // 导出连接器工厂和配置类型
 import { LLMConnectorFactory } from './LLMConnectorFactory';
+
 import type { LLMConfig } from './LLMConnectorFactory';
 
 export { LLMConnectorFactory };

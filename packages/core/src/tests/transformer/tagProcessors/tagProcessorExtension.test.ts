@@ -1,11 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { Element, NodeType } from '../../../types/node';
-import { TagProcessor } from '../../../transformer/interfaces/tagProcessor';
-import { TransformContext } from '../../../transformer/interfaces/transformContext';
-import { DefaultTagProcessorRegistry } from '../../../transformer/tagProcessors/defaultTagProcessorRegistry';
-import { ProcessedDocument } from '../../../processor/interfaces/processor';
+
 import { ContextManager } from '../../../transformer/context/contextManager';
+import { DefaultTagProcessorRegistry } from '../../../transformer/tagProcessors/defaultTagProcessorRegistry';
 import { TagProcessorVisitor } from '../../../transformer/visitors/tagProcessorVisitor';
+import { NodeType } from '../../../types/node';
+
+import type { ProcessedDocument } from '../../../processor/interfaces/processor';
+import type { TagProcessor } from '../../../transformer/interfaces/tagProcessor';
+import type { TransformContext } from '../../../transformer/interfaces/transformContext';
+import type { Element } from '../../../types/node';
 
 describe('标签处理器扩展机制', () => {
   // 创建一个TransformContext
@@ -16,28 +19,31 @@ describe('标签处理器扩展机制', () => {
       children: [],
       position: {
         start: { line: 1, column: 1, offset: 0 },
-        end: { line: 1, column: 1, offset: 0 }
-      }
+        end: { line: 1, column: 1, offset: 0 },
+      },
     };
 
     // 创建上下文管理器
     const contextManager = new ContextManager();
-    
+
     // 返回根上下文
     return contextManager.createRootContext(document, {});
   };
 
   // 创建测试元素辅助函数
-  const createTestElement = (tagName: string, attributes: Record<string, string> = {}): Element => {
+  const createTestElement = (
+    tagName: string,
+    attributes: Record<string, string> = {}
+  ): Element => {
     return {
       type: NodeType.ELEMENT,
       tagName,
       attributes,
       children: [],
-      position: { 
-        start: { line: 0, column: 0, offset: 0 }, 
-        end: { line: 0, column: 0, offset: 0 } 
-      }
+      position: {
+        start: { line: 0, column: 0, offset: 0 },
+        end: { line: 0, column: 0, offset: 0 },
+      },
     };
   };
 
@@ -55,15 +61,15 @@ describe('标签处理器扩展机制', () => {
     it('应该能动态注册自定义标签处理器', async () => {
       // 创建自定义处理器
       const customProcessor: TagProcessor = {
-        canProcess: (element) => element.tagName === 'custom',
+        canProcess: element => element.tagName === 'custom',
         process: (element, context) => ({
           ...element,
           meta: {
             ...element.meta,
-            customProcessed: true
-          }
+            customProcessed: true,
+          },
         }),
-        priority: 100
+        priority: 100,
       };
 
       // 动态注册处理器
@@ -90,11 +96,14 @@ describe('标签处理器扩展机制', () => {
             ...element,
             meta: {
               ...element.meta,
-              processOrder: [...(element.meta?.processOrder || []), 'processor1']
-            }
+              processOrder: [
+                ...(element.meta?.processOrder || []),
+                'processor1',
+              ],
+            },
           };
         },
-        priority: 10
+        priority: 10,
       };
 
       const processor2: TagProcessor = {
@@ -105,11 +114,14 @@ describe('标签处理器扩展机制', () => {
             ...element,
             meta: {
               ...element.meta,
-              processOrder: [...(element.meta?.processOrder || []), 'processor2']
-            }
+              processOrder: [
+                ...(element.meta?.processOrder || []),
+                'processor2',
+              ],
+            },
           };
         },
-        priority: 20
+        priority: 20,
       };
 
       // 注册处理器（注意顺序）
@@ -131,14 +143,14 @@ describe('标签处理器扩展机制', () => {
       // 创建通配符处理器
       const wildcardProcessor: TagProcessor = {
         canProcess: () => true,
-        process: (element) => ({
+        process: element => ({
           ...element,
           meta: {
             ...element.meta,
-            wildcardProcessed: true
-          }
+            wildcardProcessed: true,
+          },
         }),
-        priority: 5
+        priority: 5,
       };
 
       // 注册通配符处理器
@@ -164,17 +176,20 @@ describe('标签处理器扩展机制', () => {
       // 创建一个处理器
       const groupProcessor: TagProcessor = {
         canProcess: () => true,
-        process: (element) => ({
+        process: element => ({
           ...element,
           meta: {
             ...element.meta,
-            groupProcessed: true
-          }
-        })
+            groupProcessed: true,
+          },
+        }),
       };
 
       // 为一组标签注册同一处理器
-      registry.registerProcessorForTags(['group1', 'group2', 'group3'], groupProcessor);
+      registry.registerProcessorForTags(
+        ['group1', 'group2', 'group3'],
+        groupProcessor
+      );
 
       // 创建测试元素
       const element1 = createTestElement('group1');
@@ -200,24 +215,28 @@ describe('标签处理器扩展机制', () => {
     it('应该根据元素属性决定是否处理', async () => {
       // 创建一个带条件判断的处理器
       const conditionalProcessor: TagProcessor = {
-        canProcess: (element) => 
-          element.tagName === 'conditional' && 
+        canProcess: element =>
+          element.tagName === 'conditional' &&
           element.attributes['data-process'] === 'true',
-        process: (element) => ({
+        process: element => ({
           ...element,
           meta: {
             ...element.meta,
-            conditionalProcessed: true
-          }
-        })
+            conditionalProcessed: true,
+          },
+        }),
       };
 
       // 注册处理器
       registry.registerProcessor('conditional', conditionalProcessor);
 
       // 创建符合条件和不符合条件的元素
-      const matchElement = createTestElement('conditional', { 'data-process': 'true' });
-      const nonMatchElement = createTestElement('conditional', { 'data-process': 'false' });
+      const matchElement = createTestElement('conditional', {
+        'data-process': 'true',
+      });
+      const nonMatchElement = createTestElement('conditional', {
+        'data-process': 'false',
+      });
 
       // 执行访问
       const result1 = await visitor.visitElement(matchElement, context);
@@ -241,12 +260,13 @@ describe('标签处理器扩展机制', () => {
               ...element,
               meta: {
                 ...element.meta,
-                contextAwareProcessed: true
-              }
+                contextAwareProcessed: true,
+              },
             };
           }
+
           return element;
-        }
+        },
       };
 
       // 注册处理器
@@ -257,9 +277,11 @@ describe('标签处理器扩展机制', () => {
 
       // 创建两个不同的上下文
       const context1 = createMockContext();
+
       context1.variables['enableProcessor'] = true;
 
       const context2 = createMockContext();
+
       context2.variables['enableProcessor'] = false;
 
       // 执行访问
@@ -277,41 +299,41 @@ describe('标签处理器扩展机制', () => {
       // 创建处理器链
       const processor1: TagProcessor = {
         canProcess: () => true,
-        process: (element) => ({
+        process: element => ({
           ...element,
           meta: {
             ...element.meta,
-            step1: true
-          }
+            step1: true,
+          },
         }),
-        priority: 30
+        priority: 30,
       };
 
       const processor2: TagProcessor = {
-        canProcess: (element) => {
+        canProcess: element => {
           // 检查元素是否有特定标记，决定是否继续
           return element.meta?.continueChain === true;
         },
-        process: (element) => ({
+        process: element => ({
           ...element,
           meta: {
             ...element.meta,
-            step2: true
-          }
+            step2: true,
+          },
         }),
-        priority: 20
+        priority: 20,
       };
 
       const processor3: TagProcessor = {
         canProcess: () => true,
-        process: (element) => ({
+        process: element => ({
           ...element,
           meta: {
             ...element.meta,
-            step3: true
-          }
+            step3: true,
+          },
         }),
-        priority: 10
+        priority: 10,
       };
 
       // 注册处理器
@@ -321,9 +343,11 @@ describe('标签处理器扩展机制', () => {
 
       // 创建测试元素 - 一个继续执行链，一个中断链
       const continueElement = createTestElement('chain-test');
+
       continueElement.meta = { continueChain: true };
 
       const breakElement = createTestElement('chain-test');
+
       breakElement.meta = { continueChain: false };
 
       // 执行访问
@@ -344,38 +368,38 @@ describe('标签处理器扩展机制', () => {
       // 创建具有数据转换的处理器链
       const initialProcessor: TagProcessor = {
         canProcess: () => true,
-        process: (element) => ({
+        process: element => ({
           ...element,
           meta: {
             ...element.meta,
-            data: 5
-          }
+            data: 5,
+          },
         }),
-        priority: 30
+        priority: 30,
       };
 
       const doubleProcessor: TagProcessor = {
         canProcess: () => true,
-        process: (element) => ({
+        process: element => ({
           ...element,
           meta: {
             ...element.meta,
-            data: (element.meta?.data || 0) * 2
-          }
+            data: (element.meta?.data || 0) * 2,
+          },
         }),
-        priority: 20
+        priority: 20,
       };
 
       const addProcessor: TagProcessor = {
         canProcess: () => true,
-        process: (element) => ({
+        process: element => ({
           ...element,
           meta: {
             ...element.meta,
-            data: (element.meta?.data || 0) + 10
-          }
+            data: (element.meta?.data || 0) + 10,
+          },
         }),
-        priority: 10
+        priority: 10,
       };
 
       // 注册处理器
@@ -397,24 +421,24 @@ describe('标签处理器扩展机制', () => {
       // 创建处理器
       const processor1: TagProcessor = {
         canProcess: () => true,
-        process: (element) => ({
+        process: element => ({
           ...element,
           meta: {
             ...element.meta,
-            processor1: true
-          }
-        })
+            processor1: true,
+          },
+        }),
       };
 
       const processor2: TagProcessor = {
         canProcess: () => true,
-        process: (element) => ({
+        process: element => ({
           ...element,
           meta: {
             ...element.meta,
-            processor2: true
-          }
-        })
+            processor2: true,
+          },
+        }),
       };
 
       // 注册处理器
@@ -449,4 +473,4 @@ describe('标签处理器扩展机制', () => {
       expect(result3.meta?.processor2).toBeUndefined();
     });
   });
-}); 
+});

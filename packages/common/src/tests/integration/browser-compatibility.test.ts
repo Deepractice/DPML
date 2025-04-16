@@ -6,40 +6,47 @@
  */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import * as utils from '../../utils';
+
 import { createLogger, LogLevel, ConsoleTransport } from '../../logger';
-import { _setEnvironmentOverrides, _resetEnvironmentOverrides } from '../../logger/core/environment';
+import {
+  _setEnvironmentOverrides,
+  _resetEnvironmentOverrides,
+} from '../../logger/core/environment';
+import * as utils from '../../utils';
 
 describe('IT-浏览器兼容性测试', () => {
   // 每个测试后重置环境覆盖
   afterEach(() => {
     _resetEnvironmentOverrides();
   });
-  
+
   describe('平台检测', () => {
     test('IT-COMPAT-001: 平台检测工具应正确识别环境', () => {
       // 原始环境
       const originalWindow = global.window;
       const originalDocument = global.document;
       const originalNavigator = global.navigator;
-      
+
       try {
         // 模拟浏览器环境
         const mockWindow = {};
         const mockDocument = { createElement: vi.fn() };
-        const mockNavigator = { userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' };
-        
+        const mockNavigator = {
+          userAgent:
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        };
+
         // 设置全局对象
         global.window = mockWindow as any;
         global.document = mockDocument as any;
-        
+
         // 使用 Object.defineProperty 设置 navigator
         Object.defineProperty(global, 'navigator', {
           value: mockNavigator,
           configurable: true,
-          writable: true
+          writable: true,
         });
-        
+
         // 使用环境覆盖
         _setEnvironmentOverrides(false, true);
 
@@ -48,7 +55,8 @@ describe('IT-浏览器兼容性测试', () => {
         expect(utils.platform.isNode()).toBe(false);
 
         // 模拟IE浏览器
-        mockNavigator.userAgent = 'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko';
+        mockNavigator.userAgent =
+          'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko';
 
         expect(utils.platform.isBrowser()).toBe(true);
         expect(utils.platform.isIE()).toBe(true);
@@ -56,14 +64,14 @@ describe('IT-浏览器兼容性测试', () => {
         // 恢复原始环境
         global.window = originalWindow;
         global.document = originalDocument;
-        
+
         // 恢复 navigator
         Object.defineProperty(global, 'navigator', {
           value: originalNavigator,
           configurable: true,
-          writable: true
+          writable: true,
         });
-        
+
         _resetEnvironmentOverrides();
       }
 
@@ -80,7 +88,7 @@ describe('IT-浏览器兼容性测试', () => {
       try {
         // 模拟浏览器环境
         _setEnvironmentOverrides(false, true);
-        
+
         // 模拟浏览器console
         const mockConsole = {
           log: vi.fn(),
@@ -97,7 +105,7 @@ describe('IT-浏览器兼容性测试', () => {
         const logger = createLogger({
           name: 'browser-test',
           level: LogLevel.INFO,
-          transports: [new ConsoleTransport({ console: mockConsole })]
+          transports: [new ConsoleTransport({ console: mockConsole })],
         });
 
         // 记录日志
@@ -160,12 +168,20 @@ describe('IT-浏览器兼容性测试', () => {
 
         // 使用Object.defineProperty模拟浏览器localStorage
         const mockLocalStorage = {
-          getItem: vi.fn((key) => mockStorage[key] || null),
-          setItem: vi.fn((key, value) => { mockStorage[key] = String(value); }),
-          removeItem: vi.fn((key) => { delete mockStorage[key]; }),
-          clear: vi.fn(() => { Object.keys(mockStorage).forEach(key => delete mockStorage[key]); }),
-          key: vi.fn((index) => Object.keys(mockStorage)[index] || null),
-          get length() { return Object.keys(mockStorage).length; }
+          getItem: vi.fn(key => mockStorage[key] || null),
+          setItem: vi.fn((key, value) => {
+            mockStorage[key] = String(value);
+          }),
+          removeItem: vi.fn(key => {
+            delete mockStorage[key];
+          }),
+          clear: vi.fn(() => {
+            Object.keys(mockStorage).forEach(key => delete mockStorage[key]);
+          }),
+          key: vi.fn(index => Object.keys(mockStorage)[index] || null),
+          get length() {
+            return Object.keys(mockStorage).length;
+          },
         };
 
         global.localStorage = mockLocalStorage;
@@ -195,10 +211,12 @@ describe('IT-浏览器兼容性测试', () => {
     test('IT-COMPAT-006: 错误处理应适应不同环境的错误格式', () => {
       // 测试Node.js风格错误
       const nodeError = new Error('Node错误');
+
       (nodeError as any).code = 'NODE_ERR';
 
       // 测试浏览器风格错误
       const browserError = new Error('浏览器错误');
+
       (browserError as any).fileName = 'script.js';
       (browserError as any).lineNumber = 42;
 
@@ -207,7 +225,7 @@ describe('IT-浏览器兼容性测试', () => {
         name: 'SecurityError',
         message: 'DOM错误',
         code: 18,
-        toString: () => 'SecurityError: DOM错误'
+        toString: () => 'SecurityError: DOM错误',
       };
 
       // 验证错误消息提取

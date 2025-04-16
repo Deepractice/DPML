@@ -55,22 +55,22 @@ import { processPrompt, transformPrompt } from '@dpml/prompt';
 // 第一步：处理DPML文档
 processPrompt(dpml).then(processed => {
   console.log('处理结果:', processed);
-  
+
   // 第二步：转换为最终文本
   const promptText = transformPrompt(processed, {
     format: {
       role: {
         title: '👤 角色',
-        wrapper: (content) => `**${content}**`
+        wrapper: content => `**${content}**`,
       },
       context: {
         title: '📝 上下文',
-        prefix: '• '
-      }
+        prefix: '• ',
+      },
     },
-    addLanguageDirective: true
+    addLanguageDirective: true,
   });
-  
+
   console.log(promptText);
 });
 ```
@@ -151,13 +151,13 @@ function transformPrompt(
 
 ```typescript
 interface GeneratePromptOptions {
-  validateOnly?: boolean;       // 是否只进行验证
-  basePath?: string;            // 基础路径
-  strictMode?: boolean;         // 严格模式
-  lang?: string;                // 语言设置
+  validateOnly?: boolean; // 是否只进行验证
+  basePath?: string; // 基础路径
+  strictMode?: boolean; // 严格模式
+  lang?: string; // 语言设置
   formatTemplates?: FormatTemplates; // 格式模板
-  addLanguageDirective?: boolean;    // 添加语言指令
-  tagOrder?: string[];          // 标签顺序
+  addLanguageDirective?: boolean; // 添加语言指令
+  tagOrder?: string[]; // 标签顺序
 }
 ```
 
@@ -171,9 +171,9 @@ interface FormatTemplates {
 }
 
 interface TagFormatOptions {
-  title?: string;                       // 标题
-  prefix?: string;                      // 内容前缀
-  suffix?: string;                      // 内容后缀
+  title?: string; // 标题
+  prefix?: string; // 内容前缀
+  suffix?: string; // 内容后缀
   wrapper?: (content: string) => string; // 内容包装函数
 }
 ```
@@ -190,7 +190,7 @@ try {
   console.log(promptText);
 } catch (err) {
   console.error('生成提示词失败:', err.message);
-  
+
   // 根据错误类型进行特定处理
   if (err.code?.startsWith('PARSE_')) {
     console.error('DPML语法错误，请检查语法');
@@ -219,4 +219,4 @@ try {
 
 ## 许可证
 
-MIT 
+MIT

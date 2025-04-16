@@ -17,7 +17,7 @@ classDiagram
         +initialize()
         +run(argv: string[])
     }
-    
+
     %% 命令注册与管理
     class CommandRegistry {
         -domains: Map~string, DomainCommandSet~
@@ -28,7 +28,7 @@ classDiagram
         +serialize(): object
         +deserialize(data: object)
     }
-    
+
     class CommandLoader {
         -registry: CommandRegistry
         -configManager: ConfigManager
@@ -38,7 +38,7 @@ classDiagram
         +loadDomainCommands(domainName: string)
         +refreshMappings(specific?: string)
     }
-    
+
     class CommandExecutor {
         -registry: CommandRegistry
         -program: any
@@ -46,7 +46,7 @@ classDiagram
         +executeCommand(domainName: string, commandName: string, args: any)
         +handleErrors(error: Error)
     }
-    
+
     %% 配置管理
     class ConfigManager {
         -configPath: string
@@ -57,7 +57,7 @@ classDiagram
         +set(key: string, value: any)
         +ensureConfigDir()
     }
-    
+
     %% 接口定义
     class Command {
         <<interface>>
@@ -67,7 +67,7 @@ classDiagram
         +examples: string[]
         +execute(args: any): Promise~void~
     }
-    
+
     class DomainCommandSet {
         +domain: string
         +package: string
@@ -77,7 +77,7 @@ classDiagram
         +hooks: object
         +loadCommands()
     }
-    
+
     %% 工具类
     class PathUtils {
         +getUserHome(): string
@@ -85,21 +85,21 @@ classDiagram
         +getMappingFilePath(): string
         +findNodeModules(): string[]
     }
-    
+
     %% 关系定义
     CLI *-- CommandRegistry : 使用
     CLI *-- CommandLoader : 使用
     CLI *-- CommandExecutor : 使用
     CLI *-- ConfigManager : 使用
-    
+
     CommandLoader --> CommandRegistry : 注册命令
     CommandLoader --> ConfigManager : 读取/写入配置
     CommandLoader --> PathUtils : 使用路径工具
-    
+
     CommandExecutor --> CommandRegistry : 获取命令
-    
+
     DomainCommandSet *-- "many" Command : 包含
-    
+
     CommandRegistry o-- "many" DomainCommandSet : 管理
 ```
 
@@ -113,48 +113,48 @@ classDiagram
         +CommandLoader
         +CommandExecutor
     }
-    
+
     class DpmlPrompt {
         <<package>>
         +validateCommand: Command
         +renderCommand: Command
         +dpmlCommands.js
     }
-    
+
     class DpmlAgent {
         <<package>>
         +runCommand: Command
         +configCommand: Command
         +dpmlCommands.js
     }
-    
+
     class DpmlWorkflow {
         <<package>>
         +runCommand: Command
         +dpmlCommands.js
     }
-    
+
     class DpmlCore {
         <<package>>
     }
-    
+
     class DpmlLogger {
         <<package>>
         +log()
         +error()
         +warning()
     }
-    
+
     DpmlCLI ..> DpmlPrompt : 发现并加载命令
     DpmlCLI ..> DpmlAgent : 发现并加载命令
     DpmlCLI ..> DpmlWorkflow : 发现并加载命令
     DpmlCLI --> DpmlLogger : 使用
-    
+
     DpmlPrompt --> DpmlCore : 依赖
     DpmlAgent --> DpmlCore : 依赖
     DpmlAgent --> DpmlPrompt : 依赖
     DpmlWorkflow --> DpmlAgent : 依赖
-    
+
     DpmlPrompt --> DpmlLogger : 使用
     DpmlAgent --> DpmlLogger : 使用
     DpmlWorkflow --> DpmlLogger : 使用
@@ -168,11 +168,11 @@ stateDiagram-v2
     CLI初始化 --> 解析参数
     解析参数 --> 加载命令映射
     加载命令映射 --> 是否需要刷新?
-    
+
     是否需要刷新? --> 是: 扫描包
     是 --> 更新映射文件
     更新映射文件 --> 确定目标领域
-    
+
     是否需要刷新? --> 否: 确定目标领域
     确定目标领域 --> 加载领域命令
     加载领域命令 --> 执行指定命令
@@ -189,14 +189,14 @@ graph TD
     C --> C2[loader.ts]
     C --> C3[executor.ts]
     C --> C4[config.ts]
-    
+
     B --> D[utils/]
     D --> D2[paths.ts]
-    
+
     B --> E[types/]
     E --> E1[command.ts]
     E --> E2[config.ts]
-    
+
     C1 -.-> E1
     C2 -.-> E1
     C2 -.-> E2
@@ -213,21 +213,21 @@ sequenceDiagram
     participant CommandLoader
     participant CommandRegistry
     participant DomainPackage
-    
+
     User->>CLI: 执行命令 dpml prompt validate file.dpml
     CLI->>CommandLoader: 加载领域映射
     CommandLoader->>CommandRegistry: 获取prompt领域信息
-    
+
     alt 领域未注册或需要刷新
         CommandLoader->>CommandLoader: 扫描包
         CommandLoader->>DomainPackage: 查找@dpml/prompt
         DomainPackage-->>CommandLoader: 返回命令配置
         CommandLoader->>CommandRegistry: 注册领域命令
     end
-    
+
     CommandRegistry-->>CLI: 返回prompt领域命令信息
     CLI->>DomainPackage: 动态导入validate命令
     DomainPackage-->>CLI: 返回命令实现
     CLI->>DomainPackage: 执行命令(调用command.execute())
     DomainPackage-->>User: 显示结果
-``` 
+```

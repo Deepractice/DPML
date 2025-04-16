@@ -33,17 +33,17 @@ async function basicProcessing() {
   try {
     // 1. 解析DPML文本
     const parseResult = await parse(dpmlText);
-    
+
     // 2. 处理AST
     const processedDoc = await process(parseResult.ast);
-    
+
     console.log('处理后的文档:', JSON.stringify(processedDoc, null, 2));
-    
+
     // 访问处理后的元数据
     if (processedDoc.metadata) {
       console.log('文档元数据:', processedDoc.metadata);
     }
-    
+
     // 访问语义信息
     if (processedDoc.semantics) {
       console.log('语义信息:', processedDoc.semantics);
@@ -67,14 +67,14 @@ async function processingWithOptions() {
   try {
     // 1. 解析DPML文本
     const parseResult = await parse(dpmlText);
-    
+
     // 2. 使用选项处理AST
     const processedDoc = await process(parseResult.ast, {
-      strictMode: false,       // 非严格模式
-      errorRecovery: true,     // 出错时继续处理
-      basePath: './templates'  // 解析相对路径的基础目录
+      strictMode: false, // 非严格模式
+      errorRecovery: true, // 出错时继续处理
+      basePath: './templates', // 解析相对路径的基础目录
     });
-    
+
     console.log('带选项处理的文档:', JSON.stringify(processedDoc, null, 2));
   } catch (error) {
     console.error('处理错误:', error);
@@ -98,37 +98,40 @@ class RoleTagProcessor implements TagProcessor {
   canProcess(element: Element): boolean {
     return element.tagName === 'role';
   }
-  
+
   // 处理元素
-  async process(element: Element, context: ProcessingContext): Promise<Element> {
+  async process(
+    element: Element,
+    context: ProcessingContext
+  ): Promise<Element> {
     // 提取角色信息
     const name = element.attributes.name || 'unknown';
-    
+
     // 提取角色描述（文本内容）
     const description = element.children
       .filter(child => child.type === 'content')
       .map(child => (child as any).value)
       .join('');
-    
+
     // 添加到元数据
     element.metadata = element.metadata || {};
     element.metadata.roleInfo = {
       name,
-      description: description.trim()
+      description: description.trim(),
     };
-    
+
     // 将角色信息添加到文档语义中
     const doc = context.getDocument();
     doc.semantics = doc.semantics || {};
     doc.semantics.roles = doc.semantics.roles || [];
     doc.semantics.roles.push({
       name,
-      description: description.trim()
+      description: description.trim(),
     });
-    
+
     return element;
   }
-  
+
   // 设置优先级（影响处理顺序）
   priority = 10;
 }
@@ -136,7 +139,7 @@ class RoleTagProcessor implements TagProcessor {
 // 使用自定义处理器
 async function useCustomProcessor() {
   const { parse, process, ProcessingContext } = await import('@dpml/core');
-  
+
   const dpmlText = `
     <prompt id="example">
       <role name="assistant">
@@ -147,19 +150,19 @@ async function useCustomProcessor() {
       </role>
     </prompt>
   `;
-  
+
   try {
     // 1. 解析DPML文本
     const parseResult = await parse(dpmlText);
-    
+
     // 2. 创建处理上下文
     const context = new ProcessingContext({
-      processors: [new RoleTagProcessor()]  // 注册自定义处理器
+      processors: [new RoleTagProcessor()], // 注册自定义处理器
     });
-    
+
     // 3. 处理AST
     const processedDoc = await process(parseResult.ast, {}, context);
-    
+
     // 4. 查看处理结果
     console.log('处理后的角色信息:', processedDoc.semantics?.roles);
   } catch (error) {
@@ -182,8 +185,11 @@ import * as path from 'path';
 // 创建自定义引用解析器
 class FileReferenceResolver implements ReferenceResolver {
   constructor(private basePath: string) {}
-  
-  async resolveReference(reference: Reference, context: ProcessingContext): Promise<any> {
+
+  async resolveReference(
+    reference: Reference,
+    context: ProcessingContext
+  ): Promise<any> {
     // 只处理文件协议
     if (reference.protocol === 'file') {
       try {
@@ -192,10 +198,12 @@ class FileReferenceResolver implements ReferenceResolver {
         const content = await fs.readFile(filePath, 'utf-8');
         return content;
       } catch (error) {
-        throw new Error(`无法读取文件: ${reference.path}, 错误: ${error.message}`);
+        throw new Error(
+          `无法读取文件: ${reference.path}, 错误: ${error.message}`
+        );
       }
     }
-    
+
     // 不支持其他协议
     return null;
   }
@@ -204,7 +212,7 @@ class FileReferenceResolver implements ReferenceResolver {
 // 使用引用解析器
 async function useReferenceResolver() {
   const { parse, process, ProcessingContext } = await import('@dpml/core');
-  
+
   const dpmlText = `
     <prompt id="example">
       <include src="file:./templates/context.xml" />
@@ -213,19 +221,19 @@ async function useReferenceResolver() {
       </role>
     </prompt>
   `;
-  
+
   try {
     // 1. 解析DPML文本
     const parseResult = await parse(dpmlText);
-    
+
     // 2. 创建处理上下文
     const context = new ProcessingContext({
-      referenceResolvers: [new FileReferenceResolver('./examples/core')]
+      referenceResolvers: [new FileReferenceResolver('./examples/core')],
     });
-    
+
     // 3. 处理AST
     const processedDoc = await process(parseResult.ast, {}, context);
-    
+
     // 4. 查看处理结果
     console.log('处理后的文档:', JSON.stringify(processedDoc, null, 2));
   } catch (error) {
@@ -259,4 +267,4 @@ ts-node examples/core/processing/reference-resolver.ts
 
 自定义标签处理器示例将提取角色信息并显示在语义数据中。
 
-引用解析示例将演示如何从外部文件加载内容，并合并到文档中。 
+引用解析示例将演示如何从外部文件加载内容，并合并到文档中。

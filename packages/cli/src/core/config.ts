@@ -1,7 +1,8 @@
 import fs from 'fs';
-import path from 'path';
 import os from 'os';
-import { ConfigOptions, ConfigData } from '../types/config';
+import path from 'path';
+
+import type { ConfigOptions, ConfigData } from '../types/config';
 
 /**
  * 配置管理器类
@@ -24,8 +25,14 @@ export class ConfigManager {
   constructor(options?: ConfigOptions) {
     // TODO: 初始化配置路径
     this.configDir = options?.configDir || path.join(os.homedir(), '.dpml');
-    this.configPath = path.join(this.configDir, options?.configFileName || 'config.json');
-    this.mappingPath = path.join(this.configDir, options?.mappingFileName || 'domain-mapping.json');
+    this.configPath = path.join(
+      this.configDir,
+      options?.configFileName || 'config.json'
+    );
+    this.mappingPath = path.join(
+      this.configDir,
+      options?.mappingFileName || 'domain-mapping.json'
+    );
     this.config = {};
   }
 
@@ -42,10 +49,15 @@ export class ConfigManager {
 
       // 读取配置文件
       const configContent = fs.readFileSync(this.configPath, 'utf-8');
+
       this.config = JSON.parse(configContent);
+
       return true;
     } catch (error) {
-      console.error(`加载配置失败: ${error instanceof Error ? error.message : String(error)}`);
+      console.error(
+        `加载配置失败: ${error instanceof Error ? error.message : String(error)}`
+      );
+
       return false;
     }
   }
@@ -64,9 +76,13 @@ export class ConfigManager {
 
       // 写入配置文件
       fs.writeFileSync(this.configPath, configContent, 'utf-8');
+
       return true;
     } catch (error) {
-      console.error(`保存配置失败: ${error instanceof Error ? error.message : String(error)}`);
+      console.error(
+        `保存配置失败: ${error instanceof Error ? error.message : String(error)}`
+      );
+
       return false;
     }
   }
@@ -108,9 +124,13 @@ export class ConfigManager {
         // 创建目录，包括中间目录
         fs.mkdirSync(this.configDir, { recursive: true });
       }
+
       return true;
     } catch (error) {
-      console.error(`创建配置目录失败: ${error instanceof Error ? error.message : String(error)}`);
+      console.error(
+        `创建配置目录失败: ${error instanceof Error ? error.message : String(error)}`
+      );
+
       return false;
     }
   }

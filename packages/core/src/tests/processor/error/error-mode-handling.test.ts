@@ -2,12 +2,19 @@
  * 测试不同模式下的错误处理行为
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { ErrorHandler } from '../../../processor/errors/errorHandler';
-import { ProcessingError, ErrorSeverity } from '../../../processor/errors/processingError';
-import { ProcessingContext } from '../../../processor/processingContext';
-import { Element, NodeType, Document, Node } from '../../../types/node';
+
 import { DefaultProcessor } from '../../../processor/defaultProcessor';
-import { NodeVisitor, ProcessorOptions } from '../../../processor/interfaces';
+import { ErrorHandler } from '../../../processor/errors/errorHandler';
+import {
+  ProcessingError,
+  ErrorSeverity,
+} from '../../../processor/errors/processingError';
+import { ProcessorOptions } from '../../../processor/interfaces';
+import { ProcessingContext } from '../../../processor/processingContext';
+import { NodeType, Node } from '../../../types/node';
+
+import type { NodeVisitor } from '../../../processor/interfaces';
+import type { Element, Document } from '../../../types/node';
 
 describe('不同模式下的错误处理', () => {
   let onError: any;
@@ -23,30 +30,35 @@ describe('不同模式下的错误处理', () => {
       strictMode: false,
       errorRecovery: false,
       onError,
-      onWarning
+      onWarning,
     });
-    
+
     mockDocument = {
       type: NodeType.DOCUMENT,
       children: [],
       position: {
         start: { line: 1, column: 1, offset: 0 },
-        end: { line: 1, column: 10, offset: 9 }
-      }
+        end: { line: 1, column: 10, offset: 9 },
+      },
     };
-    
+
     context = new ProcessingContext(mockDocument, 'test.xml');
   });
 
   it('严格模式下所有错误都应中断处理', () => {
     errorHandler.setStrictMode(true);
-    
+
     // 非致命错误在严格模式下也应该抛出
     expect(() => {
       // 使用undefined代替null作为node参数
-      errorHandler.handleError('非致命错误', undefined, undefined, ErrorSeverity.ERROR);
+      errorHandler.handleError(
+        '非致命错误',
+        undefined,
+        undefined,
+        ErrorSeverity.ERROR
+      );
     }).toThrow(ProcessingError);
-    
+
     // 警告在严格模式下应该仍然是警告，不抛出
     expect(() => {
       errorHandler.handleWarning('警告信息');
@@ -55,18 +67,18 @@ describe('不同模式下的错误处理', () => {
 
   it('宽松模式下只有致命错误才中断处理', () => {
     errorHandler.setStrictMode(false);
-    
+
     // 非致命错误在宽松模式下不应抛出
     expect(() => {
       errorHandler.handleError('非致命错误');
     }).toThrow(ProcessingError);
-    
+
     // 启用错误恢复后，非致命错误不应抛出
     errorHandler.setErrorRecovery(true);
     expect(() => {
       errorHandler.handleError('非致命错误');
     }).not.toThrow();
-    
+
     // 致命错误总是抛出，即使在宽松模式下
     expect(() => {
       errorHandler.handleFatalError('致命错误');
@@ -82,18 +94,19 @@ describe('不同模式下的错误处理', () => {
       children: [],
       position: {
         start: { line: 1, column: 1, offset: 0 },
-        end: { line: 1, column: 20, offset: 19 }
-      }
+        end: { line: 1, column: 20, offset: 19 },
+      },
     };
-    
+
     mockDocument.children = [rootElement];
     context = new ProcessingContext(mockDocument, 'test.xml');
-    
+
     // 上下文应该标记为严格模式
     expect(context.documentMode).toBe('strict');
-    
+
     // 错误处理应该按照严格模式行为
     const isStrict = errorHandler.getModeFromContext(context);
+
     expect(isStrict).toBe(true);
   });
 
@@ -106,10 +119,10 @@ describe('不同模式下的错误处理', () => {
       children: [],
       position: {
         start: { line: 1, column: 1, offset: 0 },
-        end: { line: 1, column: 20, offset: 19 }
-      }
+        end: { line: 1, column: 20, offset: 19 },
+      },
     };
-    
+
     // 创建一个带有严格模式的子元素
     const childElement: Element = {
       type: NodeType.ELEMENT,
@@ -118,12 +131,13 @@ describe('不同模式下的错误处理', () => {
       children: [],
       position: {
         start: { line: 2, column: 1, offset: 20 },
-        end: { line: 2, column: 20, offset: 39 }
-      }
+        end: { line: 2, column: 20, offset: 39 },
+      },
     };
-    
+
     // 在处理子元素时，应该使用子元素的mode属性
     const isStrict = errorHandler.getModeFromContext(context, childElement);
+
     expect(isStrict).toBe(true);
   });
 });
@@ -134,15 +148,19 @@ describe('处理过程中的错误处理', () => {
     // 记录警告和错误
     const warnings: ProcessingError[] = [];
     const errors: ProcessingError[] = [];
-    
+
     // 先处理宽松模式下的错误
     const looseErrorHandler = new ErrorHandler({
       strictMode: false,
       errorRecovery: true,
-      onWarning: (warning) => { warnings.push(warning); },
-      onError: (error) => { errors.push(error); }
+      onWarning: warning => {
+        warnings.push(warning);
+      },
+      onError: error => {
+        errors.push(error);
+      },
     });
-    
+
     // 创建一个会抛出错误的访问者
     const errorVisitor: NodeVisitor = {
       priority: 100,
@@ -150,14 +168,18 @@ describe('处理过程中的错误处理', () => {
         if (element.tagName === 'error-element') {
           throw new Error('访问者处理错误');
         }
+
         return element;
-      }
+      },
     };
-    
+
     // 创建宽松模式处理器
-    const looseProcessor = new DefaultProcessor({ errorHandler: looseErrorHandler });
+    const looseProcessor = new DefaultProcessor({
+      errorHandler: looseErrorHandler,
+    });
+
     looseProcessor.registerVisitor(errorVisitor);
-    
+
     // 创建测试文档，包含宽松模式的元素
     const looseDocument: Document = {
       type: NodeType.DOCUMENT,
@@ -174,40 +196,47 @@ describe('处理过程中的错误处理', () => {
               children: [],
               position: {
                 start: { line: 2, column: 1, offset: 20 },
-                end: { line: 2, column: 20, offset: 39 }
-              }
-            }
+                end: { line: 2, column: 20, offset: 39 },
+              },
+            },
           ],
           position: {
             start: { line: 1, column: 1, offset: 0 },
-            end: { line: 3, column: 1, offset: 40 }
-          }
-        }
+            end: { line: 3, column: 1, offset: 40 },
+          },
+        },
       ],
       position: {
         start: { line: 1, column: 1, offset: 0 },
-        end: { line: 3, column: 1, offset: 40 }
-      }
+        end: { line: 3, column: 1, offset: 40 },
+      },
     };
-    
+
     // 处理宽松模式文档
     await looseProcessor.process(looseDocument, 'loose-document.xml');
-    
+
     // 宽松模式下的错误应该被作为警告处理
     expect(warnings.length).toBeGreaterThan(0);
     expect(warnings.some(w => w.message.includes('访问者处理错误'))).toBe(true);
-    
+
     // 然后处理严格模式下的错误
     const strictErrorHandler = new ErrorHandler({
       strictMode: true, // 设置为严格模式
       errorRecovery: false, // 不启用错误恢复
-      onWarning: (warning) => { /* 忽略警告 */ },
-      onError: (error) => { errors.push(error); }
+      onWarning: warning => {
+        /* 忽略警告 */
+      },
+      onError: error => {
+        errors.push(error);
+      },
     });
-    
-    const strictProcessor = new DefaultProcessor({ errorHandler: strictErrorHandler });
+
+    const strictProcessor = new DefaultProcessor({
+      errorHandler: strictErrorHandler,
+    });
+
     strictProcessor.registerVisitor(errorVisitor);
-    
+
     // 创建测试文档，包含严格模式的元素
     const strictDocument: Document = {
       type: NodeType.DOCUMENT,
@@ -224,24 +253,25 @@ describe('处理过程中的错误处理', () => {
               children: [],
               position: {
                 start: { line: 2, column: 1, offset: 20 },
-                end: { line: 2, column: 20, offset: 39 }
-              }
-            }
+                end: { line: 2, column: 20, offset: 39 },
+              },
+            },
           ],
           position: {
             start: { line: 1, column: 1, offset: 0 },
-            end: { line: 3, column: 1, offset: 40 }
-          }
-        }
+            end: { line: 3, column: 1, offset: 40 },
+          },
+        },
       ],
       position: {
         start: { line: 1, column: 1, offset: 0 },
-        end: { line: 3, column: 1, offset: 40 }
-      }
+        end: { line: 3, column: 1, offset: 40 },
+      },
     };
-    
+
     // 处理严格模式文档，应该失败
     let processingFailed = false;
+
     try {
       await strictProcessor.process(strictDocument, 'strict-document.xml');
     } catch (error) {
@@ -252,12 +282,12 @@ describe('处理过程中的错误处理', () => {
         expect(error.message).toContain('访问者处理错误');
       }
     }
-    
+
     // 验证处理是否失败
     expect(processingFailed).toBe(true);
-    
+
     // 严格模式下的错误应该被作为错误处理
     expect(errors.length).toBeGreaterThan(0);
     expect(errors.some(e => e.message.includes('访问者处理错误'))).toBe(true);
   });
-}); 
+});

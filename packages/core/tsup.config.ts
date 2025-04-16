@@ -1,6 +1,8 @@
-import { defineConfig } from 'tsup';
-import { baseConfig } from '../../tsup.base.config';
 import * as path from 'path';
+
+import { defineConfig } from 'tsup';
+
+import { baseConfig } from '../../tsup.base.config';
 
 export default defineConfig({
   ...baseConfig,
@@ -8,7 +10,7 @@ export default defineConfig({
   noExternal: ['fast-xml-parser'],
   esbuildOptions(options) {
     options.alias = {
-      '@core': path.resolve(__dirname, './src')
+      '@core': path.resolve(__dirname, './src'),
     };
-  }
+  },
 });

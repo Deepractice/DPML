@@ -1,6 +1,6 @@
 /**
  * 环境帮助工具
- * 
+ *
  * 用于兼容性测试的环境检测辅助函数
  */
 
@@ -34,8 +34,9 @@ export function getTypeScriptVersion(): string | null {
   try {
     // 这是一个动态导入，实际使用时可能需要适配项目的导入方式
     const ts = require('typescript');
+
     return ts.version;
   } catch (e) {
     return null;
   }
-} 
+}

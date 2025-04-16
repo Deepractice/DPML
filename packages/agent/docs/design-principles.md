@@ -39,13 +39,13 @@ const result = await agent.run({ input: userQuery });
 
 ```xml
 <agent id="research-assistant">
-  <llm 
+  <llm
     api-type="openai"
     api-url="https://api.openai.com/v1"
     model="gpt-4-turbo"
     key-env="OPENAI_API_KEY"
   />
-  
+
   <prompt>
     你是一位专业的研究助手，擅长查找和分析信息。
   </prompt>
@@ -87,11 +87,11 @@ interface AgentState {
   // 基础状态
   id: string;
   status: 'idle' | 'thinking' | 'executing' | 'waiting' | 'done';
-  
+
   // 运行时状态
   currentTask?: Task;
   memory: MemoryState;
-  
+
   // 上下文状态
   conversation: Message[];
   metadata: Record<string, any>;
@@ -112,9 +112,9 @@ function reduceState(state: AgentState, action: AgentAction): AgentState {
 
 // 副作用处理 - 单独的副作用系统
 const effects = {
-  'TASK_STARTED': async (action, state, dispatch) => {
+  TASK_STARTED: async (action, state, dispatch) => {
     // 处理副作用，如日志记录、外部API调用等
-  }
+  },
 };
 ```
 
@@ -125,7 +125,7 @@ const effects = {
 - 支持异步和非阻塞处理
 
 ```typescript
-agent.on('thinking:start', (context) => {
+agent.on('thinking:start', context => {
   console.log('Agent开始思考');
 });
 
@@ -146,12 +146,12 @@ const searchTool = createTool({
   name: 'web-search',
   description: '搜索互联网获取信息',
   parameters: {
-    query: { type: 'string', description: '搜索查询' }
+    query: { type: 'string', description: '搜索查询' },
   },
-  execute: async (params) => {
+  execute: async params => {
     // 实现搜索逻辑
     return searchResults;
-  }
+  },
 });
 
 // 注册工具
@@ -164,11 +164,11 @@ agent.registerCapability(searchTool);
 
 ```typescript
 interface Capability {
-  type: string;        // 能力类型标识
-  name: string;        // 能力名称
+  type: string; // 能力类型标识
+  name: string; // 能力名称
   description: string; // 能力描述
-  metadata?: any;      // 能力元数据
-  
+  metadata?: any; // 能力元数据
+
   // 能力调用方法
   invoke(params: any, context: CapabilityContext): Promise<any>;
 }
@@ -194,13 +194,13 @@ interface MemorySystem {
     add(item: MemoryItem): void;
     getRecent(count: number): MemoryItem[];
   };
-  
+
   // 工作记忆 - 当前任务相关
   working: {
     set(key: string, value: any): void;
     get(key: string): any;
   };
-  
+
   // 长期记忆 - 持久化存储
   longTerm: {
     add(item: MemoryItem): void;
@@ -213,14 +213,14 @@ interface MemorySystem {
 
 ```typescript
 interface MemoryItem {
-  id: string;             // 唯一标识
-  type: MemoryItemType;   // 类型，如'message', 'fact', 'reflection'
-  content: string;        // 内容
-  metadata: {            
-    timestamp: number;    // 创建时间
-    source: string;       // 来源
-    importance?: number;  // 重要性评分
-    tags?: string[];      // 标签
+  id: string; // 唯一标识
+  type: MemoryItemType; // 类型，如'message', 'fact', 'reflection'
+  content: string; // 内容
+  metadata: {
+    timestamp: number; // 创建时间
+    source: string; // 来源
+    importance?: number; // 重要性评分
+    tags?: string[]; // 标签
   };
 }
 ```
@@ -234,7 +234,7 @@ interface MemoryItem {
 ```typescript
 // 基于查询检索相关记忆
 const relevantMemories = await agent.memory.longTerm.search(
-  "关于用户偏好的信息",
+  '关于用户偏好的信息',
   5 // 返回最相关的5条
 );
 
@@ -242,7 +242,7 @@ const relevantMemories = await agent.memory.longTerm.search(
 await agent.memory.compress({
   strategy: 'summarize',
   target: 'conversation',
-  threshold: 10 // 当超过10条对话时压缩
+  threshold: 10, // 当超过10条对话时压缩
 });
 ```
 
@@ -260,8 +260,8 @@ const agent = await createAgent('./definition.dpml', {
     apiUrl: 'https://api.openai.com/v1',
     model: 'gpt-4',
     keyEnv: 'OPENAI_API_KEY',
-    temperature: 0.7
-  }
+    temperature: 0.7,
+  },
 });
 
 // 动态切换模型
@@ -269,7 +269,7 @@ await agent.setModel({
   apiType: 'anthropic',
   apiUrl: 'https://api.anthropic.com',
   model: 'claude-3',
-  keyEnv: 'ANTHROPIC_API_KEY'
+  keyEnv: 'ANTHROPIC_API_KEY',
 });
 ```
 
@@ -280,10 +280,10 @@ interface LLMConnector {
   // 核心方法
   complete(options: CompletionOptions): Promise<CompletionResult>;
   completeStream(options: CompletionOptions): AsyncIterable<CompletionChunk>;
-  
+
   // 辅助方法
-  tokenize(text: string): Promise<number>;  // 计算token
-  embed(text: string): Promise<number[]>;   // 生成嵌入
+  tokenize(text: string): Promise<number>; // 计算token
+  embed(text: string): Promise<number[]>; // 生成嵌入
 }
 ```
 
@@ -308,18 +308,18 @@ for await (const chunk of agent.runStream({ input })) {
 
 ```typescript
 // 代理生命周期事件
-agent.on('init', () => {});          // 初始化
-agent.on('start', () => {});         // 开始执行
-agent.on('pause', () => {});         // 暂停
-agent.on('resume', () => {});        // 恢复
-agent.on('stop', () => {});          // 停止
-agent.on('error', (err) => {});      // 错误
+agent.on('init', () => {}); // 初始化
+agent.on('start', () => {}); // 开始执行
+agent.on('pause', () => {}); // 暂停
+agent.on('resume', () => {}); // 恢复
+agent.on('stop', () => {}); // 停止
+agent.on('error', err => {}); // 错误
 
 // 处理阶段事件
 agent.on('thinking:start', () => {}); // 开始思考
 agent.on('thinking:complete', () => {}); // 思考完成
-agent.on('tool:calling', (tool) => {}); // 调用工具前
-agent.on('tool:result', (result) => {}); // 工具调用结果
+agent.on('tool:calling', tool => {}); // 调用工具前
+agent.on('tool:result', result => {}); // 工具调用结果
 ```
 
 ### 7.2 结构化日志
@@ -337,8 +337,8 @@ interface Logger {
 const agent = await createAgent('./definition.dpml', {
   logger: {
     level: 'debug', // 'debug' | 'info' | 'warn' | 'error'
-    targets: ['console', 'file:./agent.log']
-  }
+    targets: ['console', 'file:./agent.log'],
+  },
 });
 ```
 
@@ -361,13 +361,13 @@ const agent = await createAgent('./definition.dpml', {
 // 错误类型
 enum AgentErrorType {
   // 致命错误
-  INITIALIZATION_ERROR,     // 初始化失败
-  INVALID_DEFINITION,       // 定义无效
-  
+  INITIALIZATION_ERROR, // 初始化失败
+  INVALID_DEFINITION, // 定义无效
+
   // 非致命错误
-  TOOL_EXECUTION_ERROR,     // 工具执行失败
-  LLM_UNAVAILABLE,          // LLM服务不可用
-  MEMORY_RETRIEVAL_ERROR,   // 记忆检索失败
+  TOOL_EXECUTION_ERROR, // 工具执行失败
+  LLM_UNAVAILABLE, // LLM服务不可用
+  MEMORY_RETRIEVAL_ERROR, // 记忆检索失败
 }
 ```
 
@@ -381,16 +381,16 @@ const agent = await createAgent('./definition.dpml', {
     tools: {
       'web-search': {
         fallbackTool: 'local-search',
-        maxRetries: 3
-      }
+        maxRetries: 3,
+      },
     },
     // LLM失败时的降级策略
     llm: [
       { provider: 'openai', model: 'gpt-4' },
       { provider: 'openai', model: 'gpt-3.5-turbo' },
-      { provider: 'anthropic', model: 'claude-3' }
-    ]
-  }
+      { provider: 'anthropic', model: 'claude-3' },
+    ],
+  },
 });
 ```
 
@@ -406,8 +406,8 @@ const agent = await createAgent('./definition.dpml', {
   retry: {
     maxAttempts: 3,
     backoff: 'exponential', // 'fixed' | 'linear' | 'exponential'
-    initialDelay: 1000 // ms
-  }
+    initialDelay: 1000, // ms
+  },
 });
 
 // 保存和恢复状态
@@ -431,13 +431,13 @@ const fileTool = createTool({
   name: 'file-reader',
   // 安全配置
   security: {
-    allowedPaths: ['./data'],      // 允许访问的路径
+    allowedPaths: ['./data'], // 允许访问的路径
     disallowedOperations: ['write', 'delete'], // 禁止的操作
-    maxFileSize: 5 * 1024 * 1024   // 最大文件大小
+    maxFileSize: 5 * 1024 * 1024, // 最大文件大小
   },
-  execute: async (params) => {
+  execute: async params => {
     // 实现逻辑
-  }
+  },
 });
 ```
 
@@ -449,11 +449,13 @@ const fileTool = createTool({
 
 ```typescript
 // 输入验证中间件
-agent.use(inputValidator({
-  sanitize: true,           // 净化输入
-  maxLength: 4000,          // 最大输入长度
-  blockPatterns: [/exec\(/, /eval\(/]  // 阻止的模式
-}));
+agent.use(
+  inputValidator({
+    sanitize: true, // 净化输入
+    maxLength: 4000, // 最大输入长度
+    blockPatterns: [/exec\(/, /eval\(/], // 阻止的模式
+  })
+);
 ```
 
 ### 9.3 审计日志
@@ -467,17 +469,17 @@ agent.use(inputValidator({
 const agent = await createAgent('./definition.dpml', {
   audit: {
     enabled: true,
-    storageType: 'file',  // 'file' | 'database'
+    storageType: 'file', // 'file' | 'database'
     path: './audit-logs/',
-    includeSensitive: false  // 是否包含敏感信息
-  }
+    includeSensitive: false, // 是否包含敏感信息
+  },
 });
 
 // 查询审计日志
 const logs = await agent.getAuditLogs({
   from: new Date('2023-01-01'),
   to: new Date(),
-  types: ['tool:execution', 'llm:completion']
+  types: ['tool:execution', 'llm:completion'],
 });
 ```
 
@@ -492,9 +494,9 @@ const logs = await agent.getAuditLogs({
 const result = await runAgent('./simple-agent.dpml', { input });
 
 // 中等复杂度 - 基本配置
-const agent = await createAgent('./agent.dpml', { 
+const agent = await createAgent('./agent.dpml', {
   llm: { provider: 'openai', model: 'gpt-4' },
-  tools: [searchTool, calculatorTool]
+  tools: [searchTool, calculatorTool],
 });
 const result = await agent.run({ input });
 
@@ -514,15 +516,15 @@ const result = await session.execute({ input });
 - 丰富的JSDoc注释
 - 智能IDE提示
 
-```typescript
+````typescript
 /**
  * 创建代理实例
- * 
+ *
  * @param definition - 代理定义文件路径或定义内容
  * @param options - 代理选项
  * @returns 初始化的代理实例
  * @throws {AgentInitError} 初始化失败时抛出
- * 
+ *
  * @example
  * ```
  * const agent = await createAgent('./assistant.dpml', {
@@ -536,7 +538,7 @@ export async function createAgent(
 ): Promise<Agent> {
   // 实现...
 }
-```
+````
 
 ### 10.3 调试支持
 
@@ -547,7 +549,7 @@ export async function createAgent(
 ```typescript
 // 启用调试模式
 const agent = await createAgent('./definition.dpml', {
-  debug: true
+  debug: true,
 });
 
 // 检查当前状态
@@ -583,7 +585,7 @@ agent.use(async (ctx, next) => {
 
 ```typescript
 // 钩子系统
-agent.hook('beforeThinking', async (context) => {
+agent.hook('beforeThinking', async context => {
   // 在思考前执行
   context.addContext('当前时间是: ' + new Date().toLocaleString());
 });
@@ -614,7 +616,7 @@ const vectorMemoryPlugin: AgentPlugin = {
   init(agent) {
     // 注册自定义记忆系统
     agent.memory.registerStoreType('vector', createVectorStore);
-  }
+  },
 };
 
 agent.registerPlugin(vectorMemoryPlugin);
@@ -749,6 +751,7 @@ Agent可以在不同上下文中使用：
 ### 15.3 面向终端用户优先
 
 在开发初期阶段：
+
 - 专注于提供良好的直接用户体验，而非开发者API
 - 简单场景优先实现，避免过早构建完整插件系统
 - 预留扩展点但不急于实现完整的插件注册和管理机制
@@ -757,7 +760,7 @@ Agent可以在不同上下文中使用：
 
 ## 总结
 
-@dpml/agent包的设计原则体现了清晰的职责边界、声明式定义、状态管理、模块化能力、记忆管理、LLM抽象、可观察性、错误处理、安全设计和开发友好性等核心理念。新增的极简主义、组件化集成、统一基础设施原则以及渐进式复杂度设计进一步强化了这一设计。这些原则共同确保了代理系统的可靠性、可扩展性和易用性，为构建智能代理应用提供了坚实基础。 
+@dpml/agent包的设计原则体现了清晰的职责边界、声明式定义、状态管理、模块化能力、记忆管理、LLM抽象、可观察性、错误处理、安全设计和开发友好性等核心理念。新增的极简主义、组件化集成、统一基础设施原则以及渐进式复杂度设计进一步强化了这一设计。这些原则共同确保了代理系统的可靠性、可扩展性和易用性，为构建智能代理应用提供了坚实基础。
 
 ## 16. 以标签语言为中心的生态扩展
 
@@ -768,11 +771,13 @@ DPML的核心价值在于其声明式标签语言，它是连接终端用户和�
 DPML生态系统按不同维度设计扩展策略：
 
 1. **面向终端用户**：通过标签语言扩展
+
    - 新增标签和属性扩展功能
    - 保持声明式语法的一致性和直观性
    - 降低使用门槛，无需理解底层实现
 
 2. **面向开发者的插件化**：利用接口与实现分离
+
    - 依赖@dpml/core提供的扩展基础设施
    - 遵循标准接口，替换默认实现
    - 基于接口开发特定领域功能
@@ -814,19 +819,19 @@ DPML生态系统按不同维度设计扩展策略：
     <index dimensions="1536" metric="cosine" />
     <retrieval strategy="semantic" top-k="5" />
   </memory>
-  
+
   <!-- 工具系统扩展 -->
   <tools>
     <tool name="web-search" api-key-env="SEARCH_API_KEY" />
     <tool name="code-interpreter" sandbox="isolated" />
   </tools>
-  
+
   <!-- 安全扩展 -->
   <security>
     <content-filter level="strict" />
     <rate-limiting max-tokens-per-hour="100000" />
   </security>
-  
+
   <prompt>...</prompt>
 </agent>
 ```
@@ -858,4 +863,4 @@ DPML生态系统按不同维度设计扩展策略：
 3. **标签库生态**：鼓励开发可共享的标签库和模板
 4. **垂直领域解决方案**：支持特定领域（医疗、法律、教育等）的专业扩展
 
-以标签语言为中心的扩展策略确保了DPML生态系统的长期健康发展，既保持了对终端用户的友好性，又为开发者提供了充分的扩展空间。 
+以标签语言为中心的扩展策略确保了DPML生态系统的长期健康发展，既保持了对终端用户的友好性，又为开发者提供了充分的扩展空间。

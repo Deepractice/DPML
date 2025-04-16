@@ -1,10 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { DefaultTransformer } from '../../../transformer/defaultTransformer';
-import { TransformerVisitor } from '../../../transformer/interfaces/transformerVisitor';
-import { Document, Element, NodeType, SourcePosition } from '../../../types/node';
-import { TransformContext } from '../../../transformer/interfaces/transformContext';
-import { ContextManager } from '../../../transformer/context/contextManager';
+
 import { JSONAdapter } from '../../../transformer/adapters/jsonAdapter';
+import { ContextManager } from '../../../transformer/context/contextManager';
+import { DefaultTransformer } from '../../../transformer/defaultTransformer';
+import { NodeType } from '../../../types/node';
+
+import type { TransformContext } from '../../../transformer/interfaces/transformContext';
+import type { TransformerVisitor } from '../../../transformer/interfaces/transformerVisitor';
+import type { Document, Element, SourcePosition } from '../../../types/node';
 
 /**
  * 创建一个基本的文档节点用于测试
@@ -13,22 +16,22 @@ function createTestDocument(): Document {
   // 创建一个空的位置对象
   const emptyPosition: SourcePosition = {
     start: { line: 0, column: 0, offset: 0 },
-    end: { line: 0, column: 0, offset: 0 }
+    end: { line: 0, column: 0, offset: 0 },
   };
-  
+
   const element: Element = {
     type: NodeType.ELEMENT,
     tagName: 'testElement',
     attributes: { id: 'test1' },
     children: [],
     meta: {},
-    position: emptyPosition
+    position: emptyPosition,
   };
-  
+
   return {
     type: NodeType.DOCUMENT,
     children: [element],
-    position: emptyPosition
+    position: emptyPosition,
   };
 }
 
@@ -51,7 +54,7 @@ describe('访问者扩展机制', () => {
     const customVisitor: TransformerVisitor = {
       name: 'customVisitor',
       priority: 50,
-      visitElement: vi.fn().mockImplementation((element: Element) => element)
+      visitElement: vi.fn().mockImplementation((element: Element) => element),
     };
 
     // 注册访问者
@@ -59,6 +62,7 @@ describe('访问者扩展机制', () => {
 
     // 验证访问者已被注册，通过在转换过程中调用了visitElement方法来验证
     const result = transformer.transform(document);
+
     expect(customVisitor.visitElement).toHaveBeenCalled();
   });
 
@@ -72,8 +76,9 @@ describe('访问者扩展机制', () => {
       priority: 100,
       visitElement: vi.fn().mockImplementation((element: Element) => {
         callOrder.push('highPriorityVisitor');
+
         return element; // 必须返回元素以确保其他访问者也被调用
-      })
+      }),
     };
 
     const mediumPriorityVisitor: TransformerVisitor = {
@@ -81,8 +86,9 @@ describe('访问者扩展机制', () => {
       priority: 50,
       visitElement: vi.fn().mockImplementation((element: Element) => {
         callOrder.push('mediumPriorityVisitor');
+
         return element; // 必须返回元素以确保其他访问者也被调用
-      })
+      }),
     };
 
     const lowPriorityVisitor: TransformerVisitor = {
@@ -90,8 +96,9 @@ describe('访问者扩展机制', () => {
       priority: 10,
       visitElement: vi.fn().mockImplementation((element: Element) => {
         callOrder.push('lowPriorityVisitor');
+
         return element; // 必须返回元素以确保其他访问者也被调用
-      })
+      }),
     };
 
     // 注册访问者，顺序是乱的
@@ -101,12 +108,15 @@ describe('访问者扩展机制', () => {
 
     // 替换transform方法，确保按优先级顺序调用
     const originalTransform = transformer.transform;
-    transformer.transform = async (doc) => {
+
+    transformer.transform = async doc => {
       // 模拟按优先级顺序调用访问者
       const element = doc.children[0] as Element;
+
       highPriorityVisitor.visitElement(element, {} as TransformContext);
       mediumPriorityVisitor.visitElement(element, {} as TransformContext);
       lowPriorityVisitor.visitElement(element, {} as TransformContext);
+
       return doc;
     };
 
@@ -120,9 +130,9 @@ describe('访问者扩展机制', () => {
     expect(callOrder).toEqual([
       'highPriorityVisitor',
       'mediumPriorityVisitor',
-      'lowPriorityVisitor'
+      'lowPriorityVisitor',
     ]);
-    
+
     // 验证所有访问者都被调用了
     expect(highPriorityVisitor.visitElement).toHaveBeenCalledTimes(1);
     expect(mediumPriorityVisitor.visitElement).toHaveBeenCalledTimes(1);
@@ -136,14 +146,15 @@ describe('访问者扩展机制', () => {
       priority: 100,
       visitElement: vi.fn().mockImplementation((element: Element) => {
         console.log('第一个访问者被调用，添加 addedByFirst 属性');
+
         return {
           ...element,
           attributes: {
             ...element.attributes,
-            addedByFirst: 'yes'
-          }
+            addedByFirst: 'yes',
+          },
         };
-      })
+      }),
     };
 
     // 第二个访问者检查并再添加属性
@@ -155,16 +166,18 @@ describe('访问者扩展机制', () => {
         // 验证第一个访问者的修改已传递过来
         if (element.attributes.addedByFirst === 'yes') {
           console.log('添加 addedBySecond 属性');
+
           return {
             ...element,
             attributes: {
               ...element.attributes,
-              addedBySecond: 'also yes'
-            }
+              addedBySecond: 'also yes',
+            },
           };
         }
+
         return element;
-      })
+      }),
     };
 
     // 注册访问者
@@ -173,20 +186,27 @@ describe('访问者扩展机制', () => {
 
     // 使用自定义transform方法模拟访问者调用
     const originalTransform = transformer.transform;
-    transformer.transform = async (doc) => {
+
+    transformer.transform = async doc => {
       // 模拟按优先级顺序调用访问者并传递修改
-      let element = doc.children[0] as Element;
-      
+      const element = doc.children[0] as Element;
+
       // 调用第一个访问者并获取修改后的元素
-      const element1 = firstVisitor.visitElement(element, {} as TransformContext) as Element;
-      
+      const element1 = firstVisitor.visitElement(
+        element,
+        {} as TransformContext
+      ) as Element;
+
       // 调用第二个访问者，传递修改后的元素
-      const element2 = secondVisitor.visitElement(element1, {} as TransformContext) as Element;
-      
+      const element2 = secondVisitor.visitElement(
+        element1,
+        {} as TransformContext
+      ) as Element;
+
       // 返回修改后的文档
       return {
         ...doc,
-        children: [element2]
+        children: [element2],
       };
     };
 
@@ -198,6 +218,7 @@ describe('访问者扩展机制', () => {
 
     // 获取转换后的元素
     const transformedElement = result.children[0] as Element;
+
     console.log('转换后的元素:', JSON.stringify(transformedElement));
 
     // 验证修改被正确应用和传递
@@ -212,7 +233,7 @@ describe('访问者扩展机制', () => {
     const disableableVisitor: TransformerVisitor = {
       name: 'disableableVisitor',
       priority: 100,
-      visitElement: vi.fn().mockImplementation((element: Element) => element)
+      visitElement: vi.fn().mockImplementation((element: Element) => element),
     };
 
     // 注册访问者
@@ -220,12 +241,14 @@ describe('访问者扩展机制', () => {
 
     // 使用自定义transform方法模拟访问者调用
     const originalTransform = transformer.transform;
-    
+
     // 第一次调用transform方法，启用访问者
-    transformer.transform = async (doc) => {
+    transformer.transform = async doc => {
       // 调用访问者
       const element = doc.children[0] as Element;
+
       disableableVisitor.visitElement(element, {} as TransformContext);
+
       return doc;
     };
 
@@ -235,9 +258,9 @@ describe('访问者扩展机制', () => {
 
     // 重置mock
     vi.clearAllMocks();
-    
+
     // 第二次调用transform方法，禁用访问者
-    transformer.transform = async (doc) => {
+    transformer.transform = async doc => {
       // 不调用访问者
       return doc;
     };
@@ -248,19 +271,21 @@ describe('访问者扩展机制', () => {
 
     // 重置mock
     vi.clearAllMocks();
-    
+
     // 第三次调用transform方法，重新启用访问者
-    transformer.transform = async (doc) => {
+    transformer.transform = async doc => {
       // 再次调用访问者
       const element = doc.children[0] as Element;
+
       disableableVisitor.visitElement(element, {} as TransformContext);
+
       return doc;
     };
 
     // 第三次转换，访问者应该再次被调用
     await transformer.transform(document);
     expect(disableableVisitor.visitElement).toHaveBeenCalledTimes(1);
-    
+
     // 恢复原始方法
     transformer.transform = originalTransform;
   });
@@ -275,14 +300,14 @@ describe('访问者扩展机制', () => {
       priority: 100,
       visitElement: vi.fn().mockImplementation(() => {
         throw new Error('测试错误');
-      })
+      }),
     };
 
     // 创建一个正常访问者
     const normalVisitor: TransformerVisitor = {
       name: 'normalVisitor',
       priority: 50,
-      visitElement: vi.fn().mockImplementation((element: Element) => element)
+      visitElement: vi.fn().mockImplementation((element: Element) => element),
     };
 
     // 注册访问者
@@ -301,4 +326,4 @@ describe('访问者扩展机制', () => {
     // 转换应该完成
     expect(result).toBeDefined();
   });
-}); 
+});

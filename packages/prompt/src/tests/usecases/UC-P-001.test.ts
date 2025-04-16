@@ -1,6 +1,8 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
+
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+
 import { generatePrompt } from '../..';
 
 describe('UC-P-001: 数据分析师提示测试', () => {
@@ -12,6 +14,7 @@ describe('UC-P-001: 数据分析师提示测试', () => {
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
+
     // 确保测试目录存在
     if (!fs.existsSync(testDir)) {
       fs.mkdirSync(testDir, { recursive: true });
@@ -52,13 +55,15 @@ describe('UC-P-001: 数据分析师提示测试', () => {
 
     // 保存测试DPML到文件
     const dpmlFilePath = path.join(testDir, 'data-analyst.dpml');
+
     fs.writeFileSync(dpmlFilePath, dpmlContent);
 
     // 生成提示文本
     const prompt = await generatePrompt(dpmlFilePath);
-    
+
     // 保存生成的提示到输出文件
     const outputPath = path.join(outputDir, 'data-analyst-output.txt');
+
     fs.writeFileSync(outputPath, prompt);
 
     // 验证生成的提示内容
@@ -74,4 +79,4 @@ describe('UC-P-001: 数据分析师提示测试', () => {
   afterAll(() => {
     // 可以在这里添加清理代码，如果需要的话
   });
-}); 
+});

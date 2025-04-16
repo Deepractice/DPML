@@ -1,7 +1,7 @@
 /**
  * 多格式输出集成测试
  * 测试ID: IT-T-004
- * 
+ *
  * 测试同一文档转换为多种格式:
  * - JSON 格式
  * - XML 格式
@@ -9,13 +9,14 @@
  * - HTML 格式 (如果支持)
  * - YAML 格式 (如果支持)
  */
-import { describe, it, expect, beforeEach } from 'vitest';
 import { DpmlAdapter } from '@core/parser/dpml-adapter';
 import { DefaultProcessor } from '@core/processor/defaultProcessor';
-import { DefaultTransformerFactory } from '@core/transformer/defaultTransformerFactory';
 import { DefaultOutputAdapterFactory } from '@core/transformer/adapters/defaultOutputAdapterFactory';
-import { OutputAdapterFactory } from '@core/transformer/interfaces/outputAdapterFactory';
-import { TransformOptions } from '@core/transformer/interfaces/transformOptions';
+import { DefaultTransformerFactory } from '@core/transformer/defaultTransformerFactory';
+import { describe, it, expect, beforeEach } from 'vitest';
+
+import type { OutputAdapterFactory } from '@core/transformer/interfaces/outputAdapterFactory';
+import type { TransformOptions } from '@core/transformer/interfaces/transformOptions';
 
 describe('多格式输出集成测试', () => {
   // 测试组件
@@ -23,7 +24,7 @@ describe('多格式输出集成测试', () => {
   let processor: DefaultProcessor;
   let transformerFactory: DefaultTransformerFactory;
   let adapterFactory: OutputAdapterFactory;
-  
+
   // 测试文档
   const complexDocument = `
   <document id="multi-format-test">
@@ -171,161 +172,194 @@ describe('多格式输出集成测试', () => {
     </section>
   </document>
   `;
-  
+
   beforeEach(() => {
     // 初始化测试组件
     parser = new DpmlAdapter();
     processor = new DefaultProcessor();
     transformerFactory = new DefaultTransformerFactory();
     adapterFactory = new DefaultOutputAdapterFactory();
-    
+
     // 注册输出适配器 (使用函数返回模拟适配器)
-    adapterFactory.registerAdapter('json', () => ({ 
-      adapt: (result: any) => result 
+    adapterFactory.registerAdapter('json', () => ({
+      adapt: (result: any) => result,
     }));
-    adapterFactory.registerAdapter('xml', () => ({ 
-      adapt: (result: any) => `<xml>${JSON.stringify(result)}</xml>` 
+    adapterFactory.registerAdapter('xml', () => ({
+      adapt: (result: any) => `<xml>${JSON.stringify(result)}</xml>`,
     }));
-    adapterFactory.registerAdapter('markdown', () => ({ 
-      adapt: (result: any) => `# ${JSON.stringify(result)}` 
+    adapterFactory.registerAdapter('markdown', () => ({
+      adapt: (result: any) => `# ${JSON.stringify(result)}`,
     }));
-    
+
     // 设置默认适配器
     adapterFactory.setDefaultAdapter('json');
   });
-  
+
   it('应该能将同一文档转换为JSON格式', async () => {
     // 1. 解析文档
     const parseResult = await parser.parse(complexDocument);
-    
+
     // 确保解析成功
     expect(parseResult.errors.length).toBe(0);
     const document = parseResult.ast;
-    
+
     // 2. 处理文档
     const processedDoc = processor.process(document);
-    
+
     // 3. 创建转换器
-    const transformer = transformerFactory.createTransformer(undefined, adapterFactory);
-    
+    const transformer = transformerFactory.createTransformer(
+      undefined,
+      adapterFactory
+    );
+
     // 4. 转换为JSON
-    const jsonOutput = transformer.transform(processedDoc, { format: 'json' } as TransformOptions);
-    
+    const jsonOutput = transformer.transform(processedDoc, {
+      format: 'json',
+    } as TransformOptions);
+
     // 5. 验证基本结构
     expect(jsonOutput).toBeDefined();
     expect(typeof jsonOutput).toBe('object');
-    
+
     // 6. 验证文档元数据
     expect(jsonOutput.document).toBeDefined();
     expect(jsonOutput.document.metadata).toBeDefined();
     // 其他断言需根据实际输出结构调整
   });
-  
+
   it('应该能将同一文档转换为XML格式', async () => {
     // 1. 解析文档
     const parseResult = await parser.parse(complexDocument);
-    
+
     // 确保解析成功
     expect(parseResult.errors.length).toBe(0);
     const document = parseResult.ast;
-    
+
     // 2. 处理文档
     const processedDoc = processor.process(document);
-    
+
     // 3. 创建转换器
-    const transformer = transformerFactory.createTransformer(undefined, adapterFactory);
-    
+    const transformer = transformerFactory.createTransformer(
+      undefined,
+      adapterFactory
+    );
+
     // 4. 转换为XML
-    const xmlOutput = transformer.transform(processedDoc, { format: 'xml' } as TransformOptions);
-    
+    const xmlOutput = transformer.transform(processedDoc, {
+      format: 'xml',
+    } as TransformOptions);
+
     // 5. 验证基本结构
     expect(xmlOutput).toBeDefined();
     expect(typeof xmlOutput).toBe('string');
     expect(xmlOutput).toContain('<xml>');
     // 其他断言需根据实际输出结构调整
   });
-  
+
   it('应该能将同一文档转换为Markdown格式', async () => {
     // 1. 解析文档
     const parseResult = await parser.parse(complexDocument);
-    
+
     // 确保解析成功
     expect(parseResult.errors.length).toBe(0);
     const document = parseResult.ast;
-    
+
     // 2. 处理文档
     const processedDoc = processor.process(document);
-    
+
     // 3. 创建转换器
-    const transformer = transformerFactory.createTransformer(undefined, adapterFactory);
-    
+    const transformer = transformerFactory.createTransformer(
+      undefined,
+      adapterFactory
+    );
+
     // 4. 转换为Markdown
-    const mdOutput = transformer.transform(processedDoc, { format: 'markdown' } as TransformOptions);
-    
+    const mdOutput = transformer.transform(processedDoc, {
+      format: 'markdown',
+    } as TransformOptions);
+
     // 5. 验证基本结构
     expect(mdOutput).toBeDefined();
     expect(typeof mdOutput).toBe('string');
     expect(mdOutput).toContain('#');
     // 其他断言需根据实际输出结构调整
   });
-  
+
   it('应该能同时输出多种格式并保持一致性', async () => {
     // 1. 解析文档
     const parseResult = await parser.parse(complexDocument);
-    
+
     // 确保解析成功
     expect(parseResult.errors.length).toBe(0);
     const document = parseResult.ast;
-    
+
     // 2. 处理文档
     const processedDoc = processor.process(document);
-    
+
     // 3. 创建转换器
-    const transformer = transformerFactory.createTransformer(undefined, adapterFactory);
-    
+    const transformer = transformerFactory.createTransformer(
+      undefined,
+      adapterFactory
+    );
+
     // 4. 转换为多种格式
-    const jsonOutput = transformer.transform(processedDoc, { format: 'json' } as TransformOptions);
-    const xmlOutput = transformer.transform(processedDoc, { format: 'xml' } as TransformOptions);
-    const mdOutput = transformer.transform(processedDoc, { format: 'markdown' } as TransformOptions);
-    
+    const jsonOutput = transformer.transform(processedDoc, {
+      format: 'json',
+    } as TransformOptions);
+    const xmlOutput = transformer.transform(processedDoc, {
+      format: 'xml',
+    } as TransformOptions);
+    const mdOutput = transformer.transform(processedDoc, {
+      format: 'markdown',
+    } as TransformOptions);
+
     // 5. 验证各格式输出
     expect(jsonOutput).toBeDefined();
     expect(xmlOutput).toBeDefined();
     expect(mdOutput).toBeDefined();
-    
+
     // 6. 验证基本结构一致性
     expect(jsonOutput.document).toBeDefined();
     expect(xmlOutput).toContain('<xml>');
     expect(mdOutput).toContain('#');
   });
-  
+
   it('应该能处理边缘情况和特殊字符', async () => {
     // 1. 解析文档
     const parseResult = await parser.parse(complexDocument);
-    
+
     // 确保解析成功
     expect(parseResult.errors.length).toBe(0);
     const document = parseResult.ast;
-    
+
     // 2. 处理文档
     const processedDoc = processor.process(document);
-    
+
     // 3. 创建转换器
-    const transformer = transformerFactory.createTransformer(undefined, adapterFactory);
-    
+    const transformer = transformerFactory.createTransformer(
+      undefined,
+      adapterFactory
+    );
+
     // 4. 测试各种格式
-    const jsonOutput = transformer.transform(processedDoc, { format: 'json' } as TransformOptions);
-    const xmlOutput = transformer.transform(processedDoc, { format: 'xml' } as TransformOptions);
-    const mdOutput = transformer.transform(processedDoc, { format: 'markdown' } as TransformOptions);
-    
+    const jsonOutput = transformer.transform(processedDoc, {
+      format: 'json',
+    } as TransformOptions);
+    const xmlOutput = transformer.transform(processedDoc, {
+      format: 'xml',
+    } as TransformOptions);
+    const mdOutput = transformer.transform(processedDoc, {
+      format: 'markdown',
+    } as TransformOptions);
+
     // 5. 验证输出存在
     expect(jsonOutput).toBeDefined();
     expect(xmlOutput).toBeDefined();
     expect(mdOutput).toBeDefined();
-    
+
     // 6. 验证基本结构
     expect(jsonOutput.document).toBeDefined();
     expect(typeof xmlOutput).toBe('string');
     expect(typeof mdOutput).toBe('string');
   });
-}); 
+});

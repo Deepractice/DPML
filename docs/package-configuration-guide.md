@@ -52,13 +52,13 @@ import * as path from 'path';
 
 export default defineConfig({
   ...baseConfig,
-  entry: ['src/index.ts', /* 包特定入口 */],
+  entry: ['src/index.ts' /* 包特定入口 */],
   esbuildOptions(options) {
     options.alias = {
-      '@包名称': path.resolve(__dirname, './src')
+      '@包名称': path.resolve(__dirname, './src'),
     };
     // 其他包特定设置...
-  }
+  },
 });
 ```
 
@@ -94,4 +94,4 @@ import { somethingElse } from '@dpml/包名称/子路径';
 2. 遵循统一的配置标准
 3. 如需偏离标准配置，请在代码注释中说明原因
 
-遵循这些指南将帮助我们保持整个DPML项目的一致性和稳定性。 
+遵循这些指南将帮助我们保持整个DPML项目的一致性和稳定性。

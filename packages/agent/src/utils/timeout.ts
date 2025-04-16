@@ -18,20 +18,25 @@ export function createTimeoutPromise<T>(
     // 如果信号已经中止，立即返回
     if (signal?.aborted) {
       reject(new Error(signal.reason || 'Promise aborted'));
+
       return;
     }
-    
+
     // 创建超时定时器
     const timeoutId = setTimeout(() => {
       reject(new Error(errorMessage));
     }, timeoutMs);
-    
+
     // 如果提供了信号，添加中止监听器
     if (signal) {
-      signal.addEventListener('abort', () => {
-        clearTimeout(timeoutId);
-        reject(new Error(signal.reason || 'Promise aborted'));
-      }, { once: true });
+      signal.addEventListener(
+        'abort',
+        () => {
+          clearTimeout(timeoutId);
+          reject(new Error(signal.reason || 'Promise aborted'));
+        },
+        { once: true }
+      );
     }
   });
 }
@@ -41,21 +46,21 @@ export function createTimeoutPromise<T>(
  * @param timeoutMs 超时时间(毫秒)
  * @returns 包含AbortController和AbortSignal的对象
  */
-export function createTimeoutController(timeoutMs: number): { 
-  controller: AbortController, 
-  signal: AbortSignal,
-  clear: () => void 
+export function createTimeoutController(timeoutMs: number): {
+  controller: AbortController;
+  signal: AbortSignal;
+  clear: () => void;
 } {
   const controller = new AbortController();
   const signal = controller.signal;
-  
+
   const timeoutId = setTimeout(() => {
     controller.abort(new Error(`Timeout after ${timeoutMs}ms`));
   }, timeoutMs);
-  
+
   const clear = () => {
     clearTimeout(timeoutId);
   };
-  
+
   return { controller, signal, clear };
-} 
+}

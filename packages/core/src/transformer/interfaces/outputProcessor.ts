@@ -1,4 +1,4 @@
-import { TransformContext } from './transformContext';
+import type { TransformContext } from './transformContext';
 
 /**
  * 输出处理器接口
@@ -12,4 +12,4 @@ export interface OutputProcessor {
    * @returns 处理后的数据
    */
   process(data: any, context: TransformContext): any;
-} 
+}

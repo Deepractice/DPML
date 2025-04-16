@@ -1,20 +1,27 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { createAgent } from '../../src';
-import { Agent, AgentFactoryConfig } from '../../../agent/types';
 import * as fs from 'fs';
 import * as path from 'path';
+
 import { v4 as uuidv4 } from 'uuid';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
+import { createAgent } from '../../src';
+
+import type { Agent, AgentFactoryConfig } from '../../../agent/types';
 
 // 创建临时测试目录路径
-const testBasePath = path.join(process.cwd(), 'tmp-test-' + uuidv4().substring(0, 8));
+const testBasePath = path.join(
+  process.cwd(),
+  'tmp-test-' + uuidv4().substring(0, 8)
+);
 
 // 模拟文件系统
 vi.mock('fs', async () => {
   // 由于vitest中不能使用vi.importActual获取真实的fs，所以这里只模拟需要的方法
   const fsModule = {
-    existsSync: vi.fn().mockImplementation((path) => {
+    existsSync: vi.fn().mockImplementation(path => {
       // 确保测试目录总是存在
       if (path === testBasePath) return true;
+
       return false;
     }),
     mkdirSync: vi.fn(),
@@ -29,13 +36,13 @@ vi.mock('fs', async () => {
               id: 'msg1',
               role: 'user',
               content: 'Hello from storage',
-              createdAt: Date.now() - 1000
-            }
+              createdAt: Date.now() - 1000,
+            },
           ],
-          updatedAt: Date.now() - 500
+          updatedAt: Date.now() - 500,
         });
       }
-      
+
       // 如果是记忆文件
       if (path.includes('memory')) {
         return JSON.stringify([
@@ -43,14 +50,15 @@ vi.mock('fs', async () => {
             id: 'mem1',
             text: 'Hello from storage',
             role: 'user',
-            timestamp: Date.now() - 1000
-          }
+            timestamp: Date.now() - 1000,
+          },
         ]);
       }
-      
+
       return '{}';
-    })
+    }),
   };
+
   return fsModule;
 });
 
@@ -65,8 +73,8 @@ vi.mock('../../src/connector/LLMConnectorFactory', () => {
             usage: {
               promptTokens: 10,
               completionTokens: 5,
-              totalTokens: 15
-            }
+              totalTokens: 15,
+            },
           };
         }),
         completeStream: vi.fn(async function* (prompt, options = {}) {
@@ -76,14 +84,14 @@ vi.mock('../../src/connector/LLMConnectorFactory', () => {
             usage: {
               promptTokens: 10,
               completionTokens: 5,
-              totalTokens: 15
-            }
+              totalTokens: 15,
+            },
           };
         }),
-        getType: vi.fn(() => 'openai')
+        getType: vi.fn(() => 'openai'),
       })),
-      clearCache: vi.fn()
-    }
+      clearCache: vi.fn(),
+    },
   };
 });
 
@@ -93,38 +101,41 @@ const mockMessages = [
     id: 'msg1',
     role: 'user',
     content: 'Hello from storage',
-    createdAt: Date.now() - 1000
-  }
+    createdAt: Date.now() - 1000,
+  },
 ];
 
 const mockState = {
   status: 'READY',
   messages: mockMessages,
-  updatedAt: Date.now() - 500
+  updatedAt: Date.now() - 500,
 };
 
 // 模拟createAgent函数
 vi.mock('../../src', () => {
   return {
-    createAgent: vi.fn((config) => {
+    createAgent: vi.fn(config => {
       return {
         getId: () => config.id,
         getVersion: () => config.version,
         execute: async (input: { text: string; sessionId?: string }) => {
           // 模拟写入文件
           fs.writeFileSync('test-file', 'test-data');
-          
+
           return {
             success: true,
             sessionId: input?.sessionId || 'persistent-session',
             text: 'Response saved to storage',
-            processingTimeMs: 100
+            processingTimeMs: 100,
           };
         },
-        executeStream: async function* (input: { text: string; sessionId?: string }) {
+        executeStream: async function* (input: {
+          text: string;
+          sessionId?: string;
+        }) {
           yield {
             text: 'Storage test response',
-            sessionId: input?.sessionId || 'persistent-session'
+            sessionId: input?.sessionId || 'persistent-session',
           };
         },
         getState: async (sessionId: string) => {
@@ -135,18 +146,18 @@ vi.mock('../../src', () => {
           fs.writeFileSync('test-file', 'reset-data');
         },
       };
-    })
+    }),
   };
 });
 
 describe('持久化存储集成测试 (IT-A-007)', () => {
   let agent: Agent;
   const sessionId = 'persistent-session';
-  
+
   beforeEach(() => {
     // 配置环境变量
     process.env.OPENAI_API_KEY = 'test-api-key';
-    
+
     // 基本配置 - 使用文件系统存储
     const config: AgentFactoryConfig = {
       id: 'persistent-agent',
@@ -157,53 +168,53 @@ describe('持久化存储集成测试 (IT-A-007)', () => {
       executionConfig: {
         defaultModel: 'gpt-3.5-turbo',
         apiType: 'openai',
-        systemPrompt: 'You are a persistent assistant.'
-      }
+        systemPrompt: 'You are a persistent assistant.',
+      },
     };
-    
+
     // 创建代理
     agent = createAgent(config);
   });
-  
+
   afterEach(() => {
     // 清理环境变量
     delete process.env.OPENAI_API_KEY;
-    
+
     // 重置所有模拟
     vi.clearAllMocks();
   });
-  
+
   it('应该能成功创建使用文件存储的代理', () => {
     expect(agent).toBeDefined();
     expect(agent.getId()).toBe('persistent-agent');
   });
-  
+
   it('应该能从文件存储中加载状态', async () => {
     const state = await agent.getState(sessionId);
-    
+
     expect(state).toBeDefined();
     expect(state.messages).toBeDefined();
     expect(state.messages.length).toBeGreaterThan(0);
     expect(state.messages[0].content).toBe('Hello from storage');
   });
-  
+
   it('应该能在执行请求后保存状态', async () => {
     const result = await agent.execute({
       text: 'Save this to storage',
-      sessionId
+      sessionId,
     });
-    
+
     expect(result).toBeDefined();
     expect(result.success).toBe(true);
-    
+
     // 检查是否调用了文件写入
     expect(fs.writeFileSync).toHaveBeenCalled();
   });
-  
+
   it('应该能在重置后清除状态', async () => {
     await agent.reset(sessionId);
-    
+
     // 检查是否调用了文件写入（重置会写入新的空状态）
     expect(fs.writeFileSync).toHaveBeenCalled();
   });
-}); 
+});

@@ -80,4 +80,4 @@ export interface ProcessedPrompt {
   };
   /** 原始文档 */
   rawDocument?: any;
-} 
+}

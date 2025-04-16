@@ -1,11 +1,11 @@
-import { Options } from 'tsup';
+import type { Options } from 'tsup';
 
 /**
  * DPML包的基础tsup配置
  * 统一构建输出格式与规范
  */
 export const baseConfig: Options = {
-  format: ['esm', 'cjs'],  // ESM优先
+  format: ['esm', 'cjs'], // ESM优先
   dts: true,
   sourcemap: true,
   clean: true,
@@ -14,9 +14,9 @@ export const baseConfig: Options = {
   outDir: 'dist',
   outExtension({ format }) {
     return {
-      js: format === 'esm' ? '.js' : '.cjs'  // ESM=>.js, CJS=>.cjs
+      js: format === 'esm' ? '.js' : '.cjs', // ESM=>.js, CJS=>.cjs
     };
   },
   skipNodeModulesBundle: true,
-  minify: false
-}; 
+  minify: false,
+};

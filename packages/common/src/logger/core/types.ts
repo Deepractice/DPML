@@ -11,7 +11,7 @@ export enum LogLevel {
   INFO = 1,
   WARN = 2,
   ERROR = 3,
-  NONE = 4
+  NONE = 4,
 }
 
 /**
@@ -22,7 +22,7 @@ export const LogLevelNames: Record<LogLevel, string> = {
   [LogLevel.INFO]: 'INFO',
   [LogLevel.WARN]: 'WARN',
   [LogLevel.ERROR]: 'ERROR',
-  [LogLevel.NONE]: 'NONE'
+  [LogLevel.NONE]: 'NONE',
 };
 
 /**
@@ -33,12 +33,12 @@ export interface LogMeta {
    * 时间戳
    */
   timestamp: string;
-  
+
   /**
    * 包或模块名称
    */
   packageName: string;
-  
+
   /**
    * 其他元数据
    */
@@ -53,22 +53,22 @@ export interface LoggerOptions {
    * 包或模块名称
    */
   packageName: string;
-  
+
   /**
    * 日志级别
    */
   level?: LogLevel;
-  
+
   /**
    * 格式化器
    */
   formatter?: LogFormatter;
-  
+
   /**
    * 传输通道列表
    */
   transports?: LogTransport[];
-  
+
   /**
    * 附加元数据
    */
@@ -83,37 +83,37 @@ export interface ILogger {
    * 记录调试级别日志
    */
   debug(message: string, ...args: any[]): void;
-  
+
   /**
    * 记录信息级别日志
    */
   info(message: string, ...args: any[]): void;
-  
+
   /**
    * 记录警告级别日志
    */
   warn(message: string, ...args: any[]): void;
-  
+
   /**
    * 记录错误级别日志
    */
   error(message: string, ...args: any[]): void;
-  
+
   /**
    * 设置日志级别
    */
   setLevel(level: LogLevel): void;
-  
+
   /**
    * 获取当前日志级别
    */
   getLevel(): LogLevel;
-  
+
   /**
    * 添加传输通道
    */
   addTransport(transport: LogTransport): void;
-  
+
   /**
    * 设置格式化器
    */
@@ -128,7 +128,7 @@ export interface LogTransport {
    * 记录日志
    */
   log(level: LogLevel, message: string, meta: LogMeta): void | Promise<void>;
-  
+
   /**
    * 是否是异步传输
    */
@@ -153,9 +153,9 @@ export interface ILoggerFactory {
    * 获取指定名称的日志实例
    */
   getLogger(packageName: string, options?: Partial<LoggerOptions>): ILogger;
-  
+
   /**
    * 配置全局日志选项
    */
   configure(options: Partial<LoggerOptions>): void;
-} 
+}

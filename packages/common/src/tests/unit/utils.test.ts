@@ -1,10 +1,11 @@
 import { describe, test, expect, vi } from 'vitest';
-import * as stringUtils from '../../utils/string';
+
 import * as arrayUtils from '../../utils/array';
-import * as objectUtils from '../../utils/object';
 import * as asyncUtils from '../../utils/async';
-import * as validationUtils from '../../utils/validation';
 import * as errorUtils from '../../utils/error';
+import * as objectUtils from '../../utils/object';
+import * as stringUtils from '../../utils/string';
+import * as validationUtils from '../../utils/validation';
 
 // 字符串工具测试
 describe('UT-UTIL-STRING: 字符串工具', () => {
@@ -49,8 +50,12 @@ describe('UT-UTIL-STRING: 字符串工具', () => {
 
   describe('format方法', () => {
     test('应正确替换模板中的占位符', () => {
-      expect(stringUtils.format('Hello, {name}!', { name: 'World' })).toBe('Hello, World!');
-      expect(stringUtils.format('{a} + {b} = {c}', { a: 1, b: 2, c: 3 })).toBe('1 + 2 = 3');
+      expect(stringUtils.format('Hello, {name}!', { name: 'World' })).toBe(
+        'Hello, World!'
+      );
+      expect(stringUtils.format('{a} + {b} = {c}', { a: 1, b: 2, c: 3 })).toBe(
+        '1 + 2 = 3'
+      );
     });
   });
 });
@@ -66,7 +71,11 @@ describe('UT-UTIL-ARRAY: 数组工具', () => {
 
   describe('chunk方法', () => {
     test('应将数组拆分为指定大小的块', () => {
-      expect(arrayUtils.chunk([1, 2, 3, 4, 5], 2)).toEqual([[1, 2], [3, 4], [5]]);
+      expect(arrayUtils.chunk([1, 2, 3, 4, 5], 2)).toEqual([
+        [1, 2],
+        [3, 4],
+        [5],
+      ]);
       expect(arrayUtils.chunk([1, 2, 3], 1)).toEqual([[1], [2], [3]]);
     });
   });
@@ -76,12 +85,16 @@ describe('UT-UTIL-ARRAY: 数组工具', () => {
       const data = [
         { id: 1, category: 'a' },
         { id: 2, category: 'b' },
-        { id: 3, category: 'a' }
+        { id: 3, category: 'a' },
       ];
       const result = arrayUtils.groupBy(data, 'category');
+
       expect(result).toEqual({
-        a: [{ id: 1, category: 'a' }, { id: 3, category: 'a' }],
-        b: [{ id: 2, category: 'b' }]
+        a: [
+          { id: 1, category: 'a' },
+          { id: 3, category: 'a' },
+        ],
+        b: [{ id: 2, category: 'b' }],
       });
     });
   });
@@ -117,10 +130,11 @@ describe('UT-UTIL-OBJECT: 对象工具', () => {
       const obj1 = { a: 1, b: { c: 2 } };
       const obj2 = { b: { d: 3 }, e: 4 };
       const result = objectUtils.deepMerge(obj1 as any, obj2 as any);
+
       expect(result).toEqual({
         a: 1,
         b: { c: 2, d: 3 },
-        e: 4
+        e: 4,
       });
     });
   });
@@ -128,6 +142,7 @@ describe('UT-UTIL-OBJECT: 对象工具', () => {
   describe('get方法', () => {
     test('应根据路径获取对象中的值', () => {
       const obj = { a: { b: { c: 42 } } };
+
       expect(objectUtils.get(obj, 'a.b.c')).toBe(42);
       expect(objectUtils.get(obj, ['a', 'b', 'c'])).toBe(42);
       expect(objectUtils.get(obj, 'a.b.d')).toBeUndefined();
@@ -138,6 +153,7 @@ describe('UT-UTIL-OBJECT: 对象工具', () => {
   describe('pick方法', () => {
     test('应从对象中选择指定的属性创建新对象', () => {
       const obj = { a: 1, b: 2, c: 3 };
+
       expect(objectUtils.pick(obj, ['a', 'c'])).toEqual({ a: 1, c: 3 });
     });
   });
@@ -148,8 +164,10 @@ describe('UT-UTIL-ASYNC: 异步工具', () => {
   describe('sleep方法', () => {
     test('应延迟指定时间', async () => {
       const start = Date.now();
+
       await asyncUtils.sleep(50);
       const elapsed = Date.now() - start;
+
       expect(elapsed).toBeGreaterThanOrEqual(40); // 允许一些误差
     });
   });
@@ -162,12 +180,13 @@ describe('UT-UTIL-ASYNC: 异步工具', () => {
         if (attempts < 3) {
           throw new Error('Failed');
         }
+
         return Promise.resolve('success');
       };
 
       const result = await asyncUtils.retry(testFn, {
         maxAttempts: 5,
-        delay: 10
+        delay: 10,
       });
 
       expect(result).toBe('success');
@@ -177,10 +196,12 @@ describe('UT-UTIL-ASYNC: 异步工具', () => {
     test('应在达到最大尝试次数后抛出错误', async () => {
       const testFn = () => Promise.reject(new Error('Failed'));
 
-      await expect(asyncUtils.retry(testFn, {
-        maxAttempts: 3,
-        delay: 10
-      })).rejects.toThrow('Failed');
+      await expect(
+        asyncUtils.retry(testFn, {
+          maxAttempts: 3,
+          delay: 10,
+        })
+      ).rejects.toThrow('Failed');
     });
   });
 });
@@ -223,6 +244,7 @@ describe('UT-UTIL-ERROR: 错误工具', () => {
   describe('DpmlError类', () => {
     test('应正确创建和格式化错误', () => {
       const error = new errorUtils.DpmlError('Test error', 'TEST_ERROR');
+
       expect(error.code).toBe('TEST_ERROR');
       expect(error.format()).toContain('[TEST_ERROR] Test error');
     });
@@ -237,6 +259,7 @@ describe('UT-UTIL-ERROR: 错误工具', () => {
       );
 
       const formatted = error.format();
+
       expect(formatted).toContain('[TEST_ERROR] Test error');
       expect(formatted).toContain('Context: {"foo":"bar"}');
       expect(formatted).toContain('Caused by: Original error');
@@ -246,8 +269,10 @@ describe('UT-UTIL-ERROR: 错误工具', () => {
   describe('tryCatch方法', () => {
     test('应捕获并处理同步函数的错误', () => {
       const result = errorUtils.tryCatch(
-        () => { throw new Error('Test error'); },
-        (error) => 'Caught: ' + (error as Error).message
+        () => {
+          throw new Error('Test error');
+        },
+        error => 'Caught: ' + (error as Error).message
       );
 
       expect(result).toBe('Caught: Test error');
@@ -257,8 +282,10 @@ describe('UT-UTIL-ERROR: 错误工具', () => {
   describe('tryCatchAsync方法', () => {
     test('应捕获并处理异步函数的错误', async () => {
       const result = await errorUtils.tryCatchAsync(
-        async () => { throw new Error('Test error'); },
-        (error) => 'Caught: ' + (error as Error).message
+        async () => {
+          throw new Error('Test error');
+        },
+        error => 'Caught: ' + (error as Error).message
       );
 
       expect(result).toBe('Caught: Test error');

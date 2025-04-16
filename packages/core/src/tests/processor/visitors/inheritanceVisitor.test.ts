@@ -1,9 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { NodeType, Element, Document, SourcePosition, Content } from '../../../types/node';
-import { ProcessingContext } from '../../../processor/processingContext';
+
 import { DPMLError, ErrorCode } from '../../../errors';
-import { NodeVisitor, ReferenceResolver, ResolvedReference } from '../../../processor/interfaces';
+import { NodeVisitor, ResolvedReference } from '../../../processor/interfaces';
+import { ProcessingContext } from '../../../processor/processingContext';
 import { InheritanceVisitor } from '../../../processor/visitors/inheritanceVisitor';
+import { NodeType } from '../../../types/node';
+
+import type { ReferenceResolver } from '../../../processor/interfaces';
+import type {
+  Element,
+  Document,
+  SourcePosition,
+  Content,
+} from '../../../types/node';
 
 describe('InheritanceVisitor', () => {
   let visitor: InheritanceVisitor;
@@ -11,26 +20,26 @@ describe('InheritanceVisitor', () => {
   let mockReferenceResolver: ReferenceResolver;
   const mockPosition: SourcePosition = {
     start: { line: 1, column: 1, offset: 0 },
-    end: { line: 1, column: 1, offset: 0 }
+    end: { line: 1, column: 1, offset: 0 },
   };
 
   beforeEach(() => {
     // 创建模拟引用解析器
     mockReferenceResolver = {
       resolve: vi.fn(),
-      getProtocolHandler: vi.fn()
+      getProtocolHandler: vi.fn(),
     };
-    
+
     // 创建带有引用解析器的访问者
     visitor = new InheritanceVisitor(mockReferenceResolver);
-    
+
     // 创建基础文档
     const document: Document = {
       type: NodeType.DOCUMENT,
       children: [],
-      position: mockPosition
+      position: mockPosition,
     };
-    
+
     // 创建处理上下文
     context = new ProcessingContext(document, '/test/path');
     // 手动添加idMap，因为这是测试中需要的，但在接口中是可选的
@@ -44,7 +53,7 @@ describe('InheritanceVisitor', () => {
       tagName: 'test',
       attributes: { id: 'test1' },
       children: [],
-      position: mockPosition
+      position: mockPosition,
     };
 
     // 执行访问方法
@@ -59,25 +68,25 @@ describe('InheritanceVisitor', () => {
     const baseElement: Element = {
       type: NodeType.ELEMENT,
       tagName: 'base',
-      attributes: { 
+      attributes: {
         id: 'baseEl',
         color: 'red',
-        size: 'large' 
+        size: 'large',
       },
       children: [],
-      position: mockPosition
+      position: mockPosition,
     };
 
     const childElement: Element = {
       type: NodeType.ELEMENT,
       tagName: 'child',
-      attributes: { 
+      attributes: {
         extends: 'id:baseEl',
         size: 'small', // 覆盖基础元素的属性
-        weight: 'bold' // 新增属性
+        weight: 'bold', // 新增属性
       },
       children: [],
-      position: mockPosition
+      position: mockPosition,
     };
 
     // 将基础元素添加到ID映射中
@@ -89,9 +98,9 @@ describe('InheritanceVisitor', () => {
     // 验证属性合并结果
     expect(result.attributes).toEqual({
       extends: 'id:baseEl',
-      color: 'red',      // 从基础元素继承
-      size: 'small',     // 子元素覆盖
-      weight: 'bold'     // 子元素新增
+      color: 'red', // 从基础元素继承
+      size: 'small', // 子元素覆盖
+      weight: 'bold', // 子元素新增
     });
     expect(result.tagName).toBe('child'); // 标签名不变
   });
@@ -101,11 +110,11 @@ describe('InheritanceVisitor', () => {
     const childElement: Element = {
       type: NodeType.ELEMENT,
       tagName: 'child',
-      attributes: { 
+      attributes: {
         extends: 'file:./base.dpml#baseElement',
       },
       children: [],
-      position: mockPosition
+      position: mockPosition,
     };
 
     // 模拟外部元素
@@ -114,7 +123,7 @@ describe('InheritanceVisitor', () => {
       tagName: 'base',
       attributes: { id: 'baseElement', color: 'blue' },
       children: [],
-      position: mockPosition
+      position: mockPosition,
     };
 
     // 配置引用解析器的mock返回
@@ -123,13 +132,13 @@ describe('InheritanceVisitor', () => {
         type: NodeType.REFERENCE,
         protocol: 'file',
         path: './base.dpml',
-        position: mockPosition
+        position: mockPosition,
       },
       value: {
         type: NodeType.DOCUMENT,
         children: [baseElement],
-        position: mockPosition
-      }
+        position: mockPosition,
+      },
     });
 
     // 执行访问方法
@@ -138,7 +147,7 @@ describe('InheritanceVisitor', () => {
     // 验证属性继承
     expect(result.attributes).toEqual({
       extends: 'file:./base.dpml#baseElement',
-      color: 'blue'
+      color: 'blue',
     });
   });
 
@@ -147,11 +156,11 @@ describe('InheritanceVisitor', () => {
     const childElement: Element = {
       type: NodeType.ELEMENT,
       tagName: 'child',
-      attributes: { 
+      attributes: {
         extends: 'http://example.com/base.dpml#remoteBase',
       },
       children: [],
-      position: mockPosition
+      position: mockPosition,
     };
 
     // 模拟远程元素
@@ -160,7 +169,7 @@ describe('InheritanceVisitor', () => {
       tagName: 'remoteBase',
       attributes: { id: 'remoteBase', theme: 'dark' },
       children: [],
-      position: mockPosition
+      position: mockPosition,
     };
 
     // 配置引用解析器的mock返回
@@ -169,13 +178,13 @@ describe('InheritanceVisitor', () => {
         type: NodeType.REFERENCE,
         protocol: 'http',
         path: 'http://example.com/base.dpml',
-        position: mockPosition
+        position: mockPosition,
       },
       value: {
         type: NodeType.DOCUMENT,
         children: [remoteElement],
-        position: mockPosition
-      }
+        position: mockPosition,
+      },
     });
 
     // 执行访问方法
@@ -184,7 +193,7 @@ describe('InheritanceVisitor', () => {
     // 验证属性继承
     expect(result.attributes).toEqual({
       extends: 'http://example.com/base.dpml#remoteBase',
-      theme: 'dark'
+      theme: 'dark',
     });
   });
 
@@ -193,28 +202,28 @@ describe('InheritanceVisitor', () => {
     const baseElement: Element = {
       type: NodeType.ELEMENT,
       tagName: 'base',
-      attributes: { 
+      attributes: {
         id: 'baseEl',
         color: 'red',
         size: 'large',
         shared: 'original',
-        meta: { key1: 'value1', key2: 'value2' }
+        meta: { key1: 'value1', key2: 'value2' },
       },
       children: [],
-      position: mockPosition
+      position: mockPosition,
     };
 
     const childElement: Element = {
       type: NodeType.ELEMENT,
       tagName: 'child',
-      attributes: { 
+      attributes: {
         extends: 'id:baseEl',
-        color: 'blue',      // 覆盖简单属性
+        color: 'blue', // 覆盖简单属性
         meta: { key2: 'newValue', key3: 'value3' }, // 部分覆盖对象属性
-        newAttr: 'value'    // 新增属性
+        newAttr: 'value', // 新增属性
       },
       children: [],
-      position: mockPosition
+      position: mockPosition,
     };
 
     // 将基础元素添加到ID映射中
@@ -226,11 +235,11 @@ describe('InheritanceVisitor', () => {
     // 验证属性合并结果
     expect(result.attributes).toEqual({
       extends: 'id:baseEl',
-      color: 'blue',      // 子元素覆盖
-      size: 'large',      // 从基础元素继承
+      color: 'blue', // 子元素覆盖
+      size: 'large', // 从基础元素继承
       shared: 'original', // 从基础元素继承
       meta: { key2: 'newValue', key3: 'value3' }, // 对象合并策略以子元素为主
-      newAttr: 'value'    // 子元素新增
+      newAttr: 'value', // 子元素新增
     });
   });
 
@@ -240,12 +249,14 @@ describe('InheritanceVisitor', () => {
       type: NodeType.ELEMENT,
       tagName: 'base',
       attributes: { id: 'baseEl' },
-      children: [{
-        type: NodeType.CONTENT,
-        value: 'Base content',
-        position: mockPosition
-      } as Content],
-      position: mockPosition
+      children: [
+        {
+          type: NodeType.CONTENT,
+          value: 'Base content',
+          position: mockPosition,
+        } as Content,
+      ],
+      position: mockPosition,
     };
 
     // 情况1: 子元素没有内容，应继承基础元素内容
@@ -254,7 +265,7 @@ describe('InheritanceVisitor', () => {
       tagName: 'child',
       attributes: { extends: 'id:baseEl' },
       children: [],
-      position: mockPosition
+      position: mockPosition,
     };
 
     // 情况2: 子元素有自己的内容，不应继承基础元素内容
@@ -262,12 +273,14 @@ describe('InheritanceVisitor', () => {
       type: NodeType.ELEMENT,
       tagName: 'child',
       attributes: { extends: 'id:baseEl' },
-      children: [{
-        type: NodeType.CONTENT,
-        value: 'Child content',
-        position: mockPosition
-      } as Content],
-      position: mockPosition
+      children: [
+        {
+          type: NodeType.CONTENT,
+          value: 'Child content',
+          position: mockPosition,
+        } as Content,
+      ],
+      position: mockPosition,
     };
 
     // 将基础元素添加到ID映射中
@@ -275,10 +288,15 @@ describe('InheritanceVisitor', () => {
 
     // 测试无内容子元素
     const emptyResult = await visitor.visitElement(emptyChildElement, context);
+
     expect(emptyResult.children).toEqual(baseElement.children); // 应继承基础内容
 
     // 测试有内容子元素
-    const contentResult = await visitor.visitElement(contentChildElement, context);
+    const contentResult = await visitor.visitElement(
+      contentChildElement,
+      context
+    );
+
     expect(contentResult.children).toEqual(contentChildElement.children); // 应保留自身内容
   });
 
@@ -289,18 +307,20 @@ describe('InheritanceVisitor', () => {
       tagName: 'child',
       attributes: { extends: 'id:nonExistent' },
       children: [],
-      position: mockPosition
+      position: mockPosition,
     };
 
     // 执行访问方法，应该抛出错误
-    await expect(visitor.visitElement(nonExistentElement, context))
-      .rejects.toThrow(DPMLError);
-    
+    await expect(
+      visitor.visitElement(nonExistentElement, context)
+    ).rejects.toThrow(DPMLError);
+
     // 验证错误代码
-    await expect(visitor.visitElement(nonExistentElement, context))
-      .rejects.toMatchObject({
-        code: ErrorCode.REFERENCE_NOT_FOUND
-      });
+    await expect(
+      visitor.visitElement(nonExistentElement, context)
+    ).rejects.toMatchObject({
+      code: ErrorCode.REFERENCE_NOT_FOUND,
+    });
 
     // 测试循环继承
     const element1: Element = {
@@ -308,7 +328,7 @@ describe('InheritanceVisitor', () => {
       tagName: 'el1',
       attributes: { id: 'el1', extends: 'id:el2' },
       children: [],
-      position: mockPosition
+      position: mockPosition,
     };
 
     const element2: Element = {
@@ -316,7 +336,7 @@ describe('InheritanceVisitor', () => {
       tagName: 'el2',
       attributes: { id: 'el2', extends: 'id:el1' },
       children: [],
-      position: mockPosition
+      position: mockPosition,
     };
 
     // 将元素添加到ID映射中
@@ -326,15 +346,17 @@ describe('InheritanceVisitor', () => {
     // 设置继承链以模拟第一次引用已处理
     // 这是因为循环检测是在处理第二个元素时触发的
     context.variables.inheritanceChain = ['id:el1'];
-    
+
     // 循环继承应抛出错误
-    await expect(visitor.visitElement(element2, context))
-      .rejects.toThrow(DPMLError);
-    
+    await expect(visitor.visitElement(element2, context)).rejects.toThrow(
+      DPMLError
+    );
+
     // 验证循环引用错误代码
-    await expect(visitor.visitElement(element2, context))
-      .rejects.toMatchObject({
-        code: ErrorCode.CIRCULAR_REFERENCE
-      });
+    await expect(visitor.visitElement(element2, context)).rejects.toMatchObject(
+      {
+        code: ErrorCode.CIRCULAR_REFERENCE,
+      }
+    );
   });
-}); 
+});

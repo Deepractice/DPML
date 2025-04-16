@@ -31,7 +31,7 @@ export function createFactory<T>(defaults: T): Factory<T> {
     build(overrides = {}) {
       return {
         ...deepClone(defaults),
-        ...overrides
+        ...overrides,
       } as T;
     },
 
@@ -40,12 +40,13 @@ export function createFactory<T>(defaults: T): Factory<T> {
     },
 
     extend(extension) {
-      const extendedDefaults = typeof extension === 'function'
-        ? { ...defaults, ...extension(deepClone(defaults)) }
-        : { ...defaults, ...extension };
+      const extendedDefaults =
+        typeof extension === 'function'
+          ? { ...defaults, ...extension(deepClone(defaults)) }
+          : { ...defaults, ...extension };
 
       return createFactory(extendedDefaults);
-    }
+    },
   };
 
   return factory;
@@ -63,7 +64,9 @@ export function sequence(start = 1, step = 1): () => number {
 
   return () => {
     const value = current;
+
     current += step;
+
     return value;
   };
 }
@@ -97,10 +100,16 @@ export function randomInt(min: number, max: number): () => number {
  * @param decimals 小数位数
  * @returns 随机浮点数函数
  */
-export function randomFloat(min: number, max: number, decimals = 2): () => number {
+export function randomFloat(
+  min: number,
+  max: number,
+  decimals = 2
+): () => number {
   const factor = Math.pow(10, decimals);
+
   return () => {
     const value = Math.random() * (max - min) + min;
+
     return Math.round(value * factor) / factor;
   };
 }
@@ -132,6 +141,7 @@ export function randomString(
 
     for (let i = 0; i < len; i++) {
       const randomIndex = Math.floor(Math.random() * charset.length);
+
       result += charset.charAt(randomIndex);
     }
 
@@ -155,6 +165,7 @@ export function randomDate(
 
   return () => {
     const timestamp = fromTime + Math.random() * (toTime - fromTime);
+
     return new Date(timestamp);
   };
 }
@@ -181,7 +192,9 @@ export function randomColor(): () => string {
  */
 export function randomIp(): () => string {
   return () => {
-    return Array.from({ length: 4 }, () => Math.floor(Math.random() * 256)).join('.');
+    return Array.from({ length: 4 }, () =>
+      Math.floor(Math.random() * 256)
+    ).join('.');
   };
 }
 
@@ -192,9 +205,10 @@ export function randomIp(): () => string {
  */
 export function randomUuid(): () => string {
   return () => {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-      const r = Math.random() * 16 | 0;
-      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+
       return v.toString(16);
     });
   };
@@ -206,7 +220,9 @@ export function randomUuid(): () => string {
  * @param domains 域名列表
  * @returns 随机邮箱函数
  */
-export function randomEmail(domains = ['example.com', 'test.org', 'mock.net']): () => string {
+export function randomEmail(
+  domains = ['example.com', 'test.org', 'mock.net']
+): () => string {
   const randomUsername = randomString(randomInt(5, 10));
   const randomDomain = randomItem(domains);
 

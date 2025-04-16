@@ -17,14 +17,15 @@ let nodeURL: typeof import('url').URL | undefined;
 if (isRunningInNode()) {
   try {
     // 动态导入Node.js内置模块
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+
     nodePath = require('path');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+
     nodeFS = require('fs');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+
     nodeOS = require('os');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+
     const urlModule = require('url');
+
     nodeURL = urlModule.URL;
   } catch (error) {
     console.warn('Unable to load Node.js path modules:', error);
@@ -34,9 +35,7 @@ if (isRunningInNode()) {
 /**
  * 路径分隔符
  */
-export const separator = isRunningInNode()
-  ? nodePath?.sep || '/'
-  : '/';
+export const separator = isRunningInNode() ? nodePath?.sep || '/' : '/';
 
 /**
  * 标准化路径，处理不同平台的路径分隔符
@@ -57,6 +56,7 @@ export function normalizePath(filePath: string): string {
       try {
         // 使用URL API解析文件URL
         const fileUrl = new nodeURL(filePath);
+
         return fileUrl.pathname;
       } catch (error) {
         // 如果解析失败，尝试直接移除协议部分
@@ -75,6 +75,7 @@ export function normalizePath(filePath: string): string {
       // 如果包含正斜杠，转换为反斜杠
       return filePath.replace(/\//g, '\\');
     }
+
     return filePath;
   } else {
     // Unix平台或浏览器环境，将反斜杠转换为正斜杠
@@ -100,7 +101,9 @@ export function join(...paths: string[]): string {
       if (i === 0) {
         return part.endsWith('/') ? part.slice(0, -1) : part;
       }
+
       part = part.startsWith('/') ? part.slice(1) : part;
+
       return part.endsWith('/') ? part.slice(0, -1) : part;
     })
     .join('/');
@@ -120,6 +123,7 @@ export function resolve(...paths: string[]): string {
   // 可以考虑基于当前URL进行处理
   if (typeof window !== 'undefined' && window.location) {
     const base = new URL('.', window.location.href).pathname;
+
     return join(base, ...paths);
   }
 
@@ -238,9 +242,11 @@ export function isAbsolute(filePath: string): boolean {
   }
 
   // URL格式
-  if (filePath.startsWith('http://') ||
-      filePath.startsWith('https://') ||
-      filePath.startsWith('file://')) {
+  if (
+    filePath.startsWith('http://') ||
+    filePath.startsWith('https://') ||
+    filePath.startsWith('file://')
+  ) {
     return true;
   }
 
@@ -253,7 +259,10 @@ export function isAbsolute(filePath: string): boolean {
  * @param targetPath 目标路径
  * @returns 如果路径未超出基础目录则返回true
  */
-export function isPathWithinDirectory(basePath: string, targetPath: string): boolean {
+export function isPathWithinDirectory(
+  basePath: string,
+  targetPath: string
+): boolean {
   let resolvedBase: string;
   let resolvedTarget: string;
 
@@ -295,12 +304,12 @@ export const normalize = normalizePath;
 export const pathUtils = {
   separator,
   normalizePath,
-  normalize,  // 添加 normalize 别名
+  normalize, // 添加 normalize 别名
   join,
   resolve,
   dirname,
   basename,
   extname,
   isAbsolute,
-  isPathWithinDirectory
+  isPathWithinDirectory,
 };

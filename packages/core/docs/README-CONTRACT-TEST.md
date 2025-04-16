@@ -17,7 +17,7 @@ README契约测试旨在实现以下目标：
 
 首先需要从README文件中提取代码示例：
 
-```typescript
+````typescript
 // utils/extract-examples.ts
 import * as fs from 'fs';
 import * as path from 'path';
@@ -25,23 +25,23 @@ import * as path from 'path';
 function extractExamples(readmePath: string): Record<string, string> {
   const content = fs.readFileSync(readmePath, 'utf-8');
   const examples: Record<string, string> = {};
-  
+
   // 匹配代码块: ```typescript ... ```
   const codeBlockRegex = /```typescript\s+([\s\S]+?)\s+```/g;
-  
+
   let match;
   let count = 0;
-  
+
   while ((match = codeBlockRegex.exec(content)) !== null) {
     const code = match[1].trim();
     examples[`example-${++count}`] = code;
   }
-  
+
   return examples;
 }
 
 export { extractExamples };
-```
+````
 
 ### 2.2 创建测试文件
 
@@ -55,12 +55,12 @@ import { extractExamples } from './extract-examples';
 
 function createTestFiles(readmePath: string, outputDir: string): void {
   const examples = extractExamples(readmePath);
-  
+
   // 确保输出目录存在
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
-  
+
   for (const [id, code] of Object.entries(examples)) {
     const testContent = generateTestContent(id, code);
     fs.writeFileSync(path.join(outputDir, `${id}.test.ts`), testContent);
@@ -114,7 +114,7 @@ createTestFiles(readmePath, outputDir);
 // 运行测试
 const result = spawnSync('vitest', ['run', outputDir], {
   stdio: 'inherit',
-  shell: true
+  shell: true,
 });
 
 // 根据测试结果退出
@@ -134,10 +134,10 @@ import * as ts from 'typescript';
 function transformExample(code: string): string {
   // 替换文件系统操作
   code = code.replace(/fs\.readFileSync/g, 'mockReadFileSync');
-  
+
   // 替换网络请求
   code = code.replace(/fetch\(/g, 'mockFetch(');
-  
+
   // 添加必要的mock定义
   const mocks = `
   // Mock函数定义
@@ -146,7 +146,7 @@ function transformExample(code: string): string {
     json: async () => ({ data: 'mock数据' }) 
   });
   `;
-  
+
   return mocks + code;
 }
 
@@ -165,30 +165,30 @@ import { TagRegistry, parse, process } from '@dpml/core';
 function createTestContext() {
   // 预设的注册表
   const registry = new TagRegistry();
-  
+
   // 注册基本标签
   registry.registerTagDefinition('test', {
     attributes: {
-      id: { type: 'string', required: true }
+      id: { type: 'string', required: true },
     },
-    allowedChildren: ['child']
+    allowedChildren: ['child'],
   });
-  
+
   registry.registerTagDefinition('child', {
     attributes: {
-      name: { type: 'string', required: false }
-    }
+      name: { type: 'string', required: false },
+    },
   });
-  
+
   // 预置的解析代码
   const sampleDPML = '<test id="example">测试内容</test>';
   const parseResult = await parse(sampleDPML);
-  
+
   return {
     registry,
     sampleDPML,
     parseResult,
-    processedDoc: await process(parseResult.ast)
+    processedDoc: await process(parseResult.ast),
   };
 }
 
@@ -203,18 +203,18 @@ export { createTestContext };
 // utils/replace-placeholders.ts
 function replacePlaceholders(code: string): string {
   const replacements: Record<string, string> = {
-    'dpmlText': "'<test id=\"example\">测试内容</test>'",
-    'customTagName': "'custom-tag'",
-    'customOptions': "{ strictMode: false }",
-    'filePath': "'./sample.dpml'"
+    dpmlText: '\'<test id="example">测试内容</test>\'',
+    customTagName: "'custom-tag'",
+    customOptions: '{ strictMode: false }',
+    filePath: "'./sample.dpml'",
   };
-  
+
   for (const [placeholder, value] of Object.entries(replacements)) {
     // 替换变量名
     const regex = new RegExp(`\\b${placeholder}\\b`, 'g');
     code = code.replace(regex, value);
   }
-  
+
   return code;
 }
 
@@ -233,12 +233,12 @@ name: README契约测试
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'README.md'
       - 'packages/*/src/**'
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'README.md'
       - 'packages/*/src/**'
@@ -312,7 +312,7 @@ test('README示例 - 基本解析', async () => {
   const dpmlText = '<prompt id="example">这是一个示例</prompt>';
   const result = await parse(dpmlText);
   const ast = result.ast;
-  
+
   // 验证结果
   expect(result).toBeDefined();
   expect(ast).toBeDefined();
@@ -332,24 +332,24 @@ import { TagRegistry, TagDefinition } from '@dpml/core';
 test('README示例 - 标签注册', () => {
   // 示例代码
   const registry = new TagRegistry();
-  
+
   const promptTagDef: TagDefinition = {
     attributes: {
       id: { type: 'string', required: true },
       version: { type: 'string', required: false },
-      extends: { type: 'string', required: false }
+      extends: { type: 'string', required: false },
     },
-    allowedChildren: ['role', 'context', 'thinking', 'executing']
+    allowedChildren: ['role', 'context', 'thinking', 'executing'],
   };
-  
+
   registry.registerTagDefinition('prompt', promptTagDef);
   const isDefined = registry.isTagRegistered('prompt');
-  
+
   // 验证结果
   expect(isDefined).toBe(true);
   expect(registry.getTagDefinition('prompt')).toEqual({
     ...promptTagDef,
-    name: 'prompt' // 注册时会添加name属性
+    name: 'prompt', // 注册时会添加name属性
   });
 });
 ```
@@ -362,4 +362,4 @@ test('README示例 - 标签注册', () => {
 2. **异步处理**：正确处理Promise和async/await
 3. **环境依赖**：提供必要的mock对象和测试环境
 4. **版本差异**：确保测试环境与示例假设的版本一致
-5. **资源清理**：测试后清理所有资源 
+5. **资源清理**：测试后清理所有资源

@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 import * as path from 'path';
+
 import { DpmlError } from '../../utils/error';
 
 /**
@@ -119,7 +120,7 @@ export class MockFileSystem extends EventEmitter {
       type: 'directory',
       createdAt: new Date(),
       modifiedAt: new Date(),
-      children: {}
+      children: {},
     };
 
     if (options.initialFiles) {
@@ -159,6 +160,7 @@ export class MockFileSystem extends EventEmitter {
    */
   private getPathComponents(filePath: string): string[] {
     const normalized = this.normalizePath(filePath);
+
     return normalized.split('/').filter(Boolean);
   }
 
@@ -169,7 +171,10 @@ export class MockFileSystem extends EventEmitter {
    * @param create 是否创建不存在的目录
    * @returns 条目信息
    */
-  private findEntry(filePath: string, create: boolean = false): {
+  private findEntry(
+    filePath: string,
+    create: boolean = false
+  ): {
     entry: FileSystemEntry | null;
     parent: FileSystemEntry | null;
     name: string;
@@ -184,7 +189,9 @@ export class MockFileSystem extends EventEmitter {
     let parent: FileSystemEntry | null = null;
 
     for (let i = 0; i < components.length - 1; i++) {
-      const component = this.caseSensitive ? components[i] : components[i].toLowerCase();
+      const component = this.caseSensitive
+        ? components[i]
+        : components[i].toLowerCase();
 
       if (!current.children) {
         return { entry: null, parent: null, name: component };
@@ -211,7 +218,7 @@ export class MockFileSystem extends EventEmitter {
           type: 'directory',
           createdAt: new Date(),
           modifiedAt: new Date(),
-          children: {}
+          children: {},
         };
 
         current.children[components[i]] = child;
@@ -220,7 +227,7 @@ export class MockFileSystem extends EventEmitter {
         this.emit('create', {
           type: 'create',
           path: '/' + components.slice(0, i + 1).join('/'),
-          entry: child
+          entry: child,
         });
       }
 
@@ -233,7 +240,9 @@ export class MockFileSystem extends EventEmitter {
     }
 
     const lastName = components[components.length - 1];
-    const lastComponent = this.caseSensitive ? lastName : lastName.toLowerCase();
+    const lastComponent = this.caseSensitive
+      ? lastName
+      : lastName.toLowerCase();
 
     if (current.children) {
       let entry: FileSystemEntry | undefined;
@@ -277,7 +286,7 @@ export class MockFileSystem extends EventEmitter {
 
   /**
    * 异步读取文件内容
-   * 
+   *
    * @param filePath 文件路径
    * @returns 文件内容的Promise
    */
@@ -313,12 +322,13 @@ export class MockFileSystem extends EventEmitter {
       // 更新现有文件
       entry.content = content;
       entry.modifiedAt = now;
-      entry.size = typeof content === 'string' ? content.length : content.length;
+      entry.size =
+        typeof content === 'string' ? content.length : content.length;
 
       this.emit('update', {
         type: 'update',
         path: filePath,
-        entry
+        entry,
       });
     } else {
       // 处理null或undefined内容
@@ -333,7 +343,7 @@ export class MockFileSystem extends EventEmitter {
         createdAt: now,
         modifiedAt: now,
         content,
-        size: typeof content === 'string' ? content.length : content.length
+        size: typeof content === 'string' ? content.length : content.length,
       };
 
       if (!parent.children) {
@@ -346,14 +356,14 @@ export class MockFileSystem extends EventEmitter {
       this.emit('create', {
         type: 'create',
         path: filePath,
-        entry: newFile
+        entry: newFile,
       });
     }
   }
 
   /**
    * 异步写入文件
-   * 
+   *
    * @param filePath 文件路径
    * @param content 文件内容
    * @returns 完成写入的Promise
@@ -361,6 +371,7 @@ export class MockFileSystem extends EventEmitter {
   async writeFile(filePath: string, content: string | Buffer): Promise<void> {
     try {
       this.writeFileSync(filePath, content);
+
       return Promise.resolve();
     } catch (err) {
       return Promise.reject(err);
@@ -381,7 +392,12 @@ export class MockFileSystem extends EventEmitter {
       throw new DpmlError(`文件或目录不存在: ${filePath}`, 'ENOENT');
     }
 
-    if (entry.type === 'directory' && entry.children && Object.keys(entry.children).length > 0 && !recursive) {
+    if (
+      entry.type === 'directory' &&
+      entry.children &&
+      Object.keys(entry.children).length > 0 &&
+      !recursive
+    ) {
       throw new DpmlError(`目录不为空: ${filePath}`, 'ENOTEMPTY');
     }
 
@@ -391,13 +407,13 @@ export class MockFileSystem extends EventEmitter {
     this.emit('delete', {
       type: 'delete',
       path: filePath,
-      entry
+      entry,
     });
   }
 
   /**
    * 异步删除文件或目录
-   * 
+   *
    * @param filePath 文件路径
    * @param recursive 是否递归删除目录
    * @returns 完成删除的Promise
@@ -405,6 +421,7 @@ export class MockFileSystem extends EventEmitter {
   async delete(filePath: string, recursive: boolean = false): Promise<void> {
     try {
       this.deleteSync(filePath, recursive);
+
       return Promise.resolve();
     } catch (err) {
       return Promise.reject(err);
@@ -438,7 +455,7 @@ export class MockFileSystem extends EventEmitter {
       type: 'directory',
       createdAt: now,
       modifiedAt: now,
-      children: {}
+      children: {},
     };
 
     parent.children![name] = newDir;
@@ -447,13 +464,13 @@ export class MockFileSystem extends EventEmitter {
     this.emit('create', {
       type: 'create',
       path: dirPath,
-      entry: newDir
+      entry: newDir,
     });
   }
 
   /**
    * 异步创建目录
-   * 
+   *
    * @param dirPath 目录路径
    * @param recursive 是否递归创建
    * @returns 完成创建的Promise
@@ -463,23 +480,28 @@ export class MockFileSystem extends EventEmitter {
       if (recursive) {
         const parts = dirPath.split('/').filter(Boolean);
         let currentPath = '';
-        
+
         for (const part of parts) {
           currentPath = currentPath ? `${currentPath}/${part}` : part;
-          
+
           try {
             this.mkdirSync(currentPath);
           } catch (err) {
             // 如果目录已存在则继续
-            if (err instanceof DpmlError && err.message.includes('目录已存在')) {
+            if (
+              err instanceof DpmlError &&
+              err.message.includes('目录已存在')
+            ) {
               continue;
             }
+
             throw err;
           }
         }
       } else {
         this.mkdirSync(dirPath);
       }
+
       return Promise.resolve();
     } catch (err) {
       return Promise.reject(err);
@@ -509,7 +531,7 @@ export class MockFileSystem extends EventEmitter {
 
   /**
    * 异步列出目录内容
-   * 
+   *
    * @param dirPath 目录路径
    * @returns 子条目列表的Promise
    */
@@ -529,12 +551,13 @@ export class MockFileSystem extends EventEmitter {
    */
   existsSync(filePath: string): boolean {
     const { entry } = this.findEntry(filePath);
+
     return !!entry;
   }
 
   /**
    * 异步检查路径是否存在
-   * 
+   *
    * @param filePath 文件路径
    * @returns 是否存在的Promise
    */
@@ -550,12 +573,13 @@ export class MockFileSystem extends EventEmitter {
    */
   isDirectorySync(dirPath: string): boolean {
     const { entry } = this.findEntry(dirPath);
+
     return !!entry && entry.type === 'directory';
   }
 
   /**
    * 异步检查路径是否是目录
-   * 
+   *
    * @param dirPath 目录路径
    * @returns 是否是目录的Promise
    */
@@ -571,12 +595,13 @@ export class MockFileSystem extends EventEmitter {
    */
   isFileSync(filePath: string): boolean {
     const { entry } = this.findEntry(filePath);
+
     return !!entry && entry.type === 'file';
   }
 
   /**
    * 异步检查路径是否是文件
-   * 
+   *
    * @param filePath 文件路径
    * @returns 是否是文件的Promise
    */
@@ -599,16 +624,19 @@ export class MockFileSystem extends EventEmitter {
     }
 
     const { content, children, ...stat } = entry;
+
     return stat;
   }
 
   /**
    * 异步获取条目信息
-   * 
+   *
    * @param filePath 文件路径
    * @returns 条目信息的Promise
    */
-  async stat(filePath: string): Promise<Omit<FileSystemEntry, 'content' | 'children'>> {
+  async stat(
+    filePath: string
+  ): Promise<Omit<FileSystemEntry, 'content' | 'children'>> {
     try {
       return this.statSync(filePath);
     } catch (err) {
@@ -624,13 +652,21 @@ export class MockFileSystem extends EventEmitter {
    * @throws {DpmlError} 当源路径不存在或目标路径已存在时
    */
   renameSync(oldPath: string, newPath: string): void {
-    const { entry: oldEntry, parent: oldParent, name: oldName } = this.findEntry(oldPath);
+    const {
+      entry: oldEntry,
+      parent: oldParent,
+      name: oldName,
+    } = this.findEntry(oldPath);
 
     if (!oldEntry || !oldParent) {
       throw new DpmlError(`源路径不存在: ${oldPath}`, 'ENOENT');
     }
 
-    const { entry: newEntry, parent: newParent, name: newName } = this.findEntry(newPath, true);
+    const {
+      entry: newEntry,
+      parent: newParent,
+      name: newName,
+    } = this.findEntry(newPath, true);
 
     if (newEntry) {
       throw new DpmlError(`目标路径已存在: ${newPath}`, 'EEXIST');
@@ -646,6 +682,7 @@ export class MockFileSystem extends EventEmitter {
 
     // 添加到新位置
     const now = new Date();
+
     oldEntry.name = newName;
     oldEntry.modifiedAt = now;
 
@@ -656,13 +693,13 @@ export class MockFileSystem extends EventEmitter {
       type: 'rename',
       path: oldPath,
       newPath,
-      entry: oldEntry
+      entry: oldEntry,
     });
   }
 
   /**
    * 异步重命名文件或目录
-   * 
+   *
    * @param oldPath 旧路径
    * @param newPath 新路径
    * @returns 完成重命名的Promise
@@ -670,6 +707,7 @@ export class MockFileSystem extends EventEmitter {
   async rename(oldPath: string, newPath: string): Promise<void> {
     try {
       this.renameSync(oldPath, newPath);
+
       return Promise.resolve();
     } catch (err) {
       return Promise.reject(err);
@@ -684,14 +722,22 @@ export class MockFileSystem extends EventEmitter {
    * @param recursive 是否递归复制目录
    * @throws {DpmlError} 当源路径不存在或目标路径已存在时
    */
-  copySync(sourcePath: string, destPath: string, recursive: boolean = true): void {
+  copySync(
+    sourcePath: string,
+    destPath: string,
+    recursive: boolean = true
+  ): void {
     const { entry: sourceEntry } = this.findEntry(sourcePath);
 
     if (!sourceEntry) {
       throw new DpmlError(`源路径不存在: ${sourcePath}`, 'ENOENT');
     }
 
-    const { entry: destEntry, parent: destParent, name: destName } = this.findEntry(destPath, true);
+    const {
+      entry: destEntry,
+      parent: destParent,
+      name: destName,
+    } = this.findEntry(destPath, true);
 
     if (destEntry) {
       throw new DpmlError(`目标路径已存在: ${destPath}`, 'EEXIST');
@@ -709,26 +755,34 @@ export class MockFileSystem extends EventEmitter {
       this.mkdirSync(destPath);
 
       if (recursive && sourceEntry.children) {
-        Object.entries(sourceEntry.children).forEach(([childName, childEntry]) => {
-          const childSourcePath = `${sourcePath}/${childName}`;
-          const childDestPath = `${destPath}/${childName}`;
-          this.copySync(childSourcePath, childDestPath, recursive);
-        });
+        Object.entries(sourceEntry.children).forEach(
+          ([childName, childEntry]) => {
+            const childSourcePath = `${sourcePath}/${childName}`;
+            const childDestPath = `${destPath}/${childName}`;
+
+            this.copySync(childSourcePath, childDestPath, recursive);
+          }
+        );
       }
     }
   }
 
   /**
    * 异步复制文件或目录
-   * 
+   *
    * @param sourcePath 源路径
    * @param destPath 目标路径
    * @param recursive 是否递归复制目录
    * @returns 完成复制的Promise
    */
-  async copy(sourcePath: string, destPath: string, recursive: boolean = true): Promise<void> {
+  async copy(
+    sourcePath: string,
+    destPath: string,
+    recursive: boolean = true
+  ): Promise<void> {
     try {
       this.copySync(sourcePath, destPath, recursive);
+
       return Promise.resolve();
     } catch (err) {
       return Promise.reject(err);
@@ -748,7 +802,10 @@ export class MockFileSystem extends EventEmitter {
         result[currentPath] = entry.content;
       } else if (entry.type === 'directory' && entry.children) {
         Object.entries(entry.children).forEach(([childName, childEntry]) => {
-          const childPath = currentPath ? `${currentPath}/${childName}` : childName;
+          const childPath = currentPath
+            ? `${currentPath}/${childName}`
+            : childName;
+
           processEntry(childEntry, childPath);
         });
       }

@@ -63,12 +63,14 @@ DPML项目采用四层测试模型，每层有不同的目标和模拟策略：
 ### 3.1 何时使用模拟
 
 **应该模拟的组件**：
+
 - 外部系统（文件系统、网络请求、数据库）
 - 非确定性组件（日期、随机数生成器）
 - 有副作用的组件（控制台输出、进程控制）
 - 慢速组件（对测试速度有显著影响的组件）
 
 **不应模拟的组件**：
+
 - 纯函数和纯逻辑
 - 核心业务规则
 - 简单的数据结构和对象
@@ -78,12 +80,14 @@ DPML项目采用四层测试模型，每层有不同的目标和模拟策略：
 按照以下层次决定模拟程度：
 
 1. **高优先级模拟**：
+
    - 文件系统操作
    - 网络请求
    - 外部API调用
    - 进程控制（如`process.exit()`）
 
 2. **中优先级模拟**：
+
    - 第三方库（部分功能）
    - 环境变量
    - 时间相关函数
@@ -107,7 +111,7 @@ interface IFileSystem {
 
 class ConfigLoader {
   constructor(private fs: IFileSystem) {}
-  
+
   async loadConfig(path: string) {
     return JSON.parse(await this.fs.readFile(path));
   }
@@ -115,7 +119,7 @@ class ConfigLoader {
 
 // 测试
 const mockFs: IFileSystem = {
-  readFile: jest.fn().mockResolvedValue('{"key":"value"}')
+  readFile: jest.fn().mockResolvedValue('{"key":"value"}'),
 };
 const loader = new ConfigLoader(mockFs);
 ```
@@ -129,11 +133,11 @@ const loader = new ConfigLoader(mockFs);
 test('loadConfig应返回解析后的配置', async () => {
   // 设置预期行为
   mockFs.readFile.mockResolvedValue('{"key":"value"}');
-  
+
   // 验证结果
   const config = await loader.loadConfig('config.json');
-  expect(config).toEqual({key: 'value'});
-  
+  expect(config).toEqual({ key: 'value' });
+
   // 验证正确调用了依赖
   expect(mockFs.readFile).toHaveBeenCalledWith('config.json');
 });
@@ -157,7 +161,7 @@ import { createMockFileSystem, createMockFunction } from '@dpml/common/testing';
 // 创建模拟文件系统
 const mockFs = createMockFileSystem({
   '/config.json': '{"key":"value"}',
-  '/settings.json': '{"theme":"dark"}'
+  '/settings.json': '{"theme":"dark"}',
 });
 
 // 在测试中使用
@@ -176,14 +180,14 @@ test('loadConfig处理文件不存在的情况', async () => {
 describe('FileSystem契约测试', () => {
   const implementations = [
     ['真实实现', new NodeFileSystem()],
-    ['模拟实现', createMockFileSystem({'test.txt': 'content'})]
+    ['模拟实现', createMockFileSystem({ 'test.txt': 'content' })],
   ];
-  
+
   test.each(implementations)('%s 应正确处理存在的文件', async (_, fs) => {
     expect(await fs.exists('test.txt')).toBe(true);
     expect(await fs.readFile('test.txt')).toBe('content');
   });
-  
+
   test.each(implementations)('%s 应正确处理不存在的文件', async (_, fs) => {
     await expect(fs.readFile('missing.txt')).rejects.toThrow();
   });
@@ -201,7 +205,7 @@ vi.mock('@dpml/core');
 // 推荐的做法
 vi.mock('@dpml/core', () => ({
   ...vi.importActual('@dpml/core'),
-  parseConfig: vi.fn().mockReturnValue({})
+  parseConfig: vi.fn().mockReturnValue({}),
 }));
 ```
 
@@ -219,13 +223,13 @@ import { createMockFunction } from '@dpml/common/testing';
 
 test('register应添加命令到注册表', () => {
   const registry = new CommandRegistry();
-  const mockCommand = { 
-    name: 'test', 
-    execute: createMockFunction() 
+  const mockCommand = {
+    name: 'test',
+    execute: createMockFunction(),
   };
-  
+
   registry.register('domain', 'test', mockCommand);
-  
+
   const result = registry.getCommand('domain', 'test');
   expect(result).toBe(mockCommand);
 });
@@ -244,15 +248,15 @@ import { createMockFileSystem } from '@dpml/common/testing';
 test('loadDomainCommands应从配置加载并注册命令', async () => {
   // 模拟文件系统
   const mockFs = createMockFileSystem({
-    'config.json': '{"domain":"test","commands":[{"name":"cmd"}]}'
+    'config.json': '{"domain":"test","commands":[{"name":"cmd"}]}',
   });
-  
+
   // 使用真实实现
   const registry = new CommandRegistry();
   const loader = new CommandLoader(registry, mockFs);
-  
+
   await loader.loadDomainCommands('test');
-  
+
   expect(registry.getCommand('test', 'cmd')).toBeDefined();
 });
 ```
@@ -270,14 +274,16 @@ import { createMockFileSystem } from '@dpml/common/testing';
 test('CLI应成功加载和执行命令', async () => {
   // 仅模拟文件系统和进程
   const mockFs = createMockFileSystem({
-    '~/.dpml/mapping.json': JSON.stringify({domains:{test:{package:'@dpml/test'}}})
+    '~/.dpml/mapping.json': JSON.stringify({
+      domains: { test: { package: '@dpml/test' } },
+    }),
   });
   const mockProcess = { exit: vi.fn() };
-  
+
   // 使用真实CLI实现与注册表
-  const cli = new CLI({fs: mockFs, process: mockProcess});
+  const cli = new CLI({ fs: mockFs, process: mockProcess });
   await cli.run(['node', 'dpml', 'test', 'command']);
-  
+
   // 验证结果
   expect(mockProcess.exit).not.toHaveBeenCalled();
   // 其他验证...
@@ -297,10 +303,10 @@ import { withTestEnvironment } from '@dpml/common/testing';
 test('端到端：CLI应执行完整流程', async () => {
   await withTestEnvironment(
     { name: 'e2e-test', env: { DPML_CONFIG_DIR: 'tmp' } },
-    async (env) => {
+    async env => {
       // 执行实际CLI（最小模拟）
       const result = await execAsync('node ./bin/dpml.js --help');
-      
+
       // 验证
       expect(result.stdout).toContain('Usage: dpml [options] [command]');
     }
@@ -348,12 +354,12 @@ describe('CommandRegistry', () => {
     test('应成功注册有效命令', () => {
       // 测试实现
     });
-    
+
     test('应拒绝重复注册', () => {
       // 测试实现
     });
   });
-  
+
   describe('getCommand方法', () => {
     // 更多测试...
   });
@@ -391,20 +397,20 @@ export const createCommand = (overrides = {}) => ({
   name: 'test-command',
   description: 'Test command',
   execute: vi.fn().mockResolvedValue(undefined),
-  ...overrides
+  ...overrides,
 });
 
 export const createDomainConfig = (overrides = {}) => ({
   domain: 'test-domain',
   commands: [createCommand()],
-  ...overrides
+  ...overrides,
 });
 
 // 在测试中使用
 test('应加载领域配置', () => {
   const config = createDomainConfig({
     domain: 'custom',
-    commands: [createCommand({ name: 'custom-cmd' })]
+    commands: [createCommand({ name: 'custom-cmd' })],
   });
   // 使用配置...
 });
@@ -423,7 +429,7 @@ test('应加载领域配置', () => {
 ```typescript
 // 结果断言
 expect(result).toBe(expected);
-expect(result).toEqual({id: 123, name: 'test'});
+expect(result).toEqual({ id: 123, name: 'test' });
 expect(array).toContain(item);
 
 // 行为断言
@@ -442,12 +448,12 @@ expect(result).toMatchSnapshot();
 
 ```typescript
 // 避免过度指定 - 过于脆弱
-expect(result).toEqual(exactLargeObject);  // 不好
-expect(result.criticalProperties).toEqual({id, name});  // 更好
+expect(result).toEqual(exactLargeObject); // 不好
+expect(result.criticalProperties).toEqual({ id, name }); // 更好
 
 // 避免不必要的实现细节断言
-expect(mockFn).toHaveBeenCalledTimes(3);  // 仅在调用次数重要时使用
-expect(JSON.stringify(result)).toBe('{"id":1}');  // 使用toEqual代替
+expect(mockFn).toHaveBeenCalledTimes(3); // 仅在调用次数重要时使用
+expect(JSON.stringify(result)).toBe('{"id":1}'); // 使用toEqual代替
 ```
 
 ## 7. 集成和端到端测试指南
@@ -523,6 +529,7 @@ expect(JSON.stringify(result)).toBe('{"id":1}');  // 使用toEqual代替
 6. **错误处理**：测试各种错误情况的处理
 
 模拟策略：
+
 - 使用`@dpml/common/testing`提供的模拟文件系统
 - 模拟进程控制 (process.exit等)
 - 模拟控制台输出
@@ -536,6 +543,7 @@ expect(JSON.stringify(result)).toBe('{"id":1}');  // 使用toEqual代替
 4. **错误报告**：测试错误处理和报告
 
 模拟策略：
+
 - 使用静态测试文件
 - 使用`@dpml/common/testing`提供的模拟文件系统
 - 使用真实解析器进行端到端测试
@@ -548,6 +556,7 @@ expect(JSON.stringify(result)).toBe('{"id":1}');  // 使用toEqual代替
 4. **会话处理**：测试会话和上下文管理
 
 模拟策略：
+
 - 使用`@dpml/common/testing`提供的模拟HTTP客户端
 - 模拟文件系统操作
 - 使用小型真实调用进行集成测试
@@ -597,8 +606,8 @@ import * as path from 'path';
 export default defineConfig({
   resolve: {
     alias: {
-      '@packageName': path.resolve(__dirname, './src')
-    }
+      '@packageName': path.resolve(__dirname, './src'),
+    },
   },
   test: {
     globals: true,
@@ -620,30 +629,30 @@ import { CommandRegistry } from '../../core/registry';
 
 describe('CommandRegistry', () => {
   let registry: CommandRegistry;
-  
+
   beforeEach(() => {
     registry = new CommandRegistry();
   });
-  
+
   describe('register方法', () => {
     test('应成功注册命令并能检索', () => {
       // 准备
       const mockCommand = { name: 'test', execute: createMockFunction() };
-      
+
       // 执行
       registry.register('domain', 'test', mockCommand);
       const retrieved = registry.getCommand('domain', 'test');
-      
+
       // 验证
       expect(retrieved).toBe(mockCommand);
     });
-    
+
     test('注册重复命令应抛出错误', () => {
       // 准备
       const command1 = { name: 'test', execute: createMockFunction() };
       const command2 = { name: 'test', execute: createMockFunction() };
       registry.register('domain', 'test', command1);
-      
+
       // 执行并验证
       expect(() => {
         registry.register('domain', 'test', command2);
@@ -655,7 +664,7 @@ describe('CommandRegistry', () => {
 
 ### 集成测试示例
 
-```typescript
+````typescript
 // src/tests/integration/cli-integration.test.ts
 import { createMockFileSystem, withTestEnvironment } from '@dpml/common/testing';
 import { CLI } from '../../core/cli';
@@ -675,17 +684,17 @@ describe('CLI集成测试', () => {
             }
           }
         };
-        
+
         const mockFs = createMockFileSystem({
           '~/.dpml/mapping.json': JSON.stringify(mockConfig)
         });
-        
+
         const mockExecute = vi.fn().mockResolvedValue(undefined);
-        const mockCommand = { 
-          name: 'testcmd', 
-          execute: mockExecute 
+        const mockCommand = {
+          name: 'testcmd',
+          execute: mockExecute
         };
-        
+
         // 模拟动态导入
         vi.mock('@dpml/test/dist/commands.js', () => ({
           default: {
@@ -693,16 +702,16 @@ describe('CLI集成测试', () => {
             commands: [mockCommand]
           }
         }), { virtual: true });
-        
+
         // 创建CLI实例
         const cli = new CLI({
           fs: mockFs,
           // 其他必要依赖...
         });
-        
+
         // 执行
         await cli.run(['node', 'dpml', 'test', 'testcmd', 'arg1']);
-        
+
         // 验证
         expect(mockExecute).toHaveBeenCalledWith(['arg1'], {}, expect.anything());
       }
@@ -737,21 +746,21 @@ describe('ConfigLoader', () => {
     const mockFs = createMockFileSystem({
       '/app/config.json': '{"debug": true, "timestamp": "2023-05-15"}'
     });
-    
+
     const loader = new ConfigLoader(mockFs);
     const config = await loader.load('/app/config.json');
-    
+
     expect(config.debug).toBe(true);
     // 验证模拟文件系统的调用
     expect(mockFs.readFile).toHaveBeenCalledWith('/app/config.json', 'utf-8');
   });
-  
+
   afterEach(() => {
     // 重置时间模拟
     mockTime.reset();
   });
 });
-```
+````
 
 ### 4.2 使用共享测试断言
 
@@ -768,16 +777,16 @@ import { describe, it } from 'vitest';
 describe('UserService', () => {
   it('应创建有效的用户对象', () => {
     const user = userService.createUser('test@example.com');
-    
+
     // 验证用户对象结构
     assertStructure(user, {
       id: 'string',
       email: 'string',
       createdAt: 'object', // Date类型
-      status: 'string'
+      status: 'string',
     });
   });
-  
+
   it('应在邮箱无效时抛出ValidationError', () => {
     // 验证异常类型和消息
     assertErrorType(
@@ -807,11 +816,11 @@ beforeAll(() => {
     // 设置测试数据库
     const db = setupTestDatabase();
     db.users.add({ id: '1', name: 'Test User' });
-    
+
     // 返回夹具和清理函数
     return {
       fixture: db,
-      cleanup: () => db.close()
+      cleanup: () => db.close(),
     };
   });
 });
@@ -820,12 +829,12 @@ describe('UserRepository', () => {
   it('应获取用户记录', async () => {
     // 使用夹具
     const { fixture: db, cleanup } = useFixture('databaseConnection');
-    
+
     const repo = new UserRepository(db);
     const user = await repo.findById('1');
-    
+
     expect(user.name).toBe('Test User');
-    
+
     // 测试后清理
     cleanup();
   });
@@ -848,34 +857,34 @@ describe('TaskQueue', () => {
   beforeEach(() => {
     mockTime('2023-01-01');
   });
-  
+
   it('应在任务完成后调用回调', async () => {
     const { promise, resolve } = createPromise();
     const callback = vi.fn();
-    
+
     const queue = new TaskQueue();
     queue.addTask(() => promise).onComplete(callback);
-    
+
     // 确认回调尚未调用
     expect(callback).not.toHaveBeenCalled();
-    
+
     // 解析Promise，触发完成
     resolve('result');
     await promise;
-    
+
     // 验证回调已调用
     expect(callback).toHaveBeenCalledWith('result');
   });
-  
+
   it('应在超时后取消任务', async () => {
     const queue = new TaskQueue({ timeout: 1000 });
     const task = vi.fn(() => new Promise(() => {})); // 永不解析的Promise
-    
+
     queue.addTask(task);
-    
+
     // 前进1001毫秒，触发超时
     advanceTime(1001);
-    
+
     expect(queue.getStatus()).toBe('timeout');
   });
 });
@@ -898,7 +907,7 @@ describe('TaskQueue', () => {
 ```typescript
 /**
  * UserService单元测试
- * 
+ *
  * 这些测试验证UserService的核心功能，包括用户创建、验证和权限检查。
  * 所有外部依赖都使用模拟对象替代。
  */
@@ -907,10 +916,10 @@ import { describe, it, expect, beforeEach } from 'vitest';
 
 describe('UserService', () => {
   // 测试套件设置...
-  
+
   /**
    * 用户创建流程测试
-   * 
+   *
    * 步骤:
    * 1. 模拟验证服务返回成功
    * 2. 调用创建用户方法
@@ -928,6 +937,7 @@ describe('UserService', () => {
 关于测试工具和最佳实践的详细信息，请参考以下资源：
 
 1. **测试工具文档**
+
    - [测试工具概述](../packages/common/docs/testing/README.md)
    - [模拟文件系统](../packages/common/docs/testing/MockFileSystem.md)
    - [模拟HTTP客户端](../packages/common/docs/testing/MockHttpClient.md)
@@ -936,9 +946,10 @@ describe('UserService', () => {
    - [测试夹具](../packages/common/docs/testing/Fixtures.md)
 
 2. **示例代码**
+
    - [模拟文件系统示例](../packages/common/examples/testing/mock-file-system.ts)
 
 3. **最佳实践指南**
    - [集成指南](../packages/common/docs/integration-guide.md) - 包含测试工具集成部分
 
-// ... existing content continues... 
+// ... existing content continues...

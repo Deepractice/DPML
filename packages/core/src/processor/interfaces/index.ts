@@ -8,4 +8,4 @@ export * from './processingContext';
 export * from './protocolHandler';
 export * from './referenceResolver';
 export * from './tagProcessor';
-export * from './tagProcessorRegistry'; 
+export * from './tagProcessorRegistry';

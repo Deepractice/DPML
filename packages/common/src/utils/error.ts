@@ -47,6 +47,7 @@ export class DpmlError extends Error {
     if (this.context && Object.keys(this.context).length > 0) {
       try {
         const contextStr = JSON.stringify(this.context);
+
         result += `\nContext: ${contextStr}`;
       } catch {
         // 忽略序列化错误
@@ -128,9 +129,14 @@ export class NetworkError extends DpmlError {
    */
   override format(): string {
     let result = super.format();
+
     if (this.statusCode) {
-      result = result.replace('[NETWORK_ERROR]', `[NETWORK_ERROR ${this.statusCode}]`);
+      result = result.replace(
+        '[NETWORK_ERROR]',
+        `[NETWORK_ERROR ${this.statusCode}]`
+      );
     }
+
     return result;
   }
 }
@@ -207,11 +213,13 @@ export function formatErrorStack(error: Error): string {
 
   // 移除内部框架和库路径
   const filteredLines = lines.filter(line => {
-    return !line.includes('node_modules') &&
-           !line.includes('internal') &&
-           !line.includes('at Module._compile') &&
-           !line.includes('at Module.') &&
-           !line.includes('at require');
+    return (
+      !line.includes('node_modules') &&
+      !line.includes('internal') &&
+      !line.includes('at Module._compile') &&
+      !line.includes('at Module.') &&
+      !line.includes('at require')
+    );
   });
 
   return filteredLines.join('\n');
@@ -327,7 +335,9 @@ export function safeCatch<T extends (...args: any[]) => any>(
 
       // 处理Promise返回值
       if (result instanceof Promise) {
-        return result.catch(error => errorHandler(error, ...args)) as ReturnType<T>;
+        return result.catch(error =>
+          errorHandler(error, ...args)
+        ) as ReturnType<T>;
       }
 
       return result;
@@ -355,7 +365,12 @@ export function getErrorCode(error: unknown): string | number | undefined {
   }
 
   // 处理DOMException或其他类型的错误
-  if (typeof error === 'object' && error !== null && 'code' in error && error.code) {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    error.code
+  ) {
     return error.code as string | number;
   }
 
@@ -367,7 +382,9 @@ export function getErrorCode(error: unknown): string | number | undefined {
  * @param error 错误对象
  * @returns 错误位置信息对象
  */
-export function getErrorLocation(error: unknown): Record<string, any> | undefined {
+export function getErrorLocation(
+  error: unknown
+): Record<string, any> | undefined {
   if (typeof error !== 'object' || error === null) {
     return undefined;
   }
@@ -413,5 +430,5 @@ export const errorUtils = {
   getErrorMessage,
   safeCatch,
   getErrorCode,
-  getErrorLocation
+  getErrorLocation,
 };

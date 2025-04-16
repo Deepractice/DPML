@@ -1,11 +1,19 @@
 import { describe, it, expect } from 'vitest';
-import { createDPMLError, ValidationError, FileSystemError, NetworkError } from '../../types';
-import { utilsTypes } from '../../types';
+
+import {
+  createDPMLError,
+  ValidationError,
+  FileSystemError,
+  NetworkError,
+} from '../../types';
+
+import type { utilsTypes } from '../../types';
 
 describe('类型定义测试', () => {
   describe('错误类型', () => {
     it('应正确创建DPMLError', () => {
       const error = createDPMLError('测试错误', 'TEST_ERROR', { id: 123 });
+
       expect(error.message).toBe('测试错误');
       expect(error.code).toBe('TEST_ERROR');
       expect(error.details).toEqual({ id: 123 });
@@ -16,9 +24,9 @@ describe('类型定义测试', () => {
       const error = new ValidationError('验证失败', {
         fields,
         code: 'VALIDATION_FAILED',
-        details: { formId: 'user-form' }
+        details: { formId: 'user-form' },
       });
-      
+
       expect(error.message).toBe('验证失败');
       expect(error.code).toBe('VALIDATION_FAILED');
       expect(error.details).toEqual({ formId: 'user-form' });
@@ -29,9 +37,9 @@ describe('类型定义测试', () => {
     it('应正确创建FileSystemError', () => {
       const error = new FileSystemError('文件不存在', {
         path: '/tmp/test.txt',
-        code: 'FILE_NOT_FOUND'
+        code: 'FILE_NOT_FOUND',
       });
-      
+
       expect(error.message).toBe('文件不存在');
       expect(error.code).toBe('FILE_NOT_FOUND');
       expect(error.path).toBe('/tmp/test.txt');
@@ -41,9 +49,9 @@ describe('类型定义测试', () => {
     it('应正确创建NetworkError', () => {
       const error = new NetworkError('请求失败', {
         statusCode: 404,
-        code: 'NOT_FOUND'
+        code: 'NOT_FOUND',
       });
-      
+
       expect(error.message).toBe('请求失败');
       expect(error.code).toBe('NOT_FOUND');
       expect(error.statusCode).toBe(404);
@@ -57,6 +65,7 @@ describe('类型定义测试', () => {
         if (b === 0) {
           return { success: false, error: new Error('除数不能为零') };
         }
+
         return { success: true, value: a / b };
       }
 
@@ -96,9 +105,9 @@ describe('类型定义测试', () => {
         profile: {
           email: 'zhangsan@example.com',
           address: {
-            city: '北京'
-          }
-        }
+            city: '北京',
+          },
+        },
       };
 
       expect(partialUser.name).toBe('张三');
@@ -106,4 +115,4 @@ describe('类型定义测试', () => {
       expect(partialUser.profile?.address?.city).toBe('北京');
     });
   });
-}); 
+});

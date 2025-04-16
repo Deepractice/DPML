@@ -4,4 +4,4 @@
 
 export * from './console-transport';
 export * from './memory-transport';
-export * from './file-transport'; 
+export * from './file-transport';

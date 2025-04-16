@@ -8,11 +8,14 @@ TypeScript项目代码规范自动化检查需求
 函数/工具文件使用camelCase
 测试文件需添加.test或.spec后缀
 推荐工具：eslint-plugin-filenames
+
 导入路径规范检查
 禁止直接使用相对路径跨包引用源码
 强制使用包名导入：import { X } from '@dpml/core'
 禁止路径映射滥用
+
 包内使用@包名/前缀代替复杂相对路径
+
 推荐工具：eslint-plugin-import，自定义ESLint规则
 测试目录结构检查
 验证测试文件放置在src/tests/目录下
@@ -23,6 +26,7 @@ TypeScript项目代码规范自动化检查需求
 测试套件和用例命名规范检查
 推荐工具：自定义ESLint规则或Jest/Vitest插件
 包配置一致性检查
+
 验证package.json中字段设置符合标准
 检查tsconfig.json正确扩展根配置
 检查tsup.config.ts使用了基础配置
@@ -33,6 +37,7 @@ API使用规范检查
 推荐工具：自定义ESLint规则或TypeScript类型检查
 代码格式检查
 统一的缩进、空格、换行等格式规范
+
 推荐工具：Prettier结合ESLint
 实施建议
 CI/CD集成

@@ -1,6 +1,6 @@
 /**
  * 访问者模块入口
- * 
+ *
  * 提供各种节点访问者
  */
 
@@ -13,4 +13,4 @@ export * from '@core/processor/visitors/markdownContentVisitor';
 export * from '@core/processor/visitors/attributeValidationVisitor';
 
 // 导出工厂函数
-export * from '@core/processor/visitors/factory'; 
+export * from '@core/processor/visitors/factory';

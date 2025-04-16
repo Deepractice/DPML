@@ -1,7 +1,9 @@
-import { describe, it, expect } from 'vitest';
-import * as path from 'path';
-import * as os from 'os';
 import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+
+import { describe, it, expect } from 'vitest';
+
 import {
   getUserHome,
   getDpmlConfigDir,
@@ -16,7 +18,7 @@ import {
   getFileExtension,
   getFileName,
   getDirName,
-  joinPaths
+  joinPaths,
 } from '../../utils/paths';
 
 // 使用真实的函数进行测试，而不是模拟
@@ -50,6 +52,7 @@ describe('路径工具测试 (简化版)', () => {
     it('应连接多个路径段', () => {
       // 使用path.sep来确保测试在不同平台上都能通过
       const expected = ['path', 'to', 'file.txt'].join(path.sep);
+
       expect(joinPaths('path', 'to', 'file.txt')).toBe(expected);
     });
   });
@@ -58,7 +61,9 @@ describe('路径工具测试 (简化版)', () => {
     it('应拒绝包含路径遍历的路径', () => {
       expect(isPathSafe('/base/dir', '/base/dir/file.txt')).toBe(true);
       expect(isPathSafe('/base/dir', '/base/dir/../file.txt')).toBe(false);
-      expect(isPathSafe('/base/dir', '/base/dir/subdir/../../file.txt')).toBe(false);
+      expect(isPathSafe('/base/dir', '/base/dir/subdir/../../file.txt')).toBe(
+        false
+      );
       expect(isPathSafe('/base/dir', '/other/dir/file.txt')).toBe(false);
     });
   });
@@ -66,7 +71,10 @@ describe('路径工具测试 (简化版)', () => {
   describe('resolveRelativePath', () => {
     it('应将相对路径解析为绝对路径', () => {
       const cwd = process.cwd();
-      expect(resolveRelativePath('relative/path')).toBe(path.resolve(cwd, 'relative/path'));
+
+      expect(resolveRelativePath('relative/path')).toBe(
+        path.resolve(cwd, 'relative/path')
+      );
     });
   });
 });

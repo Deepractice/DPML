@@ -33,7 +33,7 @@ export async function storeUserMessage(
   items.push({
     text,
     role: 'user',
-    timestamp: Date.now()
+    timestamp: Date.now(),
   });
 
   // 更新并存储记忆
@@ -62,7 +62,7 @@ export async function storeAssistantMessage(
   items.push({
     text,
     role: 'assistant',
-    timestamp: Date.now()
+    timestamp: Date.now(),
   });
 
   // 更新并存储记忆
@@ -90,16 +90,16 @@ export async function buildConversationContext(
 
   // 构建消息数组，首先添加系统提示
   const messages: Array<{ role: string; content: string }> = [
-    { role: 'system', content: systemPrompt }
+    { role: 'system', content: systemPrompt },
   ];
 
   // 添加对话历史
   for (const item of items) {
     messages.push({
       role: item.role,
-      content: item.text
+      content: item.text,
     });
   }
 
   return messages;
-} 
+}

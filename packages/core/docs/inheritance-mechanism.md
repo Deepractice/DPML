@@ -7,6 +7,7 @@
 DPML标签继承是一种强大的代码复用机制，允许标签继承其他标签的属性和内容。通过在标签上使用`extends`属性，可以实现基于已有标签创建特化版本的功能。
 
 继承机制的设计目标：
+
 - 促进代码复用，减少重复定义
 - 支持基础模板和特化实现
 - 允许跨文件引用和扩展
@@ -49,6 +50,7 @@ DPML继承遵循以下规则：
 - id属性不会被继承（保持唯一性）
 
 例如：
+
 ```xml
 <!-- 父标签 -->
 <role id="base" type="assistant" expertise="general" tone="formal">
@@ -73,6 +75,7 @@ DPML继承遵循以下规则：
 - 内容是全有或全无的继承，不支持部分合并
 
 例如：
+
 ```xml
 <!-- 父标签 -->
 <context id="base-context">
@@ -121,23 +124,30 @@ InheritanceVisitor是处理继承机制的核心组件，其职责包括：
 - 检测并防止循环继承
 
 实现细节：
+
 ```typescript
 class InheritanceVisitor implements NodeVisitor {
   priority = 100; // 高优先级确保先于其他处理执行
-  
-  async visitElement(element: Element, context: ProcessingContext): Promise<Element> {
+
+  async visitElement(
+    element: Element,
+    context: ProcessingContext
+  ): Promise<Element> {
     // 如果元素没有extends属性，不做处理
     if (!element.attributes.extends) {
       return element;
     }
-    
+
     // 解析并获取基础元素
-    const baseElement = await this.resolveBaseElement(element.attributes.extends, context);
-    
+    const baseElement = await this.resolveBaseElement(
+      element.attributes.extends,
+      context
+    );
+
     // 合并属性和内容
     return this.mergeElements(baseElement, element);
   }
-  
+
   // 其他方法：解析引用、合并元素等
 }
 ```
@@ -147,45 +157,48 @@ class InheritanceVisitor implements NodeVisitor {
 **重要**：TagProcessor不负责处理继承逻辑。当标签到达TagProcessor时，继承已经被InheritanceVisitor完全处理。
 
 TagProcessor应该：
+
 - 忽略extends属性，不再处理继承逻辑
 - 专注于处理领域特定的属性和语义
 - 假设已经接收到的是继承处理后的完整标签
 
 错误做法：
+
 ```typescript
 // ❌ 错误：在TagProcessor中处理继承
 async process(element: Element, context: ProcessingContext): Promise<Element> {
   const { id, extends: extendsProp, ...otherAttrs } = element.attributes;
-  
+
   // 错误：处理继承逻辑
   if (extendsProp) {
     // 尝试解析和合并继承内容...
   }
-  
+
   // 元数据记录extends属性
   element.metadata[element.tagName] = {
     extends: extendsProp,
     // 其他属性...
   };
-  
+
   return element;
 }
 ```
 
 正确做法：
+
 ```typescript
 // ✅ 正确：忽略继承处理
 async process(element: Element, context: ProcessingContext): Promise<Element> {
   // 只关注领域特定属性，不处理extends
   const { id, name, version, ...otherAttrs } = element.attributes;
-  
+
   // 元数据不需要记录extends
   element.metadata[element.tagName] = {
     id,
     name,
     // 领域特定属性...
   };
-  
+
   return element;
 }
 ```
@@ -233,14 +246,17 @@ InheritanceVisitor会检测并防止循环继承，例如：
 如果你在开发领域包（如`@dpml/agent`、`@dpml/prompt`）：
 
 1. **不要在TagProcessor中重复实现继承逻辑**
+
    - 继承已由Core包的InheritanceVisitor处理
    - TagProcessor应专注于领域特定语义
 
 2. **在TagProcessor中忽略extends属性**
+
    - 不要在元数据中记录extends属性
    - 不要尝试解析或处理extends引用
 
 3. **假设继承已完成**
+
    - 当你的TagProcessor执行时，标签已合并了所有继承的属性和内容
 
 4. **如需创建基类**
@@ -252,10 +268,12 @@ InheritanceVisitor会检测并防止循环继承，例如：
 如果你在使用DPML编写标签：
 
 1. **使用继承减少重复**
+
    - 创建基础模板标签，通过继承定制化
    - 将通用属性放在父标签中
 
 2. **遵循内容继承规则**
+
    - 记住内容继承是全有或全无的
    - 如果需要部分内容复用，考虑使用引用而非继承
 
@@ -268,15 +286,18 @@ InheritanceVisitor会检测并防止循环继承，例如：
 常见问题及解决方案：
 
 1. **找不到继承标签**
+
    - 检查ID是否正确
    - 检查文件路径或URL是否可访问
    - 确认引用的标签确实存在
 
 2. **属性未被正确继承**
+
    - 检查是否有同名属性在子标签中被覆盖
    - 验证继承链是否正确
 
 3. **内容未被继承**
+
    - 确认子标签是否完全为空（无内容）
    - 记住空白内容也算作内容，会阻止继承
 
@@ -288,4 +309,4 @@ InheritanceVisitor会检测并防止循环继承，例如：
 
 DPML的标签继承机制提供了强大的代码复用能力，由Core包的InheritanceVisitor统一处理。领域包的TagProcessor不需要处理继承逻辑，应专注于特定领域的语义处理。
 
-遵循本文档的最佳实践，可以避免重复实现，明确职责分工，确保代码质量和一致性。 
+遵循本文档的最佳实践，可以避免重复实现，明确职责分工，确保代码质量和一致性。

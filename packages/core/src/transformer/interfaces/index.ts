@@ -16,4 +16,4 @@ export * from './adapterChain';
 export * from './tagProcessor';
 export * from './tagProcessorRegistry';
 export * from './transformerFactory';
-export * from './outputProcessor'; 
+export * from './outputProcessor';

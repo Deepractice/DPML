@@ -3,7 +3,14 @@ import { EventEmitter } from 'events';
 /**
  * HTTP请求方法
  */
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
+export type HttpMethod =
+  | 'GET'
+  | 'POST'
+  | 'PUT'
+  | 'DELETE'
+  | 'PATCH'
+  | 'HEAD'
+  | 'OPTIONS';
 
 /**
  * HTTP请求配置
@@ -207,7 +214,11 @@ export class MockHttpRequestMatcher {
    * @param urlPattern URL匹配模式
    * @param method 请求方法
    */
-  constructor(client: MockHttpClient, urlPattern: RegExp, method: HttpMethod | HttpMethod[]) {
+  constructor(
+    client: MockHttpClient,
+    urlPattern: RegExp,
+    method: HttpMethod | HttpMethod[]
+  ) {
     this.client = client;
     this.urlPattern = urlPattern;
     this.method = method;
@@ -221,8 +232,12 @@ export class MockHttpRequestMatcher {
    * @param headers 响应头
    * @returns 模拟HTTP客户端实例
    */
-  reply(status: number, data: any, headers?: Record<string, string>): MockHttpClient {
-    this.client.onRequest(this.urlPattern, this.method, (config) => {
+  reply(
+    status: number,
+    data: any,
+    headers?: Record<string, string>
+  ): MockHttpClient {
+    this.client.onRequest(this.urlPattern, this.method, config => {
       return this.client.createResponse(
         data,
         status,
@@ -244,7 +259,7 @@ export class MockHttpRequestMatcher {
    * @returns 模拟HTTP客户端实例
    */
   replyError(status: number, message: string, code?: string): MockHttpClient {
-    this.client.onRequest(this.urlPattern, this.method, (config) => {
+    this.client.onRequest(this.urlPattern, this.method, config => {
       const response = this.client.createResponse(
         { message: message },
         status,
@@ -252,12 +267,7 @@ export class MockHttpRequestMatcher {
         'Error'
       );
 
-      throw this.client.createError(
-        message,
-        config,
-        code,
-        response
-      );
+      throw this.client.createError(message, config, code, response);
     });
 
     return this.client;
@@ -270,12 +280,8 @@ export class MockHttpRequestMatcher {
    * @returns 模拟HTTP客户端实例
    */
   networkError(message: string = 'Network Error'): MockHttpClient {
-    this.client.onRequest(this.urlPattern, this.method, (config) => {
-      const error = this.client.createError(
-        message,
-        config,
-        'NETWORK_ERROR'
-      );
+    this.client.onRequest(this.urlPattern, this.method, config => {
+      const error = this.client.createError(message, config, 'NETWORK_ERROR');
 
       (error as any).isNetworkError = true;
       throw error;
@@ -291,12 +297,8 @@ export class MockHttpRequestMatcher {
    * @returns 模拟HTTP客户端实例
    */
   timeout(message: string = 'Timeout Error'): MockHttpClient {
-    this.client.onRequest(this.urlPattern, this.method, (config) => {
-      const error = this.client.createError(
-        message,
-        config,
-        'TIMEOUT_ERROR'
-      );
+    this.client.onRequest(this.urlPattern, this.method, config => {
+      const error = this.client.createError(message, config, 'TIMEOUT_ERROR');
 
       (error as any).isTimeout = true;
       throw error;
@@ -328,7 +330,7 @@ export class MockHttpClient extends EventEmitter {
       timeout: config.timeout || 30000,
       enableDelay: config.enableDelay !== undefined ? config.enableDelay : true,
       minDelay: config.minDelay || 10,
-      maxDelay: config.maxDelay || 100
+      maxDelay: config.maxDelay || 100,
     };
   }
 
@@ -340,6 +342,7 @@ export class MockHttpClient extends EventEmitter {
    */
   addRoute(route: MockHttpRoute): this {
     this.routes.push(route);
+
     return this;
   }
 
@@ -351,6 +354,7 @@ export class MockHttpClient extends EventEmitter {
    */
   addRoutes(routes: MockHttpRoute[]): this {
     this.routes.push(...routes);
+
     return this;
   }
 
@@ -361,6 +365,7 @@ export class MockHttpClient extends EventEmitter {
    */
   clearRoutes(): this {
     this.routes = [];
+
     return this;
   }
 
@@ -393,6 +398,7 @@ export class MockHttpClient extends EventEmitter {
 
     // 转义特殊字符
     const escapedUrl = url.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+
     return new RegExp(`^${escapedUrl}$`);
   }
 
@@ -404,6 +410,7 @@ export class MockHttpClient extends EventEmitter {
    */
   onGet(url: string | RegExp): MockHttpRequestMatcher {
     const urlPattern = this.urlToRegExp(url);
+
     return new MockHttpRequestMatcher(this, urlPattern, 'GET');
   }
 
@@ -415,6 +422,7 @@ export class MockHttpClient extends EventEmitter {
    */
   onPost(url: string | RegExp): MockHttpRequestMatcher {
     const urlPattern = this.urlToRegExp(url);
+
     return new MockHttpRequestMatcher(this, urlPattern, 'POST');
   }
 
@@ -426,6 +434,7 @@ export class MockHttpClient extends EventEmitter {
    */
   onPut(url: string | RegExp): MockHttpRequestMatcher {
     const urlPattern = this.urlToRegExp(url);
+
     return new MockHttpRequestMatcher(this, urlPattern, 'PUT');
   }
 
@@ -437,6 +446,7 @@ export class MockHttpClient extends EventEmitter {
    */
   onDelete(url: string | RegExp): MockHttpRequestMatcher {
     const urlPattern = this.urlToRegExp(url);
+
     return new MockHttpRequestMatcher(this, urlPattern, 'DELETE');
   }
 
@@ -448,6 +458,7 @@ export class MockHttpClient extends EventEmitter {
    */
   onPatch(url: string | RegExp): MockHttpRequestMatcher {
     const urlPattern = this.urlToRegExp(url);
+
     return new MockHttpRequestMatcher(this, urlPattern, 'PATCH');
   }
 
@@ -459,7 +470,16 @@ export class MockHttpClient extends EventEmitter {
    */
   onAny(url: string | RegExp): MockHttpRequestMatcher {
     const urlPattern = this.urlToRegExp(url);
-    const methods: HttpMethod[] = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
+    const methods: HttpMethod[] = [
+      'GET',
+      'POST',
+      'PUT',
+      'DELETE',
+      'PATCH',
+      'HEAD',
+      'OPTIONS',
+    ];
+
     return new MockHttpRequestMatcher(this, urlPattern, methods);
   }
 
@@ -485,7 +505,7 @@ export class MockHttpClient extends EventEmitter {
       status,
       statusText,
       headers,
-      config
+      config,
     };
   }
 
@@ -508,7 +528,7 @@ export class MockHttpClient extends EventEmitter {
       message,
       code,
       config,
-      response
+      response,
     };
   }
 
@@ -523,15 +543,15 @@ export class MockHttpClient extends EventEmitter {
       ...config,
       headers: {
         ...this.config.defaultHeaders,
-        ...config.headers
+        ...config.headers,
       },
       timeout: config.timeout || this.config.timeout,
-      url: this.resolveUrl(config.url)
+      url: this.resolveUrl(config.url),
     };
 
     const requestRecord: MockHttpRequestRecord = {
       timestamp: new Date(),
-      config: finalConfig
+      config: finalConfig,
     };
 
     this.requests.push(requestRecord);
@@ -541,6 +561,7 @@ export class MockHttpClient extends EventEmitter {
       // 添加模拟延迟
       if (this.config.enableDelay) {
         const delayTime = this.getRandomDelay();
+
         await new Promise(resolve => setTimeout(resolve, delayTime));
       }
 
@@ -602,7 +623,7 @@ export class MockHttpClient extends EventEmitter {
       ...config,
       url,
       method: 'GET',
-      params
+      params,
     });
   }
 
@@ -623,7 +644,7 @@ export class MockHttpClient extends EventEmitter {
       ...config,
       url,
       method: 'POST',
-      body
+      body,
     });
   }
 
@@ -644,7 +665,7 @@ export class MockHttpClient extends EventEmitter {
       ...config,
       url,
       method: 'PUT',
-      body
+      body,
     });
   }
 
@@ -662,7 +683,7 @@ export class MockHttpClient extends EventEmitter {
     return this.request<T>({
       ...config,
       url,
-      method: 'DELETE'
+      method: 'DELETE',
     });
   }
 
@@ -683,7 +704,7 @@ export class MockHttpClient extends EventEmitter {
       ...config,
       url,
       method: 'PATCH',
-      body
+      body,
     });
   }
 
@@ -703,6 +724,7 @@ export class MockHttpClient extends EventEmitter {
    */
   clearRequestHistory(): this {
     this.requests = [];
+
     return this;
   }
 
@@ -714,6 +736,7 @@ export class MockHttpClient extends EventEmitter {
   reset(): this {
     this.clearRoutes();
     this.clearRequestHistory();
+
     return this;
   }
 
@@ -728,6 +751,7 @@ export class MockHttpClient extends EventEmitter {
     return this.requests.some(record => {
       const urlMatches = urlPattern.test(record.config.url);
       const methodMatches = !method || record.config.method === method;
+
       return urlMatches && methodMatches;
     });
   }
@@ -743,6 +767,7 @@ export class MockHttpClient extends EventEmitter {
     return this.requests.filter(record => {
       const urlMatches = urlPattern.test(record.config.url);
       const methodMatches = !method || record.config.method === method;
+
       return urlMatches && methodMatches;
     }).length;
   }
@@ -754,10 +779,14 @@ export class MockHttpClient extends EventEmitter {
    * @param method 请求方法
    * @returns 请求记录或undefined
    */
-  getLastRequest(urlPattern: RegExp, method?: HttpMethod): MockHttpRequestRecord | undefined {
+  getLastRequest(
+    urlPattern: RegExp,
+    method?: HttpMethod
+  ): MockHttpRequestRecord | undefined {
     const matchingRequests = this.requests.filter(record => {
       const urlMatches = urlPattern.test(record.config.url);
       const methodMatches = !method || record.config.method === method;
+
       return urlMatches && methodMatches;
     });
 
@@ -770,7 +799,9 @@ export class MockHttpClient extends EventEmitter {
    * @param config 请求配置
    * @returns 匹配的路由或undefined
    */
-  private findMatchingRoute(config: HttpRequestConfig): MockHttpRoute | undefined {
+  private findMatchingRoute(
+    config: HttpRequestConfig
+  ): MockHttpRoute | undefined {
     return this.routes.find(route => {
       // 检查URL是否匹配
       const urlMatches = route.urlPattern.test(config.url);
@@ -801,9 +832,7 @@ export class MockHttpClient extends EventEmitter {
       ? this.config.baseUrl.slice(0, -1)
       : this.config.baseUrl;
 
-    const relativeUrl = url.startsWith('/')
-      ? url
-      : `/${url}`;
+    const relativeUrl = url.startsWith('/') ? url : `/${url}`;
 
     return `${baseUrl}${relativeUrl}`;
   }
@@ -815,6 +844,7 @@ export class MockHttpClient extends EventEmitter {
    */
   private getRandomDelay(): number {
     const { minDelay, maxDelay } = this.config;
+
     return Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
   }
 }

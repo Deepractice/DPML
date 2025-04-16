@@ -1,8 +1,10 @@
-import { Element, Document, NodeType } from '../../types/node';
-import { TransformerVisitor } from '../interfaces/transformerVisitor';
+import { Document, NodeType } from '../../types/node';
 import { TagProcessor } from '../interfaces/tagProcessor';
-import { TagProcessorRegistry } from '../interfaces/tagProcessorRegistry';
-import { TransformContext } from '../interfaces/transformContext';
+
+import type { Element } from '../../types/node';
+import type { TagProcessorRegistry } from '../interfaces/tagProcessorRegistry';
+import type { TransformContext } from '../interfaces/transformContext';
+import type { TransformerVisitor } from '../interfaces/transformerVisitor';
 
 /**
  * 标签处理访问者选项
@@ -14,20 +16,20 @@ export interface TagProcessorVisitorOptions {
    * 默认为true
    */
   ignoreErrors?: boolean;
-  
+
   /**
    * 是否向元素添加错误信息
    * 当设置为true时，处理器错误会被添加到元素的meta.errors中
    * 默认为true
    */
   addErrorsToMeta?: boolean;
-  
+
   /**
    * 是否递归处理子元素
    * 默认为true
    */
   processChildren?: boolean;
-  
+
   /**
    * 是否应用通配符处理器
    * 当设置为true时，标签处理器注册表中的通配符处理器也会被应用
@@ -38,7 +40,7 @@ export interface TagProcessorVisitorOptions {
 
 /**
  * 标签处理访问者
- * 
+ *
  * 负责处理元素节点的标签语义，通过应用标签处理器增强元素的语义信息
  * 支持处理器链执行和通配符处理
  */
@@ -47,22 +49,22 @@ export class TagProcessorVisitor implements TransformerVisitor {
    * 访问者名称
    */
   readonly name: string = 'tag-processor';
-  
+
   /**
    * 访问者优先级
    */
   priority: number;
-  
+
   /**
    * 标签处理器注册表
    */
   private registry: TagProcessorRegistry;
-  
+
   /**
    * 配置选项
    */
   private options: TagProcessorVisitorOptions;
-  
+
   /**
    * 构造函数
    * @param registry 标签处理器注册表
@@ -81,10 +83,10 @@ export class TagProcessorVisitor implements TransformerVisitor {
       addErrorsToMeta: true,
       processChildren: true,
       applyWildcardProcessors: true,
-      ...options
+      ...options,
     };
   }
-  
+
   /**
    * 获取访问者优先级
    * @returns 优先级数值
@@ -92,7 +94,7 @@ export class TagProcessorVisitor implements TransformerVisitor {
   getPriority(): number {
     return this.priority;
   }
-  
+
   /**
    * 通用访问方法
    * @param node 要访问的节点
@@ -103,7 +105,7 @@ export class TagProcessorVisitor implements TransformerVisitor {
     if (!node) {
       return null;
     }
-    
+
     if (node.type === NodeType.DOCUMENT) {
       // 文档节点，返回Promise
       return this.visitDocument(node, context);
@@ -111,11 +113,11 @@ export class TagProcessorVisitor implements TransformerVisitor {
       // 元素节点，返回Promise
       return this.visitElement(node, context);
     }
-    
+
     // 其他类型节点原样返回
     return node;
   }
-  
+
   /**
    * 异步通用访问方法
    * @param node 要访问的节点
@@ -125,7 +127,7 @@ export class TagProcessorVisitor implements TransformerVisitor {
   async visitAsync(node: any, context: TransformContext): Promise<any> {
     return this.visit(node, context);
   }
-  
+
   /**
    * 访问文档节点
    * @param document 文档节点
@@ -137,91 +139,101 @@ export class TagProcessorVisitor implements TransformerVisitor {
     if (document.children && document.children.length > 0) {
       for (let i = 0; i < document.children.length; i++) {
         const child = document.children[i];
+
         // 对每个子节点应用适当的访问方法
         document.children[i] = await this.visit(child, context);
       }
     }
-    
+
     return document;
   }
-  
+
   /**
    * 访问元素节点
    * @param element 元素节点
    * @param context 转换上下文
    * @returns 处理后的元素节点
    */
-  async visitElement(element: Element, context: TransformContext): Promise<Element> {
+  async visitElement(
+    element: Element,
+    context: TransformContext
+  ): Promise<Element> {
     try {
       // 获取该标签的所有处理器
       const tagProcessors = this.registry.getProcessors(element.tagName) || [];
-      
+
       // 如果启用了通配符处理器，还需获取通配符处理器
       const wildcardProcessors = this.options.applyWildcardProcessors
-        ? (this.registry.getProcessors('*') || [])
+        ? this.registry.getProcessors('*') || []
         : [];
-      
+
       // 合并所有处理器
       const processors = [...tagProcessors, ...wildcardProcessors];
-      
+
       // 如果没有处理器，直接处理子元素并返回
-      if (processors.length === 0 || !this.registry.hasProcessors(element.tagName)) {
+      if (
+        processors.length === 0 ||
+        !this.registry.hasProcessors(element.tagName)
+      ) {
         return this.processChildrenIfNeeded(element, context);
       }
-      
+
       // 按优先级排序处理器（高到低）
-      const sortedProcessors = [...processors].sort((a, b) => 
-        (b.priority || 0) - (a.priority || 0)
+      const sortedProcessors = [...processors].sort(
+        (a, b) => (b.priority || 0) - (a.priority || 0)
       );
-      
+
       // 依次应用处理器 - 处理器链执行
       let processedElement = element;
+
       for (const processor of sortedProcessors) {
         if (processor.canProcess(processedElement)) {
           try {
             // 处理器可能返回Promise或直接返回元素
             const result = processor.process(processedElement, context);
-            processedElement = result instanceof Promise 
-              ? await result 
-              : result;
+
+            processedElement =
+              result instanceof Promise ? await result : result;
           } catch (error) {
             if (!this.options.ignoreErrors) {
               throw error;
             }
-            
+
             // 记录错误但继续处理
-            console.error(`Error in tag processor for ${element.tagName}:`, error);
-            
+            console.error(
+              `Error in tag processor for ${element.tagName}:`,
+              error
+            );
+
             // 向元素添加错误信息
             if (this.options.addErrorsToMeta) {
               this.addErrorToElementMeta(
-                processedElement, 
+                processedElement,
                 error instanceof Error ? error.message : String(error)
               );
             }
           }
         }
       }
-      
+
       // 递归处理子元素
       return this.processChildrenIfNeeded(processedElement, context);
-      
     } catch (error) {
       // 捕获整体处理过程中的错误
       console.error(`Error processing element ${element.tagName}:`, error);
-      
+
       if (this.options.addErrorsToMeta) {
         this.addErrorToElementMeta(
-          element, 
+          element,
           error instanceof Error ? error.message : String(error)
         );
       }
-      
+
       // 返回原始元素
       return element;
     }
   }
-  
+
   /**
    * 如果配置允许，递归处理子元素
    * @param element 元素节点
@@ -229,21 +241,33 @@ export class TagProcessorVisitor implements TransformerVisitor {
    * @returns 处理后的元素
    * @private
    */
-  private async processChildrenIfNeeded(element: Element, context: TransformContext): Promise<Element> {
-    if (this.options.processChildren && element.children && element.children.length > 0) {
+  private async processChildrenIfNeeded(
+    element: Element,
+    context: TransformContext
+  ): Promise<Element> {
+    if (
+      this.options.processChildren &&
+      element.children &&
+      element.children.length > 0
+    ) {
       for (let i = 0; i < element.children.length; i++) {
         const child = element.children[i];
+
         if (child.type === NodeType.ELEMENT) {
           // 递归处理子元素
-          const processedChild = await this.visitElement(child as Element, context);
+          const processedChild = await this.visitElement(
+            child as Element,
+            context
+          );
+
           element.children[i] = processedChild;
         }
       }
     }
-    
+
     return element;
   }
-  
+
   /**
    * 向元素的meta添加错误信息
    * @param element 元素
@@ -254,11 +278,11 @@ export class TagProcessorVisitor implements TransformerVisitor {
     if (!element.meta) {
       element.meta = {};
     }
-    
+
     if (!element.meta.errors) {
       element.meta.errors = [];
     }
-    
+
     element.meta.errors.push(errorMessage);
   }
-} 
+}

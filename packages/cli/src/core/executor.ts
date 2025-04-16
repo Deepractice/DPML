@@ -1,7 +1,10 @@
-import { Command } from 'commander';
 import chalk from 'chalk';
-import { CommandRegistry } from './registry';
-import { Command as DpmlCommand, ExecutionContext } from '../types/command';
+import { Command } from 'commander';
+
+import { Command as DpmlCommand } from '../types/command';
+
+import type { CommandRegistry } from './registry';
+import type { ExecutionContext } from '../types/command';
 
 /**
  * 命令执行器类
@@ -21,7 +24,7 @@ export class CommandExecutor {
     this.program = new Command();
     this.context = {
       verbose: false,
-      quiet: false
+      quiet: false,
     };
   }
 
@@ -41,9 +44,10 @@ export class CommandExecutor {
       .hook('preAction', (thisCommand, actionCommand) => {
         // 在执行命令前设置上下文
         const opts = actionCommand.opts();
+
         this.setContext({
           verbose: !!opts.verbose,
-          quiet: !!opts.quiet
+          quiet: !!opts.quiet,
         });
       });
 
@@ -52,8 +56,9 @@ export class CommandExecutor {
 
     // 为每个领域创建子命令
     for (const domainName of domains) {
-      const domainCommand = new Command(domainName)
-        .description(`${domainName}领域命令`);
+      const domainCommand = new Command(domainName).description(
+        `${domainName}领域命令`
+      );
 
       // 获取领域下的所有命令
       const commands = this.registry.getDomainCommands(domainName);
@@ -71,9 +76,14 @@ export class CommandExecutor {
               // 处理命令参数
               // 如果命令定义了参数，确保提供的参数数量正确
               if (cmd.arguments) {
-                const requiredArgs = cmd.arguments.filter(arg => arg.required).length;
+                const requiredArgs = cmd.arguments.filter(
+                  arg => arg.required
+                ).length;
+
                 if (args.length < requiredArgs) {
-                  throw new Error(`命令 '${cmd.name}' 需要至少 ${requiredArgs} 个参数，但只提供了 ${args.length} 个`);
+                  throw new Error(
+                    `命令 '${cmd.name}' 需要至少 ${requiredArgs} 个参数，但只提供了 ${args.length} 个`
+                  );
                 }
               }
 
@@ -88,6 +98,7 @@ export class CommandExecutor {
         if (cmd.arguments) {
           for (const arg of cmd.arguments) {
             const argStr = arg.required ? `<${arg.name}>` : `[${arg.name}]`;
+
             subCommand.argument(argStr, arg.description, arg.default);
           }
         }
@@ -107,6 +118,7 @@ export class CommandExecutor {
         // 添加使用示例
         if (cmd.examples && cmd.examples.length > 0) {
           const examples = cmd.examples.map(ex => `  ${ex}`).join('\n');
+
           subCommand.addHelpText('after', `\n示例:\n${examples}`);
         }
 
@@ -123,14 +135,24 @@ export class CommandExecutor {
 
                   // 处理子命令参数
                   if (subcmd.arguments) {
-                    const requiredArgs = subcmd.arguments.filter(arg => arg.required).length;
+                    const requiredArgs = subcmd.arguments.filter(
+                      arg => arg.required
+                    ).length;
+
                     if (args.length < requiredArgs) {
-                      throw new Error(`命令 '${subcmd.name}' 需要至少 ${requiredArgs} 个参数，但只提供了 ${args.length} 个`);
+                      throw new Error(
+                        `命令 '${subcmd.name}' 需要至少 ${requiredArgs} 个参数，但只提供了 ${args.length} 个`
+                      );
                     }
                   }
 
                   // 执行子命令
-                  await this.executeCommand(`${domainName}.${cmd.name}`, subcmd.name, args, options);
+                  await this.executeCommand(
+                    `${domainName}.${cmd.name}`,
+                    subcmd.name,
+                    args,
+                    options
+                  );
                 } catch (error: any) {
                   this.handleErrors(error);
                 }
@@ -140,6 +162,7 @@ export class CommandExecutor {
             if (subcmd.arguments) {
               for (const arg of subcmd.arguments) {
                 const argStr = arg.required ? `<${arg.name}>` : `[${arg.name}]`;
+
                 nestedCommand.argument(argStr, arg.description, arg.default);
               }
             }
@@ -159,6 +182,7 @@ export class CommandExecutor {
             // 添加子命令使用示例
             if (subcmd.examples && subcmd.examples.length > 0) {
               const examples = subcmd.examples.map(ex => `  ${ex}`).join('\n');
+
               nestedCommand.addHelpText('after', `\n示例:\n${examples}`);
             }
 
@@ -194,6 +218,7 @@ export class CommandExecutor {
   ): Promise<void> {
     // 获取命令
     const command = this.registry.getCommand(domainName, commandName);
+
     if (!command) {
       throw new Error(`在 '${domainName}' 领域中找不到命令 '${commandName}'`);
     }
@@ -202,7 +227,9 @@ export class CommandExecutor {
       // 在详细模式下显示执行信息
       if (this.context.verbose) {
         console.log(chalk.cyan(`执行命令: ${domainName} ${commandName}`));
-        console.log(chalk.cyan(`参数: ${Array.isArray(args) ? args.join(', ') : args}`));
+        console.log(
+          chalk.cyan(`参数: ${Array.isArray(args) ? args.join(', ') : args}`)
+        );
         console.log(chalk.cyan(`选项: ${JSON.stringify(options)}`));
       }
 
@@ -211,13 +238,16 @@ export class CommandExecutor {
 
       // 在详细模式下显示执行完成信息
       if (this.context.verbose) {
-        console.log(chalk.green(`命令 '${domainName} ${commandName}' 执行成功`));
+        console.log(
+          chalk.green(`命令 '${domainName} ${commandName}' 执行成功`)
+        );
       }
     } catch (error: any) {
       // 包装错误以提供更多上下文
       const wrappedError = new Error(
         `执行命令 '${domainName} ${commandName}' 失败: ${error.message}`
       );
+
       wrappedError.stack = error.stack;
       throw wrappedError;
     }
@@ -232,6 +262,7 @@ export class CommandExecutor {
     if (this.context.quiet) {
       console.error(chalk.red(error.message));
       process.exit(1);
+
       return;
     }
 
@@ -242,23 +273,37 @@ export class CommandExecutor {
     if (error.message.includes('找不到命令')) {
       // 命令不存在错误
       const match = error.message.match(/\'([^']+)\' 领域/);
+
       if (match) {
         const domainName = match[1];
         const commands = this.registry.getDomainCommands(domainName);
+
         if (commands.length > 0) {
           const commandNames = commands.map(cmd => cmd.name).join(', ');
-          console.error(chalk.yellow(`提示: 在 '${domainName}' 领域中可用的命令: ${commandNames}`));
-          console.error(chalk.yellow(`使用 'dpml ${domainName} --help' 查看详细帮助`));
+
+          console.error(
+            chalk.yellow(
+              `提示: 在 '${domainName}' 领域中可用的命令: ${commandNames}`
+            )
+          );
+          console.error(
+            chalk.yellow(`使用 'dpml ${domainName} --help' 查看详细帮助`)
+          );
         }
       }
     } else if (error.message.includes('找不到领域')) {
       // 领域不存在错误
       const domains = this.registry.getAllDomains();
+
       if (domains.length > 0) {
         console.error(chalk.yellow(`提示: 可用的领域: ${domains.join(', ')}`));
         console.error(chalk.yellow(`使用 'dpml --help' 查看所有可用领域`));
       } else {
-        console.error(chalk.yellow(`提示: 没有可用的领域，请使用 'dpml --update' 更新命令映射`));
+        console.error(
+          chalk.yellow(
+            `提示: 没有可用的领域，请使用 'dpml --update' 更新命令映射`
+          )
+        );
       }
     } else if (error.message.includes('映射文件')) {
       // 映射文件错误
@@ -266,18 +311,24 @@ export class CommandExecutor {
     } else if (error.message.includes('参数')) {
       // 参数错误
       console.error(chalk.yellow(`提示: 请检查命令参数格式是否正确`));
-      console.error(chalk.yellow(`使用 'dpml <领域> <命令> --help' 查看命令用法`));
+      console.error(
+        chalk.yellow(`使用 'dpml <领域> <命令> --help' 查看命令用法`)
+      );
     } else if (error.message.includes('执行命令')) {
       // 命令执行错误
       console.error(chalk.yellow(`提示: 命令执行过程中出现错误`));
     } else if (error.message.includes('需要至少')) {
       // 缺少必要参数错误
       console.error(chalk.yellow(`提示: 请提供所有必要的命令参数`));
-      console.error(chalk.yellow(`使用 'dpml <领域> <命令> --help' 查看命令用法`));
+      console.error(
+        chalk.yellow(`使用 'dpml <领域> <命令> --help' 查看命令用法`)
+      );
     } else if (error.message.includes('选项')) {
       // 选项错误
       console.error(chalk.yellow(`提示: 请检查命令选项格式是否正确`));
-      console.error(chalk.yellow(`使用 'dpml <领域> <命令> --help' 查看可用选项`));
+      console.error(
+        chalk.yellow(`使用 'dpml <领域> <命令> --help' 查看可用选项`)
+      );
     } else {
       // 其他错误
       console.error(chalk.yellow(`提示: 发生未知错误，请检查命令用法`));
@@ -310,7 +361,7 @@ export class CommandExecutor {
     this.setContext({
       verbose: !!globalOptions.verbose,
       quiet: !!globalOptions.quiet,
-      update: !!globalOptions.update
+      update: !!globalOptions.update,
     });
 
     // 在详细模式下显示解析结果
@@ -334,7 +385,11 @@ export class CommandExecutor {
       this.context.quiet = false;
 
       // 在详细模式下显示警告
-      console.log(chalk.yellow('警告: --verbose和--quiet选项不能同时使用，将使用--verbose'));
+      console.log(
+        chalk.yellow(
+          '警告: --verbose和--quiet选项不能同时使用，将使用--verbose'
+        )
+      );
     }
   }
 }

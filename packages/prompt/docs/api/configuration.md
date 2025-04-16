@@ -15,47 +15,49 @@
 
 这些选项可以在任何API函数中使用：
 
-| 选项名 | 类型 | 默认值 | 描述 |
-|-------|-----|-------|------|
-| `basePath` | `string` | `process.cwd()` | 解析相对路径引用的基础路径 |
-| `lang` | `string` | `'en'` | 提示的语言设置，覆盖文档中的lang属性 |
+| 选项名     | 类型     | 默认值          | 描述                                 |
+| ---------- | -------- | --------------- | ------------------------------------ |
+| `basePath` | `string` | `process.cwd()` | 解析相对路径引用的基础路径           |
+| `lang`     | `string` | `'en'`          | 提示的语言设置，覆盖文档中的lang属性 |
 
 ## 处理选项 (PromptOptions)
 
 这些选项影响DPML文本的解析和处理行为，通常用于 `processPrompt` 函数：
 
-| 选项名 | 类型 | 默认值 | 描述 |
-|-------|-----|-------|------|
-| `mode` | `'strict' \| 'loose'` | `'loose'` | 解析模式，strict会更严格地验证 |
-| `validateOnly` | `boolean` | `false` | 是否只进行验证而不处理内容 |
+| 选项名         | 类型                  | 默认值    | 描述                           |
+| -------------- | --------------------- | --------- | ------------------------------ |
+| `mode`         | `'strict' \| 'loose'` | `'loose'` | 解析模式，strict会更严格地验证 |
+| `validateOnly` | `boolean`             | `false`   | 是否只进行验证而不处理内容     |
 
 示例：
 
 ```javascript
 processPrompt(dpml, {
   mode: 'strict',
-  validateOnly: true
-})
+  validateOnly: true,
+});
 ```
 
 ## 转换选项 (TransformOptions)
 
 这些选项影响处理后DPML结构转换为文本的行为，通常用于 `transformPrompt` 函数：
 
-| 选项名 | 类型 | 默认值 | 描述 |
-|-------|-----|-------|------|
-| `format` | `FormatOptions` | 默认格式 | 自定义格式模板配置 |
-| `addLanguageDirective` | `boolean` | `false` | 是否在输出末尾添加语言指令 |
-| `tagOrder` | `string[]` | 默认顺序 | 自定义标签输出顺序 |
+| 选项名                 | 类型            | 默认值   | 描述                       |
+| ---------------------- | --------------- | -------- | -------------------------- |
+| `format`               | `FormatOptions` | 默认格式 | 自定义格式模板配置         |
+| `addLanguageDirective` | `boolean`       | `false`  | 是否在输出末尾添加语言指令 |
+| `tagOrder`             | `string[]`      | 默认顺序 | 自定义标签输出顺序         |
 
 示例：
 
 ```javascript
 transformPrompt(processed, {
-  format: { /* 格式选项 */ },
+  format: {
+    /* 格式选项 */
+  },
   addLanguageDirective: true,
-  tagOrder: ['role', 'context', 'thinking']
-})
+  tagOrder: ['role', 'context', 'thinking'],
+});
 ```
 
 ## 格式选项 (FormatOptions)
@@ -68,9 +70,9 @@ interface FormatOptions {
 }
 
 interface TagFormatOptions {
-  title?: string;                       // 标题
-  prefix?: string;                      // 前缀
-  suffix?: string;                      // 后缀
+  title?: string; // 标题
+  prefix?: string; // 前缀
+  suffix?: string; // 后缀
   wrapper?: (content: string) => string; // 内容包装器函数
 }
 ```
@@ -80,26 +82,26 @@ interface TagFormatOptions {
 ```javascript
 const defaultFormatTemplates = {
   role: {
-    title: '# 角色'
+    title: '# 角色',
   },
   context: {
-    title: '# 上下文'
+    title: '# 上下文',
   },
   thinking: {
-    title: '# 思考框架'
+    title: '# 思考框架',
   },
   executing: {
-    title: '# 执行步骤'
+    title: '# 执行步骤',
   },
   testing: {
-    title: '# 质量检查'
+    title: '# 质量检查',
   },
   protocol: {
-    title: '# 交互协议'
+    title: '# 交互协议',
   },
   custom: {
-    title: '# 自定义'
-  }
+    title: '# 自定义',
+  },
 };
 ```
 
@@ -110,33 +112,33 @@ transformPrompt(processed, {
   format: {
     role: {
       title: '👤 角色',
-      wrapper: (content) => `**${content}**`
+      wrapper: content => `**${content}**`,
     },
     context: {
       title: '📝 上下文',
-      prefix: '> '
+      prefix: '> ',
     },
     thinking: {
       title: '🧠 思维方式',
-      suffix: '\n---'
-    }
-  }
-})
+      suffix: '\n---',
+    },
+  },
+});
 ```
 
 ## generatePrompt组合选项 (GeneratePromptOptions)
 
 `generatePrompt` 函数接受一个组合了处理选项和转换选项的配置对象：
 
-| 选项名 | 类型 | 默认值 | 描述 |
-|-------|-----|-------|------|
-| `validateOnly` | `boolean` | `false` | 是否只进行验证而不生成输出 |
-| `basePath` | `string` | `process.cwd()` | 解析相对路径引用的基础路径 |
-| `strictMode` | `boolean` | `false` | 是否使用严格模式解析 (对应mode: 'strict') |
-| `lang` | `string` | `'en'` | 提示的语言设置，覆盖文档中的lang属性 |
-| `formatTemplates` | `FormatOptions` | 默认格式 | 自定义格式模板配置 (对应format选项) |
-| `addLanguageDirective` | `boolean` | `false` | 是否在输出末尾添加语言指令 |
-| `tagOrder` | `string[]` | 默认顺序 | 自定义标签输出顺序 |
+| 选项名                 | 类型            | 默认值          | 描述                                      |
+| ---------------------- | --------------- | --------------- | ----------------------------------------- |
+| `validateOnly`         | `boolean`       | `false`         | 是否只进行验证而不生成输出                |
+| `basePath`             | `string`        | `process.cwd()` | 解析相对路径引用的基础路径                |
+| `strictMode`           | `boolean`       | `false`         | 是否使用严格模式解析 (对应mode: 'strict') |
+| `lang`                 | `string`        | `'en'`          | 提示的语言设置，覆盖文档中的lang属性      |
+| `formatTemplates`      | `FormatOptions` | 默认格式        | 自定义格式模板配置 (对应format选项)       |
+| `addLanguageDirective` | `boolean`       | `false`         | 是否在输出末尾添加语言指令                |
+| `tagOrder`             | `string[]`      | 默认顺序        | 自定义标签输出顺序                        |
 
 示例：
 
@@ -146,10 +148,10 @@ generatePrompt(dpml, {
   lang: 'zh-CN',
   formatTemplates: {
     role: { title: '👤 角色' },
-    context: { title: '📝 上下文' }
+    context: { title: '📝 上下文' },
   },
-  addLanguageDirective: true
-})
+  addLanguageDirective: true,
+});
 ```
 
 ## 语言特定格式
@@ -159,26 +161,26 @@ generatePrompt(dpml, {
 ```javascript
 const zhCNFormatTemplates = {
   role: {
-    title: '# 角色'
+    title: '# 角色',
   },
   context: {
-    title: '# 上下文'
+    title: '# 上下文',
   },
   thinking: {
-    title: '# 思考框架'
+    title: '# 思考框架',
   },
   executing: {
-    title: '# 执行步骤'
+    title: '# 执行步骤',
   },
   testing: {
-    title: '# 质量检查'
+    title: '# 质量检查',
   },
   protocol: {
-    title: '# 交互协议'
+    title: '# 交互协议',
   },
   custom: {
-    title: '# 自定义'
-  }
+    title: '# 自定义',
+  },
 };
 ```
 
@@ -200,7 +202,7 @@ const defaultTagOrder = [
   'executing',
   'testing',
   'protocol',
-  'custom'
+  'custom',
 ];
 ```
 
@@ -208,8 +210,8 @@ const defaultTagOrder = [
 
 ```javascript
 transformPrompt(processed, {
-  tagOrder: ['context', 'role', 'thinking', 'protocol']
-})
+  tagOrder: ['context', 'role', 'thinking', 'protocol'],
+});
 ```
 
 ## 语言指令
@@ -218,16 +220,16 @@ transformPrompt(processed, {
 
 ```javascript
 const langDirectives = {
-  'en': 'Please respond in English.',
+  en: 'Please respond in English.',
   'zh-CN': '请用中文回答。',
-  'ja': '日本語で回答してください。',
-  'ko': '한국어로 대답해 주세요.',
-  'fr': 'Veuillez répondre en français.',
-  'de': 'Bitte antworten Sie auf Deutsch.',
-  'es': 'Por favor, responda en español.',
-  'it': 'Per favore, risponda in italiano.',
-  'ru': 'Пожалуйста, ответьте на русском языке.',
-  'pt': 'Por favor, responda em português.'
+  ja: '日本語で回答してください。',
+  ko: '한국어로 대답해 주세요.',
+  fr: 'Veuillez répondre en français.',
+  de: 'Bitte antworten Sie auf Deutsch.',
+  es: 'Por favor, responda en español.',
+  it: 'Per favore, risponda in italiano.',
+  ru: 'Пожалуйста, ответьте на русском языке.',
+  pt: 'Por favor, responda em português.',
 };
 ```
 
@@ -242,9 +244,9 @@ const myConfig = {
   strictMode: true,
   formatTemplates: {
     role: { title: '## 角色' },
-    context: { title: '## 上下文' }
+    context: { title: '## 上下文' },
   },
-  addLanguageDirective: true
+  addLanguageDirective: true,
 };
 
 // 在多个地方重用
@@ -263,12 +265,12 @@ const myTemplates = {
   ...defaultFormatTemplates,
   role: {
     ...defaultFormatTemplates.role,
-    wrapper: (content) => `**${content}**`
+    wrapper: content => `**${content}**`,
   },
   // 添加自定义模板
   customTag: {
-    title: '# 自定义标签'
-  }
+    title: '# 自定义标签',
+  },
 };
 ```
 
@@ -276,4 +278,4 @@ const myTemplates = {
 
 - 如果只需要简单地生成提示文本，使用 `generatePrompt`
 - 如果需要更精细的控制或中间处理，使用 `processPrompt` 和 `transformPrompt` 的组合
-- 如果只需要验证DPML文本的有效性，使用 `processPrompt` 并设置 `validateOnly: true` 
+- 如果只需要验证DPML文本的有效性，使用 `processPrompt` 并设置 `validateOnly: true`

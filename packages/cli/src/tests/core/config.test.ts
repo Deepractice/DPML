@@ -1,8 +1,10 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { ConfigManager } from '../../core/config';
 import fs from 'fs';
-import path from 'path';
 import os from 'os';
+import path from 'path';
+
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+
+import { ConfigManager } from '../../core/config';
 
 // 模拟fs模块
 vi.mock('fs');
@@ -59,6 +61,7 @@ describe('ConfigManager', () => {
 
       // 模拟配置文件内容
       const mockConfig = { version: '1.0.0', setting: 'value' };
+
       fs.readFileSync = vi.fn().mockReturnValue(JSON.stringify(mockConfig));
 
       const result = configManager.load();
@@ -105,6 +108,7 @@ describe('ConfigManager', () => {
       // Verify the content contains our expected values
       const writeCall = fs.writeFileSync.mock.calls[0];
       const content = writeCall[1];
+
       expect(content).toContain('"version"');
       expect(content).toContain('"1.0.0"');
     });
@@ -169,7 +173,9 @@ describe('ConfigManager', () => {
 
       expect(result).toBe(true);
       expect(fs.existsSync).toHaveBeenCalled();
-      expect(fs.mkdirSync).toHaveBeenCalledWith(expect.any(String), { recursive: true });
+      expect(fs.mkdirSync).toHaveBeenCalledWith(expect.any(String), {
+        recursive: true,
+      });
     });
 
     it('当目录已存在时不应创建目录', () => {
@@ -209,11 +215,15 @@ describe('ConfigManager', () => {
       const customConfigManager = new ConfigManager({
         configDir: '/custom/config/dir',
         configFileName: 'custom-config.json',
-        mappingFileName: 'custom-mapping.json'
+        mappingFileName: 'custom-mapping.json',
       });
 
-      expect(customConfigManager.getConfigFilePath()).toContain('custom-config.json');
-      expect(customConfigManager.getMappingFilePath()).toContain('custom-mapping.json');
+      expect(customConfigManager.getConfigFilePath()).toContain(
+        'custom-config.json'
+      );
+      expect(customConfigManager.getMappingFilePath()).toContain(
+        'custom-mapping.json'
+      );
     });
   });
 });

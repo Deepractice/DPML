@@ -1,6 +1,6 @@
 /**
  * API密钥错误类
- * 
+ *
  * 用于处理API密钥相关错误，包括环境变量不存在、密钥格式无效等
  */
 
@@ -24,7 +24,7 @@ export class ApiKeyError extends Error {
 
   /**
    * 构造函数
-   * 
+   *
    * @param code 错误代码
    * @param message 错误消息
    */
@@ -32,8 +32,8 @@ export class ApiKeyError extends Error {
     super(message);
     this.name = 'ApiKeyError';
     this.code = code;
-    
+
     // 为了使 instanceof 正常工作
     Object.setPrototypeOf(this, ApiKeyError.prototype);
   }
-} 
+}

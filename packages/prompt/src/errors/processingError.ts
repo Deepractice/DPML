@@ -2,7 +2,10 @@
  * 处理错误类
  */
 import { ErrorLevel } from '@dpml/core';
-import { PromptError, PromptErrorCode, PromptErrorOptions } from './promptError';
+
+import { PromptError, PromptErrorCode } from './promptError';
+
+import type { PromptErrorOptions } from './promptError';
 
 /**
  * 处理错误选项接口
@@ -21,12 +24,12 @@ export class ProcessingError extends PromptError {
    * 引用路径
    */
   referencePath?: string;
-  
+
   /**
    * 处理器名称
    */
   processorName?: string;
-  
+
   /**
    * 构造函数
    */
@@ -35,34 +38,34 @@ export class ProcessingError extends PromptError {
       ...options,
       stage: 'process',
       // 如果没有指定代码，使用默认处理错误代码
-      code: options.code || PromptErrorCode.PROCESSING_ERROR
+      code: options.code || PromptErrorCode.PROCESSING_ERROR,
     });
-    
+
     this.referencePath = options.referencePath;
     this.processorName = options.processorName;
-    
+
     // 确保正确的原型链
     Object.setPrototypeOf(this, ProcessingError.prototype);
   }
-  
+
   /**
    * 将错误转换为字符串
    */
   toString(): string {
     let result = super.toString();
-    
+
     // 添加处理特定信息
     if (this.processorName) {
       result += ` | 处理器: ${this.processorName}`;
     }
-    
+
     if (this.referencePath) {
       result += ` | 引用路径: ${this.referencePath}`;
     }
-    
+
     return result;
   }
-  
+
   /**
    * 格式化错误为对象
    */
@@ -70,10 +73,10 @@ export class ProcessingError extends PromptError {
     return {
       ...super.toJSON(),
       referencePath: this.referencePath,
-      processorName: this.processorName
+      processorName: this.processorName,
     };
   }
-  
+
   /**
    * 创建引用错误
    */
@@ -87,10 +90,10 @@ export class ProcessingError extends PromptError {
       message: message || `无法解析引用: ${referencePath}`,
       level: ErrorLevel.ERROR,
       position,
-      referencePath
+      referencePath,
     });
   }
-  
+
   /**
    * 创建继承错误
    */
@@ -104,10 +107,10 @@ export class ProcessingError extends PromptError {
       message,
       level: ErrorLevel.ERROR,
       position,
-      referencePath
+      referencePath,
     });
   }
-  
+
   /**
    * 创建处理器错误
    */
@@ -122,7 +125,7 @@ export class ProcessingError extends PromptError {
       level: ErrorLevel.ERROR,
       position,
       cause: error,
-      processorName
+      processorName,
     });
   }
-} 
+}

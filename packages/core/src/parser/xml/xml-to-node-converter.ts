@@ -1,14 +1,16 @@
-import { XMLNode, XMLPosition } from './types';
-import { 
-  NodeType, 
-  Node, 
-  Document, 
-  Element, 
-  Content, 
-  SourcePosition 
-} from '@core/types/node';
 import { ParseError } from '@core/errors';
 import { ErrorCode } from '@core/errors/types';
+import { NodeType } from '@core/types/node';
+
+import type {
+  Node,
+  Document,
+  Element,
+  Content,
+  SourcePosition,
+} from '@core/types/node';
+
+import type { XMLNode, XMLPosition } from './types';
 
 /**
  * XML节点到DPML节点转换器
@@ -30,12 +32,13 @@ export class XMLToNodeConverter {
     if (!xmlNode) {
       throw new ParseError({
         code: ErrorCode.UNKNOWN_ERROR,
-        message: 'XML节点不能为空'
+        message: 'XML节点不能为空',
       });
     }
 
     // 根据XML节点名称决定转换为哪种DPML节点
     const nodeName = xmlNode.name.toLowerCase();
+
     if (nodeName === 'document' || nodeName === 'prompt') {
       return this.convertToElement(xmlNode);
     } else {
@@ -52,12 +55,14 @@ export class XMLToNodeConverter {
     const document: Document = {
       type: NodeType.DOCUMENT,
       position: this.convertPosition(xmlNode.position),
-      children: []
+      children: [],
     };
 
     // 转换子节点
     if (xmlNode.children && xmlNode.children.length > 0) {
-      document.children = xmlNode.children.map(child => this.convertToElement(child));
+      document.children = xmlNode.children.map(child =>
+        this.convertToElement(child)
+      );
     }
 
     return document;
@@ -74,19 +79,25 @@ export class XMLToNodeConverter {
       tagName: xmlNode.name,
       position: this.convertPosition(xmlNode.position),
       attributes: xmlNode.attributes || {},
-      children: []
+      children: [],
     };
 
     // 处理XML节点的文本内容
     if (xmlNode.textContent !== undefined) {
       // 简化处理，直接创建文本内容节点
       const position = this.convertPosition(xmlNode.position);
-      element.children.push(this.createContentNode(xmlNode.textContent, xmlNode.position));
+
+      element.children.push(
+        this.createContentNode(xmlNode.textContent, xmlNode.position)
+      );
     }
 
     // 处理子节点
     if (xmlNode.children && xmlNode.children.length > 0) {
-      const childElements = xmlNode.children.map(child => this.convertToElement(child));
+      const childElements = xmlNode.children.map(child =>
+        this.convertToElement(child)
+      );
+
       element.children.push(...childElements);
     }
 
@@ -103,7 +114,7 @@ export class XMLToNodeConverter {
     return {
       type: NodeType.CONTENT,
       value: text,
-      position: this.convertPosition(position)
+      position: this.convertPosition(position),
     };
   }
 
@@ -117,7 +128,7 @@ export class XMLToNodeConverter {
       // 默认位置信息
       return {
         start: { line: 1, column: 1, offset: 0 },
-        end: { line: 1, column: 1, offset: 0 }
+        end: { line: 1, column: 1, offset: 0 },
       };
     }
 
@@ -125,13 +136,13 @@ export class XMLToNodeConverter {
       start: {
         line: position.start.line,
         column: position.start.column,
-        offset: position.start.offset
+        offset: position.start.offset,
       },
       end: {
         line: position.end.line,
         column: position.end.column,
-        offset: position.end.offset
-      }
+        offset: position.end.offset,
+      },
     };
   }
-} 
+}

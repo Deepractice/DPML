@@ -1,4 +1,6 @@
-import { LogLevel, LogMeta, LogTransport } from '../core/types';
+import { LogLevel } from '../core/types';
+
+import type { LogMeta, LogTransport } from '../core/types';
 
 /**
  * 控制台传输选项
@@ -23,7 +25,7 @@ export interface ConsoleTransportOptions {
 export class ConsoleTransport implements LogTransport {
   private colorize: boolean;
   private consoleInstance: Console;
-  
+
   /**
    * 创建控制台传输
    */
@@ -31,32 +33,35 @@ export class ConsoleTransport implements LogTransport {
     this.colorize = options.colorize === true;
     this.consoleInstance = options.console || console;
   }
-  
+
   /**
    * 记录日志到控制台
    */
   log(level: LogLevel, message: string, meta: LogMeta): void {
     const method = this.getConsoleMethod(level);
-    
+
     if (this.colorize) {
       const colorizedMessage = this.colorizeMessage(level, message);
+
       this.consoleInstance[method](colorizedMessage);
     } else {
       this.consoleInstance[method](message);
     }
   }
-  
+
   /**
    * 返回此传输是否异步
    */
   isAsync(): boolean {
     return false;
   }
-  
+
   /**
    * 获取对应日志级别的控制台方法
    */
-  private getConsoleMethod(level: LogLevel): 'debug' | 'info' | 'warn' | 'error' | 'log' {
+  private getConsoleMethod(
+    level: LogLevel
+  ): 'debug' | 'info' | 'warn' | 'error' | 'log' {
     switch (level) {
       case LogLevel.DEBUG:
         return 'debug';
@@ -70,7 +75,7 @@ export class ConsoleTransport implements LogTransport {
         return 'log';
     }
   }
-  
+
   /**
    * 为日志消息添加颜色（仅在支持的环境中有效）
    */
@@ -89,4 +94,4 @@ export class ConsoleTransport implements LogTransport {
         return message;
     }
   }
-} 
+}

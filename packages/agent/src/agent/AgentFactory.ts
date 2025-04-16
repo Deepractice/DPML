@@ -7,16 +7,23 @@
  */
 
 import path from 'path';
-import { Agent } from '../types';
-import { AgentFactoryConfig } from './types';
-import { AgentImpl } from './AgentImpl';
-import { LLMConnectorFactory, LLMConfig } from '../connector/LLMConnectorFactory';
-import { getGlobalEventSystem } from '../events';
-import { AgentStateManagerFactory, AgentStateManagerType } from '../state/AgentStateManagerFactory';
-import { AgentMemoryFactory } from '../memory/AgentMemoryFactory';
-import { AgentMemoryOptions } from '../memory/types';
+
+import { LLMConnectorFactory } from '../connector/LLMConnectorFactory';
 import { ErrorFactory } from '../errors/factory';
 import { AgentErrorCode } from '../errors/types';
+import { getGlobalEventSystem } from '../events';
+import { AgentMemoryFactory } from '../memory/AgentMemoryFactory';
+import {
+  AgentStateManagerFactory,
+  AgentStateManagerType,
+} from '../state/AgentStateManagerFactory';
+
+import { AgentImpl } from './AgentImpl';
+
+import type { AgentMemoryOptions } from '../memory/types';
+import type { Agent } from '../types';
+import type { AgentFactoryConfig } from './types';
+import type { LLMConfig } from '../connector/LLMConnectorFactory';
 
 /**
  * Agent工厂类
@@ -31,7 +38,9 @@ export class AgentFactory {
    * @param configOrPath 配置对象或DPML文件路径/内容
    * @returns Agent实例
    */
-  static async createAgent(configOrPath: AgentFactoryConfig | string): Promise<Agent> {
+  static async createAgent(
+    configOrPath: AgentFactoryConfig | string
+  ): Promise<Agent> {
     try {
       // 1. 解析配置
       const config = await this.parseConfig(configOrPath);
@@ -42,6 +51,7 @@ export class AgentFactory {
       // 3. 检查缓存
       const cacheKey = this.generateCacheKey(config);
       const cachedAgent = this.agentCache.get(cacheKey);
+
       if (cachedAgent) {
         return cachedAgent;
       }
@@ -63,7 +73,7 @@ export class AgentFactory {
         memory,
         connector,
         eventSystem,
-        executionConfig: config.executionConfig
+        executionConfig: config.executionConfig,
       });
 
       // 7. 缓存Agent实例
@@ -100,6 +110,7 @@ export class AgentFactory {
         AgentErrorCode.AGENT_TAG_ERROR
       );
     }
+
     return this.createAgent(content);
   }
 
@@ -109,7 +120,9 @@ export class AgentFactory {
    * @param config 配置对象
    * @returns Agent实例
    */
-  static async createAgentFromConfig(config: AgentFactoryConfig): Promise<Agent> {
+  static async createAgentFromConfig(
+    config: AgentFactoryConfig
+  ): Promise<Agent> {
     return this.createAgent(config);
   }
 
@@ -119,7 +132,9 @@ export class AgentFactory {
    * @param options 可选的配置选项，用于覆盖默认配置
    * @returns Agent实例
    */
-  static async createDefaultAgent(options: Partial<AgentFactoryConfig> = {}): Promise<Agent> {
+  static async createDefaultAgent(
+    options: Partial<AgentFactoryConfig> = {}
+  ): Promise<Agent> {
     // 创建默认配置
     const defaultConfig: AgentFactoryConfig = {
       id: options.id || `default-agent-${Date.now()}`,
@@ -131,11 +146,12 @@ export class AgentFactory {
         apiType: options.executionConfig?.apiType || 'openai',
         apiUrl: options.executionConfig?.apiUrl || 'https://api.openai.com/v1',
         keyEnv: options.executionConfig?.keyEnv || 'OPENAI_API_KEY',
-        systemPrompt: options.executionConfig?.systemPrompt || '你是一个有帮助的助手。',
+        systemPrompt:
+          options.executionConfig?.systemPrompt || '你是一个有帮助的助手。',
         temperature: options.executionConfig?.temperature || 0.7,
         maxResponseTokens: options.executionConfig?.maxResponseTokens || 1000,
-        defaultTimeout: options.executionConfig?.defaultTimeout || 60000
-      }
+        defaultTimeout: options.executionConfig?.defaultTimeout || 60000,
+      },
     };
 
     // 如果提供了basePath，添加到配置中
@@ -193,6 +209,7 @@ export class AgentFactory {
    */
   static removeAgent(id: string): boolean {
     const agent = this.getAgent(id);
+
     if (!agent) {
       return false;
     }
@@ -201,6 +218,7 @@ export class AgentFactory {
     for (const [cacheKey, cachedAgent] of this.agentCache.entries()) {
       if (cachedAgent === agent) {
         this.agentCache.delete(cacheKey);
+
         return true;
       }
     }
@@ -213,7 +231,9 @@ export class AgentFactory {
    * @param configOrPath 配置对象或DPML文件路径/内容
    * @returns 解析后的配置对象
    */
-  private static async parseConfig(configOrPath: AgentFactoryConfig | string): Promise<AgentFactoryConfig> {
+  private static async parseConfig(
+    configOrPath: AgentFactoryConfig | string
+  ): Promise<AgentFactoryConfig> {
     // 如果是配置对象，直接返回
     if (typeof configOrPath !== 'string') {
       return configOrPath;
@@ -233,7 +253,9 @@ export class AgentFactory {
    * @param filePath 文件路径
    * @returns 解析后的配置对象
    */
-  private static async parseFromFile(filePath: string): Promise<AgentFactoryConfig> {
+  private static async parseFromFile(
+    filePath: string
+  ): Promise<AgentFactoryConfig> {
     try {
       // 读取文件内容
       const fs = await import('fs/promises');
@@ -243,7 +265,8 @@ export class AgentFactory {
       return this.parseFromContent(content);
     } catch (error) {
       // 如果是文件系统错误
-      if (error.code && error.code.startsWith('E')) { // Node.js 文件系统错误代码都以E开头
+      if (error.code && error.code.startsWith('E')) {
+        // Node.js 文件系统错误代码都以E开头
         throw ErrorFactory.createConfigError(
           `读取DPML文件失败: ${error.message}`,
           AgentErrorCode.EXECUTION_ERROR,
@@ -261,16 +284,18 @@ export class AgentFactory {
    * @param content DPML内容
    * @returns 解析后的配置对象
    */
-  private static async parseFromContent(content: string): Promise<AgentFactoryConfig> {
+  private static async parseFromContent(
+    content: string
+  ): Promise<AgentFactoryConfig> {
     try {
       console.log('DEBUG: 开始解析DPML内容...');
       console.log('DEBUG: DPML内容长度:', content.length);
       console.log('DEBUG: DPML内容预览:', content.substring(0, 200));
-      
+
       // 使用DPML核心包解析内容
       const { parse, process } = await import('@dpml/core');
       const parseResult = await parse(content);
-      
+
       console.log('DEBUG: 解析结果:', parseResult.errors ? '有错误' : '无错误');
       if (parseResult.errors && parseResult.errors.length > 0) {
         console.log('DEBUG: 解析错误:', parseResult.errors);
@@ -280,12 +305,12 @@ export class AgentFactory {
           { position: parseResult.errors[0].position }
         );
       }
-      
+
       console.log('DEBUG: 解析AST结构:');
       console.log(JSON.stringify(parseResult.ast, null, 2));
 
       const processedDoc = await process(parseResult.ast);
-      
+
       console.log('DEBUG: 处理后文档:');
       console.log(JSON.stringify(processedDoc, null, 2));
 
@@ -313,6 +338,7 @@ export class AgentFactory {
   private static extractConfigFromDocument(document: any): AgentFactoryConfig {
     // 查找agent元素
     const agentElement = this.findAgentElement(document);
+
     if (!agentElement) {
       throw new Error('DPML文档中未找到agent元素');
     }
@@ -336,8 +362,8 @@ export class AgentFactory {
         apiType: llmConfig.apiType,
         apiUrl: llmConfig.apiUrl,
         keyEnv: llmConfig.keyEnv,
-        systemPrompt
-      }
+        systemPrompt,
+      },
     };
   }
 
@@ -381,7 +407,7 @@ export class AgentFactory {
         model: 'gpt-4',
         apiType: 'openai',
         apiUrl: 'https://api.openai.com/v1',
-        keyEnv: 'OPENAI_API_KEY'
+        keyEnv: 'OPENAI_API_KEY',
       };
     }
 
@@ -390,7 +416,7 @@ export class AgentFactory {
       model: llmElement.attributes?.model || 'gpt-4',
       apiType: llmElement.attributes?.['api-type'] || 'openai',
       apiUrl: llmElement.attributes?.['api-url'] || 'https://api.openai.com/v1',
-      keyEnv: llmElement.attributes?.['key-env'] || 'OPENAI_API_KEY'
+      keyEnv: llmElement.attributes?.['key-env'] || 'OPENAI_API_KEY',
     };
   }
 
@@ -403,7 +429,7 @@ export class AgentFactory {
     console.log('DEBUG: 开始提取系统提示词...');
     console.log('DEBUG: agent元素类型:', typeof agentElement);
     console.log('DEBUG: agent元素结构:', JSON.stringify(agentElement, null, 2));
-    
+
     // 查找prompt元素
     const promptElement = agentElement.children.find(
       (child: any) => child.type === 'element' && child.tagName === 'prompt'
@@ -411,82 +437,117 @@ export class AgentFactory {
 
     if (!promptElement) {
       console.log('DEBUG: 未找到prompt元素，使用默认提示词');
+
       return '你是一个有帮助的助手。';
     }
 
-    console.log('DEBUG: 找到prompt元素:', JSON.stringify(promptElement, null, 2));
+    console.log(
+      'DEBUG: 找到prompt元素:',
+      JSON.stringify(promptElement, null, 2)
+    );
 
     // 检查是否有元数据中的处理后提示词
     if (promptElement.metadata?.prompt?.processedPrompt) {
       console.log('DEBUG: 使用元数据中的处理后提示词');
+
       return promptElement.metadata.prompt.processedPrompt.content;
     }
 
     // 直接检查提示词的文本内容
     if (promptElement.content) {
-      console.log('DEBUG: 直接使用prompt元素的content属性:', promptElement.content);
+      console.log(
+        'DEBUG: 直接使用prompt元素的content属性:',
+        promptElement.content
+      );
+
       return promptElement.content;
     }
 
     // 检查value属性
     if (promptElement.value) {
       console.log('DEBUG: 使用prompt元素的value属性:', promptElement.value);
+
       return promptElement.value;
     }
 
     // 提取内容元素并合并文本
     if (Array.isArray(promptElement.children)) {
-      console.log('DEBUG: prompt包含子元素数量:', promptElement.children.length);
-      
+      console.log(
+        'DEBUG: prompt包含子元素数量:',
+        promptElement.children.length
+      );
+
       // 先检查是否有text属性
       if (promptElement.text) {
         console.log('DEBUG: 使用prompt元素的text属性:', promptElement.text);
+
         return promptElement.text;
       }
-      
+
       // 查找content类型的子元素
       const contentElements = promptElement.children.filter(
         (child: any) => child.type === 'content' || child.type === 'text'
       );
 
       console.log('DEBUG: 找到内容元素数量:', contentElements.length);
-      console.log('DEBUG: 内容元素详情:', JSON.stringify(contentElements, null, 2));
+      console.log(
+        'DEBUG: 内容元素详情:',
+        JSON.stringify(contentElements, null, 2)
+      );
 
       if (contentElements.length > 0) {
         // 使用text或value属性
-        const extractedPrompt = contentElements.map((el: any) => {
-          // 检查可能的属性
-          const textContent = el.text || el.value || el.content || '';
-          console.log('DEBUG: 内容元素的内容:', textContent);
-          return textContent;
-        }).join('');
-        
+        const extractedPrompt = contentElements
+          .map((el: any) => {
+            // 检查可能的属性
+            const textContent = el.text || el.value || el.content || '';
+
+            console.log('DEBUG: 内容元素的内容:', textContent);
+
+            return textContent;
+          })
+          .join('');
+
         console.log('DEBUG: 提取到的提示词:', extractedPrompt);
+
         return extractedPrompt;
       }
-      
+
       // 如果没有内容元素，但是有任何子元素，试图从所有子元素提取文本
       const allText = promptElement.children
         .map((child: any) => {
-          console.log('DEBUG: 子元素类型:', child.type, '内容属性:', 
-            Object.keys(child).filter(key => ['text', 'value', 'content'].includes(key)));
+          console.log(
+            'DEBUG: 子元素类型:',
+            child.type,
+            '内容属性:',
+            Object.keys(child).filter(key =>
+              ['text', 'value', 'content'].includes(key)
+            )
+          );
+
           return child.value || child.text || child.content || '';
         })
         .join('');
-        
+
       if (allText) {
         console.log('DEBUG: 从所有子元素提取的文本:', allText);
+
         return allText;
       }
     }
 
     // 检查attributes里是否有文本内容
     if (promptElement.attributes && promptElement.attributes.content) {
-      console.log('DEBUG: 使用prompt元素attributes中的content:', promptElement.attributes.content);
+      console.log(
+        'DEBUG: 使用prompt元素attributes中的content:',
+        promptElement.attributes.content
+      );
+
       return promptElement.attributes.content;
     }
 
     console.log('DEBUG: 未能提取到提示词内容，使用默认提示词');
+
     return '你是一个有帮助的助手。';
   }
 
@@ -533,7 +594,10 @@ export class AgentFactory {
 
     // 检查API类型是否支持
     const supportedApiTypes = ['openai', 'anthropic'];
-    if (!supportedApiTypes.includes(config.executionConfig.apiType.toLowerCase())) {
+
+    if (
+      !supportedApiTypes.includes(config.executionConfig.apiType.toLowerCase())
+    ) {
       throw ErrorFactory.createConfigError(
         `不支持的API类型: ${config.executionConfig.apiType}，支持的类型: ${supportedApiTypes.join(', ')}`,
         AgentErrorCode.INVALID_API_URL
@@ -542,7 +606,10 @@ export class AgentFactory {
 
     // 验证可选字段的值范围
     if (config.executionConfig.temperature !== undefined) {
-      if (config.executionConfig.temperature < 0 || config.executionConfig.temperature > 1) {
+      if (
+        config.executionConfig.temperature < 0 ||
+        config.executionConfig.temperature > 1
+      ) {
         throw ErrorFactory.createConfigError(
           `temperature必须在0到1之间，当前值: ${config.executionConfig.temperature}`,
           AgentErrorCode.EXECUTION_ERROR
@@ -582,11 +649,14 @@ export class AgentFactory {
       config.executionConfig.apiType,
       config.executionConfig.defaultModel,
       config.stateManagerType || 'memory',
-      config.memoryType || 'memory'
+      config.memoryType || 'memory',
     ];
 
     // 如果使用文件存储，添加路径信息
-    if ((config.stateManagerType === 'file' || config.memoryType === 'file') && config.basePath) {
+    if (
+      (config.stateManagerType === 'file' || config.memoryType === 'file') &&
+      config.basePath
+    ) {
       keyParts.push(config.basePath);
     }
 
@@ -602,10 +672,14 @@ export class AgentFactory {
     try {
       const llmConfig: LLMConfig = {
         apiType: config.executionConfig.apiType,
-        apiUrl: config.executionConfig.apiUrl || this.getDefaultApiUrl(config.executionConfig.apiType),
-        keyEnv: config.executionConfig.keyEnv || this.getDefaultKeyEnv(config.executionConfig.apiType),
+        apiUrl:
+          config.executionConfig.apiUrl ||
+          this.getDefaultApiUrl(config.executionConfig.apiType),
+        keyEnv:
+          config.executionConfig.keyEnv ||
+          this.getDefaultKeyEnv(config.executionConfig.apiType),
         model: config.executionConfig.defaultModel,
-        systemPrompt: config.executionConfig.systemPrompt
+        systemPrompt: config.executionConfig.systemPrompt,
       };
 
       // 添加可选的高级配置
@@ -654,22 +728,27 @@ export class AgentFactory {
         }
 
         // 确保 AgentStateManagerFactory 存在并且方法可用
-        if (!AgentStateManagerFactory || typeof AgentStateManagerFactory.createFileSystemStateManager !== 'function') {
+        if (
+          !AgentStateManagerFactory ||
+          typeof AgentStateManagerFactory.createFileSystemStateManager !==
+            'function'
+        ) {
           throw ErrorFactory.createStateError(
             'AgentStateManagerFactory 或其方法不可用',
             AgentErrorCode.STATE_ERROR
           );
         }
 
-        const stateManager = AgentStateManagerFactory.createFileSystemStateManager({
-          agentId: config.id,
-          storageDir: path.join(config.basePath, 'state'),
-          // 添加可选的高级配置
-          defaultTimeoutMs: config.executionConfig.defaultTimeout,
-          enableEvents: true,
-          detectTimeouts: true,
-          eventSystem: this.createEventSystem()
-        });
+        const stateManager =
+          AgentStateManagerFactory.createFileSystemStateManager({
+            agentId: config.id,
+            storageDir: path.join(config.basePath, 'state'),
+            // 添加可选的高级配置
+            defaultTimeoutMs: config.executionConfig.defaultTimeout,
+            enableEvents: true,
+            detectTimeouts: true,
+            eventSystem: this.createEventSystem(),
+          });
 
         // 确保返回的状态管理器有效
         if (!stateManager) {
@@ -682,7 +761,11 @@ export class AgentFactory {
         return stateManager;
       } else {
         // 确保 AgentStateManagerFactory 存在并且方法可用
-        if (!AgentStateManagerFactory || typeof AgentStateManagerFactory.createMemoryStateManager !== 'function') {
+        if (
+          !AgentStateManagerFactory ||
+          typeof AgentStateManagerFactory.createMemoryStateManager !==
+            'function'
+        ) {
           throw ErrorFactory.createStateError(
             'AgentStateManagerFactory 或其方法不可用',
             AgentErrorCode.STATE_ERROR
@@ -695,7 +778,7 @@ export class AgentFactory {
           defaultTimeoutMs: config.executionConfig.defaultTimeout,
           enableEvents: true,
           detectTimeouts: true,
-          eventSystem: this.createEventSystem()
+          eventSystem: this.createEventSystem(),
         });
 
         // 确保返回的状态管理器有效
@@ -728,7 +811,7 @@ export class AgentFactory {
 
       const memoryOptions: AgentMemoryOptions = {
         agentId: config.id,
-        type
+        type,
       };
 
       // 添加可选的高级配置
@@ -808,7 +891,10 @@ export class AgentFactory {
    * @param configOrPath 配置对象或DPML文件路径/内容
    * @returns 处理后的错误对象
    */
-  private static handleError(error: any, configOrPath: AgentFactoryConfig | string): Error {
+  private static handleError(
+    error: any,
+    configOrPath: AgentFactoryConfig | string
+  ): Error {
     // 如果已经是由ErrorFactory创建的错误，直接返回
     if (error.code && Object.values(AgentErrorCode).includes(error.code)) {
       return error;

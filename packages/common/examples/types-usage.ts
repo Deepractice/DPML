@@ -3,43 +3,28 @@
  */
 
 // 导入所需类型
-import { 
-  DPMLError, 
-  ValidationError, 
-  FileSystemError, 
-  NetworkError, 
-  createDPMLError 
+import { LoggerConfig, FormatterConfig } from '../src/types/config';
+import {
+  DPMLError,
+  ValidationError,
+  FileSystemError,
+  NetworkError,
+  createDPMLError,
 } from '../src/types/errors';
+import { Event, EventBus, EventPriority } from '../src/types/events';
 
-import { 
-  AppConfig, 
-  LoggerConfig, 
-  FormatterConfig 
-} from '../src/types/config';
-
-import { 
-  FileSystem, 
-  FileStat, 
-  ReadDirOptions 
-} from '../src/types/fs';
-
-import { 
-  HttpClient, 
-  HttpRequestConfig, 
-  HttpResponse 
+import type { AppConfig } from '../src/types/config';
+import type { FileSystem, FileStat, ReadDirOptions } from '../src/types/fs';
+import type {
+  HttpClient,
+  HttpRequestConfig,
+  HttpResponse,
 } from '../src/types/http';
-
-import { 
-  Event, 
-  EventBus, 
-  EventPriority 
-} from '../src/types/events';
-
-import { 
-  DeepPartial, 
-  Result, 
-  AsyncResult, 
-  PaginatedResult 
+import type {
+  DeepPartial,
+  Result,
+  AsyncResult,
+  PaginatedResult,
 } from '../src/types/utils';
 
 /**
@@ -73,27 +58,27 @@ function configExample() {
       enableColors: true,
       formatter: {
         type: 'json',
-        pretty: true
+        pretty: true,
       },
       transports: [
         { type: 'console' },
-        { type: 'file', options: { path: './logs/app.log' } }
-      ]
+        { type: 'file', options: { path: './logs/app.log' } },
+      ],
     },
     http: {
       baseUrl: 'https://api.example.com',
       timeout: 3000,
       headers: {
-        'Content-Type': 'application/json'
-      }
-    }
+        'Content-Type': 'application/json',
+      },
+    },
   };
 
   // 使用DeepPartial创建部分配置
   const partialConfig: DeepPartial<AppConfig> = {
     logger: {
-      level: 'debug'
-    }
+      level: 'debug',
+    },
   };
 
   // 合并配置
@@ -136,7 +121,7 @@ class NodeFileSystem implements FileSystem {
       size: 0,
       mtimeMs: Date.now(),
       ctimeMs: Date.now(),
-      atimeMs: Date.now()
+      atimeMs: Date.now(),
     };
   }
 
@@ -161,7 +146,11 @@ class NodeFileSystem implements FileSystem {
     // 实现代码
   }
 
-  async moveFile(src: string, dest: string, overwrite?: boolean): Promise<void> {
+  async moveFile(
+    src: string,
+    dest: string,
+    overwrite?: boolean
+  ): Promise<void> {
     // 实现代码
   }
 
@@ -182,7 +171,7 @@ class FetchHttpClient implements HttpClient {
       status: 200,
       statusText: 'OK',
       headers: {},
-      config
+      config,
     };
   }
 
@@ -190,11 +179,19 @@ class FetchHttpClient implements HttpClient {
     return this.request<T>({ ...config, url, method: 'GET' });
   }
 
-  async post<T>(url: string, data?: any, config?: any): Promise<HttpResponse<T>> {
+  async post<T>(
+    url: string,
+    data?: any,
+    config?: any
+  ): Promise<HttpResponse<T>> {
     return this.request<T>({ ...config, url, method: 'POST', data });
   }
 
-  async put<T>(url: string, data?: any, config?: any): Promise<HttpResponse<T>> {
+  async put<T>(
+    url: string,
+    data?: any,
+    config?: any
+  ): Promise<HttpResponse<T>> {
     return this.request<T>({ ...config, url, method: 'PUT', data });
   }
 
@@ -202,7 +199,11 @@ class FetchHttpClient implements HttpClient {
     return this.request<T>({ ...config, url, method: 'DELETE' });
   }
 
-  async patch<T>(url: string, data?: any, config?: any): Promise<HttpResponse<T>> {
+  async patch<T>(
+    url: string,
+    data?: any,
+    config?: any
+  ): Promise<HttpResponse<T>> {
     return this.request<T>({ ...config, url, method: 'PATCH', data });
   }
 
@@ -244,6 +245,7 @@ function resultTypeExample() {
     if (b === 0) {
       return { success: false, error: new Error('除数不能为零') };
     }
+
     return { success: true, value: a / b };
   }
 
@@ -251,6 +253,7 @@ function resultTypeExample() {
   async function fetchData(): AsyncResult<any, Error> {
     try {
       const data = { name: '示例数据' };
+
       return { success: true, value: data };
     } catch (error) {
       return { success: false, error: error as Error };
@@ -259,6 +262,7 @@ function resultTypeExample() {
 
   // 使用结果
   const result = divide(10, 2);
+
   if (result.success) {
     console.log('结果:', result.value);
   } else {
@@ -278,11 +282,13 @@ function paginationExample() {
     pageSize: 10,
     totalPages: 10,
     hasNext: true,
-    hasPrev: false
+    hasPrev: false,
   };
 
   // 处理分页数据
-  console.log(`显示 ${pagedResult.items.length} 条记录，共 ${pagedResult.total} 条`);
+  console.log(
+    `显示 ${pagedResult.items.length} 条记录，共 ${pagedResult.total} 条`
+  );
 }
 
 // 事件类型示例
@@ -297,4 +303,4 @@ interface UserEvents {
     userId: string;
     timestamp: number;
   };
-} 
+}

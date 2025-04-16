@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+
 import { CommandRegistry } from '../..';
-import { Command, DomainCommandSet } from '../..';
+
+import type { Command, DomainCommandSet } from '../..';
 
 describe('CommandRegistry', () => {
   let registry: CommandRegistry;
@@ -16,7 +18,7 @@ describe('CommandRegistry', () => {
       const mockCommand: Command = {
         name: 'test-command',
         description: 'Test command for unit testing',
-        execute: async () => {}
+        execute: async () => {},
       };
 
       // 创建模拟领域命令集
@@ -25,14 +27,18 @@ describe('CommandRegistry', () => {
         package: '@dpml/test',
         commandsPath: 'dist/commands.js',
         version: '1.0.0',
-        commands: new Map([['test-command', mockCommand]])
+        commands: new Map([['test-command', mockCommand]]),
       };
 
       // 注册领域命令集
       registry.registerDomainCommandSet(mockDomainSet);
 
       // 检索命令
-      const retrievedCommand = registry.getCommand('test-domain', 'test-command');
+      const retrievedCommand = registry.getCommand(
+        'test-domain',
+        'test-command'
+      );
+
       expect(retrievedCommand).toBe(mockCommand);
     });
 
@@ -43,7 +49,7 @@ describe('CommandRegistry', () => {
         package: '@dpml/test',
         commandsPath: 'dist/commands.js',
         version: '1.0.0',
-        commands: new Map()
+        commands: new Map(),
       };
 
       // 注册领域命令集
@@ -51,26 +57,29 @@ describe('CommandRegistry', () => {
 
       // 获取领域命令集
       const retrievedDomainSet = registry.getDomain('test-domain');
+
       expect(retrievedDomainSet).toBe(mockDomainSet);
     });
 
     it('应该能获取所有领域名称', () => {
       // 创建并注册多个领域命令集
       const domains = ['domain1', 'domain2', 'domain3'];
-      
+
       domains.forEach(domain => {
         const mockDomainSet: DomainCommandSet = {
           domain,
           package: `@dpml/${domain}`,
           commandsPath: 'dist/commands.js',
           version: '1.0.0',
-          commands: new Map()
+          commands: new Map(),
         };
+
         registry.registerDomainCommandSet(mockDomainSet);
       });
 
       // 获取所有领域名称
       const allDomains = registry.getAllDomains();
+
       expect(allDomains).toHaveLength(domains.length);
       expect(allDomains).toEqual(expect.arrayContaining(domains));
     });
@@ -78,10 +87,12 @@ describe('CommandRegistry', () => {
     it('当领域或命令不存在时应返回undefined', () => {
       // 检索不存在的领域
       const nonExistentDomain = registry.getDomain('non-existent');
+
       expect(nonExistentDomain).toBeUndefined();
 
       // 检索不存在的命令
       const nonExistentCommand = registry.getCommand('non-existent', 'command');
+
       expect(nonExistentCommand).toBeUndefined();
     });
   });
@@ -95,7 +106,7 @@ describe('CommandRegistry', () => {
         package: '@dpml/test',
         commandsPath: 'dist/commands.js',
         version: '1.0.0',
-        commands: new Map()
+        commands: new Map(),
       };
 
       // 注册领域命令集
@@ -105,14 +116,18 @@ describe('CommandRegistry', () => {
       const mockCommand: Command = {
         name: 'new-command',
         description: 'New command for testing',
-        execute: async () => {}
+        execute: async () => {},
       };
 
       // 注册单个命令
       registry.registerCommand('test-domain', mockCommand);
 
       // 检索命令
-      const retrievedCommand = registry.getCommand('test-domain', 'new-command');
+      const retrievedCommand = registry.getCommand(
+        'test-domain',
+        'new-command'
+      );
+
       expect(retrievedCommand).toBe(mockCommand);
     });
 
@@ -121,7 +136,7 @@ describe('CommandRegistry', () => {
       const mockCommand: Command = {
         name: 'test-command',
         description: 'Test command',
-        execute: async () => {}
+        execute: async () => {},
       };
 
       // 尝试注册到不存在的领域
@@ -135,7 +150,7 @@ describe('CommandRegistry', () => {
       const mockCommand: Command = {
         name: 'test-command',
         description: 'Test command for unit testing',
-        execute: async () => {}
+        execute: async () => {},
       };
 
       // 创建模拟领域命令集
@@ -144,7 +159,7 @@ describe('CommandRegistry', () => {
         package: '@dpml/test',
         commandsPath: 'dist/commands.js',
         version: '1.0.0',
-        commands: new Map([['test-command', mockCommand]])
+        commands: new Map([['test-command', mockCommand]]),
       };
 
       // 注册领域命令集
@@ -157,7 +172,9 @@ describe('CommandRegistry', () => {
       registry.removeCommand('test-domain', 'test-command');
 
       // 确认命令已删除
-      expect(registry.getCommand('test-domain', 'test-command')).toBeUndefined();
+      expect(
+        registry.getCommand('test-domain', 'test-command')
+      ).toBeUndefined();
     });
 
     it('删除不存在的命令应该不抛出错误', () => {
@@ -167,7 +184,7 @@ describe('CommandRegistry', () => {
         package: '@dpml/test',
         commandsPath: 'dist/commands.js',
         version: '1.0.0',
-        commands: new Map()
+        commands: new Map(),
       };
 
       // 注册领域命令集
@@ -187,13 +204,13 @@ describe('CommandRegistry', () => {
       const mockCommand1: Command = {
         name: 'test-command',
         description: 'First test command',
-        execute: async () => {}
+        execute: async () => {},
       };
 
       const mockCommand2: Command = {
         name: 'test-command',
         description: 'Second test command',
-        execute: async () => {}
+        execute: async () => {},
       };
 
       // 创建模拟领域命令集
@@ -202,7 +219,7 @@ describe('CommandRegistry', () => {
         package: '@dpml/test',
         commandsPath: 'dist/commands.js',
         version: '1.0.0',
-        commands: new Map([['test-command', mockCommand1]])
+        commands: new Map([['test-command', mockCommand1]]),
       };
 
       // 注册领域命令集
@@ -219,13 +236,13 @@ describe('CommandRegistry', () => {
       const mockCommand1: Command = {
         name: 'test-command',
         description: 'First test command',
-        execute: async () => {}
+        execute: async () => {},
       };
 
       const mockCommand2: Command = {
         name: 'test-command',
         description: 'Second test command',
-        execute: async () => {}
+        execute: async () => {},
       };
 
       // 创建模拟领域命令集
@@ -234,7 +251,7 @@ describe('CommandRegistry', () => {
         package: '@dpml/test',
         commandsPath: 'dist/commands.js',
         version: '1.0.0',
-        commands: new Map([['test-command', mockCommand1]])
+        commands: new Map([['test-command', mockCommand1]]),
       };
 
       // 注册领域命令集
@@ -244,7 +261,11 @@ describe('CommandRegistry', () => {
       registry.registerCommand('test-domain', mockCommand2, true);
 
       // 检索命令，应该是第二个命令
-      const retrievedCommand = registry.getCommand('test-domain', 'test-command');
+      const retrievedCommand = registry.getCommand(
+        'test-domain',
+        'test-command'
+      );
+
       expect(retrievedCommand).toBe(mockCommand2);
     });
   });
@@ -256,7 +277,7 @@ describe('CommandRegistry', () => {
       const mockCommand: Command = {
         name: 'test-command',
         description: 'Test command for serialization',
-        execute: async () => {}
+        execute: async () => {},
       };
 
       // 创建模拟领域命令集
@@ -265,7 +286,7 @@ describe('CommandRegistry', () => {
         package: '@dpml/test',
         commandsPath: 'dist/commands.js',
         version: '1.0.0',
-        commands: new Map([['test-command', mockCommand]])
+        commands: new Map([['test-command', mockCommand]]),
       };
 
       // 注册领域命令集
@@ -277,9 +298,18 @@ describe('CommandRegistry', () => {
       // 验证序列化结果
       expect(serialized).toHaveProperty('domains');
       expect(serialized.domains).toHaveProperty('test-domain');
-      expect(serialized.domains['test-domain']).toHaveProperty('package', '@dpml/test');
-      expect(serialized.domains['test-domain']).toHaveProperty('commandsPath', 'dist/commands.js');
-      expect(serialized.domains['test-domain']).toHaveProperty('version', '1.0.0');
+      expect(serialized.domains['test-domain']).toHaveProperty(
+        'package',
+        '@dpml/test'
+      );
+      expect(serialized.domains['test-domain']).toHaveProperty(
+        'commandsPath',
+        'dist/commands.js'
+      );
+      expect(serialized.domains['test-domain']).toHaveProperty(
+        'version',
+        '1.0.0'
+      );
       // 命令不应该被序列化，因为它们包含函数
       expect(serialized.domains['test-domain']).not.toHaveProperty('commands');
     });
@@ -292,9 +322,9 @@ describe('CommandRegistry', () => {
             domain: 'test-domain',
             package: '@dpml/test',
             commandsPath: 'dist/commands.js',
-            version: '1.0.0'
-          }
-        }
+            version: '1.0.0',
+          },
+        },
       };
 
       // 从序列化数据恢复注册表
@@ -302,6 +332,7 @@ describe('CommandRegistry', () => {
 
       // 验证恢复结果
       const domain = registry.getDomain('test-domain');
+
       expect(domain).toBeDefined();
       expect(domain?.domain).toBe('test-domain');
       expect(domain?.package).toBe('@dpml/test');
@@ -320,22 +351,23 @@ describe('CommandRegistry', () => {
         {
           name: 'command1',
           description: 'First command',
-          execute: async () => {}
+          execute: async () => {},
         },
         {
           name: 'command2',
           description: 'Second command',
-          execute: async () => {}
+          execute: async () => {},
         },
         {
           name: 'command3',
           description: 'Third command',
-          execute: async () => {}
-        }
+          execute: async () => {},
+        },
       ];
 
       // 创建命令映射
       const commandsMap = new Map<string, Command>();
+
       mockCommands.forEach(cmd => commandsMap.set(cmd.name, cmd));
 
       // 创建模拟领域命令集
@@ -344,7 +376,7 @@ describe('CommandRegistry', () => {
         package: '@dpml/test',
         commandsPath: 'dist/commands.js',
         version: '1.0.0',
-        commands: commandsMap
+        commands: commandsMap,
       };
 
       // 注册领域命令集
@@ -352,8 +384,9 @@ describe('CommandRegistry', () => {
 
       // 获取领域下的所有命令
       const domainCommands = registry.getDomainCommands('test-domain');
+
       expect(domainCommands).toHaveLength(mockCommands.length);
-      
+
       // 验证所有命令都在结果中
       mockCommands.forEach(cmd => {
         expect(domainCommands).toContainEqual(cmd);
@@ -362,6 +395,7 @@ describe('CommandRegistry', () => {
 
     it('获取不存在领域的命令应返回空数组', () => {
       const commands = registry.getDomainCommands('non-existent');
+
       expect(commands).toEqual([]);
     });
 
@@ -370,7 +404,7 @@ describe('CommandRegistry', () => {
       const mockCommand: Command = {
         name: 'test-command',
         description: 'Test command',
-        execute: async () => {}
+        execute: async () => {},
       };
 
       // 创建模拟领域命令集
@@ -379,7 +413,7 @@ describe('CommandRegistry', () => {
         package: '@dpml/test',
         commandsPath: 'dist/commands.js',
         version: '1.0.0',
-        commands: new Map([['test-command', mockCommand]])
+        commands: new Map([['test-command', mockCommand]]),
       };
 
       // 注册领域命令集

@@ -11,7 +11,7 @@
 ```xml
 <agent id="assistant">
   <llm model="gpt-4-turbo" auth-key-env="OPENAI_API_KEY" />
-  
+
   <prompt>
     你是一个有帮助的助手，能够回答用户问题并提供有用的信息。
   </prompt>
@@ -29,7 +29,7 @@ Agent包直接利用@dpml/core提供的标准继承机制，使用统一的`exte
 ```xml
 <agent id="research-assistant">
   <llm model="gpt-4-turbo" auth-key-env="OPENAI_API_KEY" />
-  
+
   <prompt extends="./prompts/complex-assistant.dpml">
     <!-- 可以为空（完全继承引用内容）或添加覆盖内容 -->
   </prompt>
@@ -37,6 +37,7 @@ Agent包直接利用@dpml/core提供的标准继承机制，使用统一的`exte
 ```
 
 特性说明：
+
 - 支持相对路径和绝对路径
 - 相对路径基于当前文件所在目录计算
 - 支持引用特定ID的标签：`extends="./base.dpml#assistant-base"`
@@ -57,6 +58,7 @@ Agent包不直接处理提示词内容，而是委托给@dpml/prompt包进行处
 ```
 
 处理流程：
+
 1. 检测到内联内容
 2. 如果内容不是DPML格式，包装为最简单的@dpml/prompt格式
 3. 调用@dpml/prompt包的API进行处理
@@ -73,6 +75,7 @@ Agent包不直接处理提示词内容，而是委托给@dpml/prompt包进行处
 ```
 
 处理流程：
+
 1. 委托@dpml/core处理extends属性，加载和合并引用内容
 2. 调用@dpml/prompt包的API进行处理
 3. 获取生成的提示词文本
@@ -90,12 +93,12 @@ import { generatePrompt } from '@dpml/prompt';
 async function processAgentPrompt(promptElement: Element): Promise<string> {
   // 标准的DPML处理流程，extends处理已由@dpml/core完成
   let dpmlContent = extractElementContent(promptElement);
-  
+
   // 如果内容不是DPML格式，包装为简单的DPML
   if (dpmlContent && !dpmlContent.trim().startsWith('<prompt')) {
     dpmlContent = `<prompt>${dpmlContent}</prompt>`;
   }
-  
+
   // 委托给@dpml/prompt处理
   return await generatePrompt(dpmlContent);
 }
@@ -117,7 +120,7 @@ async function processAgentPrompt(promptElement: Element): Promise<string> {
 ```xml
 <agent id="simple-assistant">
   <llm model="gpt-4-turbo" auth-key-env="OPENAI_API_KEY" />
-  
+
   <prompt>
     你是一个有帮助的助手，请简洁明了地回答用户问题。
   </prompt>
@@ -129,7 +132,7 @@ async function processAgentPrompt(promptElement: Element): Promise<string> {
 ```xml
 <agent id="research-assistant">
   <llm model="gpt-4-turbo" auth-key-env="OPENAI_API_KEY" />
-  
+
   <prompt extends="./prompts/complex-assistant.dpml">
     <!-- 空内容 - 完全使用被引用文件的内容 -->
   </prompt>
@@ -141,7 +144,7 @@ async function processAgentPrompt(promptElement: Element): Promise<string> {
 ```xml
 <agent id="specialized-assistant">
   <llm model="gpt-4-turbo" auth-key-env="OPENAI_API_KEY" />
-  
+
   <prompt extends="./prompts/base-assistant.dpml">
     <!-- 添加或覆盖内容 -->
     你是一个专门研究气候变化的助手，具有科学背景。
@@ -203,4 +206,4 @@ async function processAgentPrompt(promptElement: Element): Promise<string> {
 
 ## 总结
 
-`<prompt>` 标签在DPML Agent中直接复用了@dpml/prompt包的标签定义和@dpml/core的基础功能（如继承机制），通过委托机制充分利用这些能力而不重新发明轮子。这种设计既简洁明了，又保持了良好的扩展性，符合关注点分离原则，让Agent包可以专注于代理生命周期管理和LLM交互，同时享受DPML生态系统提供的全部标准功能。 
+`<prompt>` 标签在DPML Agent中直接复用了@dpml/prompt包的标签定义和@dpml/core的基础功能（如继承机制），通过委托机制充分利用这些能力而不重新发明轮子。这种设计既简洁明了，又保持了良好的扩展性，符合关注点分离原则，让Agent包可以专注于代理生命周期管理和LLM交互，同时享受DPML生态系统提供的全部标准功能。

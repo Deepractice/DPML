@@ -9,8 +9,7 @@ import { cli } from './index';
 const argv = process.argv;
 
 // 启动CLI
-cli.run(argv)
-  .catch((error) => {
-    console.error('CLI启动错误:', error);
-    process.exit(1);
-  });
+cli.run(argv).catch(error => {
+  console.error('CLI启动错误:', error);
+  process.exit(1);
+});

@@ -19,7 +19,10 @@ export function isObject(item: unknown): item is Record<string, unknown> {
  * @param source 源对象
  * @returns 合并后的新对象
  */
-export function deepMerge<T extends Record<string, any>>(target: T, source: Partial<T>): T {
+export function deepMerge<T extends Record<string, any>>(
+  target: T,
+  source: Partial<T>
+): T {
   const output = { ...target };
 
   if (isObject(target) && isObject(source)) {
@@ -31,7 +34,10 @@ export function deepMerge<T extends Record<string, any>>(target: T, source: Part
         if (!(key in target)) {
           Object.assign(output, { [key]: source[sourceKey] });
         } else {
-          output[targetKey] = deepMerge(target[targetKey] as any, source[sourceKey] as any);
+          output[targetKey] = deepMerge(
+            target[targetKey] as any,
+            source[sourceKey] as any
+          );
         }
       } else {
         Object.assign(output, { [key]: source[sourceKey] });
@@ -65,7 +71,7 @@ export function deepClone<T>(obj: T): T {
     return Object.keys(obj).reduce((result, key) => {
       return {
         ...result,
-        [key]: deepClone((obj as Record<string, any>)[key])
+        [key]: deepClone((obj as Record<string, any>)[key]),
       };
     }, {}) as T;
   }
@@ -92,6 +98,7 @@ export function get(
     if (result === undefined || result === null) {
       return defaultValue;
     }
+
     result = result[key];
   }
 
@@ -121,11 +128,16 @@ export function set<T extends Record<string, any>>(
     if (isLast) {
       current[key] = value;
     } else {
-      if (current[key] === undefined || current[key] === null || typeof current[key] !== 'object') {
+      if (
+        current[key] === undefined ||
+        current[key] === null ||
+        typeof current[key] !== 'object'
+      ) {
         current[key] = {};
       } else {
         current[key] = { ...current[key] };
       }
+
       current = current[key];
     }
   }
@@ -143,12 +155,16 @@ export function pick<T extends Record<string, any>, K extends keyof T>(
   obj: T,
   keys: K[]
 ): Pick<T, K> {
-  return keys.reduce((result, key) => {
-    if (key in obj) {
-      result[key] = obj[key];
-    }
-    return result;
-  }, {} as Pick<T, K>);
+  return keys.reduce(
+    (result, key) => {
+      if (key in obj) {
+        result[key] = obj[key];
+      }
+
+      return result;
+    },
+    {} as Pick<T, K>
+  );
 }
 
 /**
@@ -162,9 +178,11 @@ export function omit<T extends Record<string, any>, K extends keyof T>(
   keys: K[]
 ): Omit<T, K> {
   const result = { ...obj };
+
   keys.forEach(key => {
     delete result[key];
   });
+
   return result;
 }
 
@@ -188,5 +206,5 @@ export const objectUtils = {
   set,
   pick,
   omit,
-  isEmpty
+  isEmpty,
 };

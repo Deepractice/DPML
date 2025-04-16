@@ -1,9 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { TransformContext } from '../../../transformer/interfaces/transformContext';
-import { ContextManager } from '../../../transformer/context/contextManager';
-import { ProcessedDocument } from '../../../processor/interfaces/processor';
-import { NodeType } from '../../../types/node';
+
 import { JSONAdapter } from '../../../transformer/adapters/jsonAdapter';
+import { ContextManager } from '../../../transformer/context/contextManager';
+import { NodeType } from '../../../types/node';
+
+import type { ProcessedDocument } from '../../../processor/interfaces/processor';
+import type { TransformContext } from '../../../transformer/interfaces/transformContext';
 
 describe('JSONAdapter', () => {
   // 创建一个简单的文档结果用于测试
@@ -12,7 +14,7 @@ describe('JSONAdapter', () => {
       type: 'document',
       meta: {
         title: '测试文档',
-        author: '测试作者'
+        author: '测试作者',
       },
       children: [
         {
@@ -20,7 +22,7 @@ describe('JSONAdapter', () => {
           name: 'section',
           attributes: {
             id: 'section1',
-            class: 'main'
+            class: 'main',
           },
           children: [
             {
@@ -30,13 +32,13 @@ describe('JSONAdapter', () => {
               children: [
                 {
                   type: 'content',
-                  text: '标题内容'
-                }
-              ]
-            }
-          ]
-        }
-      ]
+                  text: '标题内容',
+                },
+              ],
+            },
+          ],
+        },
+      ],
     };
   };
 
@@ -45,13 +47,13 @@ describe('JSONAdapter', () => {
     const result: any = {
       type: 'document',
       meta: {
-        title: '测试文档'
-      }
+        title: '测试文档',
+      },
     };
-    
+
     // 创建循环引用
     result.self = result;
-    
+
     return result;
   };
 
@@ -63,13 +65,13 @@ describe('JSONAdapter', () => {
       children: [],
       position: {
         start: { line: 1, column: 1, offset: 0 },
-        end: { line: 1, column: 1, offset: 0 }
-      }
+        end: { line: 1, column: 1, offset: 0 },
+      },
     };
 
     // 创建上下文管理器
     const contextManager = new ContextManager();
-    
+
     // 返回根上下文
     return contextManager.createRootContext(document, {});
   };
@@ -79,16 +81,16 @@ describe('JSONAdapter', () => {
     const adapter = new JSONAdapter();
     const result = createSimpleResult();
     const context = createContext();
-    
+
     // 执行
     const adapted = adapter.adapt(result, context);
-    
+
     // 验证
     expect(typeof adapted).toBe('string');
-    
+
     // 解析JSON字符串
     const parsed = JSON.parse(adapted as string);
-    
+
     // 验证结构完整保留
     expect(parsed).toEqual(result);
   });
@@ -98,12 +100,13 @@ describe('JSONAdapter', () => {
     const adapter = new JSONAdapter({ indent: 2 });
     const result = { key: 'value' };
     const context = createContext();
-    
+
     // 执行
     const adapted = adapter.adapt(result, context);
-    
+
     // 验证 - 缩进为2个空格
     const expected = '{\n  "key": "value"\n}';
+
     expect(adapted).toBe(expected);
   });
 
@@ -111,16 +114,16 @@ describe('JSONAdapter', () => {
     // 准备
     const adapter = new JSONAdapter();
     const context = createContext();
-    
+
     // 执行 - 传递null
     const adapted1 = adapter.adapt(null, context);
-    
+
     // 验证
     expect(adapted1).toBe('null');
-    
+
     // 执行 - 传递undefined
     const adapted2 = adapter.adapt(undefined, context);
-    
+
     // 验证 - undefined应该转换为null
     expect(adapted2).toBe('null');
   });
@@ -129,22 +132,22 @@ describe('JSONAdapter', () => {
     // 准备
     const adapter = new JSONAdapter();
     const context = createContext();
-    
+
     // 执行 - 传递字符串
     const adapted1 = adapter.adapt('测试字符串', context);
-    
+
     // 验证
     expect(adapted1).toBe('"测试字符串"');
-    
+
     // 执行 - 传递数字
     const adapted2 = adapter.adapt(123, context);
-    
+
     // 验证
     expect(adapted2).toBe('123');
-    
+
     // 执行 - 传递布尔值
     const adapted3 = adapter.adapt(true, context);
-    
+
     // 验证
     expect(adapted3).toBe('true');
   });
@@ -154,13 +157,14 @@ describe('JSONAdapter', () => {
     const adapter = new JSONAdapter();
     const result = createCircularResult();
     const context = createContext();
-    
+
     // 执行 - 应该捕获循环引用错误并优雅处理
     let adapted;
+
     expect(() => {
       adapted = adapter.adapt(result, context);
     }).not.toThrow();
-    
+
     // 验证 - 应该返回一个包含错误信息的字符串
     expect(typeof adapted).toBe('string');
     expect(adapted as string).toContain('错误');
@@ -170,19 +174,20 @@ describe('JSONAdapter', () => {
   it('应该支持通过选项控制JSON序列化行为', () => {
     // 准备 - 创建一个只包含特定属性的适配器
     const adapter = new JSONAdapter({
-      replacer: ['type', 'meta', 'title']
+      replacer: ['type', 'meta', 'title'],
     });
     const result = createSimpleResult();
     const context = createContext();
-    
+
     // 执行
     const adapted = adapter.adapt(result, context);
-    
+
     // 验证 - 解析后的对象应只包含指定的属性
     const parsed = JSON.parse(adapted as string);
+
     expect(parsed).toHaveProperty('type');
     expect(parsed).toHaveProperty('meta');
     expect(parsed.meta).toHaveProperty('title');
     expect(parsed).not.toHaveProperty('children');
   });
-}); 
+});

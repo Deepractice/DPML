@@ -19,14 +19,14 @@ export {
   fixturesUtils,
   fileSystemMock,
   httpClientMock,
-  testingUtils
+  testingUtils,
 };
 
 // 直接导出常用测试环境函数
 export {
   withTestEnvironment,
   createTestEnvironment,
-  createTestEnvWithSpies
+  createTestEnvWithSpies,
 } from './environment';
 
 // 导出工厂
@@ -39,7 +39,7 @@ export {
   createResolvedPromiseMock,
   createRejectedPromiseMock,
   deepClone,
-  deepEqual
+  deepEqual,
 } from './core';
 
 // 从core.ts导出wait，但重命名为coreWait以避免冲突
@@ -58,9 +58,13 @@ export interface MockFileSystem {
   readdir(path: string): Promise<string[]>;
   stat(path: string): Promise<any>;
   rename(oldPath: string, newPath: string): Promise<void>;
-  copy(sourcePath: string, destPath: string, recursive?: boolean): Promise<void>;
+  copy(
+    sourcePath: string,
+    destPath: string,
+    recursive?: boolean
+  ): Promise<void>;
   delete(path: string, recursive?: boolean): Promise<void>;
-  
+
   // 同步方法
   readFileSync(path: string): string | Buffer;
   writeFileSync(path: string, content: string | Buffer): void;
@@ -73,11 +77,11 @@ export interface MockFileSystem {
   renameSync(oldPath: string, newPath: string): void;
   copySync(sourcePath: string, destPath: string, recursive?: boolean): void;
   deleteSync(path: string, recursive?: boolean): void;
-  
+
   // 其他方法
   snapshot(): Record<string, string | Buffer>;
   clear(): void;
-  
+
   // 事件监听
   on(event: string, listener: (...args: any[]) => void): this;
   once(event: string, listener: (...args: any[]) => void): this;

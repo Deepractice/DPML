@@ -2,6 +2,7 @@
  * 标签注册表
  */
 import { TagRegistry } from '@dpml/core';
+
 import {
   promptTagDefinition,
   roleTagDefinition,
@@ -10,7 +11,7 @@ import {
   executingTagDefinition,
   testingTagDefinition,
   protocolTagDefinition,
-  customTagDefinition
+  customTagDefinition,
 } from './core';
 
 /**
@@ -19,7 +20,7 @@ import {
 export function createPromptTagRegistry(): TagRegistry {
   // 创建注册表实例
   const registry = new TagRegistry();
-  
+
   // 注册所有核心标签
   registry.registerTagDefinition('prompt', promptTagDefinition);
   registry.registerTagDefinition('role', roleTagDefinition);
@@ -29,11 +30,11 @@ export function createPromptTagRegistry(): TagRegistry {
   registry.registerTagDefinition('testing', testingTagDefinition);
   registry.registerTagDefinition('protocol', protocolTagDefinition);
   registry.registerTagDefinition('custom', customTagDefinition);
-  
+
   return registry;
 }
 
 /**
  * 默认提示标签注册表单例
  */
-export const promptTagRegistry = createPromptTagRegistry(); 
+export const promptTagRegistry = createPromptTagRegistry();

@@ -64,22 +64,22 @@ Transformer 模块由以下核心组件组成：
 interface Transformer {
   // 注册访问者
   registerVisitor(visitor: TransformerVisitor): void;
-  
+
   // 设置输出适配器
   setOutputAdapter(adapter: OutputAdapter): void;
-  
+
   // 设置输出适配器工厂
   setOutputAdapterFactory(factory: OutputAdapterFactory): void;
-  
+
   // 转换文档
   transform(document: Document, options?: TransformOptions): any;
-  
+
   // 异步转换文档
   transformAsync(document: Document, options?: TransformOptions): Promise<any>;
-  
+
   // 配置转换器
   configure(options: TransformOptions): void;
-  
+
   // 清除缓存
   clearCache(): void;
 }
@@ -91,19 +91,19 @@ interface Transformer {
 interface TransformerVisitor {
   // 访问者名称
   name: string;
-  
+
   // 访问者优先级（数值越大优先级越高）
   priority?: number;
-  
+
   // 访问文档节点
   visitDocument?(document: Document, context: TransformContext): any;
-  
+
   // 访问元素节点
   visitElement?(element: Element, context: TransformContext): any;
-  
+
   // 访问内容节点
   visitContent?(content: Content, context: TransformContext): any;
-  
+
   // 访问引用节点
   visitReference?(reference: Reference, context: TransformContext): any;
 }
@@ -115,7 +115,7 @@ interface TransformerVisitor {
 interface OutputAdapter {
   // 适配转换结果
   adapt(result: any, context: TransformContext): any;
-  
+
   // 异步适配（可选）
   adaptAsync?(result: any, context: TransformContext): Promise<any>;
 }
@@ -127,16 +127,16 @@ interface OutputAdapter {
 interface TransformContext {
   // 原始文档
   document: Document;
-  
+
   // 当前路径
   path: string[];
-  
+
   // 转换选项
   options: TransformOptions;
-  
+
   // 变量
   variables?: Record<string, any>;
-  
+
   // 父节点结果
   parentResults?: any[];
 }
@@ -216,12 +216,12 @@ adapterFactory.registerAdapter('xml', new XMLAdapter());
 const transformer = factory.createTransformer({}, adapterFactory);
 
 // 转换文档
-const result = transformer.transform(document, { 
+const result = transformer.transform(document, {
   format: 'json',
   variables: {
     username: '张三',
-    age: 30
-  }
+    age: 30,
+  },
 });
 ```
 
@@ -231,14 +231,14 @@ const result = transformer.transform(document, {
 class CustomVisitor implements TransformerVisitor {
   name = 'CustomVisitor';
   priority = 100;
-  
+
   visitElement(element: Element, context: TransformContext): any {
     // 自定义元素处理逻辑
     return {
       type: 'element',
       name: element.tagName,
       attributes: element.attributes,
-      children: element.children
+      children: element.children,
     };
   }
 }
@@ -257,8 +257,8 @@ class CustomAdapter implements OutputAdapter {
       data: result,
       metadata: {
         format: 'custom',
-        timestamp: Date.now()
-      }
+        timestamp: Date.now(),
+      },
     };
   }
 }
@@ -280,4 +280,4 @@ adapterFactory.registerAdapter('custom', new CustomAdapter());
 1. **自定义访问者**：实现 TransformerVisitor 接口
 2. **自定义适配器**：实现 OutputAdapter 接口
 3. **自定义标签处理器**：实现 TagProcessor 接口
-4. **自定义转换器**：扩展 DefaultTransformer 类或实现 Transformer 接口 
+4. **自定义转换器**：扩展 DefaultTransformer 类或实现 Transformer 接口

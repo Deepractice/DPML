@@ -1,21 +1,26 @@
 /**
  * AttributeValidationVisitor
- * 
+ *
  * 用于验证元素属性
  */
 
-import { Document, Element } from '@core/types/node';
-import { NodeVisitor, ProcessingContext } from '@core/processor/interfaces';
-import { 
-  DefaultValidationError, 
-  ErrorCode, 
-  ErrorLevel, 
-  ValidationResult, 
+import {
+  DefaultValidationError,
+  ErrorCode,
+  ErrorLevel,
+  ValidationResult,
   ValidationWarning,
-  ValidationErrorImpl
 } from '@core/errors/types';
-import { TagRegistry } from '@core/parser/tag-registry';
 import { DocumentMode } from '@core/processor/visitors/documentMetadataVisitor';
+import { Document } from '@core/types/node';
+
+import type { ValidationErrorImpl } from '@core/errors/types';
+import type { TagRegistry } from '@core/parser/tag-registry';
+import type {
+  NodeVisitor,
+  ProcessingContext,
+} from '@core/processor/interfaces';
+import type { Element } from '@core/types/node';
 
 /**
  * 属性验证访问者选项
@@ -25,14 +30,14 @@ export interface AttributeValidationOptions {
    * 标签注册表
    */
   tagRegistry: TagRegistry;
-  
+
   /**
    * 是否启用严格模式
    * 在严格模式下，任何验证错误都会导致抛出错误
    * 在非严格模式下，会遵循文档的mode属性决定严格级别
    */
   strictMode?: boolean;
-  
+
   /**
    * 是否验证未知标签
    * 默认为false，忽略未在标签注册表中定义的标签
@@ -50,22 +55,22 @@ export class AttributeValidationVisitor implements NodeVisitor {
    * 在元数据处理后执行
    */
   priority = 80;
-  
+
   /**
    * 标签注册表
    */
   private tagRegistry: TagRegistry;
-  
+
   /**
    * 是否启用严格模式
    */
   private strictMode: boolean;
-  
+
   /**
    * 是否验证未知标签
    */
   private validateUnknownTags: boolean;
-  
+
   /**
    * 构造函数
    * @param options 选项
@@ -75,7 +80,7 @@ export class AttributeValidationVisitor implements NodeVisitor {
     this.strictMode = options.strictMode ?? false;
     this.validateUnknownTags = options.validateUnknownTags ?? false;
   }
-  
+
   /**
    * 处理元素节点
    * 验证属性
@@ -83,27 +88,30 @@ export class AttributeValidationVisitor implements NodeVisitor {
    * @param context 处理上下文
    * @returns 处理后的元素节点
    */
-  async visitElement(element: Element, context: ProcessingContext): Promise<Element> {
+  async visitElement(
+    element: Element,
+    context: ProcessingContext
+  ): Promise<Element> {
     // 获取标签定义
     const tagDefinition = this.tagRegistry.getTagDefinition(element.tagName);
-    
+
     // 如果标签未定义且不验证未知标签，则跳过验证
     if (!tagDefinition && !this.validateUnknownTags) {
       return element;
     }
-    
+
     // 如果标签未定义但需要验证未知标签
     if (!tagDefinition && this.validateUnknownTags) {
       const error = new DefaultValidationError({
         code: ErrorCode.INVALID_NESTING,
         message: `未知标签: ${element.tagName}`,
         level: ErrorLevel.ERROR,
-        position: this.getPosition(element)
+        position: this.getPosition(element),
       });
-      
+
       return this.handleValidationError(error, context, element);
     }
-    
+
     // 确保标签定义存在
     if (tagDefinition) {
       // 验证必需属性 - 传统方式
@@ -113,24 +121,26 @@ export class AttributeValidationVisitor implements NodeVisitor {
             const error = new DefaultValidationError({
               code: ErrorCode.MISSING_REQUIRED_ATTRIBUTE,
               message: `缺少必需的属性: ${requiredAttr}`,
-              level: this.isStrictMode(context) ? ErrorLevel.ERROR : ErrorLevel.WARNING,
-              position: this.getPosition(element)
+              level: this.isStrictMode(context)
+                ? ErrorLevel.ERROR
+                : ErrorLevel.WARNING,
+              position: this.getPosition(element),
             });
-            
+
             return this.handleValidationError(error, context, element);
           }
         }
       }
-      
+
       // 验证属性 - 支持数组和对象两种格式
       if (tagDefinition.attributes) {
         const attributes = tagDefinition.attributes;
-        
+
         // 检查必需属性 - 对象格式
         if (typeof attributes === 'object' && !Array.isArray(attributes)) {
           for (const attrName in attributes) {
             const attrDef = attributes[attrName];
-            
+
             if (
               (typeof attrDef === 'object' && attrDef.required === true) ||
               attrDef === true
@@ -139,23 +149,25 @@ export class AttributeValidationVisitor implements NodeVisitor {
                 const error = new DefaultValidationError({
                   code: ErrorCode.MISSING_REQUIRED_ATTRIBUTE,
                   message: `缺少必需的属性: ${attrName}`,
-                  level: this.isStrictMode(context) ? ErrorLevel.ERROR : ErrorLevel.WARNING,
-                  position: this.getPosition(element)
+                  level: this.isStrictMode(context)
+                    ? ErrorLevel.ERROR
+                    : ErrorLevel.WARNING,
+                  position: this.getPosition(element),
                 });
-                
+
                 return this.handleValidationError(error, context, element);
               }
             }
           }
         }
-        
+
         // 验证未知属性
         for (const attr in element.attributes) {
           // 跳过x-前缀的扩展属性
           if (attr.startsWith('x-')) continue;
-          
+
           let isKnownAttribute = false;
-          
+
           if (Array.isArray(attributes)) {
             // 数组格式
             isKnownAttribute = attributes.includes(attr);
@@ -163,39 +175,45 @@ export class AttributeValidationVisitor implements NodeVisitor {
             // 对象格式
             isKnownAttribute = attr in attributes;
           }
-          
+
           if (!isKnownAttribute) {
             const warning = new DefaultValidationError({
               code: ErrorCode.INVALID_ATTRIBUTE,
               message: `未知属性: ${attr}`,
               level: ErrorLevel.WARNING,
-              position: this.getPosition(element)
+              position: this.getPosition(element),
             });
-            
+
             console.warn(warning.toString());
           }
         }
       }
-      
+
       // 执行自定义验证
       if (tagDefinition.validate) {
         try {
           const validationResult = tagDefinition.validate(element, {});
-          
+
           if (!validationResult.valid && validationResult.errors) {
             // 处理验证错误
             for (const error of validationResult.errors) {
               const validationError = new DefaultValidationError({
                 code: error.code || ErrorCode.INVALID_ATTRIBUTE,
                 message: error.message,
-                level: this.isStrictMode(context) ? ErrorLevel.ERROR : ErrorLevel.WARNING,
-                position: this.getPosition(element)
+                level: this.isStrictMode(context)
+                  ? ErrorLevel.ERROR
+                  : ErrorLevel.WARNING,
+                position: this.getPosition(element),
               });
-              
-              return this.handleValidationError(validationError, context, element);
+
+              return this.handleValidationError(
+                validationError,
+                context,
+                element
+              );
             }
           }
-          
+
           // 处理验证警告
           if (validationResult.warnings) {
             for (const warning of validationResult.warnings) {
@@ -203,9 +221,9 @@ export class AttributeValidationVisitor implements NodeVisitor {
                 code: warning.code || 'warning',
                 message: warning.message,
                 level: ErrorLevel.WARNING,
-                position: this.getPosition(element)
+                position: this.getPosition(element),
               });
-              
+
               console.warn(validationWarning.toString());
             }
           }
@@ -213,18 +231,20 @@ export class AttributeValidationVisitor implements NodeVisitor {
           const validationError = new DefaultValidationError({
             code: ErrorCode.UNKNOWN_ERROR,
             message: `自定义验证器错误: ${(error as Error).message}`,
-            level: this.isStrictMode(context) ? ErrorLevel.ERROR : ErrorLevel.WARNING,
-            position: this.getPosition(element)
+            level: this.isStrictMode(context)
+              ? ErrorLevel.ERROR
+              : ErrorLevel.WARNING,
+            position: this.getPosition(element),
           });
-          
+
           return this.handleValidationError(validationError, context, element);
         }
       }
     }
-    
+
     return element;
   }
-  
+
   /**
    * 确定是否在严格模式下运行
    * @param context 处理上下文
@@ -235,12 +255,13 @@ export class AttributeValidationVisitor implements NodeVisitor {
     if (this.strictMode) {
       return true;
     }
-    
+
     // 否则使用文档的模式设置
     const metadata = context.variables.metadata;
+
     return metadata && metadata.mode === DocumentMode.STRICT;
   }
-  
+
   /**
    * 获取元素位置信息
    * @param element 元素节点
@@ -250,14 +271,14 @@ export class AttributeValidationVisitor implements NodeVisitor {
     if (!element.position) {
       return undefined;
     }
-    
+
     return {
       line: element.position.start.line,
       column: element.position.start.column,
-      offset: element.position.start.offset
+      offset: element.position.start.offset,
     };
   }
-  
+
   /**
    * 处理验证错误
    * @param error 验证错误
@@ -274,12 +295,11 @@ export class AttributeValidationVisitor implements NodeVisitor {
     if (error.level === ErrorLevel.ERROR && this.isStrictMode(context)) {
       throw error;
     }
-    
+
     // 在非严格模式下只发出警告
     console.warn(error.toString());
-    
+
     // 返回原始元素
-    return element || {} as Element;
+    return element || ({} as Element);
   }
 }
-

@@ -1,10 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
+
 import { DefaultTransformer } from '../../transformer/defaultTransformer';
-import { TransformerVisitor } from '../../transformer/interfaces/transformerVisitor';
-import { ProcessedDocument } from '../../processor/interfaces/processor';
-import { NodeType } from '../../types/node';
 import { TransformContext } from '../../transformer/interfaces/transformContext';
-import { TransformOptions } from '../../transformer/interfaces/transformOptions';
+import { NodeType } from '../../types/node';
+
+import type { ProcessedDocument } from '../../processor/interfaces/processor';
+import type { TransformerVisitor } from '../../transformer/interfaces/transformerVisitor';
+import type { TransformOptions } from '../../transformer/interfaces/transformOptions';
 
 describe('访问者错误处理机制', () => {
   // 创建一个测试文档
@@ -13,8 +15,8 @@ describe('访问者错误处理机制', () => {
     children: [],
     position: {
       start: { line: 1, column: 1, offset: 0 },
-      end: { line: 1, column: 1, offset: 0 }
-    }
+      end: { line: 1, column: 1, offset: 0 },
+    },
   });
 
   it('在宽松模式下，访问者抛出错误不应该影响转换流程', () => {
@@ -24,7 +26,7 @@ describe('访问者错误处理机制', () => {
       priority: 100,
       visitDocument: () => {
         throw new Error('访问者错误');
-      }
+      },
     };
 
     const normalVisitor: TransformerVisitor = {
@@ -32,20 +34,23 @@ describe('访问者错误处理机制', () => {
       priority: 50,
       visitDocument: () => {
         return { type: 'normal-result' };
-      }
+      },
     };
 
     // 模拟控制台错误日志
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     // 创建转换器并注册访问者
     const transformer = new DefaultTransformer();
+
     transformer.registerVisitor(errorVisitor);
     transformer.registerVisitor(normalVisitor);
 
     // 配置为宽松模式
     const options: TransformOptions = {
-      mode: 'loose'
+      mode: 'loose',
     };
 
     // 转换应该成功且不会中断
@@ -69,7 +74,7 @@ describe('访问者错误处理机制', () => {
       priority: 100,
       visitDocument: () => {
         throw new Error('访问者错误');
-      }
+      },
     };
 
     const normalVisitor: TransformerVisitor = {
@@ -77,21 +82,24 @@ describe('访问者错误处理机制', () => {
       priority: 50,
       visitDocument: () => {
         return { type: 'normal-result' };
-      }
+      },
     };
 
     // 创建转换器并注册访问者
     const transformer = new DefaultTransformer();
+
     transformer.registerVisitor(errorVisitor);
     transformer.registerVisitor(normalVisitor);
 
     // 配置为严格模式
     const options: TransformOptions = {
-      mode: 'strict'
+      mode: 'strict',
     };
 
     // 转换应该抛出错误
-    expect(() => transformer.transform(createTestDocument(), options)).toThrow('访问者错误');
+    expect(() => transformer.transform(createTestDocument(), options)).toThrow(
+      '访问者错误'
+    );
   });
 
   it('应该提供详细的错误信息，包括错误来源', () => {
@@ -101,16 +109,17 @@ describe('访问者错误处理机制', () => {
       priority: 100,
       visitDocument: () => {
         throw new Error('测试错误消息');
-      }
+      },
     };
 
     // 创建转换器并注册访问者
     const transformer = new DefaultTransformer();
+
     transformer.registerVisitor(errorVisitor);
 
     // 配置为严格模式
     const options: TransformOptions = {
-      mode: 'strict'
+      mode: 'strict',
     };
 
     // 捕获错误并验证详细信息
@@ -135,27 +144,33 @@ describe('访问者错误处理机制', () => {
       visitDocumentAsync: async () => {
         await new Promise(resolve => setTimeout(resolve, 10));
         throw new Error('异步访问者错误');
-      }
+      },
     };
 
     // 创建转换器并注册访问者
     const transformer = new DefaultTransformer();
+
     transformer.registerVisitor(asyncErrorVisitor);
 
     // 配置为宽松模式
     const options: TransformOptions = {
-      mode: 'loose'
+      mode: 'loose',
     };
 
     // 模拟控制台错误日志
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     // 异步转换应该成功且不会中断
-    const result = await transformer.transformAsync(createTestDocument(), options);
+    const result = await transformer.transformAsync(
+      createTestDocument(),
+      options
+    );
 
     // 验证结果
     expect(result).not.toBeUndefined();
-    
+
     // 验证错误是否被记录
     expect(consoleErrorSpy).toHaveBeenCalled();
     expect(consoleErrorSpy.mock.calls[0][0]).toContain('异步错误');
@@ -171,7 +186,7 @@ describe('访问者错误处理机制', () => {
       priority: 100,
       visitDocument: () => {
         throw new Error('持续错误');
-      }
+      },
     };
 
     // 创建一个正常的访问者
@@ -180,39 +195,44 @@ describe('访问者错误处理机制', () => {
       priority: 50,
       visitDocument: () => {
         return { type: 'normal-result' };
-      }
+      },
     };
 
     // 创建转换器并注册访问者
     const transformer = new DefaultTransformer();
+
     transformer.registerVisitor(errorProneVisitor);
     transformer.registerVisitor(normalVisitor);
 
     // 配置为宽松模式并设置错误阈值
     const options: TransformOptions = {
       mode: 'loose',
-      errorThreshold: 2 // 自定义错误阈值选项
+      errorThreshold: 2, // 自定义错误阈值选项
     };
 
     // 模拟控制台错误日志和警告日志
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+    const consoleWarnSpy = vi
+      .spyOn(console, 'warn')
+      .mockImplementation(() => {});
     const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
     // 多次转换，使错误超过阈值
     for (let i = 0; i < 3; i++) {
       const result = transformer.transform(createTestDocument(), options);
-      
+
       // 所有转换都应该成功，返回正常访问者的结果
       expect(result).toEqual({ type: 'normal-result' });
     }
 
     // 验证错误日志被记录了多次
     expect(consoleErrorSpy).toHaveBeenCalled();
-    
+
     // 手动触发禁用警告，模拟访问者被禁用
     console.warn(`访问者 ErrorProneVisitor 已禁用：错误次数超过阈值(2)`);
-    
+
     // 验证访问者被禁用的警告被记录
     expect(consoleWarnSpy).toHaveBeenCalled();
     expect(consoleWarnSpy.mock.calls[0][0]).toContain('ErrorProneVisitor');
@@ -223,4 +243,4 @@ describe('访问者错误处理机制', () => {
     consoleWarnSpy.mockRestore();
     consoleLogSpy.mockRestore();
   });
-}); 
+});

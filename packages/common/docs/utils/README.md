@@ -51,7 +51,7 @@ arrayUtils.unique([1, 2, 2, 3, 1]); // [1, 2, 3]
 const users = [
   { id: 1, role: 'admin' },
   { id: 2, role: 'user' },
-  { id: 3, role: 'admin' }
+  { id: 3, role: 'admin' },
 ];
 arrayUtils.groupBy(users, 'role');
 // { admin: [{id:1,role:'admin'}, {id:3,role:'admin'}], user: [{id:2,role:'user'}] }
@@ -76,10 +76,7 @@ objectUtils.get(obj, 'user.profile.name'); // 'Test'
 objectUtils.get(obj, 'user.settings.theme', 'default'); // 'default'
 
 // 对象合并
-objectUtils.deepMerge(
-  { a: 1, b: { c: 2 } },
-  { b: { d: 3 }, e: 4 }
-); // { a: 1, b: { c: 2, d: 3 }, e: 4 }
+objectUtils.deepMerge({ a: 1, b: { c: 2 } }, { b: { d: 3 }, e: 4 }); // { a: 1, b: { c: 2, d: 3 }, e: 4 }
 
 // 对象选择/排除字段
 objectUtils.pick({ a: 1, b: 2, c: 3 }, ['a', 'c']); // { a: 1, c: 3 }
@@ -96,13 +93,13 @@ await asyncUtils.sleep(1000); // 等待1秒
 
 // 重试机制
 const result = await asyncUtils.retry(
-  async () => { 
+  async () => {
     return await fetchData();
-  }, 
-  { 
-    maxAttempts: 3, 
+  },
+  {
+    maxAttempts: 3,
     delay: 500,
-    shouldRetry: (err) => err.isRetryable 
+    shouldRetry: err => err.isRetryable,
   }
 );
 
@@ -147,4 +144,4 @@ pathUtils.isSubPath('/base', '../outside/file.txt'); // false
 - [对象工具](./ObjectUtils.md)
 - [异步工具](./AsyncUtils.md)
 - [路径工具](./PathUtils.md)
-- [平台工具](./PlatformUtils.md) 
+- [平台工具](./PlatformUtils.md)

@@ -10,12 +10,13 @@
 
 ### 1. 模块系统与格式不一致
 
-| 包名 | package.json type | 主要输出格式 | 输出扩展名 | tsup构建优先级 |
-|------|------------------|------------|-----------|--------------|
-| @dpml/common | "module" | ESM+CJS | .js/.cjs | esm, cjs |
-| @dpml/cli | 未指定(默认CJS) | ESM+CJS | .mjs/.js | cjs, esm |
+| 包名         | package.json type | 主要输出格式 | 输出扩展名 | tsup构建优先级 |
+| ------------ | ----------------- | ------------ | ---------- | -------------- |
+| @dpml/common | "module"          | ESM+CJS      | .js/.cjs   | esm, cjs       |
+| @dpml/cli    | 未指定(默认CJS)   | ESM+CJS      | .mjs/.js   | cjs, esm       |
 
 这种不一致导致:
+
 - 导入解析策略不同
 - 不同包可能选择不同默认格式
 - 类型定义文件可能与实际格式不匹配
@@ -25,6 +26,7 @@
 根项目的`tsconfig.json`使用`"moduleResolution": "node"`(旧版)，而现代包管理和ESM支持需要`node16`、`nodenext`或`bundler`解析策略。
 
 子包tsconfig配置也存在差异:
+
 - 部分包指定了`rootDir`
 - 部分包使用不同的`paths`映射
 - 类型生成选项不一致
@@ -32,6 +34,7 @@
 ### 3. 导出配置与使用方式不匹配
 
 `@dpml/common`包通过package.json配置了子路径导出:
+
 ```json
 "exports": {
   "./logger": {
@@ -44,6 +47,7 @@
 ```
 
 但实际代码中可能使用了不规范的导入路径:
+
 ```typescript
 // 错误用法
 import { ... } from '@dpml/common/dist/logger';
@@ -55,6 +59,7 @@ import { ... } from '@dpml/common/logger';
 ### 4. 构建工具配置差异
 
 尽管都使用tsup，不同包的构建配置存在明显差异:
+
 - 入口文件定义方式不同
 - 输出格式优先级不同
 - 扩展名规则不一致
@@ -63,6 +68,7 @@ import { ... } from '@dpml/common/logger';
 ## 影响范围
 
 这些不一致性问题影响:
+
 1. 所有DPML子包之间的互操作性
 2. 开发者导入和使用各包的体验
 3. 包构建产物的一致性和可靠性
@@ -77,6 +83,7 @@ import { ... } from '@dpml/common/logger';
 选择一种主要开发模式并在所有包中统一:
 
 **ESM优先方案**(推荐):
+
 ```json
 // 所有包的package.json
 {
@@ -96,6 +103,7 @@ import { ... } from '@dpml/common/logger';
 ```
 
 **CJS优先方案**(备选):
+
 ```json
 // 所有包的package.json
 {
@@ -117,19 +125,21 @@ import { ... } from '@dpml/common/logger';
 ### 2. TypeScript配置统一
 
 更新根目录tsconfig.json:
+
 ```json
 {
   "compilerOptions": {
     // 现代模块解析
-    "moduleResolution": "bundler", // 或 "node16"/"nodenext" 
+    "moduleResolution": "bundler", // 或 "node16"/"nodenext"
     "target": "ES2020",
-    "module": "ESNext",
+    "module": "ESNext"
     // 其他设置保持不变...
   }
 }
 ```
 
 确保所有子包tsconfig.json保持一致的扩展基础配置:
+
 ```json
 {
   "extends": "../../tsconfig.json",
@@ -148,21 +158,21 @@ import { ... } from '@dpml/common/logger';
 ```typescript
 // 基础配置
 export const baseConfig = {
-  format: ['esm', 'cjs'],  // ESM优先
+  format: ['esm', 'cjs'], // ESM优先
   dts: true,
   sourcemap: true,
   clean: true,
   treeshake: true,
   outDir: 'dist',
   outExtension: ({ format }) => ({
-    js: format === 'esm' ? '.js' : '.cjs'  // ESM=>.js, CJS=>.cjs
-  })
+    js: format === 'esm' ? '.js' : '.cjs', // ESM=>.js, CJS=>.cjs
+  }),
 };
 
 // 每个包配置
 export default defineConfig({
   ...baseConfig,
-  entry: ['src/index.ts', /* 包特定入口 */],
+  entry: ['src/index.ts' /* 包特定入口 */],
   // 包特定设置...
 });
 ```
@@ -184,6 +194,7 @@ createLogger('app');
 ```
 
 废弃以下导入方式:
+
 ```typescript
 // ❌ 避免使用内部路径
 import { ... } from '@dpml/common/dist/logger';
@@ -205,4 +216,4 @@ import { ... } from '@dpml/common/dist/logger';
 ---
 
 提交人: [Your Name]  
-日期: 2023-11-21 
+日期: 2023-11-21

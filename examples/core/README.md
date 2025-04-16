@@ -5,17 +5,20 @@
 ## 示例结构
 
 - `basic/` - 基础解析示例
+
   - `parsing.ts` - 基本解析功能和选项
   - `simple-dpml.xml` - 简单DPML示例文件
   - `README.md` - 基础示例说明
 
 - `custom-tags/` - 自定义标签示例
+
   - `tag-definition.ts` - 定义和注册自定义标签
   - `custom-validation.ts` - 自定义标签验证逻辑
   - `custom-dpml.xml` - 使用自定义标签的示例文件
   - `README.md` - 自定义标签示例说明
 
 - `processing/` - 文档处理示例
+
   - `semantic-processing.ts` - 语义处理示例
   - `custom-tag-processor.ts` - 自定义标签处理器
   - `reference-resolver.ts` - 引用解析
@@ -23,6 +26,7 @@
   - `README.md` - 处理示例说明
 
 - `transformers/` - 转换器示例
+
   - `markdown-transformer.ts` - 转换到Markdown格式
   - `json-transformer.ts` - 转换到JSON格式
   - `custom-transformer.ts` - 自定义转换器
@@ -55,4 +59,4 @@ pnpm swc examples/core/custom-tags/tag-definition.ts
 
 # 运行完整工作流示例
 pnpm swc examples/core/complete-workflow/prompt-processing.ts
-``` 
+```

@@ -1,9 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { OutputAdapter } from '../../transformer/interfaces/outputAdapter';
-import { TransformContext } from '../../transformer/interfaces/transformContext';
-import { ProcessedDocument } from '../../processor/interfaces/processor';
+
 import { NodeType } from '../../types/node';
-import { TransformOptions } from '../../transformer/interfaces/transformOptions';
+
+import type { ProcessedDocument } from '../../processor/interfaces/processor';
+import type { OutputAdapter } from '../../transformer/interfaces/outputAdapter';
+import type { TransformContext } from '../../transformer/interfaces/transformContext';
+import type { TransformOptions } from '../../transformer/interfaces/transformOptions';
 
 describe('OutputAdapter', () => {
   // 创建模拟数据
@@ -12,12 +14,12 @@ describe('OutputAdapter', () => {
     children: [],
     position: {
       start: { line: 1, column: 1, offset: 0 },
-      end: { line: 1, column: 1, offset: 0 }
-    }
+      end: { line: 1, column: 1, offset: 0 },
+    },
   };
 
   const mockOptions: TransformOptions = {
-    format: 'json'
+    format: 'json',
   };
 
   const mockContext: TransformContext = {
@@ -26,18 +28,19 @@ describe('OutputAdapter', () => {
     options: mockOptions,
     variables: {},
     path: [],
-    parentResults: []
+    parentResults: [],
   };
 
   it('应该能创建基本的输出适配器', () => {
     const adapter: OutputAdapter = {
-      adapt: (result, context) => result
+      adapt: (result, context) => result,
     };
 
     expect(adapter.adapt).toBeDefined();
-    
+
     // 测试基本适配
     const result = { type: 'document', children: [] };
+
     expect(adapter.adapt(result, mockContext)).toBe(result);
   });
 
@@ -48,21 +51,22 @@ describe('OutputAdapter', () => {
           return {
             ...result,
             format: context.options.format,
-            modified: true
+            modified: true,
           };
         }
+
         return result;
-      }
+      },
     };
 
     const result = { type: 'document', children: [] };
     const adapted = adapter.adapt(result, mockContext);
-    
+
     expect(adapted).toEqual({
       type: 'document',
       children: [],
       format: 'json',
-      modified: true
+      modified: true,
     });
   });
 
@@ -70,12 +74,12 @@ describe('OutputAdapter', () => {
     const adapter: OutputAdapter = {
       adapt: (result, context) => {
         return JSON.stringify(result, null, 2);
-      }
+      },
     };
 
     const result = { type: 'document', children: [] };
     const adapted = adapter.adapt(result, mockContext);
-    
+
     expect(typeof adapted).toBe('string');
     expect(adapted).toBe(JSON.stringify(result, null, 2));
   });
@@ -87,26 +91,26 @@ describe('OutputAdapter', () => {
         ...mockDocument,
         metadata: {
           version: '1.0',
-          author: 'Test'
-        }
-      }
+          author: 'Test',
+        },
+      },
     };
 
     const adapter: OutputAdapter = {
       adapt: (result, context) => {
         return {
           ...result,
-          metadata: context.document.metadata
+          metadata: context.document.metadata,
         };
-      }
+      },
     };
 
     const result = { type: 'document', children: [] };
     const adapted = adapter.adapt(result, contextWithMetadata);
-    
+
     expect(adapted.metadata).toEqual({
       version: '1.0',
-      author: 'Test'
+      author: 'Test',
     });
   });
-}); 
+});

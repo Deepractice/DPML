@@ -1,6 +1,6 @@
 /**
  * 工具类型定义
- * 
+ *
  * 提供通用的TypeScript工具类型，用于类型转换和处理。
  */
 
@@ -28,23 +28,29 @@ export type Readonly<T> = {
 /**
  * 深度部分类型（递归将所有属性和子属性设为可选）
  */
-export type DeepPartial<T> = T extends object ? { 
-  [P in keyof T]?: DeepPartial<T[P]> 
-} : T;
+export type DeepPartial<T> = T extends object
+  ? {
+      [P in keyof T]?: DeepPartial<T[P]>;
+    }
+  : T;
 
 /**
  * 深度必选类型（递归将所有属性和子属性设为必选）
  */
-export type DeepRequired<T> = T extends object ? {
-  [P in keyof T]-?: DeepRequired<T[P]>
-} : T;
+export type DeepRequired<T> = T extends object
+  ? {
+      [P in keyof T]-?: DeepRequired<T[P]>;
+    }
+  : T;
 
 /**
  * 深度只读类型（递归将所有属性和子属性设为只读）
  */
-export type DeepReadonly<T> = T extends object ? {
-  readonly [P in keyof T]: DeepReadonly<T[P]>
-} : T;
+export type DeepReadonly<T> = T extends object
+  ? {
+      readonly [P in keyof T]: DeepReadonly<T[P]>;
+    }
+  : T;
 
 /**
  * 可空类型（T或null）
@@ -74,33 +80,42 @@ export type NonNullable<T> = T extends null | undefined ? never : T;
 /**
  * 函数参数类型
  */
-export type Parameters<T extends (...args: any) => any> = 
-  T extends (...args: infer P) => any ? P : never;
+export type Parameters<T extends (...args: any) => any> = T extends (
+  ...args: infer P
+) => any
+  ? P
+  : never;
 
 /**
  * 函数返回类型
  */
-export type ReturnType<T extends (...args: any) => any> = 
-  T extends (...args: any) => infer R ? R : any;
+export type ReturnType<T extends (...args: any) => any> = T extends (
+  ...args: any
+) => infer R
+  ? R
+  : any;
 
 /**
  * 实例类型
  */
-export type InstanceType<T extends new (...args: any) => any> = 
-  T extends new (...args: any) => infer R ? R : any;
+export type InstanceType<T extends new (...args: any) => any> = T extends new (
+  ...args: any
+) => infer R
+  ? R
+  : any;
 
 /**
  * 提取对象类型的键
  */
 export type KeysOfType<T, U> = {
-  [K in keyof T]: T[K] extends U ? K : never
+  [K in keyof T]: T[K] extends U ? K : never;
 }[keyof T];
 
 /**
  * 提取对象类型的值
  */
 export type ValuesOfType<T, U> = {
-  [K in keyof T]: T[K] extends U ? T[K] : never
+  [K in keyof T]: T[K] extends U ? T[K] : never;
 }[keyof T];
 
 /**
@@ -116,17 +131,24 @@ export type StringLiteralUnion<T extends string> = T | string;
 /**
  * 确保对象至少包含特定键
  */
-export type RequireAtLeastOne<T, Keys extends keyof T = keyof T> =
-  Pick<T, Exclude<keyof T, Keys>> & {
-    [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>
+export type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<
+  T,
+  Exclude<keyof T, Keys>
+> &
+  {
+    [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>;
   }[Keys];
 
 /**
  * 确保对象最多包含一个特定键
  */
-export type RequireOnlyOne<T, Keys extends keyof T = keyof T> =
-  Pick<T, Exclude<keyof T, Keys>> & {
-    [K in Keys]-?: Required<Pick<T, K>> & Partial<Record<Exclude<Keys, K>, undefined>>
+export type RequireOnlyOne<T, Keys extends keyof T = keyof T> = Pick<
+  T,
+  Exclude<keyof T, Keys>
+> &
+  {
+    [K in Keys]-?: Required<Pick<T, K>> &
+      Partial<Record<Exclude<Keys, K>, undefined>>;
   }[Keys];
 
 /**
@@ -159,7 +181,7 @@ export type PromiseOrValue<T> = T | Promise<T>;
 /**
  * 异步函数返回类型
  */
-export type AsyncReturnType<T extends (...args: any) => Promise<any>> = 
+export type AsyncReturnType<T extends (...args: any) => Promise<any>> =
   T extends (...args: any) => Promise<infer R> ? R : any;
 
 /**
@@ -188,7 +210,7 @@ export type DeepMerge<T, U> = {
  * 过滤对象类型中的属性
  */
 export type FilterProps<T, U> = {
-  [K in keyof T as T[K] extends U ? K : never]: T[K]
+  [K in keyof T as T[K] extends U ? K : never]: T[K];
 };
 
 /**
@@ -234,8 +256,11 @@ export type Mutable<T> = {
 /**
  * 转换为联合类型
  */
-export type UnionToIntersection<U> = 
-  (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never;
+export type UnionToIntersection<U> = (
+  U extends any ? (k: U) => void : never
+) extends (k: infer I) => void
+  ? I
+  : never;
 
 /**
  * 构造函数类型
@@ -246,7 +271,7 @@ export type Constructor<T = any> = new (...args: any[]) => T;
  * 类类型（包含实例和静态部分）
  */
 export type Class<T = any> = {
-  new(...args: any[]): T;
+  new (...args: any[]): T;
   prototype: T;
 } & Record<string, any>;
 
@@ -254,7 +279,11 @@ export type Class<T = any> = {
  * 移除索引签名
  */
 export type RemoveIndexSignature<T> = {
-  [K in keyof T as string extends K ? never : number extends K ? never : K]: T[K]
+  [K in keyof T as string extends K
+    ? never
+    : number extends K
+      ? never
+      : K]: T[K];
 };
 
 /**
@@ -265,7 +294,7 @@ export type Exact<T, U extends T> = U;
 /**
  * JSON值类型
  */
-export type JsonValue = 
+export type JsonValue =
   | string
   | number
   | boolean
@@ -322,4 +351,4 @@ export interface PaginatedResult<T> {
   hasNext: boolean;
   /** 是否有上一页 */
   hasPrev: boolean;
-} 
+}

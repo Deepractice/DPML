@@ -1,10 +1,13 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { CommandLoader } from '../../core/loader';
-import { CommandRegistry } from '../../core/registry';
-import { ConfigManager } from '../../core/config';
-import { DomainCommandConfig, DomainMapping } from '../../types/command';
 import fs from 'fs';
 import path from 'path';
+
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+
+import { ConfigManager } from '../../core/config';
+import { CommandLoader } from '../../core/loader';
+import { CommandRegistry } from '../../core/registry';
+
+import type { DomainCommandConfig, DomainMapping } from '../../types/command';
 
 // 模拟fs模块
 vi.mock('fs');
@@ -15,10 +18,12 @@ vi.mock('path');
 // 模拟utils/paths模块
 vi.mock('../../src/utils/paths', () => ({
   findNodeModules: vi.fn().mockReturnValue(['/path/to/node_modules']),
-  getMappingFilePath: vi.fn().mockReturnValue('/home/user/.dpml/domain-mapping.json'),
+  getMappingFilePath: vi
+    .fn()
+    .mockReturnValue('/home/user/.dpml/domain-mapping.json'),
   ensureDir: vi.fn().mockReturnValue(true),
   pathExists: vi.fn().mockReturnValue(true),
-  getDpmlConfigDir: vi.fn().mockReturnValue('/home/user/.dpml')
+  getDpmlConfigDir: vi.fn().mockReturnValue('/home/user/.dpml'),
 }));
 
 describe('CommandLoader', () => {
@@ -33,9 +38,9 @@ describe('CommandLoader', () => {
       'test-domain': {
         package: '@dpml/test',
         commandsPath: 'dist/commands.js',
-        version: '1.0.0'
-      }
-    }
+        version: '1.0.0',
+      },
+    },
   };
 
   // 模拟命令配置
@@ -45,36 +50,40 @@ describe('CommandLoader', () => {
       {
         name: 'test-command',
         description: 'Test command',
-        execute: async () => {}
-      }
-    ]
+        execute: async () => {},
+      },
+    ],
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
 
     // 模拟fs方法
-    fs.existsSync = vi.fn().mockImplementation((path) => {
+    fs.existsSync = vi.fn().mockImplementation(path => {
       if (String(path).includes('domain-mapping.json')) {
         return true;
       }
+
       return false;
     });
 
-    fs.readFileSync = vi.fn().mockImplementation((path) => {
+    fs.readFileSync = vi.fn().mockImplementation(path => {
       if (String(path).includes('domain-mapping.json')) {
         return JSON.stringify(mockMappingData);
       }
+
       throw new Error(`Unexpected file: ${path}`);
     });
 
-    fs.readdirSync = vi.fn().mockImplementation((dir) => {
+    fs.readdirSync = vi.fn().mockImplementation(dir => {
       if (String(dir).includes('node_modules')) {
         return ['@dpml', 'other-package'];
       }
+
       if (String(dir).includes('@dpml')) {
         return ['test', 'core', 'cli'];
       }
+
       return [];
     });
 
@@ -90,13 +99,17 @@ describe('CommandLoader', () => {
     configManager = new ConfigManager();
 
     // 模拟ConfigManager方法
-    configManager.getMappingFilePath = vi.fn().mockReturnValue('/home/user/.dpml/domain-mapping.json');
+    configManager.getMappingFilePath = vi
+      .fn()
+      .mockReturnValue('/home/user/.dpml/domain-mapping.json');
     configManager.ensureConfigDir = vi.fn().mockReturnValue(true);
 
     loader = new CommandLoader(registry, configManager);
 
     // 模拟动态导入
-    vi.spyOn(loader as any, 'importCommandConfig').mockResolvedValue(mockCommandConfig);
+    vi.spyOn(loader as any, 'importCommandConfig').mockResolvedValue(
+      mockCommandConfig
+    );
     vi.spyOn(loader as any, 'validateCommandConfig').mockReturnValue(true);
   });
 
@@ -113,7 +126,10 @@ describe('CommandLoader', () => {
       const result = loader.loadMappingFile();
 
       expect(result).toBe(true);
-      expect(fs.readFileSync).toHaveBeenCalledWith('/home/user/.dpml/domain-mapping.json', 'utf-8');
+      expect(fs.readFileSync).toHaveBeenCalledWith(
+        '/home/user/.dpml/domain-mapping.json',
+        'utf-8'
+      );
       expect(registry.deserialize).toHaveBeenCalled();
     });
 
@@ -144,12 +160,12 @@ describe('CommandLoader', () => {
       loader.scanPackages = vi.fn().mockResolvedValue({
         lastUpdated: new Date().toISOString(),
         domains: {
-          'test': {
+          test: {
             package: '@dpml/test',
             commandsPath: '/path/to/commands.js',
-            version: '1.0.0'
-          }
-        }
+            version: '1.0.0',
+          },
+        },
       });
 
       const result = await loader.scanPackages();
@@ -198,7 +214,7 @@ describe('CommandLoader', () => {
         package: '@dpml/test',
         commandsPath: '/path/to/commands.js',
         version: '1.0.0',
-        commands: new Map()
+        commands: new Map(),
       });
 
       // 模拟导入失败
@@ -235,12 +251,12 @@ describe('CommandLoader', () => {
       loader.scanPackages = vi.fn().mockResolvedValue({
         lastUpdated: new Date().toISOString(),
         domains: {
-          'test': {
+          test: {
             package: '@dpml/test',
             commandsPath: '/path/to/commands.js',
-            version: '1.0.0'
-          }
-        }
+            version: '1.0.0',
+          },
+        },
       });
 
       // 模拟保存映射文件方法
@@ -261,12 +277,12 @@ describe('CommandLoader', () => {
       loader.scanPackages = vi.fn().mockResolvedValue({
         lastUpdated: new Date().toISOString(),
         domains: {
-          'test': {
+          test: {
             package: '@dpml/test',
             commandsPath: '/path/to/commands.js',
-            version: '1.0.0'
-          }
-        }
+            version: '1.0.0',
+          },
+        },
       });
 
       // 模拟保存映射文件方法
@@ -303,12 +319,12 @@ describe('CommandLoader', () => {
       loader.scanPackages = vi.fn().mockResolvedValue({
         lastUpdated: new Date().toISOString(),
         domains: {
-          'test': {
+          test: {
             package: '@dpml/test',
             commandsPath: '/path/to/commands.js',
-            version: '1.0.0'
-          }
-        }
+            version: '1.0.0',
+          },
+        },
       });
 
       const result = await loader.scanPackages();
@@ -321,7 +337,7 @@ describe('CommandLoader', () => {
       // 直接模拟扫描包的结果
       loader.scanPackages = vi.fn().mockResolvedValue({
         lastUpdated: new Date().toISOString(),
-        domains: {}
+        domains: {},
       });
 
       const result = await loader.scanPackages();

@@ -1,17 +1,18 @@
 /**
  * Result类型和错误处理示例
- * 
+ *
  * 这个示例演示了@dpml/common/types中的Result类型和错误处理机制的使用方法。
  */
 
-import { 
-  Result, 
-  success, 
-  failure, 
+import {
+  success,
+  failure,
   DPMLError,
-  DPMLErrorCode, 
-  createDPMLError 
+  DPMLErrorCode,
+  createDPMLError,
 } from '../../src/types';
+
+import type { Result } from '../../src/types';
 
 // ============= Result类型示例 =============
 
@@ -22,6 +23,7 @@ function divide(a: number, b: number): Result<number, Error> {
   if (b === 0) {
     return failure(new Error('除数不能为零'));
   }
+
   return success(a / b);
 }
 
@@ -29,6 +31,7 @@ function divide(a: number, b: number): Result<number, Error> {
 console.log('除法操作:');
 
 const result1 = divide(10, 2);
+
 if (result1.success) {
   console.log(`  10 / 2 = ${result1.value}`);
 } else {
@@ -36,6 +39,7 @@ if (result1.success) {
 }
 
 const result2 = divide(10, 0);
+
 if (result2.success) {
   console.log(`  10 / 0 = ${result2.value}`);
 } else {
@@ -51,7 +55,7 @@ function square(x: number): Result<number, Error> {
 
 // 使用map和flatMap
 const chainResult = divide(10, 2)
-  .map(value => value + 5)       // 5 + 5 = 10
+  .map(value => value + 5) // 5 + 5 = 10
   .flatMap(value => square(value)); // 10² = 100
 
 if (chainResult.success) {
@@ -93,25 +97,31 @@ console.log(`  ${processError(new Error('普通JavaScript错误'))}`);
 // 包含完整错误上下文的Result
 console.log('\nResult与错误上下文:');
 
-function readUserFile(userId: string, filePath: string): Result<string, DPMLError> {
+function readUserFile(
+  userId: string,
+  filePath: string
+): Result<string, DPMLError> {
   // 模拟文件不存在的情况
   if (filePath.includes('不存在')) {
-    return failure(createDPMLError(
-      `用户文件不存在: ${filePath}`,
-      DPMLErrorCode.FILE_NOT_FOUND,
-      { userId, filePath, timestamp: new Date().toISOString() }
-    ));
+    return failure(
+      createDPMLError(
+        `用户文件不存在: ${filePath}`,
+        DPMLErrorCode.FILE_NOT_FOUND,
+        { userId, filePath, timestamp: new Date().toISOString() }
+      )
+    );
   }
-  
+
   // 模拟权限错误
   if (userId === 'guest') {
-    return failure(createDPMLError(
-      '没有权限访问文件',
-      DPMLErrorCode.PERMISSION_DENIED,
-      { userId, filePath }
-    ));
+    return failure(
+      createDPMLError('没有权限访问文件', DPMLErrorCode.PERMISSION_DENIED, {
+        userId,
+        filePath,
+      })
+    );
   }
-  
+
   // 成功情况
   return success(`这是文件 ${filePath} 的内容`);
 }
@@ -140,4 +150,4 @@ console.log('\n案例3 - 权限错误:');
 handleUserResult(userResult3);
 
 // 运行示例
-// pnpm tsx examples/types/result-error-handling.ts 
+// pnpm tsx examples/types/result-error-handling.ts
