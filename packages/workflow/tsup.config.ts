@@ -7,8 +7,7 @@ export default defineConfig({
   entry: ['src/index.ts'],
   esbuildOptions(options) {
     options.alias = {
-      '@prompt': path.resolve(__dirname, './src'),
-      '@dpml/core': path.resolve(__dirname, '../core/src')
+      '@workflow': path.resolve(__dirname, './src')
     };
   }
-});
+}); 

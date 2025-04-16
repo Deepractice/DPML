@@ -1,17 +1,8 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "./dist",
     "rootDir": "./src",
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "plugins": [
-      { "transform": "ts-auto-mock/transformer", "cacheBetweenTests": false }
-    ],
-    "paths": {
-      "@agent/*": ["./src/*"]
-    }
+    "outDir": "./dist"
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "tests", "src/tests/**/*"]
+  "include": ["src/**/*"]
 } 

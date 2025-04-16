@@ -1,6 +1,9 @@
 import { defineConfig } from 'tsup';
+import { baseConfig } from '../../tsup.base.config';
+import * as path from 'path';
 
 export default defineConfig({
+  ...baseConfig,
   entry: ['src/index.ts'],
   format: ['cjs', 'esm'],
   dts: true,
@@ -10,7 +13,9 @@ export default defineConfig({
   treeshake: true,
   skipNodeModulesBundle: true,
   external: ['@dpml/core', '@dpml/prompt'],
-  esbuildOptions(options, context) {
-    options.tsconfig = './tsconfig.build.json'
+  esbuildOptions(options) {
+    options.alias = {
+      '@agent': path.resolve(__dirname, './src')
+    };
   }
 }); 

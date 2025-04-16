@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Common utilities and shared functionality for DPML packages",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [

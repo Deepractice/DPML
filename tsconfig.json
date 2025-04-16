@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "strict": true,
     "skipLibCheck": true,
@@ -22,7 +22,10 @@
       "@prompt/*": ["packages/prompt/src/*"],
       "@agent/*": ["packages/agent/src/*"],
       "@workflow/*": ["packages/workflow/src/*"],
-      "@testing/*": ["packages/testing/src/*"]
+      "@testing/*": ["packages/testing/src/*"],
+      "@common/*": ["packages/common/src/*"],
+      "@cli/*": ["packages/cli/src/*"]
     }
-  }
+  },
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
 } 

@@ -1,9 +1,11 @@
 import { defineConfig } from 'tsup';
+import { baseConfig } from '../../tsup.base.config';
 import * as path from 'path';
 
 export default defineConfig({
+  ...baseConfig,
   entry: ['src/index.ts', 'src/bin.ts'],
-  format: ['cjs', 'esm'],
+  format: ['esm', 'cjs'],
   dts: true,
   sourcemap: true,
   clean: true,
@@ -14,7 +16,7 @@ export default defineConfig({
   skipNodeModulesBundle: true,
   outExtension({ format }) {
     return {
-      js: format === 'cjs' ? '.js' : '.mjs',
+      js: format === 'esm' ? '.js' : '.cjs',
     };
   },
   esbuildOptions(options) {
