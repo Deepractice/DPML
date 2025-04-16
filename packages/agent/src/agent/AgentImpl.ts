@@ -6,11 +6,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { Agent, AgentConfig, AgentRequest, AgentResponse, AgentResult } from './types';
 import { AgentStateManager } from '../state/AgentStateManager';
 import { AgentMemory } from '../memory/AgentMemory';
-import { LLMConnector, CompletionOptions, CompletionResult } from '../connector/LLMConnector';
+import { LLMConnector, CompletionOptions } from '../connector/LLMConnector';
 import { EventSystem } from '../events/EventSystem';
 import { AgentStatus, Message } from '../state/AgentState';
 import { EventType, SessionEventData } from '../events/EventTypes';
-import { AGENT_STATE_TRANSITIONS } from '../state/AgentState';
 
 /**
  * AgentImpl构造函数选项接口
