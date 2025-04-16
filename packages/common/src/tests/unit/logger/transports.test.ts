@@ -1,7 +1,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import { LogLevel } from '../../../src/logger/core';
-import { ConsoleTransport, MemoryTransport } from '../../../src/logger/transports';
-import { isNodeEnvironment } from '../../../src/logger/core/environment';
+import { LogLevel } from '../../../logger/core';
+import { ConsoleTransport, MemoryTransport } from '../../../logger/transports';
+import { isNodeEnvironment } from '../../../logger/core/environment';
 
 // 模拟一个简单的LogMeta
 const testMeta = {
@@ -132,7 +132,7 @@ describe('UT-LOG-004: Transports', () => {
     describe('FileTransport', () => {
       test('isAsync应返回true', async () => {
         // 直接导入，确保只在Node环境中进行
-        const { FileTransport } = await import('../../../src/logger/transports/file-transport');
+        const { FileTransport } = await import('../../../logger/transports/file-transport');
         
         try {
           const transport = new FileTransport({ filename: 'test.log' });

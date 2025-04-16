@@ -2,8 +2,8 @@ import { describe, test, expect, beforeEach } from 'vitest';
 import { 
   LoggerFactory, 
   LogLevel
-} from '../../../src/logger/core';
-import { JsonFormatter } from '../../../src/logger/formatters';
+} from '../../../logger/core';
+import { JsonFormatter } from '../../../logger/formatters';
 
 describe('UT-LOG-002: LoggerFactory', () => {
   let loggerFactory: LoggerFactory;

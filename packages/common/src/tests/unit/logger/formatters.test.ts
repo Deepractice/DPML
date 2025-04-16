@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest';
-import { LogLevel } from '../../../src/logger/core';
-import { TextFormatter, JsonFormatter } from '../../../src/logger/formatters';
+import { LogLevel } from '../../../logger/core';
+import { TextFormatter, JsonFormatter } from '../../../logger/formatters';
 
 describe('UT-LOG-003: Formatters', () => {
   const meta = {

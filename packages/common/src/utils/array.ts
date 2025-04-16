@@ -1,21 +1,25 @@
 /**
  * 数组操作工具模块
- * 
+ *
  * 提供数组分组、过滤、转换等处理函数。
  */
 
 /**
- * 按指定属性对数组进行分组
+ * 按指定属性或回调函数对数组进行分组
  * @param array 要分组的数组
- * @param key 用于分组的属性名
- * @returns 分组后的对象，键为属性值，值为原数组中具有相同属性值的元素数组
+ * @param keyOrFn 用于分组的属性名或回调函数
+ * @returns 分组后的对象，键为属性值或回调函数返回值，值为原数组中具有相同分组键的元素数组
  */
-export function groupBy<T extends Record<K, PropertyKey>, K extends keyof T>(
+export function groupBy<T, K extends PropertyKey>(
   array: T[],
-  key: K
+  keyOrFn: ((item: T) => K) | keyof T
 ): Record<string, T[]> {
   return array.reduce((result, item) => {
-    const groupKey = String(item[key]);
+    // 如果 keyOrFn 是函数，调用它获取分组键；否则使用属性值
+    const groupKey = typeof keyOrFn === 'function'
+      ? String(keyOrFn(item))
+      : String(item[keyOrFn as keyof T]);
+
     result[groupKey] = result[groupKey] || [];
     result[groupKey].push(item);
     return result;
@@ -142,4 +146,4 @@ export const arrayUtils = {
   intersection,
   union,
   difference
-}; 
+};

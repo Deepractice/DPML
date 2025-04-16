@@ -400,193 +400,67 @@ export class MockHttpClient extends EventEmitter {
    * 配置GET请求响应
    *
    * @param url URL字符串或正则表达式
-   * @param handler 可选的响应处理器或直接响应数据
-   * @param status 状态码（当handler为数据时使用）
-   * @param headers 响应头（当handler为数据时使用）
-   * @returns 请求匹配器或当前实例
+   * @returns 请求匹配器
    */
-  onGet(url: string | RegExp, handler?: MockHttpHandler | any, status?: number, headers?: Record<string, string>): MockHttpRequestMatcher | this {
+  onGet(url: string | RegExp): MockHttpRequestMatcher {
     const urlPattern = this.urlToRegExp(url);
-
-    // 如果没有提供处理器，返回匹配器
-    if (handler === undefined) {
-      return new MockHttpRequestMatcher(this, urlPattern, 'GET');
-    }
-
-    // 如果handler不是函数，将其包装为响应处理器
-    if (typeof handler !== 'function') {
-      const responseData = handler;
-      handler = (config: HttpRequestConfig) => this.createResponse(
-        responseData,
-        status || 200,
-        config,
-        status === 201 ? 'Created' : status === 204 ? 'No Content' : 'OK',
-        headers
-      );
-    }
-
-    return this.onRequest(urlPattern, 'GET', handler as MockHttpHandler);
+    return new MockHttpRequestMatcher(this, urlPattern, 'GET');
   }
 
   /**
    * 配置POST请求响应
    *
    * @param url URL字符串或正则表达式
-   * @param handler 可选的响应处理器或直接响应数据
-   * @param status 状态码（当handler为数据时使用）
-   * @param headers 响应头（当handler为数据时使用）
-   * @returns 请求匹配器或当前实例
+   * @returns 请求匹配器
    */
-  onPost(url: string | RegExp, handler?: MockHttpHandler | any, status?: number, headers?: Record<string, string>): MockHttpRequestMatcher | this {
+  onPost(url: string | RegExp): MockHttpRequestMatcher {
     const urlPattern = this.urlToRegExp(url);
-
-    // 如果没有提供处理器，返回匹配器
-    if (handler === undefined) {
-      return new MockHttpRequestMatcher(this, urlPattern, 'POST');
-    }
-
-    // 如果handler不是函数，将其包装为响应处理器
-    if (typeof handler !== 'function') {
-      const responseData = handler;
-      handler = (config: HttpRequestConfig) => this.createResponse(
-        responseData,
-        status || 201,
-        config,
-        status === 201 ? 'Created' : status === 204 ? 'No Content' : 'OK',
-        headers
-      );
-    }
-
-    return this.onRequest(urlPattern, 'POST', handler as MockHttpHandler);
+    return new MockHttpRequestMatcher(this, urlPattern, 'POST');
   }
 
   /**
    * 配置PUT请求响应
    *
    * @param url URL字符串或正则表达式
-   * @param handler 可选的响应处理器或直接响应数据
-   * @param status 状态码（当handler为数据时使用）
-   * @param headers 响应头（当handler为数据时使用）
-   * @returns 请求匹配器或当前实例
+   * @returns 请求匹配器
    */
-  onPut(url: string | RegExp, handler?: MockHttpHandler | any, status?: number, headers?: Record<string, string>): MockHttpRequestMatcher | this {
+  onPut(url: string | RegExp): MockHttpRequestMatcher {
     const urlPattern = this.urlToRegExp(url);
-
-    // 如果没有提供处理器，返回匹配器
-    if (handler === undefined) {
-      return new MockHttpRequestMatcher(this, urlPattern, 'PUT');
-    }
-
-    // 如果handler不是函数，将其包装为响应处理器
-    if (typeof handler !== 'function') {
-      const responseData = handler;
-      handler = (config: HttpRequestConfig) => this.createResponse(
-        responseData,
-        status || 200,
-        config,
-        status === 201 ? 'Created' : status === 204 ? 'No Content' : 'OK',
-        headers
-      );
-    }
-
-    return this.onRequest(urlPattern, 'PUT', handler as MockHttpHandler);
+    return new MockHttpRequestMatcher(this, urlPattern, 'PUT');
   }
 
   /**
    * 配置DELETE请求响应
    *
    * @param url URL字符串或正则表达式
-   * @param handler 可选的响应处理器或直接响应数据
-   * @param status 状态码（当handler为数据时使用）
-   * @param headers 响应头（当handler为数据时使用）
-   * @returns 请求匹配器或当前实例
+   * @returns 请求匹配器
    */
-  onDelete(url: string | RegExp, handler?: MockHttpHandler | any, status?: number, headers?: Record<string, string>): MockHttpRequestMatcher | this {
+  onDelete(url: string | RegExp): MockHttpRequestMatcher {
     const urlPattern = this.urlToRegExp(url);
-
-    // 如果没有提供处理器，返回匹配器
-    if (handler === undefined) {
-      return new MockHttpRequestMatcher(this, urlPattern, 'DELETE');
-    }
-
-    // 如果handler不是函数，将其包装为响应处理器
-    if (typeof handler !== 'function') {
-      const responseData = handler;
-      handler = (config: HttpRequestConfig) => this.createResponse(
-        responseData,
-        status || 204,
-        config,
-        status === 201 ? 'Created' : status === 204 ? 'No Content' : 'OK',
-        headers
-      );
-    }
-
-    return this.onRequest(urlPattern, 'DELETE', handler as MockHttpHandler);
+    return new MockHttpRequestMatcher(this, urlPattern, 'DELETE');
   }
 
   /**
    * 配置PATCH请求响应
    *
    * @param url URL字符串或正则表达式
-   * @param handler 可选的响应处理器或直接响应数据
-   * @param status 状态码（当handler为数据时使用）
-   * @param headers 响应头（当handler为数据时使用）
-   * @returns 请求匹配器或当前实例
+   * @returns 请求匹配器
    */
-  onPatch(url: string | RegExp, handler?: MockHttpHandler | any, status?: number, headers?: Record<string, string>): MockHttpRequestMatcher | this {
+  onPatch(url: string | RegExp): MockHttpRequestMatcher {
     const urlPattern = this.urlToRegExp(url);
-
-    // 如果没有提供处理器，返回匹配器
-    if (handler === undefined) {
-      return new MockHttpRequestMatcher(this, urlPattern, 'PATCH');
-    }
-
-    // 如果handler不是函数，将其包装为响应处理器
-    if (typeof handler !== 'function') {
-      const responseData = handler;
-      handler = (config: HttpRequestConfig) => this.createResponse(
-        responseData,
-        status || 200,
-        config,
-        status === 201 ? 'Created' : status === 204 ? 'No Content' : 'OK',
-        headers
-      );
-    }
-
-    return this.onRequest(urlPattern, 'PATCH', handler as MockHttpHandler);
+    return new MockHttpRequestMatcher(this, urlPattern, 'PATCH');
   }
 
   /**
    * 配置任意请求方法的响应
    *
    * @param url URL字符串或正则表达式
-   * @param handler 可选的响应处理器或直接响应数据
-   * @param status 状态码（当handler为数据时使用）
-   * @param headers 响应头（当handler为数据时使用）
-   * @returns 请求匹配器或当前实例
+   * @returns 请求匹配器
    */
-  onAny(url: string | RegExp, handler?: MockHttpHandler | any, status?: number, headers?: Record<string, string>): MockHttpRequestMatcher | this {
+  onAny(url: string | RegExp): MockHttpRequestMatcher {
     const urlPattern = this.urlToRegExp(url);
     const methods: HttpMethod[] = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
-
-    // 如果没有提供处理器，返回匹配器
-    if (handler === undefined) {
-      return new MockHttpRequestMatcher(this, urlPattern, methods);
-    }
-
-    // 如果handler不是函数，将其包装为响应处理器
-    if (typeof handler !== 'function') {
-      const responseData = handler;
-      handler = (config: HttpRequestConfig) => this.createResponse(
-        responseData,
-        status || 200,
-        config,
-        status === 201 ? 'Created' : status === 204 ? 'No Content' : 'OK',
-        headers
-      );
-    }
-
-    return this.onRequest(urlPattern, methods, handler as MockHttpHandler);
+    return new MockHttpRequestMatcher(this, urlPattern, methods);
   }
 
   /**

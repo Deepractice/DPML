@@ -119,6 +119,81 @@ export function escapeHtml(str: string): string {
 }
 
 /**
+ * 简单的URLSearchParams实现
+ */
+class SimpleURLSearchParams {
+  private params: Map<string, string>;
+
+  constructor(query: string) {
+    this.params = new Map();
+
+    if (!query || query === '?') return;
+
+    // 去除开头的?
+    const queryString = query.startsWith('?') ? query.substring(1) : query;
+
+    // 解析查询参数
+    const pairs = queryString.split('&');
+    for (const pair of pairs) {
+      const [key, value] = pair.split('=');
+      if (key) {
+        this.params.set(
+          decodeURIComponent(key),
+          value ? decodeURIComponent(value) : ''
+        );
+      }
+    }
+  }
+
+  /**
+   * 获取查询参数值
+   * @param key 参数名
+   * @returns 参数值或null
+   */
+  get(key: string): string | null {
+    return this.params.has(key) ? this.params.get(key)! : null;
+  }
+
+  /**
+   * 设置查询参数
+   * @param key 参数名
+   * @param value 参数值
+   */
+  set(key: string, value: string): void {
+    this.params.set(key, value);
+  }
+
+  /**
+   * 删除查询参数
+   * @param key 参数名
+   */
+  delete(key: string): void {
+    this.params.delete(key);
+  }
+
+  /**
+   * 检查是否存在查询参数
+   * @param key 参数名
+   * @returns 是否存在
+   */
+  has(key: string): boolean {
+    return this.params.has(key);
+  }
+
+  /**
+   * 转换为字符串
+   * @returns 查询字符串
+   */
+  toString(): string {
+    const pairs: string[] = [];
+    this.params.forEach((value, key) => {
+      pairs.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+    });
+    return pairs.join('&');
+  }
+}
+
+/**
  * 解析URL字符串为各个组成部分
  * @param url URL字符串
  * @returns 解析后的URL对象
@@ -132,6 +207,10 @@ export function parseUrl(url: string): {
   search: string;
   hash: string;
   origin: string;
+  searchParams: {
+    get(key: string): string | null;
+    has(key: string): boolean;
+  };
 } {
   // 在浏览器环境中使用URL API
   if (typeof URL !== 'undefined') {
@@ -145,7 +224,8 @@ export function parseUrl(url: string): {
         pathname: parsedUrl.pathname,
         search: parsedUrl.search,
         hash: parsedUrl.hash,
-        origin: parsedUrl.origin
+        origin: parsedUrl.origin,
+        searchParams: parsedUrl.searchParams
       };
     } catch (error) {
       // URL解析失败，使用备用方法
@@ -168,6 +248,9 @@ export function parseUrl(url: string): {
   const host = port ? `${hostname}:${port}` : hostname;
   const origin = protocol ? `${protocol}//${host}` : '';
 
+  // 创建简单的searchParams实现
+  const searchParams = new SimpleURLSearchParams(search);
+
   return {
     protocol,
     host,
@@ -176,7 +259,8 @@ export function parseUrl(url: string): {
     pathname,
     search,
     hash,
-    origin
+    origin,
+    searchParams
   };
 }
 

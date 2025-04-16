@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createFixtureCollection, withFixture, withFixtures } from '../../../src/testing/fixtures';
+import { createFixtureCollection, withFixture, withFixtures } from '../../../testing/fixtures';
 
 describe('夹具管理模块', () => {
   describe('createFixtureCollection', () => {

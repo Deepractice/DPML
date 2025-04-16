@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { createDPMLError, ValidationError, FileSystemError, NetworkError } from '../../src/types';
-import { utilsTypes } from '../../src/types';
+import { createDPMLError, ValidationError, FileSystemError, NetworkError } from '../../types';
+import { utilsTypes } from '../../types';
 
 describe('类型定义测试', () => {
   describe('错误类型', () => {

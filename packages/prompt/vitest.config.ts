@@ -10,7 +10,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['tests/**/*.test.ts'],
+    include: ['src/tests/**/*.test.ts'],
     exclude: ['../core/**', '**/node_modules/**'],
     coverage: {
       provider: 'v8',
@@ -21,6 +21,7 @@ export default defineConfig({
         'src/**/types.ts',
         'src/**/interfaces.ts',
         'src/**/index.ts',
+        'src/tests/**/*.ts',
       ],
       thresholds: {
         statements: 80,

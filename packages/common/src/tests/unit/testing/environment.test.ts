@@ -1,21 +1,21 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createTestEnvironment, withTestEnvironment, createTestEnvWithSpies } from '../../../src/testing/environment';
+import { createTestEnvironment, withTestEnvironment, createTestEnvWithSpies } from '../../../testing/environment';
 
 // 在顶层定义公共spy函数，以便vi.mock可以访问
 const setupSpy = vi.fn();
 const teardownSpy = vi.fn();
 
 // 模拟测试环境模块
-vi.mock('../../../src/testing/environment', async () => {
+vi.mock('../../../testing/environment', async () => {
   // 导入原始模块
   const actual = await vi.importActual<{
-    createTestEnvironment: typeof import('../../../src/testing/environment').createTestEnvironment;
-    withTestEnvironment: typeof import('../../../src/testing/environment').withTestEnvironment;
-  }>('../../../src/testing/environment');
+    createTestEnvironment: typeof import('../../../testing/environment').createTestEnvironment;
+    withTestEnvironment: typeof import('../../../testing/environment').withTestEnvironment;
+  }>('../../../testing/environment');
   
   return {
     ...actual,
-    createTestEnvironment: (config: import('../../../src/testing/environment').TestEnvironmentConfig) => {
+    createTestEnvironment: (config: import('../../../testing/environment').TestEnvironmentConfig) => {
       const env = actual.createTestEnvironment(config);
       const originalSetup = env.setup;
       const originalTeardown = env.teardown;
@@ -33,8 +33,8 @@ vi.mock('../../../src/testing/environment', async () => {
       return env;
     },
     withTestEnvironment: (
-      config: import('../../../src/testing/environment').TestEnvironmentConfig, 
-      fn: (env: import('../../../src/testing/environment').TestEnvironment) => Promise<any>
+      config: import('../../../testing/environment').TestEnvironmentConfig, 
+      fn: (env: import('../../../testing/environment').TestEnvironment) => Promise<any>
     ) => {
       const env = actual.createTestEnvironment(config);
       const originalSetup = env.setup;

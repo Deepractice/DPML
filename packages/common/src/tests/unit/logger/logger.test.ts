@@ -3,9 +3,9 @@ import {
   Logger, 
   LogLevel, 
   LoggerOptions 
-} from '../../../src/logger/core';
-import { MemoryTransport } from '../../../src/logger/transports';
-import { TextFormatter } from '../../../src/logger/formatters';
+} from '../../../logger/core';
+import { MemoryTransport } from '../../../logger/transports';
+import { TextFormatter } from '../../../logger/formatters';
 
 describe('UT-LOG-001: Logger', () => {
   let logger: Logger;

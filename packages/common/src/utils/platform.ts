@@ -1,6 +1,6 @@
 /**
  * 平台检测工具模块
- * 
+ *
  * 提供运行环境检测、平台特性探测等功能。
  */
 
@@ -47,12 +47,12 @@ export function isWindowsPlatform(): boolean {
   if (isRunningInNode()) {
     return process.platform === 'win32';
   }
-  
+
   // 浏览器环境下的粗略检测
   if (isRunningInBrowser() && navigator && navigator.platform) {
     return navigator.platform.indexOf('Win') !== -1;
   }
-  
+
   return false;
 }
 
@@ -64,12 +64,12 @@ export function isMacOSPlatform(): boolean {
   if (isRunningInNode()) {
     return process.platform === 'darwin';
   }
-  
+
   // 浏览器环境下的粗略检测
   if (isRunningInBrowser() && navigator && navigator.platform) {
     return navigator.platform.indexOf('Mac') !== -1;
   }
-  
+
   return false;
 }
 
@@ -81,12 +81,12 @@ export function isLinuxPlatform(): boolean {
   if (isRunningInNode()) {
     return process.platform === 'linux';
   }
-  
+
   // 浏览器环境下的粗略检测
   if (isRunningInBrowser() && navigator && navigator.platform) {
     return navigator.platform.indexOf('Linux') !== -1;
   }
-  
+
   return false;
 }
 
@@ -134,6 +134,18 @@ export function hasFeatureSupport(featureName: string): boolean {
 }
 
 /**
+ * isBrowser函数，作为isRunningInBrowser的别名
+ * @returns 如果在浏览器环境中运行则返回true
+ */
+export const isBrowser = isRunningInBrowser;
+
+/**
+ * isNode函数，作为isRunningInNode的别名
+ * @returns 如果在Node.js环境中运行则返回true
+ */
+export const isNode = isRunningInNode;
+
+/**
  * 导出platformUtils对象
  */
 export const platformUtils = {
@@ -144,5 +156,8 @@ export const platformUtils = {
   isMacOSPlatform,
   isLinuxPlatform,
   getNodeVersion,
-  hasFeatureSupport
-}; 
+  hasFeatureSupport,
+  // 别名
+  isNode,
+  isBrowser
+};

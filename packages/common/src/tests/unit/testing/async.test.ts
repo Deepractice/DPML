@@ -8,7 +8,7 @@ import {
   serial,
   createCancellablePromise,
   waitForEvent
-} from '../../../src/testing/async';
+} from '../../../testing/async';
 
 describe('异步测试工具', () => {
   beforeEach(() => {
