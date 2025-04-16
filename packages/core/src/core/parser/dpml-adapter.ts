@@ -1,15 +1,14 @@
-import { ParseError } from '@core/errors';
-import { ErrorCode, ErrorPosition } from '@core/errors/types';
-import { NodeType, SourcePosition, Node } from '@core/types/node';
+import { ParseError } from '../../errors';
+import { ErrorCode, ErrorPosition } from '../../errors/types';
+import { NodeType, SourcePosition, Node } from '../../types/node';
 
-import type { Document, Element } from '@core/types/node';
+import type { Document, Element } from '../../types/node';
+import type { ParseOptions, ParseResult, ParseWarning } from '../../types/parser/types';
 
 import { TagRegistry } from './tag-registry';
 import { Validator } from './validator';
 import { XMLParserAdapter } from './xml/xml-parser-adapter';
 import { XMLToNodeConverter } from './xml/xml-to-node-converter';
-
-import type { ParseOptions, ParseResult, ParseWarning } from './interfaces';
 
 /**
  * DPML适配器核心类

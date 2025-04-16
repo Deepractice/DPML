@@ -1,9 +1,5 @@
-import type { ParseError as ParseErrorClass } from '@core/errors';
-import type { Document } from '@core/types/node';
-
-import { ValidationError, ValidationWarning } from '../errors/types';
-
-import type { ValidationResult } from '../errors/types';
+import type { Document } from '../node';
+import type { ValidationResult, ValidationError, ValidationWarning } from '../../errors/types';
 
 /**
  * 解析选项接口
@@ -101,7 +97,7 @@ export interface ParseResult {
   /**
    * 解析过程中的错误
    */
-  errors: ParseErrorClass[];
+  errors: Array<any>; // 这里需要替换为实际的ParseError类型
 
   /**
    * 解析过程中的警告
@@ -127,4 +123,4 @@ export interface DPMLParser {
    * @returns 验证结果
    */
   validate(ast: Document): ValidationResult;
-}
+} 

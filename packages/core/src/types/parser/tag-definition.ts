@@ -1,21 +1,4 @@
-/**
- * 标签定义接口
- * 定义标签的属性规范、嵌套规则和验证规则
- *
- * 推荐使用对象形式定义属性，例如：
- * ```typescript
- * const myTagDefinition: TagDefinition = {
- *   name: 'my-tag',
- *   attributes: {
- *     id: { type: 'string', required: true },
- *     class: { type: 'string', required: false }
- *   },
- *   allowedChildren: ['sub-tag', 'content']
- * };
- * ```
- */
-
-import type { ValidationResult } from '../errors/types';
+import type { ValidationResult } from '../../errors/types';
 
 /**
  * 属性定义接口
@@ -43,6 +26,10 @@ export interface AttributeDefinition {
   validate?: (value: any) => boolean | string;
 }
 
+/**
+ * 标签定义接口
+ * 定义标签的属性规范、嵌套规则和验证规则
+ */
 export interface TagDefinition {
   /**
    * 标签名称
@@ -92,4 +79,4 @@ export interface TagDefinition {
    * 可用于实现更复杂的验证逻辑
    */
   validate?: (element: any, context: any) => ValidationResult;
-}
+} 

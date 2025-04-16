@@ -1,14 +1,14 @@
-import { ErrorCode } from '@core/errors/types';
-import { Node, NodeType, isElement } from '@core/types/node';
+import { ErrorCode } from '../../errors/types';
+import { Node, NodeType, isElement } from '../../types/node';
 
 import type {
   ValidationError,
   ValidationResult,
   ValidationWarning,
-} from '@core/errors/types';
-import type { Element, Document, SourcePosition } from '@core/types/node';
+} from '../../errors/types';
+import type { Element, Document, SourcePosition } from '../../types/node';
 
-import type { TagDefinition } from './tag-definition';
+import type { TagDefinition } from '../../types/parser/tag-definition';
 import type { TagRegistry } from './tag-registry';
 
 /**

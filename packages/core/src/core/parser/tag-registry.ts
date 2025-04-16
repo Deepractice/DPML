@@ -1,6 +1,4 @@
-import { AttributeDefinition } from './tag-definition';
-
-import type { TagDefinition } from './tag-definition';
+import type { TagDefinition, AttributeDefinition } from '../../types/parser/tag-definition';
 
 /**
  * 标签注册表
