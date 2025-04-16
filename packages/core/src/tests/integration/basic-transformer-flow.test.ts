@@ -1,5 +1,5 @@
 import { DpmlAdapter } from '@core/parser/dpml-adapter';
-import { createProcessor } from '@core/processor/factory';
+import { createProcessor } from '@core/api/processor';
 import { DefaultOutputAdapterFactory } from '@core/transformer/adapters/defaultOutputAdapterFactory';
 import { JSONAdapter } from '@core/transformer/adapters/jsonAdapter';
 import { MarkdownAdapter } from '@core/transformer/adapters/markdownAdapter';

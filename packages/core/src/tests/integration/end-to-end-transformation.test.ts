@@ -9,7 +9,7 @@
  * - 适配器输出
  */
 import { DpmlAdapter } from '@core/parser/dpml-adapter';
-import { DefaultProcessor } from '@core/processor/defaultProcessor';
+import { DefaultProcessor } from '@core/api/processor';
 import { DefaultOutputAdapterFactory } from '@core/transformer/adapters/defaultOutputAdapterFactory';
 import { DefaultTransformerFactory } from '@core/transformer/defaultTransformerFactory';
 import { describe, it, expect, beforeEach } from 'vitest';

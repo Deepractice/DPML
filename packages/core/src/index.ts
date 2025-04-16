@@ -14,3 +14,12 @@ export * from './types/parser';
 
 // 命名空间导出
 export * as constants from './constants/parser';
+
+// 导出新的处理器API
+export * from './api/processor';
+
+// 导出处理器类型
+export * from './types/processor';
+
+// 导出处理器常量
+export * from './constants/processor';
