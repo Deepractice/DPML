@@ -12,9 +12,9 @@ export type { ParserOptions } from './ParserOptions';
 export type { SourceLocation } from './SourceLocation';
 export type { TagDefinition } from './TagDefinition';
 export type { TagRegistry } from './TagRegistry';
+export { ValidationErrorType } from './ValidationResult';
 export type {
   ValidationError,
-  ValidationErrorType,
   ValidationResult,
   ValidationWarning
 } from './ValidationResult';
