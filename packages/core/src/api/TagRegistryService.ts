@@ -3,7 +3,7 @@
  * 提供管理DPML标签定义的API
  */
 
-import { getGlobalTagRegistry, createTagRegistry as createRegistry } from '../core/parser/TagRegistryService';
+import { getGlobalTagRegistry, createTagRegistry as createRegistry } from '../core/parser/TagRegistryManager';
 import type { TagDefinition, TagRegistry } from '../types';
 
 /**

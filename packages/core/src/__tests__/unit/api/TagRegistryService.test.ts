@@ -4,7 +4,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'vitest';
 
 import { getTagRegistry, registerTag, registerTags, createTagRegistry } from '../../../api';
-import { resetGlobalTagRegistry } from '../../../core/parser/TagRegistryService';
+import { resetGlobalTagRegistry } from '../../../core/parser/TagRegistryManager';
 import { ContentModel } from '../../../types';
 import type { TagDefinition } from '../../../types';
 
