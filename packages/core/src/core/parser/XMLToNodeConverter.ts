@@ -1,13 +1,14 @@
+import type { DPMLNode } from '../../types/DPMLNode';
 import { ParseError } from '../../types/ParseError';
 import type { SourceLocation } from '../../types/SourceLocation';
-import type { DPMLNode } from '../../types/DPMLNode';
+
 import type { XMLNode, XMLPosition } from './types';
 
 /**
  * XML节点到DPML节点转换器
  * 负责将XMLNode转换为DPMLNode
  */
-export class XMLToNodeConverter {
+export class XmlToNodeConverter {
   /**
    * 将XML节点转换为DPML节点
    * @param xmlNode XML节点
@@ -82,6 +83,7 @@ export class XMLToNodeConverter {
 
       removeChild(childNode: DPMLNode): void {
         const index = this.children.indexOf(childNode);
+
         if (index !== -1) {
           this.children.splice(index, 1);
           childNode.parent = null;
@@ -108,6 +110,7 @@ export class XMLToNodeConverter {
     if (xmlNode.children && xmlNode.children.length > 0) {
       for (const childXmlNode of xmlNode.children) {
         const childNode = this.createDPMLNode(childXmlNode);
+
         node.appendChild(childNode);
       }
     }

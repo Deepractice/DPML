@@ -2,13 +2,14 @@ import { XMLParser } from 'fast-xml-parser';
 
 import { ParseError } from '../../types/ParseError';
 import type { SourceLocation } from '../../types/SourceLocation';
+
 import type { XMLNode, XMLParserOptions } from './types';
 
 /**
  * XML解析适配器
  * 使用fast-xml-parser库解析XML文本
  */
-export class XMLParserAdapter {
+export class XmlParserAdapter {
   /**
    * 底层XML解析器实例
    */
@@ -101,14 +102,16 @@ export class XMLParserAdapter {
       // 如果错误中包含位置信息，使用它
       if (error instanceof Error && 'line' in error && 'column' in error) {
         const errorWithPos = error as Error & { line: number; column: number };
+
         location.startLine = errorWithPos.line;
         location.startColumn = errorWithPos.column;
         location.endLine = errorWithPos.line;
         location.endColumn = errorWithPos.column + 1;
-        
+
         // 更新行片段
         if (errorWithPos.line > 0 && errorWithPos.line <= xml.split('\n').length) {
           const errorLine = xml.split('\n')[errorWithPos.line - 1];
+
           location.getLineSnippet = () => errorLine || '';
         }
       }
@@ -145,34 +148,55 @@ export class XMLParserAdapter {
       throw new Error('XML内容不能为空');
     }
 
-    // 检查标签匹配
-    const stack: string[] = [];
-    const regex = /<\/?([^\\s/>]+)[^>]*?>/g;
-    let match;
+    try {
+      // 处理CDATA部分，暂时替换为特殊标记，以避免影响标签匹配检查
+      const cdataPattern = /<\!\[CDATA\[(.*?)\]\]>/gs;
+      const xmlWithoutCdata = xml.replace(cdataPattern, '__CDATA_CONTENT__');
 
-    while ((match = regex.exec(xml))) {
-      const [fullTag, tagName] = match;
+      // 处理注释
+      const commentPattern = /<!--(.*?)-->/gs;
+      const xmlWithoutComments = xmlWithoutCdata.replace(commentPattern, '');
 
-      // 自闭合标签跳过
-      if (fullTag.endsWith('/>')) {
-        continue;
-      }
+      // 检查标签匹配
+      const stack: string[] = [];
+      const regex = /<\/?([^\s>]+)[^>]*?>/g;
+      let match;
 
-      // 结束标签
-      if (fullTag.startsWith('</')) {
-        if (stack.length === 0 || stack.pop() !== tagName) {
-          throw new Error(`标签不匹配: ${tagName}`);
+      while ((match = regex.exec(xmlWithoutComments))) {
+        const [fullTag, tagName] = match;
+
+        // 自闭合标签跳过
+        if (fullTag.endsWith('/>')) {
+          continue;
+        }
+
+        // 忽略XML声明和DOCTYPE
+        if (fullTag.startsWith('<?') || fullTag.startsWith('<!DOCTYPE')) {
+          continue;
+        }
+
+        // 结束标签
+        if (fullTag.startsWith('</')) {
+          if (stack.length === 0 || stack.pop() !== tagName) {
+            throw new Error(`标签不匹配: ${tagName}`);
+          }
+        } else {
+          // 开始标签
+          stack.push(tagName);
         }
       }
-      // 开始标签
-      else if (!fullTag.startsWith('<?') && !fullTag.startsWith('<!')) {
-        stack.push(tagName);
-      }
-    }
 
-    // 检查是否所有标签都已闭合
-    if (stack.length > 0) {
-      throw new Error(`未闭合的标签: ${stack.join(', ')}`);
+      // 检查是否所有标签都已闭合
+      if (stack.length > 0) {
+        throw new Error(`未闭合的标签: ${stack.join(', ')}`);
+      }
+    } catch (error) {
+      // 如果是我们抛出的错误，直接重新抛出
+      if (error instanceof Error) {
+        throw error;
+      }
+      // 其他错误包装一下
+      throw new Error(`XML格式验证失败: ${String(error)}`);
     }
   }
 
@@ -184,7 +208,7 @@ export class XMLParserAdapter {
    * @returns XMLNode结构的根节点
    */
   private processRootElement(
-    rootElement: any,
+    rootElement: Record<string, unknown>,
     xmlText: string,
     lineOffsets: number[]
   ): XMLNode {
@@ -211,8 +235,8 @@ export class XMLParserAdapter {
     };
 
     // 处理根元素属性
-    if (rootElement[':@'] && rootElement[':@'].attributes) {
-      rootNode.attributes = { ...rootElement[':@'].attributes };
+    if (rootElement[':@'] && (rootElement[':@'] as Record<string, unknown>).attributes) {
+      rootNode.attributes = { ...(rootElement[':@'] as Record<string, Record<string, unknown>>).attributes };
     }
 
     // 处理子元素
@@ -222,20 +246,16 @@ export class XMLParserAdapter {
       for (const element of childElements) {
         // 处理文本内容
         if ('textContent' in element) {
-          rootNode.textContent = element.textContent;
-        }
-        // 处理CDATA内容
-        else if ('__cdata' in element) {
-          rootNode.textContent = element.__cdata;
-        }
-        // 处理子元素
-        else {
+          rootNode.textContent = element.textContent as string;
+        } else if ('__cdata' in element) { // 处理CDATA内容
+          rootNode.textContent = element.__cdata as string;
+        } else { // 处理子元素
           const childName = Object.keys(element).find(key => key !== ':@');
 
           if (childName) {
             const childNode = this.processChildElement(
               childName,
-              element,
+              element as Record<string, unknown>,
               xmlText,
               lineOffsets
             );
@@ -259,7 +279,7 @@ export class XMLParserAdapter {
    */
   private processChildElement(
     tagName: string,
-    element: any,
+    element: Record<string, unknown>,
     xmlText: string,
     lineOffsets: number[]
   ): XMLNode {
@@ -270,16 +290,17 @@ export class XMLParserAdapter {
 
     // 处理属性
     if (element[':@']) {
-      if (element[':@'].attributes) {
-        childNode.attributes = { ...element[':@'].attributes };
+      if ((element[':@'] as Record<string, unknown>).attributes) {
+        childNode.attributes = { ...(element[':@'] as Record<string, Record<string, unknown>>).attributes };
       }
 
       // 处理位置信息
-      const posData = element[':@']['@_vp'] || element[':@']['@position'];
+      const posData = (element[':@'] as Record<string, unknown>)['@_vp'] ||
+        (element[':@'] as Record<string, unknown>)['@position'];
 
       // 如果启用了位置跟踪，添加位置信息
       if (this.trackPosition && posData) {
-        childNode.position = this.convertPosition(posData);
+        childNode.position = this.convertPosition(posData as Record<string, number>);
       }
     }
 
@@ -290,20 +311,16 @@ export class XMLParserAdapter {
       for (const item of content) {
         // 处理文本内容
         if ('textContent' in item) {
-          childNode.textContent = item.textContent;
-        }
-        // 处理CDATA内容
-        else if ('__cdata' in item) {
-          childNode.textContent = item.__cdata;
-        }
-        // 处理嵌套子元素
-        else {
+          childNode.textContent = item.textContent as string;
+        } else if ('__cdata' in item) { // 处理CDATA内容
+          childNode.textContent = item.__cdata as string;
+        } else { // 处理嵌套子元素
           const nestedName = Object.keys(item).find(key => key !== ':@');
 
           if (nestedName) {
             const nestedNode = this.processChildElement(
               nestedName,
-              item,
+              item as Record<string, unknown>,
               xmlText,
               lineOffsets
             );
@@ -380,6 +397,7 @@ export class XMLParserAdapter {
         return i + 1;
       }
     }
+
     return 1;
   }
 
@@ -388,7 +406,7 @@ export class XMLParserAdapter {
    * @param posData 位置数据
    * @returns 转换后的位置信息
    */
-  private convertPosition(posData: any): {
+  private convertPosition(posData: Record<string, number>): {
     start: { line: number; column: number; offset: number };
     end: { line: number; column: number; offset: number };
   } {
