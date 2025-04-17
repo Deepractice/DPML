@@ -360,10 +360,10 @@ export { Parser } from './api/parser';
 
 ### 测试目录结构
 
-测试文件应组织在 `__tests__` 目录中，按照以下结构：
+测试文件应组织在 `src/__tests__` 目录中，按照以下结构：
 
 ```
-__tests__/
+src/__tests__/
 ├── unit/                # 单元测试（镜像源代码结构）
 │   ├── api/
 │   ├── core/
@@ -371,6 +371,9 @@ __tests__/
 ├── integration/         # 集成测试（按功能分组）
 │   ├── workflow/
 │   └── system/
+├── contract/            # 契约测试（确保API符合规范）
+│   ├── api-spec/
+│   └── schema-validation/
 ├── e2e/                 # 端到端测试
 ├── performance/         # 性能测试
 │   ├── parsing.bench.ts
@@ -393,6 +396,10 @@ __tests__/
 3. **端到端测试**
    - 使用有描述性的文件名，格式为 `feature-name.e2e.ts`
    - 示例：`user-workflow.e2e.ts`
+
+4. **契约测试**
+   - 使用格式：`[接口名].contract.ts`或`[schema名].schema.ts`
+   - 示例：`parser-api.contract.ts`, `config.schema.ts`
 
 ### 性能测试配置
 
@@ -427,3 +434,99 @@ export default defineConfig({
 4. **测试工具函数复用**
    - 提取共用测试工具到 `__tests__/fixtures/test-utils`
    - 减少测试代码重复
+
+5. **契约测试最佳实践**
+   - 使用Schema验证确保API输入输出符合类型定义
+   - 为每个公共API接口编写契约测试
+   - 验证向后兼容性，确保API变更不破坏现有契约
+   - 示例：
+   
+   ```typescript
+   // parser-api.contract.ts
+   import { test, expect } from 'vitest';
+   import { z } from 'zod';
+   import { parseConfig } from '@/api/parser';
+   import { ConfigSchema } from '@/types/config';
+   
+   test('parseConfig API符合契约规范', () => {
+     // 构造符合Schema的输入
+     const validInput = {
+       source: 'file',
+       path: './config.json',
+       options: { encoding: 'utf-8' }
+     };
+     
+     // 验证输入符合Schema
+     expect(() => ConfigSchema.parse(validInput)).not.toThrow();
+     
+     // 调用API并验证输出
+     const result = parseConfig(validInput);
+     
+     // 验证输出符合返回值Schema
+     expect(() => ConfigResultSchema.parse(result)).not.toThrow();
+   });
+   ```
+
+### 测试框架配置
+
+#### Vitest配置
+
+每个包应包含一个标准的`vitest.config.ts`文件：
+
+```typescript
+// vitest.config.ts
+import { defineConfig } from 'vitest/config';
+import path from 'path';
+
+export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'node',
+    include: [
+      'src/**/*.{test,spec,bench}.{ts,tsx}',
+      'src/__tests__/**/*.{test,spec,bench}.{ts,tsx}'
+    ],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+    ],
+    coverage: {
+      provider: 'c8',
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        '**/*.d.ts',
+        '**/*.bench.ts',
+        'src/__tests__/fixtures/**',
+      ],
+    },
+    benchmark: {
+      include: ['**/*.bench.{ts,tsx}'],
+      outputFile: './benchmark-results.json',
+    },
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+});
+```
+
+#### 测试脚本配置
+
+在`package.json`中应包含以下标准测试脚本：
+
+```json
+{
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:bench": "vitest bench",
+    "test:unit": "vitest run src/__tests__/unit",
+    "test:integration": "vitest run src/__tests__/integration",
+    "test:contract": "vitest run src/__tests__/contract",
+    "test:e2e": "vitest run src/__tests__/e2e"
+  }
+}
+```

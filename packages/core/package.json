@@ -22,6 +22,11 @@
     "test:coverage": "vitest run --coverage",
     "test:coverage:report": "vitest run --coverage && npx serve coverage",
     "test:coverage:critical": "vitest run --coverage src/processor/**/*.ts",
+    "test:unit": "vitest run src/__tests__/unit",
+    "test:integration": "vitest run src/__tests__/integration",
+    "test:contract": "vitest run src/__tests__/contract",
+    "test:e2e": "vitest run src/__tests__/e2e",
+    "test:bench": "vitest bench",
     "coverage:monitor": "node scripts/coverage-monitor.js",
     "coverage:check": "node scripts/ci-coverage-check.js",
     "clean": "rm -rf dist node_modules"
