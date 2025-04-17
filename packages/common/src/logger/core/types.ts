@@ -40,6 +40,26 @@ export interface LogMeta {
   packageName: string;
 
   /**
+   * 文件名
+   */
+  fileName?: string;
+
+  /**
+   * 函数名
+   */
+  functionName?: string;
+
+  /**
+   * 行号
+   */
+  lineNumber?: number;
+
+  /**
+   * 列号
+   */
+  columnNumber?: number;
+
+  /**
    * 其他元数据
    */
   [key: string]: any;

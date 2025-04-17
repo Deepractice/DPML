@@ -120,10 +120,14 @@ export class Logger implements ILogger {
     // 级别过滤
     if (level < this.level) return;
 
-    // 更新时间戳
+    // 捕获调用位置信息
+    const callsite = this.captureCallSite();
+
+    // 更新时间戳和调用位置信息
     const meta: LogMeta = {
       ...this.meta,
       timestamp: new Date().toISOString(),
+      ...callsite,
     };
 
     // 格式化消息
@@ -175,6 +179,64 @@ export class Logger implements ILogger {
         // 捕获传输错误，但不中断流程
         console.error(`日志传输错误: ${(error as Error).message}`);
       }
+    }
+  }
+
+  /**
+   * 捕获日志调用位置信息
+   * 从错误堆栈中提取调用者的文件名、函数名和行号
+   */
+  private captureCallSite(): { fileName?: string; functionName?: string; lineNumber?: number; columnNumber?: number } {
+    try {
+      // 保存原始的错误堆栈处理函数
+      const originalPrepareStackTrace = Error.prepareStackTrace;
+      
+      // 设置自定义堆栈处理函数以获取更多信息
+      Error.prepareStackTrace = (_, stack) => stack;
+      
+      // 创建一个新的Error对象并获取调用堆栈
+      const stack = new Error().stack as unknown as NodeJS.CallSite[];
+      
+      // 恢复原始堆栈处理函数
+      Error.prepareStackTrace = originalPrepareStackTrace;
+      
+      // 索引4对应于实际调用logger方法的位置
+      // 0: Error构造函数
+      // 1: captureCallSite
+      // 2: log 
+      // 3: logger.debug/info/warn/error
+      // 4: 实际调用的代码位置
+      const callSite = stack[4];
+      
+      if (!callSite) return {};
+      
+      // 处理可能为null的返回值
+      const fileName = callSite.getFileName() ?? undefined;
+      const fnName = callSite.getFunctionName();
+      const methodName = callSite.getMethodName();
+      const functionName = fnName ?? methodName ?? undefined;
+      
+      let lineNumber: number | undefined = undefined;
+      if (callSite.getLineNumber && typeof callSite.getLineNumber === 'function') {
+        const line = callSite.getLineNumber();
+        if (line && line > 0) lineNumber = line;
+      }
+      
+      let columnNumber: number | undefined = undefined;
+      if (callSite.getColumnNumber && typeof callSite.getColumnNumber === 'function') {
+        const column = callSite.getColumnNumber();
+        if (column && column > 0) columnNumber = column;
+      }
+      
+      return {
+        fileName,
+        functionName,
+        lineNumber,
+        columnNumber,
+      };
+    } catch (error) {
+      // 如果出现错误，返回空对象，不影响日志记录
+      return {};
     }
   }
 

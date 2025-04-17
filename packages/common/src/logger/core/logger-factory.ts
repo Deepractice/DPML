@@ -2,8 +2,9 @@ import { TextFormatter } from '../formatters/text-formatter';
 import { ConsoleTransport } from '../transports/console-transport';
 
 import { Logger } from './logger';
+import { LogLevel } from './types';
 
-import type { ILogger, ILoggerFactory, LoggerOptions, LogLevel } from './types';
+import type { ILogger, ILoggerFactory, LoggerOptions } from './types';
 
 /**
  * 日志工厂类，管理所有Logger实例

@@ -3,14 +3,22 @@ import prettierConfig from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
 import unicorn from 'eslint-plugin-unicorn';
 import tseslint from 'typescript-eslint';
+import boundaries from 'eslint-plugin-boundaries';
 
 import styleRules from './rules/style-rules.js';
+import { directoryRules, importExportRules, boundariesRules } from './rules/eslint-rules.js';
 
 export default [
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   prettierConfig,
   styleRules,
+  
+  // 新增的DPML项目特定规则
+  directoryRules,
+  importExportRules,
+  boundariesRules,
+  
   {
     ignores: [
       '**/node_modules/**',
@@ -32,50 +40,27 @@ export default [
     plugins: {
       unicorn,
     },
+    // 全局文件命名规则：只允许PascalCase和camelCase
     rules: {
       'unicorn/filename-case': [
         'error',
         {
-          case: 'kebabCase',
+          cases: {
+            // 允许PascalCase (类文件)
+            pascalCase: true,
+            // 允许camelCase (函数文件)
+            camelCase: true,
+          },
+          ignore: ['^index\\.ts$'], // 允许index.ts文件
         },
       ],
     },
   },
+  // 测试文件命名规则例外
   {
-    files: [
-      '**/src/components/**/*.{ts,tsx}',
-      '**/src/models/**/*.ts',
-      '**/src/**/types/**/*.ts',
-    ],
+    files: ['**/*.test.ts', '**/*.spec.ts', '**/__tests__/**/*.ts'],
     rules: {
-      'unicorn/filename-case': [
-        'error',
-        {
-          case: 'pascalCase',
-        },
-      ],
-    },
-  },
-  {
-    files: [
-      '**/src/utils/**/*.ts',
-      '**/src/helpers/**/*.ts',
-      '**/src/functions/**/*.ts',
-      '**/src/api/**/*.ts',
-    ],
-    rules: {
-      'unicorn/filename-case': [
-        'error',
-        {
-          case: 'camelCase',
-        },
-      ],
-    },
-  },
-  {
-    files: ['**/src/tests/**/*.test.{js,ts}', '**/*.spec.{js,ts}'],
-    rules: {
-      'unicorn/filename-case': 'off',
+      'unicorn/filename-case': 'off', // 测试文件命名更灵活
     },
   },
   // 导入规范配置
@@ -83,6 +68,7 @@ export default [
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
     plugins: {
       import: importPlugin,
+      boundaries: boundaries,
     },
     settings: {
       'import/resolver': {
@@ -97,6 +83,21 @@ export default [
       'import/parsers': {
         '@typescript-eslint/parser': ['.ts', '.tsx'],
       },
+      // 目录边界配置
+      'boundaries/elements': [
+        {
+          type: 'api',
+          pattern: 'src/api/*',
+        },
+        {
+          type: 'types',
+          pattern: 'src/types/*',
+        },
+        {
+          type: 'core',
+          pattern: 'src/core/*',
+        },
+      ],
     },
     rules: {
       // 确保导入存在
@@ -117,6 +118,22 @@ export default [
       ],
       // 确保导入扩展名
       'import/extensions': ['error', 'never'],
+      
+      // 强制目录间依赖规则
+      'boundaries/element-types': [
+        'error',
+        {
+          default: 'disallow',
+          rules: [
+            // api可以导入types和core
+            { from: 'api', allow: ['types', 'core'] },
+            // core可以导入types，但不能导入api
+            { from: 'core', allow: ['types'] },
+            // types不能导入任何东西
+            { from: 'types', allow: [] },
+          ],
+        },
+      ],
     },
   }
 ];

@@ -16,7 +16,10 @@
     "check-configs": "node scripts/check-package-configs.js",
     "swc": "node -r @swc-node/register",
     "barrels": "node scripts/generate-barrels.js",
-    "barrels:watch": "chokidar \"packages/*/src/**/*.{ts,tsx}\" -c \"pnpm barrels\""
+    "barrels:watch": "chokidar \"packages/*/src/**/*.{ts,tsx}\" -c \"pnpm barrels\"",
+    "docs": "typedoc",
+    "docs:watch": "typedoc --watch",
+    "docs:serve": "npx serve docs/api"
   },
   "keywords": [
     "dpml",
@@ -45,10 +48,13 @@
     "eslint-plugin-unicorn": "^58.0.0",
     "prettier": "3.5.3",
     "reflect-metadata": "^0.2.0",
+    "serve": "^14.2.2",
     "ts-auto-mock": "^3.6.2",
     "tsup": "8.4.0",
     "ttypescript": "^1.5.15",
     "turbo": "2.4.4",
+    "typedoc": "^0.28.2",
+    "typedoc-plugin-markdown": "^4.6.2",
     "typescript": "5.8.2",
     "typescript-eslint": "^8.30.1",
     "vitest": "^3.1.1"
