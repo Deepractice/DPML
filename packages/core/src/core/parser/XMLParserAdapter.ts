@@ -150,7 +150,7 @@ export class XmlParserAdapter {
 
     try {
       // 处理CDATA部分，暂时替换为特殊标记，以避免影响标签匹配检查
-      const cdataPattern = /<\!\[CDATA\[(.*?)\]\]>/gs;
+      const cdataPattern = /<!\[CDATA\[(.*?)\]\]>/gs;
       const xmlWithoutCdata = xml.replace(cdataPattern, '__CDATA_CONTENT__');
 
       // 处理注释
@@ -195,6 +195,7 @@ export class XmlParserAdapter {
       if (error instanceof Error) {
         throw error;
       }
+
       // 其他错误包装一下
       throw new Error(`XML格式验证失败: ${String(error)}`);
     }

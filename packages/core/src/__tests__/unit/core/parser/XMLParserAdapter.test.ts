@@ -4,7 +4,7 @@
 import { describe, test, expect } from 'vitest';
 
 import { XmlParserAdapter } from '../../../../core/parser/XmlParserAdapter';
-import { ParseError } from '../../../../types/ParseError';
+import { ParseError } from '../../../../types';
 
 describe('UT-Parser-XMLAdapter', () => {
   // 创建解析适配器实例

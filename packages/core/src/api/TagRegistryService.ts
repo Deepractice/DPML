@@ -3,6 +3,7 @@
  * 提供管理DPML标签定义的API
  */
 
+import { getGlobalTagRegistry, createTagRegistry as createRegistry } from '../core/parser/TagRegistryService';
 import type { TagDefinition, TagRegistry } from '../types';
 
 /**
@@ -10,8 +11,7 @@ import type { TagDefinition, TagRegistry } from '../types';
  * @returns 全局标签注册表实例
  */
 export function getTagRegistry(): TagRegistry {
-  // 实现将在TDD过程中完成
-  throw new Error('获取标签注册表功能尚未实现');
+  return getGlobalTagRegistry();
 }
 
 /**
@@ -19,8 +19,9 @@ export function getTagRegistry(): TagRegistry {
  * @param definition 标签定义
  */
 export function registerTag(definition: TagDefinition): void {
-  // 实现将在TDD过程中完成
-  throw new Error('注册标签功能尚未实现');
+  const registry = getTagRegistry();
+
+  registry.register(definition);
 }
 
 /**
@@ -28,8 +29,9 @@ export function registerTag(definition: TagDefinition): void {
  * @param definitions 标签定义数组
  */
 export function registerTags(definitions: TagDefinition[]): void {
-  // 实现将在TDD过程中完成
-  throw new Error('批量注册标签功能尚未实现');
+  const registry = getTagRegistry();
+
+  registry.registerAll(definitions);
 }
 
 /**
@@ -37,6 +39,5 @@ export function registerTags(definitions: TagDefinition[]): void {
  * @returns 新的标签注册表
  */
 export function createTagRegistry(): TagRegistry {
-  // 实现将在TDD过程中完成
-  throw new Error('创建标签注册表功能尚未实现');
+  return createRegistry();
 }
