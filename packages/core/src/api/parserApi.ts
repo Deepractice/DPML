@@ -1,12 +1,14 @@
-import { TagRegistry, Validator } from '@core/core/parser';
+/**
+ * 解析器API
+ * 提供DPML文档解析和验证功能
+ */
 
-import type { ValidationResult } from '@core/errors';
-import type { Document } from '@core/types';
+import { TagRegistry, Validator } from '../core/parser';
+import { DPMLAdapter } from '../core/parser/DPMLAdapter';
 
-import { DPMLAdapter } from '../../core/parser/DPMLAdapter';
-
-
-import type { ParseOptions, ParseResult } from '../../types/parser';
+import type { ValidationResult } from '../errors/types';
+import type { Document } from '../types/node';
+import type { ParseOptions, ParseResult } from '../types/parser';
 
 /**
  * 解析 DPML 字符串为节点树
@@ -38,4 +40,4 @@ export function validate(document: Document): ValidationResult {
  */
 export function createTagRegistry(): TagRegistry {
   return new TagRegistry();
-}
+} 

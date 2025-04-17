@@ -5,8 +5,8 @@ import { NodeType, SourcePosition, Node } from '../../types/node';
 
 import { TagRegistry } from './TagRegistry';
 import { Validator } from './Validator';
-import { XMLParserAdapter } from './xml/XMLParserAdapter';
-import { XMLToNodeConverter } from './xml/XMLToNodeConverter';
+import { XMLParserAdapter } from './XMLParserAdapter';
+import { XMLToNodeConverter } from './XMLToNodeConverter';
 
 import type { Document, Element } from '../../types/node';
 import type { ParseOptions, ParseResult, ParseWarning } from '../../types/parser/types';

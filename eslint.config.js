@@ -62,6 +62,7 @@ export default [
       '**/src/utils/**/*.ts',
       '**/src/helpers/**/*.ts',
       '**/src/functions/**/*.ts',
+      '**/src/api/**/*.ts',
     ],
     rules: {
       'unicorn/filename-case': [

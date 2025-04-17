@@ -1,6 +1,6 @@
-import { ParseError } from '../../../errors';
-import { ErrorCode } from '../../../errors/types';
-import { NodeType } from '../../../types/node';
+import { ParseError } from '../../errors';
+import { ErrorCode } from '../../errors/types';
+import { NodeType } from '../../types/node';
 
 import type {
   Node,
@@ -8,8 +8,8 @@ import type {
   Element,
   Content,
   SourcePosition,
-} from '../../../types/node';
-import type { XMLNode, XMLPosition } from '../../../types/parser/xml-types';
+} from '../../types/node';
+import type { XMLNode, XMLPosition } from '../../types/parser/xml-types';
 
 /**
  * XML节点到DPML节点转换器

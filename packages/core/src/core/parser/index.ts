@@ -5,4 +5,5 @@ export * from './Validator';
 export * from './TagRegistry';
 export * from './TagDefinition';
 export * from './DPMLAdapter';
-export * from './xml';
+export * from './XMLParserAdapter';
+export * from './XMLToNodeConverter';

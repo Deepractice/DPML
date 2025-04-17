@@ -3,8 +3,8 @@
  */
 import { jest } from '@jest/globals';
 
-import { factory } from '../../api/processor';
-import { ProcessorErrorCode } from '../../constants/processor';
+import { factory } from '../../api/processorApi';
+import { PROCESSOR_ERROR_CODE } from '../../constants';
 
 import type { Document } from '../../types/node';
 

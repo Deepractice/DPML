@@ -28,6 +28,14 @@ packages/my-package/
 │   ├── configs/          # 内部配置（不对外暴露）
 │   │   └── default.ts    # 默认配置
 │   │
+│   ├── utils/            # 通用工具函数
+│   │   ├── index.ts      # 工具函数导出（自动生成）
+│   │   └── ...           # 各类工具函数
+│   │
+│   ├── errors/           # 错误处理
+│   │   ├── index.ts      # 错误类导出（自动生成）
+│   │   └── ...           # 自定义错误类和处理
+│   │
 │   ├── __tests__/        # 测试文件
 │   │   ├── api/          # API测试
 │   │   └── core/         # 核心实现测试
@@ -68,7 +76,15 @@ packages/my-package/
    - 默认参数值
    - 特性开关
 
-6. ****tests**/**: 测试文件
+6. **utils/**: 通用工具函数
+
+   - 各类工具函数
+
+7. **errors/**: 错误处理
+
+   - 自定义错误类和处理
+
+8. ****tests**/**: 测试文件
    - 单元测试
    - 集成测试
    - 遵循Jest/Vitest命名约定
@@ -103,8 +119,7 @@ packages/my-package/
 1. Node内置模块
 2. 外部依赖包
 3. 工作区内其他包（monorepo特有）
-4. 当前包内绝对路径导入
-5. 相对路径导入
+4. 当前包内相对路径导入（同级目录或跨一级目录）
 
 示例：
 
@@ -121,26 +136,78 @@ import lodash from 'lodash';
 import { Logger } from '@dpml/common';
 import { Parser } from '@dpml/core';
 
-// 4. 当前包内绝对路径导入
-import { ApiError } from '#/errors';
-
-// 5. 相对路径导入
-import { processData } from '../utils';
+// 4. 当前包内相对路径导入
+import { ApiError } from '../errors/api-error';
+import { processData } from '../utils/process';
 import { DEFAULT_OPTIONS } from './constants';
 ```
 
+### 扁平化目录结构与相对路径导入
+
+为提高代码的可读性和可维护性，包内结构与导入应遵循以下规则：
+
+1. **保持扁平化的目录结构**
+
+   - 只使用一级目录分类，避免深层嵌套
+   - 如果模块复杂度增加，使用命名约定而非子目录
+   
+   ```
+   // 推荐
+   src/api/parser-core.ts
+   src/api/parser-utils.ts
+   
+   // 避免
+   src/api/parser/core.ts
+   src/api/parser/utils.ts
+   ```
+
+2. **使用相对路径导入**
+
+   - 优先使用相对路径而非别名
+   - 同目录文件: `import { something } from './something';`
+   - 跨一级目录: `import { something } from '../otherModule/something';`
+   
+   ```typescript
+   // 同级目录导入
+   import { parseXml } from './xml-parser';
+   
+   // 跨一级目录导入（推荐的最大深度）
+   import { StringType } from '../types/string-type';
+   ```
+
+3. **通过索引文件聚合相关功能**
+
+   - 使用index.ts来聚合相关功能，简化导入
+   - 由`pnpm barrels`命令自动生成一级目录的index.ts
+   
+   ```typescript
+   // api/index.ts（自动生成）
+   export * from './parser-core';
+   export * from './parser-utils';
+   
+   // 在其他文件中导入
+   import { parse, validate } from '../api';
+   ```
+
+4. **处理复杂模块**
+
+   - 当功能模块变得过于复杂时，考虑拆分为独立的包
+   - 例如将 parser 从 core 包中分离出来成为 `@dpml/parser`
+
+这种方式简化了配置，提高了工具兼容性，并与TypeScript社区最佳实践保持一致。
+
 ### 导入路径规则
 
-1. **禁止过深的相对路径**
+1. **避免过深的相对路径**
 
-   - 超过两级目录应使用别名或绝对路径
-   - 错误: `import { x } from '../../../utils/helpers'`
-   - 正确: `import { x } from '@package/utils'`
+   - 相对路径最多跨越一级目录
+   - 错误: `import { x } from '../../utils/helpers'`
+   - 正确: `import { x } from '../utils/helpers'` 
 
 2. **类型导入使用`type`关键字**
 
    ```typescript
-   import type { UserType, ConfigOptions } from './types';
+   import type { UserType, ConfigOptions } from '../types/user';
    ```
 
 3. **工作区包导入使用包名**
@@ -187,6 +254,32 @@ export * as constants from './constants';
 // 直接导出主要类/函数
 export { Parser } from './api/parser';
 ```
+
+### 索引文件管理原则
+
+项目中的索引文件(index.ts)管理遵循以下原则：
+
+1. **包级索引文件**（src/index.ts）
+   - 手动维护
+   - 有选择性地导出公共API和类型
+   - 决定包对外暴露的内容
+   - 可以使用命名空间导出避免命名冲突
+
+2. **一级目录索引文件**（如src/api/index.ts, src/types/index.ts等）
+   - 由`pnpm barrels`命令自动生成
+   - 收集并导出该目录下所有内容
+   - 开发人员通常通过这些一级目录索引导入模块
+
+3. **深层目录**（如src/core/processor等）
+   - 原则上不需要索引文件
+   - 每个文件直接导出其函数、类等
+   - 只有当该子模块需要统一导出时才考虑添加索引文件
+
+4. **导入原则**
+   - 优先从一级目录导入: `import { Something } from '#types'`
+   - 当存在命名冲突时，采用重命名或深层导入
+
+通过遵循上述原则，可以在减少手动工作量的同时，保持包结构的清晰和可控。
 
 ### 避免命名冲突
 
@@ -262,3 +355,75 @@ export { Parser } from './api/parser';
 4. **测试与实现共存**
    - 测试文件与源代码在同一目录结构中
    - 遵循就近原则，方便维护
+
+## 测试文件组织与命名规范
+
+### 测试目录结构
+
+测试文件应组织在 `__tests__` 目录中，按照以下结构：
+
+```
+__tests__/
+├── unit/                # 单元测试（镜像源代码结构）
+│   ├── api/
+│   ├── core/
+│   └── utils/
+├── integration/         # 集成测试（按功能分组）
+│   ├── workflow/
+│   └── system/
+├── e2e/                 # 端到端测试
+├── performance/         # 性能测试
+│   ├── parsing.bench.ts
+│   └── rendering.bench.ts
+└── fixtures/            # 测试数据和固定装置
+    ├── mock-data/
+    └── test-utils/
+```
+
+### 测试文件命名约定
+
+1. **单元测试和集成测试**
+   - 标准格式：`原文件名.test.ts` 或 `原文件名.spec.ts`
+   - 示例：`parser.test.ts`, `formatter.spec.ts`
+
+2. **性能测试/基准测试**
+   - 使用 `.bench.ts` 扩展名
+   - 示例：`parsing.bench.ts`, `rendering.bench.ts`
+
+3. **端到端测试**
+   - 使用有描述性的文件名，格式为 `feature-name.e2e.ts`
+   - 示例：`user-workflow.e2e.ts`
+
+### 性能测试配置
+
+使用 Vitest 进行性能测试时，需在配置文件中启用基准测试功能：
+
+```typescript
+// vitest.config.ts
+export default defineConfig({
+  test: {
+    include: ['**/*.{test,spec,bench}.{js,ts,jsx,tsx}'],
+    benchmark: {
+      include: ['**/*.bench.{js,ts}']
+    }
+  }
+})
+```
+
+### 测试文件组织最佳实践
+
+1. **单元测试镜像源代码结构**
+   - 单元测试应反映源代码的目录结构
+   - 示例：`src/api/parser.ts` 对应 `__tests__/unit/api/parser.test.ts`
+
+2. **测试数据集中管理**
+   - 共享测试数据放在 `__tests__/fixtures` 目录
+   - 按功能或模块组织测试数据文件
+
+3. **区分测试类型**
+   - 每种测试类型（单元、集成、性能）应有明确的职责
+   - 性能测试聚焦于关键性能指标和瓶颈点
+
+4. **测试工具函数复用**
+   - 提取共用测试工具到 `__tests__/fixtures/test-utils`
+   - 减少测试代码重复

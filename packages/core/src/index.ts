@@ -7,22 +7,19 @@
  */
 
 // 导出所有公共API
-export * from './api/parser';
+export * from './api/parserApi';
 
 // 导出所有类型
 export * from './types/parser';
 
-// 命名空间导出
-export * as constants from './constants/parser';
+// 导出扁平化的常量文件
+export * from './constants';
 
 // 导出新的处理器API
-export * from './api/processor';
+export * from './api/processorApi';
 
 // 处理器类型，使用命名空间导出避免名称冲突
 export * as processorTypes from './types/processor';
 
-// 导出处理器常量
-export * from './constants/processor';
-
 // 导出 transformer
-export * from './api/transformer';
+export * from './api/transformerApi';
