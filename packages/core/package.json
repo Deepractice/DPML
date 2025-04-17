@@ -14,15 +14,12 @@
     }
   },
   "scripts": {
+    "prebuild": "pnpm lint",
     "build": "tsup",
-    "dev": "tsup --watch",
     "lint": "eslint src --ext .ts",
     "swc": "node -r @swc-node/register",
     "test": "vitest run",
-    "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:unit": "vitest run src/__tests__/unit",
-    "test:integration": "vitest run src/__tests__/integration",
     "clean": "rm -rf dist node_modules"
   },
   "files": [

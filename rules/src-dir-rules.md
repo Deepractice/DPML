@@ -48,34 +48,6 @@ packages/my-package/
    src/types/models/user.ts
    ```
 
-### 命名约定替代目录嵌套
-
-使用文件命名约定来表达逻辑分组，替代目录嵌套：
-
-```
-// 正确的做法
-src/api/parser-core.ts
-src/api/parser-utils.ts
-src/api/processor-api.ts
-
-// 错误的做法
-src/api/parser/core.ts
-src/api/parser/utils.ts
-src/api/processor/api.ts
-```
-
-### 文件命名规则
-
-1. **模块前缀**
-   - 使用前缀表示功能领域：`parser-xxx.ts`, `formatter-xxx.ts`
-   
-2. **功能后缀**
-   - 使用后缀表示文件类型：`xxx-types.ts`, `xxx-utils.ts`
-
-3. **命名示例**
-   - `parser-core.ts` - 解析器核心实现
-   - `parser-types.ts` - 解析器类型定义
-   - `validation-utils.ts` - 验证相关工具函数
 
 ### 扁平化目录结构的优势
 

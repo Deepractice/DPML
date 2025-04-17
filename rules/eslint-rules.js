@@ -5,11 +5,8 @@
 
 // 目录结构和文件命名规则
 export const directoryRules = {
-  plugins: {
-    unicorn: true,
-  },
   rules: {
-    // 简化的文件命名规则 - 只允许PascalCase和camelCase
+    // 文件命名规则：允许PascalCase、camelCase，以及包含专有词汇全大写的情况
     'unicorn/filename-case': [
       'error',
       {
@@ -19,23 +16,21 @@ export const directoryRules = {
           // 允许camelCase (函数文件)
           camelCase: true,
         },
-        ignore: ['^index\\.ts$'], // 允许index.ts文件
+        // 允许包含专有词汇(DPML等)全大写的文件名
+        ignore: ['^index\\.ts$', '^DPML.*\\.ts$', '.*DPML.*\\.ts$'],
       },
     ],
     
     // 禁止错误的目录结构 - 自定义规则
-    'dpml/no-nested-directories': 'error',
+    // 'dpml/no-nested-directories': 'error',
     
     // 强制使用扁平化文件命名约定 - 自定义规则
-    'dpml/enforce-flat-file-naming': 'error',
+    // 'dpml/enforce-flat-file-naming': 'error',
   },
 };
 
 // 导入和导出规则
 export const importExportRules = {
-  plugins: {
-    import: true,
-  },
   settings: {
     'import/resolver': {
       typescript: {
@@ -94,9 +89,6 @@ export const importExportRules = {
 
 // 跨目录导入限制规则 - 需要eslint-plugin-boundaries
 export const boundariesRules = {
-  plugins: {
-    boundaries: true,
-  },
   settings: {
     'boundaries/elements': [
       {

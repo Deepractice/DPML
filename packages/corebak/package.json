@@ -1,7 +1,7 @@
 {
-  "name": "@dpml/core",
+  "name": "@dpml/corebak",
   "version": "0.1.0",
-  "description": "DPML language specification and types",
+  "description": "DPML language specification and types (backup)",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
@@ -14,6 +14,7 @@
     }
   },
   "scripts": {
+    "prebuild": "pnpm lint",
     "build": "tsup",
     "dev": "tsup --watch",
     "lint": "eslint src --ext .ts",
