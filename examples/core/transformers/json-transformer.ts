@@ -1,9 +1,9 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
-import { parse, process, NodeType } from '../../../packages/core';
+import { parse, process, NodeType } from '../../../packages/corebak';
 
-import type { Element, Content, Node } from '../../../packages/core';
+import type { Element, Content, Node } from '../../../packages/corebak';
 
 /**
  * JSON转换器 - 将DPML文档转换为JSON格式

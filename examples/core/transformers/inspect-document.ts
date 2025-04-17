@@ -1,7 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
-import { parse, process } from '../../../packages/core';
+import { parse, process } from '../../../packages/corebak';
 
 /**
  * 检查处理后文档结构

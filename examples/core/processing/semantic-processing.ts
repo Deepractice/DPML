@@ -1,9 +1,9 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
-import { parse, process, NodeType } from '../../../packages/core';
+import { parse, process, NodeType } from '../../../packages/corebak';
 
-import type { Element, Content, Node } from '../../../packages/core';
+import type { Element, Content, Node } from '../../../packages/corebak';
 
 /**
  * 基本文档处理示例

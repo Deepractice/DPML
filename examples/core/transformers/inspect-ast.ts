@@ -1,7 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
-import { parse } from '../../../packages/core';
+import { parse } from '../../../packages/corebak';
 
 /**
  * 检查AST结构

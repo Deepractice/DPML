@@ -4,7 +4,6 @@ import importPlugin from 'eslint-plugin-import';
 import unicorn from 'eslint-plugin-unicorn';
 import tseslint from 'typescript-eslint';
 
-import importRules from './rules/import-rules.js';
 import styleRules from './rules/style-rules.js';
 
 export default [
@@ -119,7 +118,5 @@ export default [
       // 确保导入扩展名
       'import/extensions': ['error', 'never'],
     },
-  },
-  // 导入新的导入规则配置
-  importRules,
+  }
 ];

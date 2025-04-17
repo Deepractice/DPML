@@ -18,7 +18,7 @@
       { "transform": "ts-auto-mock/transformer", "cacheBetweenTests": false }
     ],
     "paths": {
-      "@core/*": ["packages/core/src/*"],
+      "@core/*": ["packages/corebak/src/*"],
       "@prompt/*": ["packages/prompt/src/*"],
       "@agent/*": ["packages/agent/src/*"],
       "@workflow/*": ["packages/workflow/src/*"],

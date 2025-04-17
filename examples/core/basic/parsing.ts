@@ -1,9 +1,9 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
-import { parse, process } from '../../../packages/core';
+import { parse, process } from '../../../packages/corebak';
 
-import type { Element, Content, Warning, Node } from '../../../packages/core';
+import type { Element, Content, Warning, Node } from '../../../packages/corebak';
 
 // 解析文件
 async function parseFile(): Promise<void> {
