@@ -19,13 +19,11 @@
     ],
     "paths": {
       "@core/*": ["packages/core/src/*"],
-      "@corebak/*": ["packages/corebak/src/*"],
       "@prompt/*": ["packages/prompt/src/*"],
       "@agent/*": ["packages/agent/src/*"],
       "@workflow/*": ["packages/workflow/src/*"],
       "@testing/*": ["packages/testing/src/*"],
-      "@common/*": ["packages/common/src/*"],
-      "@cli/*": ["packages/cli/src/*"]
+      "@common/*": ["packages/common/src/*"]
     }
   },
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
