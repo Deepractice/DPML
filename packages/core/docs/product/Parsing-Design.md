@@ -59,6 +59,8 @@ DPML解析模块遵循项目的整体架构规则，采用分层设计：
 
 ### 4.1 数据类型设计
 
+#### 4.1.1 对外暴露的类型（types/目录）
+
 ```mermaid
 classDiagram
     class SourceLocation {
@@ -106,7 +108,12 @@ classDiagram
         +constructor(message, code, location)
     }
     note for ParseError "文件: types/ParseError.ts"
-    
+```
+
+#### 4.1.2 内部实现类型（core/parsing/types.ts）
+
+```mermaid
+classDiagram
     class XMLNode {
         <<interface>>
         +tag: string
@@ -115,7 +122,7 @@ classDiagram
         +content?: string
         +position?: XMLPosition
     }
-    note for XMLNode "文件: types/XMLNode.ts"
+    note for XMLNode "文件: core/parsing/types.ts"
     
     class XMLPosition {
         <<interface>>
@@ -124,21 +131,21 @@ classDiagram
         +offset?: number
         +length?: number
     }
-    note for XMLPosition "文件: types/XMLPosition.ts"
+    note for XMLPosition "文件: core/parsing/types.ts"
     
     class XMLOutput {
         <<interface>>
         +root: XMLNode
         +errors?: Array<{message: string, position?: XMLPosition}>
     }
-    note for XMLOutput "文件: types/XMLOutput.ts"
+    note for XMLOutput "文件: core/parsing/types.ts"
     
     class IXMLParser {
         <<interface>>
         +parse(content: string): XMLOutput
         +parseAsync(content: string): Promise<XMLOutput>
     }
-    note for IXMLParser "文件: types/IXMLParser.ts"
+    note for IXMLParser "文件: core/parsing/types.ts"
 ```
 
 #### 关键类型说明
@@ -148,10 +155,10 @@ classDiagram
 - **SourceLocation**：跟踪节点在源文件中的位置信息
 - **ParseOptions**：控制解析行为的选项
 - **ParseError**：表示解析过程中的错误，包含位置信息
-- **XMLNode**：XML节点的通用表示，用于内部转换
+- **XMLNode**：XML节点的内部表示，用于转换过程
 - **XMLPosition**：XML节点在源文件中的位置信息
-- **XMLOutput**：XML解析的结果输出
-- **IXMLParser**：XML解析器接口，定义解析能力
+- **XMLOutput**：XML解析的内部输出结构
+- **IXMLParser**：内部XML解析器接口，定义解析能力
 
 ### 4.2 适配器设计
 
@@ -247,13 +254,13 @@ classDiagram
 
 ```mermaid
 classDiagram
-    class parserAPI {
+    class parser {
         <<module>>
         +parse<T extends DPMLDocument = DPMLDocument>(content: string, options?: ParseOptions): T
         +parseFile<T extends DPMLDocument = DPMLDocument>(filePath: string, options?: ParseOptions): T
         +parseAsync<T extends DPMLDocument = DPMLDocument>(content: string, options?: ParseOptions): Promise<T>
     }
-    note for parserAPI "文件: api/parser.ts"
+    note for parser "文件: api/parser.ts"
 ```
 
 #### API职责
@@ -269,7 +276,7 @@ classDiagram
 ```mermaid
 classDiagram
     %% 依赖关系
-    parserAPI ..> parsingService : imports
+    parser ..> parsingService : imports
     parsingService ..> parsingManager : imports
     parsingManager ..> parserFactory : uses
     parsingManager ..> DPMLAdapter : uses
@@ -481,4 +488,173 @@ parseAsync<CustomDocument>('./large-document.dpml')
 
 DPML解析模块采用了清晰的分层架构和适配器设计模式，提供了高效、可靠且类型安全的解析能力。通过利用TypeScript的类型系统，特别是泛型，我们确保了API和内部实现的类型安全性，同时保持了灵活性。
 
-提供同步和异步API，以及详细的错误处理，满足了不同场景下的解析需求。架构设计符合DPML整体架构规则，具有良好的可扩展性，为未来功能演进提供了坚实基础。 
+提供同步和异步API，以及详细的错误处理，满足了不同场景下的解析需求。架构设计符合DPML整体架构规则，具有良好的可扩展性，为未来功能演进提供了坚实基础。
+
+## 11. 完整UML类图
+
+以下是解析模块的完整UML类图，符合DPML UML规范：
+
+```mermaid
+classDiagram
+    %% API层
+    class parser {
+        <<module>>
+        +parse<T extends DPMLDocument>(content: string, options?: ParseOptions): T
+        +parseFile<T extends DPMLDocument>(filePath: string, options?: ParseOptions): T
+        +parseAsync<T extends DPMLDocument>(content: string, options?: ParseOptions): Promise<T>
+    }
+    note for parser "文件: api/parser.ts"
+    
+    %% Service层
+    class parsingService {
+        <<module>>
+        +parse<T extends DPMLDocument>(content: string, options?: ParseOptions): T
+        +parseFile<T extends DPMLDocument>(filePath: string, options?: ParseOptions): T
+        +parseAsync<T extends DPMLDocument>(content: string, options?: ParseOptions): Promise<T>
+    }
+    note for parsingService "文件: core/parsingService.ts"
+    
+    %% Manager层
+    class parsingManager {
+        <<module>>
+        +parse<T extends DPMLDocument>(content: string, options?: ParseOptions): T
+        +parseFile<T extends DPMLDocument>(filePath: string, options?: ParseOptions): T
+        +parseAsync<T extends DPMLDocument>(content: string, options?: ParseOptions): Promise<T>
+    }
+    note for parsingManager "文件: core/parsing/parsingManager.ts"
+    
+    %% 工厂
+    class parserFactory {
+        <<factory>>
+        +createDPMLAdapter<T extends DPMLAdapter>(options?: ParseOptions): T
+        -createXMLAdapter<T extends XMLAdapter>(options?: ParseOptions): T
+    }
+    note for parserFactory "文件: core/parsing/parserFactory.ts"
+    
+    %% 业务类
+    class XMLAdapter {
+        <<class>>
+        -xmlParser: IXMLParser
+        -options: ParseOptions
+        +constructor(options: ParseOptions)
+        +parse<T extends XMLOutput>(content: string): T
+        -configureParser(): void
+    }
+    note for XMLAdapter "文件: core/parsing/XMLAdapter.ts"
+    
+    class DPMLAdapter {
+        <<class>>
+        -xmlAdapter: XMLAdapter
+        -options: ParseOptions
+        +constructor(options: ParseOptions, xmlAdapter: XMLAdapter)
+        +parse<T extends DPMLDocument>(content: string): T
+        -convertToDPML(xmlNode: XMLNode): DPMLNode
+        -buildNodeMap(document: DPMLDocument): Map<string, DPMLNode>
+        -createSourceLocation(position: XMLPosition): SourceLocation
+    }
+    note for DPMLAdapter "文件: core/parsing/DPMLAdapter.ts"
+    
+    %% 对外暴露的类型
+    class DPMLDocument {
+        <<interface>>
+        +readonly rootNode: DPMLNode
+        +readonly nodesById?: Map<string, DPMLNode>
+        +readonly metadata: DocumentMetadata
+    }
+    note for DPMLDocument "文件: types/DPMLDocument.ts"
+    
+    class DPMLNode {
+        <<interface>>
+        +readonly tagName: string
+        +readonly attributes: Map<string, string>
+        +readonly children: DPMLNode[]
+        +readonly content: string
+        +readonly parent: DPMLNode | null
+        +readonly sourceLocation?: SourceLocation
+    }
+    note for DPMLNode "文件: types/DPMLNode.ts"
+    
+    class SourceLocation {
+        <<interface>>
+        +readonly file?: string
+        +readonly line: number
+        +readonly column: number
+        +readonly length?: number
+    }
+    note for SourceLocation "文件: types/SourceLocation.ts"
+    
+    class ParseOptions {
+        <<interface>>
+        +validateOnParse?: boolean
+        +throwOnError?: boolean
+        +fileName?: string
+        +xmlParserOptions?: XMLParserOptions
+    }
+    note for ParseOptions "文件: types/ParseOptions.ts"
+    
+    class ParseError {
+        <<class>>
+        +message: string
+        +code: string
+        +location: SourceLocation
+        +constructor(message, code, location)
+    }
+    note for ParseError "文件: types/ParseError.ts"
+    
+    %% 内部实现类型
+    class XMLNode {
+        <<interface>>
+        +tag: string
+        +attributes?: Record<string, string>
+        +children?: XMLNode[]
+        +content?: string
+        +position?: XMLPosition
+    }
+    note for XMLNode "文件: core/parsing/types.ts"
+    
+    class XMLPosition {
+        <<interface>>
+        +line: number
+        +column: number
+        +offset?: number
+        +length?: number
+    }
+    note for XMLPosition "文件: core/parsing/types.ts"
+    
+    class XMLOutput {
+        <<interface>>
+        +root: XMLNode
+        +errors?: Array<{message: string, position?: XMLPosition}>
+    }
+    note for XMLOutput "文件: core/parsing/types.ts"
+    
+    class IXMLParser {
+        <<interface>>
+        +parse(content: string): XMLOutput
+        +parseAsync(content: string): Promise<XMLOutput>
+    }
+    note for IXMLParser "文件: core/parsing/types.ts"
+    
+    %% 定义关系
+    parser --> parsingService : uses
+    parsingService --> parsingManager : uses
+    parsingManager --> parserFactory : creates adapters
+    parserFactory ..> DPMLAdapter : creates
+    parserFactory ..> XMLAdapter : creates
+    DPMLAdapter --> XMLAdapter : uses
+    XMLAdapter --> IXMLParser : uses
+    
+    parsingManager ..> DPMLDocument : returns
+    DPMLAdapter ..> DPMLDocument : returns
+    DPMLAdapter ..> DPMLNode : creates
+    DPMLAdapter ..> SourceLocation : creates
+    DPMLAdapter ..> ParseError : throws
+    XMLAdapter ..> ParseError : throws
+    XMLAdapter ..> XMLOutput : returns
+    
+    DPMLDocument o-- DPMLNode : contains
+    DPMLNode o-- DPMLNode : parent-child
+    DPMLNode o-- SourceLocation : references
+    XMLOutput o-- XMLNode : contains
+    XMLNode o-- XMLPosition : references
+``` 

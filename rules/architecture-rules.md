@@ -256,6 +256,58 @@ export function getTagDefinition(tagName: string) {
 - **简化测试**：API层测试可以专注于接口契约而非复杂逻辑
 - **便于重构**：内部实现变化时，API层通常不需要修改
 
+#### 1.8.1 状态管理API的设计
+
+对于需要维护状态的API场景（如创建实例并在其上调用方法），推荐使用闭包模式保持API层的薄层特性，同时有效管理内部状态：
+
+```typescript
+// 正确示例 - 闭包模式管理状态
+// api/processor.ts
+export function createProcessor(config) {
+  // 委托给Service层创建和管理内部状态
+  const processorState = processorService.initializeProcessor(config);
+  
+  // 返回API对象，通过闭包捕获状态
+  return {
+    process: (content) => processorService.processContent(content, processorState),
+    validate: (schema) => processorService.validateWithState(schema, processorState),
+    dispose: () => processorService.cleanupProcessor(processorState)
+  };
+}
+
+// 错误示例 - 在API层创建和管理状态
+export function createProcessor(config) {
+  // 错误：API层不应直接处理复杂状态逻辑
+  const state = {
+    cache: new Map(),
+    options: { ...config, validateOnProcess: true },
+    validator: new Validator()
+  };
+  
+  return {
+    process: (content) => {
+      // 错误：在API层实现业务逻辑
+      if (state.options.validateOnProcess) {
+        state.validator.validate(content);
+      }
+      const result = parseContent(content);
+      state.cache.set(content, result);
+      return result;
+    },
+    // ...其他方法
+  };
+}
+```
+
+闭包模式的优势：
+- **保持API简洁**：对外仍然是函数接口，符合函数式API设计理念
+- **内部OOP，外部函数式**：允许内部使用面向对象设计，而外部提供函数式接口
+- **状态封装**：状态被封装在闭包中，不会泄露给外部
+- **依然是薄层**：API层仍然只负责委托，不包含复杂逻辑
+- **灵活性**：支持实例化、状态管理等复杂场景，同时保持架构一致性
+
+对于需要多步骤操作或复杂状态管理的场景，闭包模式是推荐的解决方案，它既符合DPML架构的薄层API设计原则，又能满足实际业务需求。
+
 ## 2. 数据类型设计规范
 
 ### 2.1 目录与文件组织
@@ -308,6 +360,46 @@ export interface DPMLNode {
   appendChild(child: DPMLNode): void;        // 错误：包含方法
 }
 ```
+
+#### 2.3.1 特殊类型处理原则
+
+虽然`types/`目录主要存放纯数据结构的接口和类型定义，但以下特殊类型是允许的例外：
+
+- **错误类**：API相关的错误类可以存放在`types/`目录中，包含必要的构造函数和属性
+- **枚举类型**：表示固定选项集的枚举可以存放在`types/`目录中
+- **常量类型**：与API相关的常量和字面量类型可以存放在`types/`目录中
+
+```typescript
+// 正确示例 - 错误类
+export class ParseError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+    public readonly location: SourceLocation
+  ) {
+    super(message);
+    this.name = 'ParseError';
+  }
+}
+
+// 正确示例 - 枚举类型
+export enum DocumentType {
+  XML,
+  JSON,
+  YAML
+}
+
+// 正确示例 - 常量类型
+export const NodeTypes = {
+  ELEMENT: 'element',
+  TEXT: 'text',
+  COMMENT: 'comment'
+} as const;
+
+export type NodeType = typeof NodeTypes[keyof typeof NodeTypes];
+```
+
+这些特殊类型虽然不是纯接口定义，但它们仍然是API契约的重要组成部分，需要对外暴露给使用者。同时，这些类型不应包含复杂的业务逻辑或状态管理，保持其数据描述的主要职责。
 
 ### 2.4 类型组织原则
 
@@ -1179,38 +1271,19 @@ Service层作为core内部实现的关键组成部分，连接Manager模块与AP
 
 #### 3.10.2 Service层组织原则
 
+- **直接放置在core目录下**：Service层文件必须直接放置在core目录下，而非业务领域目录内
 - **按业务领域划分**：每个业务领域应有对应的Service模块
-- **命名规范**：文件名使用大驼峰命名法，以`Service`结尾，如`DocumentService.ts`、`ParserService.ts`
+- **命名规范**：文件名必须使用小驼峰命名法，以`service`结尾，如`parserService.ts`、`documentService.ts`
 - **保持轻量**：不应包含复杂业务逻辑，主要职责是重新导出和组织Manager层函数
 - **一致性**：所有Manager功能应统一通过Service层暴露，API层不应直接导出Manager函数
 
-```typescript
-// core/document/DocumentService.ts - 正确示例
-/**
- * 文档服务
- * 提供文档和节点操作的服务
- */
-export {
-  createDocument,
-  cloneDocument,
-  findNodeById,
-  querySelector
-} from './documentManager';
-
-// 同时聚合多个Manager的功能
-export {
-  validateDocument
-} from '../validation/validationManager';
-
-// api/document.ts - 正确示例
-export * from '../core/document/DocumentService';
-
-// api/document.ts - 错误示例
-// 错误：API层直接从Manager导出，绕过Service层
-import {
-  createDocument,
-  findNodeById
-} from '../core/document/documentManager';
+```
+core/
+  parsing/                 
+    Parser.ts              # 业务类
+    parsingManager.ts      # Manager层
+  parserService.ts         # Service层(直接放在core目录下)
+  documentService.ts       # Service层(直接放在core目录下)
 ```
 
 #### 3.10.3 与其他层的关系
@@ -1239,9 +1312,9 @@ Service层是处理错误的关键环节，负责将内部错误转换为对外�
 4. **错误传递**：API层直接传递Service层的错误，不做额外处理
 
 ```typescript
-// Service层统一错误处理示例 - core/parsing/ParserService.ts
-import { parse as internalParse } from './parsingManager';
-import { DPMLDocument, ParserError } from '../../types';
+// Service层统一错误处理示例 - core/parserService.ts
+import { parse as internalParse } from './parsing/parsingManager';
+import { DPMLDocument, ParserError } from './types';
 
 export function parse(content: string): DPMLDocument {
   try {
@@ -1421,8 +1494,8 @@ DPML架构分为两个主要部分：
 export * from '../core/parsing/ParserService';
 
 // Service层 - core/parsing/ParserService.ts
-export { parse, parseFile } from './parsingManager';
-export { validateSyntax } from '../validation/validationManager';
+export { parse, parseFile } from './parsing/parsingManager';
+export { validateSyntax } from './validation/validationManager';
 ```
 
 #### Service层 vs Manager层
@@ -1432,8 +1505,8 @@ export { validateSyntax } from '../validation/validationManager';
 
 ```typescript
 // Service层 - core/document/DocumentService.ts
-export { createDocument, findNodeById } from './documentManager';
-export { validateDocument } from '../validation/validationManager';
+export { createDocument, findNodeById } from './document/documentManager';
+export { validateDocument } from './validation/validationManager';
 
 // Manager层 - core/document/documentManager.ts
 import { DocumentFactory } from './DocumentFactory';
@@ -1606,43 +1679,13 @@ describe('parsingManager单元测试', () => {
 
 这种测试策略确保测试资源集中在最有价值的部分，避免为测试而测试，同时保障整个架构的稳定性和可靠性。
 
-## 6. 架构应用与歧义解决
+## 6. 高级架构指南
 
-为消除实施过程中的潜在歧义，本章节提供补充指南和决策框架。
+本章节提供补充指南和决策框架，帮助解决架构实施过程中的常见问题和特殊场景。
 
-### 6.1 架构结构调整说明
+### 6.1 Service层与Manager层界限
 
-#### 6.1.1 Service层位置调整
-
-与原文档描述不同，Service层文件应直接放置在core目录下，而非业务领域目录内：
-
-```
-core/
-  parsing/                 
-    Parser.ts              # 业务类
-    parsingManager.ts      # Manager层
-  parserService.ts         # Service层(直接放在core目录下)
-  documentService.ts       # Service层(直接放在core目录下)
-```
-
-这种调整有以下优势：
-- 更好地体现Service作为跨领域聚合层的架构定位
-- 通过目录结构直接反映架构层次，更加直观
-- 避免在领域目录中混合不同层次的组件
-- 更符合DDD中应用服务层的概念定位
-
-#### 6.1.2 Service层命名规范修正
-
-Service层文件应使用小驼峰命名法，而非之前描述的大驼峰命名法：
-
-- **正确**：`parserService.ts`、`documentService.ts`
-- **错误**：`ParserService.ts`、`DocumentService.ts`
-
-原因是Service不是类而是功能模块(包含导出语句的文件)，应按照TypeScript模块命名惯例使用小驼峰。
-
-### 6.2 Service层与Manager层界限明确化
-
-#### 6.2.1 决策树判断
+#### 6.1.1 决策树判断
 
 ```
 开始 → 是否只包含导出语句和简单组合？
@@ -1656,7 +1699,7 @@ Service层文件应使用小驼峰命名法，而非之前描述的大驼峰命�
             └── 否 → 工具函数
 ```
 
-#### 6.2.2 层次职责澄清
+#### 6.1.2 层次职责区分
 
 | 层次 | 主要职责 | 位置 | 命名规范 | DDD对应 |
 |------|---------|------|---------|---------|
@@ -1664,47 +1707,49 @@ Service层文件应使用小驼峰命名法，而非之前描述的大驼峰命�
 | **Service层** | 跨域功能聚合，统一错误处理 | `/core` | 小驼峰+service<br>如`parserService.ts` | 应用服务层 |
 | **Manager层** | 业务逻辑实现，组件协调 | `/core/[domain]` | 小驼峰+Manager<br>如`parsingManager.ts` | 领域服务层 |
 
-#### 6.2.3 边界案例示例
+#### 6.1.3 典型示例
 
 ```typescript
-// Service层示例 - 跨域功能聚合，放在core目录
-// core/documentService.ts
-import { findNodeById } from './document/documentManager';
-import { validateNode } from './validation/validationManager';
+// API层 vs Service层
 
-// 跨域功能聚合
-export function findAndValidateNode(doc, id) {
-  const node = findNodeById(doc, id);
-  if (!node) return null;
-  return { node, isValid: validateNode(node) };
-}
+// API层 - api/parser.ts
+export * from '../core/parserService';
 
-// 直接重导出
-export { findNodeById } from './document/documentManager';
-export { createDocument } from './document/documentFactory';
+// Service层 - core/parserService.ts
+export { parse, parseFile } from './parsing/parsingManager';
+export { validateSyntax } from './validation/validationManager';
 
-// Manager层示例 - 单域业务逻辑实现
-// core/document/documentManager.ts
+// Service层 vs Manager层
+
+// Service层 - core/documentService.ts
+export { createDocument, findNodeById } from './document/documentManager';
+export { validateDocument } from './validation/validationManager';
+
+// Manager层 - core/document/documentManager.ts
 import { DocumentFactory } from './DocumentFactory';
 import { NodeRegistry } from '../registry/NodeRegistry';
 
+export function createDocument() {
+  const factory = new DocumentFactory();
+  return factory.create();
+}
+
 export function findNodeById(doc, id) {
-  // 具体业务逻辑实现
-  // ...
+  // 实现业务逻辑
 }
 ```
 
-### 6.3 内部服务类与业务类区分指南
+### 6.2 内部服务类与业务类区分
 
-#### 6.3.1 混合类型处理准则
+#### 6.2.1 组件类型判断准则
 
-当组件同时具备内部服务类和业务类特性时，按以下优先级判断：
+组件类型应基于其主导特性和主要职责进行判断：
 
 1. **主要职责原则**：评估类的主要职责是状态管理还是业务功能
-2. **状态共享程度**：需要全局共享状态的优先视为内部服务类
-3. **实例化模式**：设计为单例的通常应视为内部服务类
+2. **状态共享程度**：需要全局共享状态的应归类为内部服务类
+3. **实例化模式**：设计为单例的通常应归类为内部服务类
 
-#### 6.3.2 决策流程图
+#### 6.2.2 决策流程图
 
 ```
 开始 → 是否需要管理共享状态？
@@ -1718,27 +1763,17 @@ export function findNodeById(doc, id) {
             └── 否 → 重新评估组件职责
 ```
 
-#### 6.3.3 混合职责重构指南
+#### 6.2.3 职责分离模式
 
-识别到混合职责的类时，考虑以下重构方法：
+当组件同时具备多种职责时，应采用以下分离模式：
 - 提取状态管理到专用内部服务类
 - 将业务逻辑移至业务类
 - 通过依赖注入建立两者关系
 
 ```typescript
-// 重构前 - 混合职责
-class TagProcessor {
-  private static instance: TagProcessor;
-  private tags = new Map();
-  
-  static getInstance() { /* 单例逻辑 */ }
-  
-  registerTag(tag) { /* 状态管理 */ }
-  processTag(tag) { /* 业务逻辑 */ }
-}
+// 职责分离示例
 
-// 重构后 - 职责分离
-// 内部服务类
+// 内部服务类 - 管理共享状态
 class TagRegistry {
   private static instance: TagRegistry;
   private tags = new Map();
@@ -1748,22 +1783,22 @@ class TagRegistry {
   getTag(name) { /* 状态访问 */ }
 }
 
-// 业务类
+// 业务类 - 实现业务功能
 class TagProcessor {
   constructor(private registry: TagRegistry) {}
   processTag(tag) { /* 业务逻辑 */ }
 }
 ```
 
-### 6.4 API委托原则与渐进式API暴露的统一
+### 6.3 API设计指南
 
-#### 6.4.1 "薄层"概念澄清
+#### 6.3.1 薄层API实践
 
-"薄层"特指每个API函数的逻辑复杂度，而非API的数量或粒度：
-- API函数可以有多种粒度和数量，但每个函数都应避免包含复杂业务逻辑
-- 随项目发展API数量可增加，但每个API本身应保持"薄"的特性
+API层的"薄层"概念指每个API函数的复杂度，而非API的数量或粒度：
+- API函数可以有多种粒度和数量，但每个函数都必须避免包含复杂业务逻辑
+- 随项目发展API数量可增加，但每个API本身必须保持"薄"的特性
 
-#### 6.4.2 API演进决策矩阵
+#### 6.3.2 API演进策略
 
 | 项目阶段 | API复杂度策略 | API数量策略 | 委托方式 |
 |---------|------------|------------|---------|
@@ -1771,32 +1806,31 @@ class TagProcessor {
 | 成长阶段 | 保持简单+有选择性暴露底层 | 按需增加 | 可能组合多个Service |
 | 成熟阶段 | 多层次API体系 | 完整覆盖 | 复杂委托关系 |
 
-#### 6.4.3 平衡原则
+#### 6.3.3 API设计原则
 
-1. **包装而非实现**：API层可以包装和组合Service层功能，但不应实现业务逻辑
-2. **组合不违反薄层**：多个Service功能的简单组合不视为违反薄层原则
+1. **包装而非实现**：API层可以包装和组合Service层功能，但不得实现业务逻辑
+2. **组合不违反薄层**：多个Service功能的简单组合不违反薄层原则
 3. **参数转换是允许的**：API层可进行简单参数转换和默认值设置
 
-### 6.5 目录结构约束的灵活应用
+### 6.4 目录结构应用指南
 
-#### 6.5.1 允许例外的场景
+#### 6.4.1 目录结构特殊场景
 
-二级目录结构限制的例外情况：
+二级目录结构限制的特殊处理场景：
 
-1. **测试目录**：`__tests__`目录可以有更深的嵌套以匹配源代码结构
-2. **生成的代码**：自动生成的代码可以有自己的目录结构
-3. **第三方集成**：与第三方系统集成的适配器可以有独立的子目录
-4. **大型模块拆分**：当单个模块代码量超过一定阈值(如5000行)时
+1. **测试目录**：`__tests__`目录允许有更深的嵌套以匹配源代码结构
+2. **生成的代码**：自动生成的代码允许有自己的目录结构
+3. **第三方集成**：与第三方系统集成的适配器允许有独立的子目录
+4. **大型模块拆分**：当单个模块代码量超过一定阈值(如5000行)时允许进一步拆分
 
-#### 6.5.2 大型项目的组织替代方案
+#### 6.4.2 大型项目组织策略
 
-当项目增长超出两级目录结构的合理管理范围时：
+大型项目组织策略包括：
 
 1. **水平拆分**：将大型域拆分为多个平行小域
    ```
-   // 替代深层嵌套
    core/
-     parsing/            // 变为多个平行目录
+     parsing/            // 拆分为多个平行目录
      parsing-xml/
      parsing-json/
      parsing-custom/
@@ -1818,9 +1852,9 @@ class TagProcessor {
      json.parser.ts
    ```
 
-### 6.6 测试策略明确化
+### 6.5 测试策略指南
 
-#### 6.6.1 组件对应测试策略矩阵
+#### 6.5.1 组件测试策略
 
 | 组件类型 | 主要测试方法 | 测试重点 | 测试示例 |
 |---------|------------|----------|---------|
@@ -1830,7 +1864,7 @@ class TagProcessor {
 | 业务类 | 单元测试 | 功能实现正确性 | 隔离测试每个方法行为 |
 | 内部服务类 | 单元测试+状态测试 | 状态管理正确性 | 测试状态变化和并发行为 |
 
-#### 6.6.2 Service层测试示例
+#### 6.5.2 测试示例
 
 ```typescript
 // Service层集成测试示例
@@ -1845,13 +1879,11 @@ describe('documentService', () => {
 });
 ```
 
-### 6.7 统一异常处理架构
+### 6.6 错误处理架构
 
-为弥补文档中异常处理架构的不足，增加以下补充设计：
+#### 6.6.1 错误分类体系
 
-#### 6.7.1 错误分类体系
-
-建立清晰的错误类型继承层次：
+项目应建立清晰的错误类型继承层次：
 
 ```typescript
 // 基础错误类
@@ -1889,7 +1921,7 @@ export class ValidationError extends DPMLError {
 // 更多特定错误类型...
 ```
 
-#### 6.7.2 错误处理责任分配
+#### 6.6.2 错误处理责任分配
 
 | 层次 | 错误处理职责 |
 |------|------------|
@@ -1898,7 +1930,7 @@ export class ValidationError extends DPMLError {
 | Manager层 | 捕获业务类错误，添加业务上下文，可能重新抛出 |
 | 业务类 | 抛出具体操作错误，附带详细上下文 |
 
-#### 6.7.3 Service层统一错误处理示例
+#### 6.6.3 错误处理最佳实践
 
 ```typescript
 // core/parserService.ts
@@ -1923,17 +1955,3 @@ export function parse(content: string): DPMLDocument {
 }
 ```
 
-### 6.8 架构规则的灵活应用
-
-#### 6.8.1 主导特性原则
-
-组件分类基于其主导特性，而非要求完全符合所有特性：
-- 一个组件可能具有次要特性，但应基于其主要职责进行分类
-- 识别组件的主导特性(如状态管理、业务逻辑、数据传输)做出判断
-
-#### 6.8.2 架构适应性原则
-
-1. **目标导向**：架构规则服务于代码质量和可维护性，而非相反
-2. **合理变通**：在合理情况下可灵活应用规则，但需文档说明
-3. **渐进改进**：允许代码随项目演进逐步符合架构规则
-4. **异常处理**：特殊情况应通过团队评审决定，并记录决策理由
