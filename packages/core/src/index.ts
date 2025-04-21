@@ -1,10 +1,10 @@
 /**
- * DPML Core 包主入口文件
+ * DPML Core 主入口
+ * 导出所有公共API和类型
  */
 
-// 导出公共API
-export * from './api/ParserService';
-export * from './api/TagRegistryService';
+// 导出API
+export * from './api';
 
-// 导出公共类型
+// 导出类型
 export * from './types';
