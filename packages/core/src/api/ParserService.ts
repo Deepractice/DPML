@@ -3,7 +3,24 @@
  * 提供解析DPML文档的API
  */
 
+import { Parser } from '../core/parser/Parser';
 import type { DPMLDocument, ParserOptions, TagRegistry } from '../types';
+
+// 创建默认解析器实例
+// 使用单例模式，确保全局只有一个解析器实例
+let defaultParser: Parser | null = null;
+
+/**
+ * 获取默认解析器实例
+ * @returns 默认解析器实例
+ */
+function getDefaultParser(): Parser {
+  if (!defaultParser) {
+    defaultParser = new Parser();
+  }
+
+  return defaultParser;
+}
 
 /**
  * 解析DPML文本内容
@@ -12,8 +29,7 @@ import type { DPMLDocument, ParserOptions, TagRegistry } from '../types';
  * @returns 解析后的文档对象
  */
 export function parse(content: string, options?: ParserOptions): DPMLDocument {
-  // 实现将在TDD过程中完成
-  throw new Error('解析功能尚未实现');
+  return getDefaultParser().parse(content, options);
 }
 
 /**
@@ -26,8 +42,7 @@ export async function parseFile(
   path: string,
   options?: ParserOptions
 ): Promise<DPMLDocument> {
-  // 实现将在TDD过程中完成
-  throw new Error('文件解析功能尚未实现');
+  return getDefaultParser().parseFile(path, options);
 }
 
 /**
@@ -42,6 +57,16 @@ export function parseWithRegistry(
   options?: ParserOptions,
   registry?: TagRegistry
 ): DPMLDocument {
-  // 实现将在TDD过程中完成
-  throw new Error('使用自定义注册表解析功能尚未实现');
+  const parser = new Parser(registry);
+
+  return parser.parse(content, options);
+}
+
+/**
+ * 验证DPML文档
+ * @param document DPML文档
+ * @returns 验证结果
+ */
+export function validateDocument(document: DPMLDocument): boolean {
+  return getDefaultParser().validateDocument(document);
 }
