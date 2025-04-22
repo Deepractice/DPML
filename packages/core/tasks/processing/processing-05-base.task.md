@@ -53,21 +53,20 @@
 
 ---
 
-## 实现处理服务(ProcessingService)类
+## 完善处理服务(processingService)模块
 
 **目标(O)**:
-- 设计并实现`ProcessingService`类，作为处理模块的核心服务层
-- 协调验证器和引用映射构建，提供统一的文档处理入口
+- 完善 `processingService.ts` 模块，作为处理模块的核心服务层
+- 增强 `processDocument` 函数，协调验证器和引用映射构建，提供统一的文档处理入口
 - 支持类型安全的泛型扩展，允许自定义处理结果
 - 实现处理上下文、验证结果和引用映射的集成
 
 **环境(E)**:
 - **代码相关**:
-  - 创建文件: `packages/core/src/core/processing/ProcessingService.ts`
+  - 完善文件: `packages/core/src/core/processing/processingService.ts`
   - 依赖组件: 
     - `packages/core/src/core/processing/DocumentValidator.ts`
     - `packages/core/src/core/processing/ValidatorFactory.ts`
-    - `packages/core/src/core/processing/ReferenceMapBuilder.ts`
   - 相关类型定义:
     - `packages/core/src/types/ProcessingResult.ts`
     - `packages/core/src/types/ValidationResult.ts`
@@ -75,39 +74,45 @@
     - `packages/core/src/types/ProcessingContext.ts`
   - 需实现的核心方法:
     ```typescript
-    processDocument<T extends ProcessingResult = ProcessingResult>(document: DPMLDocument, schema: ProcessedSchema): T
+    function processDocument<T extends ProcessingResult = ProcessingResult>(
+      document: DPMLDocument, 
+      schema: ProcessedSchema
+    ): T
     ```
 
 - **测试相关**:
-  - 测试文件: `packages/core/src/__tests__/unit/core/processing/ProcessingService.test.ts`
+  - 测试文件: `packages/core/src/__tests__/unit/core/processing/processingService.test.ts`
   - 关键测试用例:
     - UT-PROCSRV-01: processDocument应返回正确结构的结果
     - UT-PROCSRV-02: processDocument应正确构建ID引用映射
     - UT-PROCSRV-03: processDocument应支持自定义结果类型
+    - UT-PROCSRV-04: buildIdMap应正确构建ID到节点的映射
+    - UT-PROCSRV-05: buildIdMap应处理重复ID
+    - UT-PROCSRV-06: buildIdMap应忽略无ID节点
 
 - **实现要点**:
-  - 实现`ProcessingService`类，作为处理流程的协调中心
-  - 通过`ValidatorFactory`创建验证器实例
+  - 完善 `processingService.ts` 函数式模块，作为处理流程的协调中心
+  - 通过 `ValidatorFactory` 创建验证器实例
   - 使用验证器执行文档验证
-  - 使用`ReferenceMapBuilder`构建引用映射
+  - 使用已实现的 `buildIdMap` 构建引用映射
   - 集成处理上下文、验证结果和引用映射，构建完整的处理结果
   - 支持通过泛型扩展处理结果类型
 
 - **注意事项**:
-  - 保持类的职责单一，专注于协调和集成
+  - 保持函数式编程风格，专注于功能的纯粹性
   - 确保类型安全，特别是泛型扩展部分
   - 使用不可变数据结构处理结果
   - 考虑异常处理和错误传播
-  - 采用依赖注入模式，便于单元测试
+  - 遵循函数式依赖注入模式，便于单元测试
 
 **成功标准(S)**:
 - **基础达标**:
-  - ProcessingService类完整实现
-  - 单元测试用例UT-PROCSRV-01至03通过
+  - `processingService.ts` 模块完整实现
+  - 单元测试用例UT-PROCSRV-01至06全部通过
   - 能够正确处理基本文档并返回期望的结果
   
 - **预期品质**:
-  - 代码符合DPML项目的TypeScript编码规范
+  - 代码符合DPML项目的TypeScript编码规范和函数式编程风格
   - 类型安全的实现，特别是泛型部分
   - 良好的组件协调和错误处理
   - 使用不可变数据结构确保结果安全

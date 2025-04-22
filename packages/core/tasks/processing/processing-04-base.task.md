@@ -53,41 +53,41 @@
 
 ---
 
-## 实现引用映射(ReferenceMap)功能
+## 实现引用映射功能
 
 **目标(O)**:
-- 实现引用映射功能，建立文档内ID到节点的映射关系
-- 设计`ReferenceMapBuilder`类，负责构建引用映射
+- 在 `processingService.ts` 中实现引用映射功能，建立文档内ID到节点的映射关系
+- 实现 `buildIdMap` 方法，提供高效的ID到节点查询
 - 确保引用映射的类型安全和不可变性
 - 为文档内引用查询提供高效接口
 
 **环境(E)**:
 - **代码相关**:
-  - 创建文件: `packages/core/src/core/processing/ReferenceMapBuilder.ts`
+  - 修改文件: `packages/core/src/core/processing/processingService.ts`
   - 相关类型定义: 
     - `packages/core/src/types/ReferenceMap.ts` - 包含`ReferenceMap`接口定义
     - `packages/core/src/types/DPMLDocument.ts`
     - `packages/core/src/types/DPMLNode.ts`
   - 需实现的核心方法:
     ```typescript
-    buildReferenceMap(document: DPMLDocument): ReferenceMap
-    buildIdMap(document: DPMLDocument): ReadonlyMap<string, DPMLNode>
+    // 在processingService.ts中
+    function buildIdMap(document: DPMLDocument): ReadonlyMap<string, DPMLNode>
     ```
 
 - **测试相关**:
   - 核心测试集中在`ProcessingService`类的测试中:
-    - `packages/core/src/__tests__/unit/core/processing/ProcessingService.test.ts`
+    - `packages/core/src/__tests__/unit/core/processing/processingService.test.ts`
   - 关键测试用例:
     - UT-PROCSRV-04: buildIdMap应正确构建ID到节点的映射
     - UT-PROCSRV-05: buildIdMap应处理重复ID
     - UT-PROCSRV-06: buildIdMap应忽略无ID节点
 
 - **实现要点**:
-  - 设计`ReferenceMapBuilder`类作为引用映射的专职构建器
   - 实现深度优先的文档树遍历算法，收集所有带ID的节点
   - 使用`ReadonlyMap`确保映射的不可变性
   - 适当处理重复ID的情况
   - 实现高效的引用查找
+  - 确保与 `processDocument` 方法正确集成
 
 - **注意事项**:
   - 处理可能的重复ID情况，记录并采取适当策略
@@ -97,7 +97,7 @@
 
 **成功标准(S)**:
 - **基础达标**:
-  - ReferenceMapBuilder类完整实现
+  - `processingService.ts` 中完整实现引用映射功能
   - 相关测试用例UT-PROCSRV-04至06通过
   - 能够正确构建基本文档的ID映射
   
