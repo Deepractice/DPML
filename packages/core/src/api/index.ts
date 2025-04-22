@@ -4,3 +4,6 @@
  */
 
 export * from './parser';
+export * from './processing';
+export * from './schema';
+export * from './transformer';

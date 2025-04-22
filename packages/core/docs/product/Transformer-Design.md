@@ -59,11 +59,11 @@
 
 DPML转换模块遵循项目的整体架构规则，采用分层设计：
 
-1. **API层** - 对外暴露转换功能和转换器注册能力
-2. **Service层** - 组织转换服务
-3. **Manager层** - 管理转换流程和转换器注册
-4. **业务层** - 实现具体转换逻辑
-5. **数据类型层** - 定义转换相关的数据结构
+1. **API层** - 对外暴露转换功能和转换器注册能力，作为薄层委托Core层功能
+2. **Types层** - 定义转换相关的数据结构，保持纯数据类型定义
+3. **Core层** - 包含所有内部实现，主要分为：
+   - **模块服务层** - 提供业务功能，实现转换服务，协调领域组件
+   - **业务实现层** - 实现具体转换逻辑和组件
 
 整体架构如下：
 
@@ -74,24 +74,22 @@ DPML转换模块遵循项目的整体架构规则，采用分层设计：
 └───────────────────────────────┬───────────────────────────────┘
                                │
 ┌───────────────────────────────┴───────────────────────────────┐
-│                         Service层                             │
-│              组织和重导出Manager层的转换服务                     │
+│                         Types层                               │
+│            转换相关的数据类型和接口定义                          │
 └───────────────────────────────┬───────────────────────────────┘
                                │
 ┌───────────────────────────────┴───────────────────────────────┐
-│                         Manager层                             │
-│              协调Pipeline, Registry和转换器工厂                  │
-└─┬─────────────────────┬────────────────────┬─────────────────┬─┘
-  │                     │                    │                 │
-┌─┴──────────┐   ┌──────┴─────────┐   ┌──────┴─────────┐ ┌─────┴─────┐
-│ Pipeline   │   │ Registry       │   │ Factory        │ │ 其他业务层 │
-└────────────┘   └────────────────┘   └────────────────┘ └───────────┘
-       │                 │                    │
-       │                 │                    │
-┌──────┴─────────────────┴────────────────────┴─────────────────────┐
-│                        转换器实现                                   │
-│  StructuralMapper, Aggregator, Template, RelationProcessor...    │
-└───────────────────────────────────────────────────────────────────┘
+│                         Core层                                │
+│  ┌────────────────────────────────────────────────────────┐   │
+│  │               transformerService (模块服务)             │   │
+│  │           实现业务逻辑，协调转换流程和转换器注册             │   │
+│  └──────────┬─────────────────┬───────────────────────────┘   │
+│             │                 │                               │
+│  ┌──────────▼─────────┐  ┌────▼─────────────────────────┐     │
+│  │    Pipeline        │  │    转换器实现                 │     │
+│  │  (业务类/协调组件)   │  │  (执行组件/业务类)             │     │
+│  └────────────────────┘  └──────────────────────────────┘     │
+└───────────────────────────────────────────────────────────────┘
 ```
 
 ## 4. 组件设计
@@ -177,7 +175,7 @@ classDiagram
     note for Pipeline "文件: core/transformer/Pipeline.ts"
 ```
 
-Pipeline是转换过程的核心协调器，负责：
+Pipeline是一个**协调组件**，负责：
 - 管理转换器链
 - 顺序执行转换器
 - 在转换器之间传递数据和上下文
@@ -202,7 +200,7 @@ classDiagram
     note for transformerRegistryFactory "文件: core/transformer/transformerRegistryFactory.ts"
 ```
 
-TransformerRegistry负责：
+TransformerRegistry是一个**状态管理组件**，负责：
 - 存储已注册的转换器
 - 提供添加和获取转换器的接口
 - 作为全局注册表供转换过程使用
@@ -221,7 +219,7 @@ classDiagram
         +constructor(mappingRules: Array<MappingRule<unknown, unknown>>)
         +transform(input: TInput, context: TransformContext): TOutput
     }
-    note for StructuralMapperTransformer "文件: core/transformer/transformers/StructuralMapperTransformer.ts"
+    note for StructuralMapperTransformer "文件: core/transformer/StructuralMapperTransformer.ts"
     
     class AggregatorTransformer~TInput, TOutput~ {
         <<class>>
@@ -232,7 +230,7 @@ classDiagram
         +constructor(collectorConfig: CollectorConfig)
         +transform(input: TInput, context: TransformContext): TOutput
     }
-    note for AggregatorTransformer "文件: core/transformer/transformers/AggregatorTransformer.ts"
+    note for AggregatorTransformer "文件: core/transformer/AggregatorTransformer.ts"
     
     class TemplateTransformer~TInput~ {
         <<class>>
@@ -244,7 +242,7 @@ classDiagram
         +constructor(template: string | ((data: unknown) => string), dataPreprocessor?: (input: TInput) => unknown)
         +transform(input: TInput, context: TransformContext): string
     }
-    note for TemplateTransformer "文件: core/transformer/transformers/TemplateTransformer.ts"
+    note for TemplateTransformer "文件: core/transformer/TemplateTransformer.ts"
     
     class RelationProcessorTransformer~TInput, TOutput~ {
         <<class>>
@@ -256,7 +254,7 @@ classDiagram
         +constructor(nodeSelector: string, relationConfig: RelationConfig)
         +transform(input: TInput, context: TransformContext): TOutput
     }
-    note for RelationProcessorTransformer "文件: core/transformer/transformers/RelationProcessorTransformer.ts"
+    note for RelationProcessorTransformer "文件: core/transformer/RelationProcessorTransformer.ts"
     
     class SemanticExtractorTransformer~TInput, TOutput~ {
         <<class>>
@@ -267,7 +265,7 @@ classDiagram
         +constructor(extractors: Array<SemanticExtractor<unknown, unknown>>)
         +transform(input: TInput, context: TransformContext): TOutput
     }
-    note for SemanticExtractorTransformer "文件: core/transformer/transformers/SemanticExtractorTransformer.ts"
+    note for SemanticExtractorTransformer "文件: core/transformer/SemanticExtractorTransformer.ts"
 
     class ResultCollectorTransformer~TOutput~ {
         <<class>>
@@ -278,7 +276,7 @@ classDiagram
         +constructor(transformerNames?: string[])
         +transform(input: unknown, context: TransformContext): TOutput
     }
-    note for ResultCollectorTransformer "文件: core/transformer/transformers/ResultCollectorTransformer.ts"
+    note for ResultCollectorTransformer "文件: core/transformer/ResultCollectorTransformer.ts"
     
     class Transformer~TInput, TOutput~ {
         <<interface>>
@@ -303,36 +301,42 @@ classDiagram
    - 基于选择器提取信息并按目标路径组织
    - 适合配置提取和数据格式转换
    - 支持泛型输入和输出类型
+   - 属于**执行组件**类别，专注执行映射转换
 
 2. **聚合转换器（AggregatorTransformer）**：
    - 收集和组合分散在文档中的元素
    - 支持分组和排序能力
    - 适合提示词分段和内容聚合
    - 支持泛型输入和输出类型
+   - 属于**执行组件**类别，专注执行聚合操作
 
 3. **模板转换器（TemplateTransformer）**：
    - 基于模板生成文本或结构化输出
    - 支持函数式和字符串模板
    - 适合生成最终格式化输出
    - 支持泛型输入类型，输出固定为字符串
+   - 属于**执行组件**类别，专注执行模板渲染
 
 4. **关系处理转换器（RelationProcessorTransformer）**：
    - 处理元素间的关系和引用
    - 构建关系图结构
    - 适合工作流和节点关系处理
    - 支持泛型输入和输出类型
+   - 属于**执行组件**类别，专注执行关系处理
 
 5. **语义提取转换器（SemanticExtractorTransformer）**：
    - 提取特定领域的语义信息
    - 支持多个提取器组合工作
    - 适合复杂领域概念的识别和提取
    - 支持泛型输入和输出类型
+   - 属于**执行组件**类别，专注执行语义提取
 
 6. **结果收集转换器（ResultCollectorTransformer）**：
    - 收集管道中各转换器的结果
    - 可以选择性包含特定转换器的结果
    - 作为管道的最后一个转换器整合最终输出
    - 支持泛型输出类型
+   - 属于**执行组件**类别，专注执行结果收集和整合
 
 ### 4.5 转换结果设计
 
@@ -618,11 +622,16 @@ classDiagram
         +exclude?: string[]
     }
     
-    %% Manager层
-    class transformerManager {
+    %% 模块服务层
+    class transformerService {
         <<module>>
         +transform<T>(processingResult: ProcessingResult, options?: TransformOptions): TransformResult<T>
         +registerTransformer<TInput, TOutput>(transformer: Transformer<TInput, TOutput>): void
+        +registerStructuralMapper<TInput, TOutput>(rules: Array<MappingRule<unknown, unknown>>): void
+        +registerAggregator<TInput, TOutput>(config: CollectorConfig): void
+        +registerTemplateTransformer<TInput>(template: string|Function, preprocessor?: Function): void
+        +registerRelationProcessor<TInput, TOutput>(nodeSelector: string, config: RelationConfig): void
+        +registerSemanticExtractor<TInput, TOutput>(extractors: Array<SemanticExtractor<unknown, unknown>>): void
         -getPipeline(): Pipeline
     }
     
@@ -709,24 +718,11 @@ classDiagram
         +createResultCollector<TOutput>(transformerNames?: string[]): ResultCollectorTransformer<TOutput>
     }
     
-    %% Service层
-    class transformerService {
-        <<module>>
-        +transform<T>(processingResult: ProcessingResult, options?: TransformOptions): TransformResult<T>
-        +registerTransformer<TInput, TOutput>(transformer: Transformer<TInput, TOutput>): void
-        +registerStructuralMapper<TInput, TOutput>(rules: Array<MappingRule<unknown, unknown>>): void
-        +registerAggregator<TInput, TOutput>(config: CollectorConfig): void
-        +registerTemplateTransformer<TInput>(template: string|Function, preprocessor?: Function): void
-        +registerRelationProcessor<TInput, TOutput>(nodeSelector: string, config: RelationConfig): void
-        +registerSemanticExtractor<TInput, TOutput>(extractors: Array<SemanticExtractor<unknown, unknown>>): void
-    }
-    
     %% 关系定义
-    transformer --> transformerService : 使用
-    transformerService --> transformerManager : 使用
-    transformerManager --> Pipeline : 创建并使用
-    transformerManager --> TransformerRegistry : 使用
-    transformerManager --> transformerFactory : 使用
+    transformer --> transformerService : 委托
+    transformerService --> Pipeline : 创建并使用
+    transformerService --> TransformerRegistry : 使用
+    transformerService --> transformerFactory : 使用
     Pipeline --> Transformer : 包含
     TransformerRegistry --> Transformer : 存储
     Transformer <|.. StructuralMapperTransformer : 实现
@@ -743,8 +739,8 @@ classDiagram
     transformerFactory ..> ResultCollectorTransformer : 创建
     transformer ..> TransformResult : 返回
     transformer ..> TransformOptions : 使用
-    transformerManager ..> TransformContext : 创建
-    transformerManager ..> TransformResult : 创建并返回
+    transformerService ..> TransformContext : 创建
+    transformerService ..> TransformResult : 创建并返回
     
     %% 额外数据类型
     class MappingRule~TValue, TResult~ {
@@ -791,10 +787,10 @@ classDiagram
 
 2. **转换请求**:
    - 用户调用`transform<T>`函数，传入处理结果和选项，指定期望的输出类型
-   - API层将请求传递给Service层，再传递给Manager层，保留泛型类型参数
+   - API层将请求直接委托给Core层的transformerService，保留泛型类型参数
 
 3. **准备转换**:
-   - Manager从注册表获取已注册的转换器
+   - 模块服务从注册表获取已注册的转换器
    - 创建一个Pipeline并按注册顺序添加转换器
    - 创建转换上下文(TransformContext)，包含处理结果和初始数据
 
@@ -810,7 +806,7 @@ classDiagram
 
 6. **返回结果**:
    - 构建符合`TransformResult<T>`接口的结果对象，T为用户指定的类型
-   - 结果通过层级向上传递，最终返回给用户
+   - 结果通过委托关系返回给API层，最终返回给用户
 
 ### 6.1 转换结果模式
 
@@ -1312,5 +1308,31 @@ DPML转换模块采用了灵活的管道架构和转换器模式，为DPML文档
 ```
 解析文档 → 处理Schema → 处理文档 → [转换模块] → 目标格式/数据结构<T>
                                   ↓
-                           注册转换器<TInput,TOutput> → 创建管道 → 依次执行转换器 → 返回类型安全的结果<T>
-``` 
+                         API层 → 模块服务层 → 转换器执行 → 返回类型安全的结果<T>
+```
+
+### 4.7 模块服务设计
+
+transformerService是转换模块的核心模块服务，负责实现转换模块的业务逻辑、协调组件和流程编排。它的主要职责包括：
+
+1. **业务逻辑实现**：
+   - 处理转换请求，执行转换流程
+   - 管理转换器注册和创建
+   - 处理转换结果的合并、整理和格式化
+
+2. **组件协调**：
+   - 协调Pipeline与转换器的交互
+   - 管理TransformerRegistry的状态
+   - 使用transformerFactory创建所需的转换器实例
+
+3. **流程编排**：
+   - 组织完整的转换流程
+   - 创建和配置Pipeline
+   - 确保类型安全的数据流转
+
+4. **错误处理**：
+   - 捕获和处理转换过程中的异常
+   - 生成标准化的警告和错误信息
+   - 确保转换流程的健壮性
+
+transformerService作为模块服务，是API层和核心实现之间的桥梁，它隐藏了内部实现细节，提供了简洁统一的服务接口。 

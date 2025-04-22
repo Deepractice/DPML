@@ -19,3 +19,13 @@ export * from './ValidationResult';
 export * from './ReferenceMap';
 export * from './ProcessingError';
 export * from './ProcessingWarning';
+
+// Transformer types
+export * from './Transformer';
+export * from './TransformContext';
+export * from './TransformResult';
+export * from './TransformOptions';
+export * from './MappingRule';
+export * from './CollectorConfig';
+export * from './RelationConfig';
+export * from './SemanticExtractor';

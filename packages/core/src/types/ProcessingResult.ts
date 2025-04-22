@@ -1,30 +1,27 @@
-import type { ProcessingContext } from './ProcessingContext';
-import type { ReferenceMap } from './ReferenceMap';
-import type { ValidationResult } from './ValidationResult';
+import type { DPMLDocument } from './DPMLDocument';
+import type { ReferenceMap } from './Reference';
 
 /**
- * 处理结果接口
- * 包含文档处理的完整结果信息
+ * 处理结果接口，包含解析和处理后的数据
  */
 export interface ProcessingResult {
   /**
-   * 处理上下文
+   * DPML文档对象
    */
-  readonly context: ProcessingContext;
+  document: DPMLDocument;
 
   /**
-   * 验证结果
+   * 文档有效性标志
    */
-  readonly validation: ValidationResult;
+  isValid: boolean;
 
   /**
-   * 引用映射
+   * 文档引用关系映射
    */
-  readonly references?: ReferenceMap;
+  references?: ReferenceMap;
 
   /**
-   * 扩展数据
-   * 允许添加自定义的处理数据
+   * 文档schema信息
    */
-  readonly extensions?: Record<string, unknown>;
+  schema?: unknown;
 }
