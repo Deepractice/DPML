@@ -67,13 +67,12 @@
 - **代码相关**:
   - 所有处理模块相关文件:
     - `packages/core/src/api/processing.ts`
-    - `packages/core/src/core/processing/ProcessingService.ts`
+    - `packages/core/src/core/processing/processingService.ts`
     - `packages/core/src/core/processing/DocumentValidator.ts`
     - `packages/core/src/core/processing/ValidatorFactory.ts`
-    - `packages/core/src/core/processing/ReferenceMapBuilder.ts`
     - 相关类型定义文件和工具函数
   - 可能需要创建的额外文件:
-    - 辅助工具类和函数
+    - 辅助工具函数
     - 性能优化相关代码
 
 - **测试相关**:
@@ -88,7 +87,7 @@
     - E2E-PROC-04: 完整处理流程应支持自定义结果类型
 
 - **实现要点**:
-  - 全面审查和优化所有已实现组件
+  - 全面审查和优化所有已实现的函数和模块
   - 解决当前测试用例中的失败问题
   - 完善错误和异常处理机制
   - 优化性能瓶颈，特别是处理大型文档时
@@ -100,7 +99,7 @@
   - 保持向后兼容性，避免破坏性变更
   - 确保所有修改都有测试覆盖
   - 优先解决导致测试失败的关键问题
-  - 保持代码风格和架构的一致性
+  - 保持函数式编程风格和架构的一致性
   - 考虑边缘情况和异常处理
   - 更新相关文档以反映实现变化
 
@@ -117,7 +116,7 @@
   - 错误信息清晰准确，包含位置信息和修复建议
   - 代码质量符合项目规范，包括命名、结构和注释
   - 类型定义完整，支持IDE的智能提示和类型推断
-  - 组件间接口一致，遵循设计文档规范
+  - 函数接口一致，遵循设计文档规范和函数式风格
   
 - **卓越表现**:
   - 处理性能比基准要求提高30%以上

@@ -57,7 +57,7 @@
 ## 集成处理模块组件
 
 **目标(O)**:
-- 完成API层`processing.ts`的实现，将用户请求委托给ProcessingService
+- 完成API层`processing.ts`的实现，将用户请求委托给processingService模块
 - 集成所有处理模块组件，确保各组件之间正确协作
 - 解决组件间的集成问题，确保完整处理流程正常工作
 - 验证端到端处理流程，从API调用到返回结果的完整链路
@@ -66,17 +66,19 @@
 - **代码相关**:
   - 创建文件: `packages/core/src/api/processing.ts`
   - 依赖组件: 
-    - `packages/core/src/core/processing/ProcessingService.ts`
+    - `packages/core/src/core/processing/processingService.ts`
     - `packages/core/src/core/processing/DocumentValidator.ts`
     - `packages/core/src/core/processing/ValidatorFactory.ts`
-    - `packages/core/src/core/processing/ReferenceMapBuilder.ts`
   - 相关类型定义:
     - `packages/core/src/types/ProcessingResult.ts`
     - `packages/core/src/types/ValidationResult.ts`
     - `packages/core/src/types/ReferenceMap.ts`
   - 需实现的API方法:
     ```typescript
-    processDocument<T extends ProcessingResult = ProcessingResult>(document: DPMLDocument, schema: ProcessedSchema): T
+    function processDocument<T extends ProcessingResult = ProcessingResult>(
+      document: DPMLDocument, 
+      schema: ProcessedSchema
+    ): T
     ```
 
 - **测试相关**:
@@ -88,7 +90,7 @@
     - IT-PROC-04: 处理服务应正确构建引用映射
 
 - **实现要点**:
-  - 实现API层的`processDocument`函数，委托给`ProcessingService`
+  - 实现API层的`processDocument`函数，委托给`processingService`模块中的同名函数
   - 确保所有组件间的接口和数据流正确
   - 解决集成过程中可能出现的类型兼容和功能协调问题
   - 验证完整处理流程的正确性
@@ -98,6 +100,7 @@
   - 处理潜在的异常和错误传播
   - 保持类型一致性，特别是泛型和不可变类型
   - 关注组件间的依赖关系和接口稳定性
+  - 遵循函数式编程风格，保持与已实现模块的一致性
 
 **成功标准(S)**:
 - **基础达标**:
@@ -106,7 +109,7 @@
   - 组件间协作无错误
   
 - **预期品质**:
-  - 代码符合DPML项目的TypeScript编码规范
+  - 代码符合DPML项目的TypeScript编码规范和函数式风格
   - 完整的处理流程工作正常，包括处理有效和无效文档
   - 处理结果符合类型系统期望
   - 组件间依赖明确且合理
