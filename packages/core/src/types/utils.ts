@@ -137,6 +137,7 @@ function formatMetadataValue(value: unknown): string {
       // 尝试简单JSON序列化，避免过于详细
       const json = JSON.stringify(value);
       const shortened = json.slice(0, 50);
+
       return shortened + (json.length > 50 ? '...' : '');
     } catch {
       return '[复杂对象]';
@@ -153,7 +154,7 @@ function formatMetadataValue(value: unknown): string {
  * @returns 匹配的节点数组
  */
 export function findNodes(
-  doc: DPMLDocument, 
+  doc: DPMLDocument,
   predicate: (node: DPMLNode) => boolean
 ): DPMLNode[] {
   const results: DPMLNode[] = [];
@@ -191,8 +192,8 @@ export function findNodesByTag(doc: DPMLDocument, tagName: string): DPMLNode[] {
  * @returns 匹配的节点数组
  */
 export function findNodesByAttr(
-  doc: DPMLDocument, 
-  attrName: string, 
+  doc: DPMLDocument,
+  attrName: string,
   attrValue?: string
 ): DPMLNode[] {
   return findNodes(doc, node => {
