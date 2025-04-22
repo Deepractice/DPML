@@ -47,7 +47,7 @@ export class ResultCollectorTransformer<TOutput = Record<string, unknown>> imple
   transform(input: unknown, context: TransformContext): TOutput {
     // a. 获取上下文中所有转换器的结果
     const allResults = context.getAllResults();
-    
+
     // b. 如果未指定转换器名称，返回所有结果
     if (!this.transformerNames || this.transformerNames.length === 0) {
       return allResults as TOutput;
@@ -69,6 +69,7 @@ export class ResultCollectorTransformer<TOutput = Record<string, unknown>> imple
     // d. 如果有找不到的转换器，添加警告
     if (warnings.length > 0) {
       const warningsArray = context.get<unknown[]>('warnings') || [];
+
       context.set('warnings', [
         ...warningsArray,
         {
