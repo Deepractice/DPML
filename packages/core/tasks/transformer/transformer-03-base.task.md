@@ -67,7 +67,15 @@
 - 确保类型安全的数据流转
 
 **环境(E)**:
-
+- **项目进度**:
+  - **transformer-00-setup.task.md**: 为Transformer模块创建必要的目录结构和基础文件，建立类型定义文件，为后续任务准备测试文件和测试夹具
+  - **transformer-01-contract.task.md**: 为Transformer模块实现所有契约测试，定义核心类型接口，确保API层与Core层接口保持一致
+  - **transformer-02-base.task.md**: 实现基础转换器组件，包括StructuralMapperTransformer和TemplateTransformer
+  - **【当前任务】transformer-03-base.task.md**: 实现Pipeline和TransformerRegistry组件
+  - **transformer-04-base.task.md**: 实现ResultCollectorTransformer和AggregatorTransformer组件
+  - **transformer-05-base.task.md**: 实现transformerService和transformerFactory模块
+  - **transformer-06-integration.task.md**: 实现集成测试，验证不同组件协同工作的功能
+  - **transformer-07-final.task.md**: 完成所有端到端测试，确保整体功能符合需求
 - **代码相关**:
   - `packages/core/src/core/transformer/Pipeline.ts` - Pipeline协调组件
   - `packages/core/src/core/transformer/ResultCollectorTransformer.ts` - 结果收集器
