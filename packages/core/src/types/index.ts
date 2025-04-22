@@ -11,3 +11,11 @@ export * from './ParseResult';
 export * from './Schema';
 export * from './ProcessedSchema';
 export * from './SchemaError';
+
+// Processing types
+export * from './ProcessingResult';
+export * from './ProcessingContext';
+export * from './ValidationResult';
+export * from './ReferenceMap';
+export * from './ProcessingError';
+export * from './ProcessingWarning';

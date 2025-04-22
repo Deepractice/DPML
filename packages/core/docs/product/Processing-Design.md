@@ -51,9 +51,9 @@
 DPML处理模块遵循项目整体架构规则，采用分层设计：
 
 1. **API层** - 对外暴露处理功能
-2. **Service层** - 组织处理服务
-3. **Manager层** - 管理处理流程
-4. **验证器层** - 实现具体验证逻辑
+2. **模块服务层** - 组织处理服务
+3. **执行组件** - 实现具体验证逻辑
+4. **创建组件** - 管理验证器创建
 5. **结果层** - 定义处理结果结构
 
 ## 4. 组件设计
@@ -62,11 +62,11 @@ DPML处理模块遵循项目整体架构规则，采用分层设计：
 
 ```mermaid
 classDiagram
-    class ProcessingAPI {
+    class processing {
         <<module>>
         +processDocument<T extends ProcessingResult = ProcessingResult>(document: DPMLDocument, schema: ProcessedSchema): T
     }
-    note for ProcessingAPI "文件: api/processing.ts"
+    note for processing "文件: api/processing.ts"
 ```
 
 API层简洁明了，仅暴露核心处理功能：
@@ -80,51 +80,51 @@ API层简洁明了，仅暴露核心处理功能：
 classDiagram
     class ProcessingResult {
         <<interface>>
-        +context: ProcessingContext
-        +validation: ValidationResult
-        +references?: ReferenceMap
-        +extensions?: Record<string, unknown>
+        +readonly context: ProcessingContext
+        +readonly validation: ValidationResult
+        +readonly references?: ReferenceMap
+        +readonly extensions?: Record<string, unknown>
     }
     note for ProcessingResult "文件: types/ProcessingResult.ts"
     
     class ProcessingContext {
         <<interface>>
-        +document: DPMLDocument
-        +schema: ProcessedSchema
+        +readonly document: DPMLDocument
+        +readonly schema: ProcessedSchema
     }
     note for ProcessingContext "文件: types/ProcessingContext.ts"
     
     class ValidationResult {
         <<interface>>
-        +isValid: boolean
-        +errors: ProcessingError[]
-        +warnings: ProcessingWarning[]
+        +readonly isValid: boolean
+        +readonly errors: ReadonlyArray<ProcessingError>
+        +readonly warnings: ReadonlyArray<ProcessingWarning>
     }
     note for ValidationResult "文件: types/ValidationResult.ts"
     
     class ReferenceMap {
         <<interface>>
-        +idMap: Map<string, DPMLNode>
+        +readonly idMap: ReadonlyMap<string, DPMLNode>
     }
     note for ReferenceMap "文件: types/ReferenceMap.ts"
     
     class ProcessingError {
         <<interface>>
-        +code: string
-        +message: string
-        +path: string
-        +source: SourceLocation
-        +severity: 'error'
+        +readonly code: string
+        +readonly message: string
+        +readonly path: string
+        +readonly source: SourceLocation
+        +readonly severity: 'error'
     }
     note for ProcessingError "文件: types/ProcessingError.ts"
     
     class ProcessingWarning {
         <<interface>>
-        +code: string
-        +message: string
-        +path: string
-        +source: SourceLocation
-        +severity: 'warning'
+        +readonly code: string
+        +readonly message: string
+        +readonly path: string
+        +readonly source: SourceLocation
+        +readonly severity: 'warning'
     }
     note for ProcessingWarning "文件: types/ProcessingWarning.ts"
     
@@ -140,17 +140,21 @@ classDiagram
 - **ProcessingResult**：通用结果容器，整合所有处理信息
   - 包含处理上下文、验证结果和引用映射
   - 通过extensions属性提供类型安全的扩展机制
+  - 所有属性都是只读的，确保不可变性
 
 - **ValidationResult**：文档验证结果
   - 包含整体验证状态和详细错误/警告信息
   - 分离错误和警告，便于不同处理
+  - 使用ReadonlyArray确保集合不可变
 
 - **ReferenceMap**：ID引用映射
   - 建立ID到节点的映射关系，便于引用查找
+  - 使用ReadonlyMap确保映射不可变
 
 - **ProcessingError/Warning**：详细的问题描述
   - 包含问题代码、消息和位置信息
   - 区分错误和警告的严重程度
+  - 所有属性都是只读的
 
 ### 4.3 验证器设计
 
@@ -159,72 +163,74 @@ classDiagram
     class DocumentValidator {
         <<class>>
         +validateDocument<T extends ValidationResult = ValidationResult>(document: DPMLDocument, schema: ProcessedSchema): T
-        -validateNode<R = NodeValidationResult>(node: DPMLNode, schema: ProcessedSchema): R
+        -validateNode(node: DPMLNode, schema: ProcessedSchema): NodeValidationResult
         -findSchemaForNode(node: DPMLNode, schema: ProcessedSchema): ElementDefinition | null
         -validateAttributes(node: DPMLNode, elementDef: ElementDefinition): AttributeValidationResult
         -validateChildren(node: DPMLNode, elementDef: ElementDefinition): ChildrenValidationResult
         -validateContent(node: DPMLNode, elementDef: ElementDefinition): ContentValidationResult
     }
-    note for DocumentValidator "文件: core/processing/DocumentValidator.ts"
+    note for DocumentValidator "文件: core/processing/DocumentValidator.ts\n验证器类，实现文档验证逻辑"
 ```
 
-DocumentValidator是处理模块的核心组件，负责：
+DocumentValidator是处理模块的核心验证类，负责：
 - 递归验证整个文档结构
 - 查找每个节点对应的Schema定义
 - 分层验证节点的不同方面（属性、子元素、内容）
 - 收集并整合验证结果
 - 通过泛型支持自定义验证结果类型
 
-### 4.4 Manager和Service设计
+### 4.4 工厂组件设计
 
 ```mermaid
 classDiagram
-    class ProcessingManager {
-        <<module>>
-        +processDocument<T extends ProcessingResult = ProcessingResult>(document: DPMLDocument, schema: ProcessedSchema): T
-        -buildIdMap(document: DPMLDocument): Map<string, DPMLNode>
+    class ValidatorFactory {
+        <<class>>
+        +createValidator(options?: ValidatorOptions): DocumentValidator
     }
-    note for ProcessingManager "文件: core/processing/processingManager.ts"
-    
-    class ProcessingService {
-        <<module>>
-        +processDocument<T extends ProcessingResult = ProcessingResult>(document: DPMLDocument, schema: ProcessedSchema): T
-    }
-    note for ProcessingService "文件: core/processingService.ts"
-    
-    ProcessingService ..> ProcessingManager : uses
+    note for ValidatorFactory "文件: core/processing/ValidatorFactory.ts\n负责验证器实例创建和配置"
 ```
 
-- **ProcessingManager**：处理流程管理
+- **ValidatorFactory**：验证器工厂类
+  - 负责创建DocumentValidator实例
+  - 管理验证器的配置和生命周期
+  - 确保验证器正确初始化
+
+### 4.5 模块服务设计
+
+```mermaid
+classDiagram
+    class ProcessingService {
+        <<class>>
+        +processDocument<T extends ProcessingResult = ProcessingResult>(document: DPMLDocument, schema: ProcessedSchema): T
+        -buildIdMap(document: DPMLDocument): ReadonlyMap<string, DPMLNode>
+    }
+    note for ProcessingService "文件: core/processing/ProcessingService.ts\n处理服务类，协调验证流程"
+```
+
+- **ProcessingService**：处理流程服务类
   - 协调DocumentValidator的验证过程
   - 构建ID引用映射
   - 汇总处理结果
   - 支持通过泛型自定义结果类型
-
-- **ProcessingService**：服务组织
-  - 作为API和Manager的中间层
-  - 提供稳定的服务接口
-  - 传递泛型类型参数
 
 ## 5. 组件关系图
 
 ```mermaid
 classDiagram
     %% 依赖关系
-    ProcessingAPI ..> ProcessingService : uses
-    ProcessingService ..> ProcessingManager : uses
-    ProcessingManager ..> DocumentValidator : uses
-    ProcessingManager --> ProcessingResult : creates
+    processing ..> ProcessingService : uses
+    ProcessingService ..> DocumentValidator : uses
+    ProcessingService ..> ValidatorFactory : uses
+    ValidatorFactory --> DocumentValidator : creates
+    ProcessingService --> ProcessingResult : creates
+    DocumentValidator --> ValidationResult : returns
     
-    ProcessingResult *-- ProcessingContext : contains
     ProcessingResult *-- ValidationResult : contains
     ProcessingResult *-- ReferenceMap : may contain
-    
     ValidationResult *-- ProcessingError : contains
     ValidationResult *-- ProcessingWarning : contains
     
     DocumentValidator ..> ProcessedSchema : validates against
-    DocumentValidator --> ValidationResult : produces
     
     ProcessingContext o-- ProcessedSchema : references
     ProcessingContext o-- DPMLDocument : references
@@ -238,17 +244,19 @@ classDiagram
 sequenceDiagram
     participant User as 应用开发者
     participant API as api/processing.ts
-    participant Service as core/processingService.ts
-    participant Manager as core/processing/processingManager.ts
+    participant Service as ProcessingService
+    participant Factory as ValidatorFactory
     participant Validator as DocumentValidator
     participant DPMLDoc as DPMLDocument
     participant SchemaObj as ProcessedSchema
 
     User->>API: processDocument<CustomResult>(document, schema)
     API->>Service: 委托processDocument<CustomResult>(document, schema)
-    Service->>Manager: 调用processDocument<CustomResult>(document, schema)
     
-    Manager->>Validator: validateDocument<ValidationResult>(document, schema)
+    Service->>Factory: createValidator()
+    Factory-->>Service: 返回validator实例
+    
+    Service->>Validator: validateDocument<ValidationResult>(document, schema)
     
     loop 对文档树递归验证
         Validator->>DPMLDoc: 访问节点
@@ -264,13 +272,12 @@ sequenceDiagram
         end
     end
     
-    Validator-->>Manager: 返回ValidationResult
+    Validator-->>Service: 返回ValidationResult
     
-    Manager->>Manager: 构建ID引用映射
-    Manager->>Manager: 创建ProcessingResult<CustomResult>
+    Service->>Service: 构建ID引用映射
+    Service->>Service: 创建ProcessingResult<CustomResult>
     
-    Manager-->>Service: 返回ProcessingResult<CustomResult>
-    Service-->>API: 传递ProcessingResult<CustomResult>
+    Service-->>API: 返回ProcessingResult<CustomResult>
     API-->>User: 返回最终结果CustomResult
 
     Note over User,SchemaObj: 处理流程确保文档符合Schema规则<br>为用户提供详细的验证结果和引用信息<br>并支持自定义结果类型
@@ -313,24 +320,24 @@ sequenceDiagram
 ```typescript
 // 定义扩展接口
 interface TypeInfoExtension {
-  typeInfo: {
-    nodeTypes: Map<string, string>;
-    typeHierarchy: Record<string, string[]>;
+  readonly typeInfo: {
+    readonly nodeTypes: ReadonlyMap<string, string>;
+    readonly typeHierarchy: Readonly<Record<string, readonly string[]>>;
   };
 }
 
 interface PerformanceExtension {
-  performance: {
-    validationTime: number;
-    referenceMapBuildTime: number;
-    totalTime: number;
+  readonly performance: {
+    readonly validationTime: number;
+    readonly referenceMapBuildTime: number;
+    readonly totalTime: number;
   };
 }
 
 interface SemanticExtension {
-  semantics: {
-    concepts: Record<string, unknown>;
-    relations: Array<[string, string, string]>;
+  readonly semantics: {
+    readonly concepts: Readonly<Record<string, unknown>>;
+    readonly relations: ReadonlyArray<readonly [string, string, string]>;
   };
 }
 
@@ -365,7 +372,7 @@ const result: EnhancedProcessingResult = {
 
 ### 8.2 高级验证规则
 
-未来可以扩展DocumentValidator以支持更复杂的验证规则：
+未来可以扩展documentValidator以支持更复杂的验证规则：
 - 跨元素依赖验证
 - 条件验证规则
 - 用户自定义验证函数
@@ -389,10 +396,10 @@ import { parse, processSchema, processDocument } from '@dpml/core';
 
 // 定义自定义处理结果类型
 interface CustomProcessingResult extends ProcessingResult {
-  metadata: {
-    processingTime: number;
-    validatedElements: number;
-    validationDate: Date;
+  readonly metadata: {
+    readonly processingTime: number;
+    readonly validatedElements: number;
+    readonly validationDate: Date;
   };
 }
 
@@ -442,12 +449,12 @@ if (processedSchema.isValid) {
 
 DPML处理模块采用了清晰的分层架构和通用结果容器设计，提供了高效、可靠且类型安全的文档验证能力。它连接了解析模块和Schema模块，确保文档的语义正确性，并为IDE和其他工具提供了丰富的验证信息和引用数据。
 
-通过利用TypeScript的类型系统，特别是泛型，处理模块实现了类型安全的API接口和结果类型。用户可以自定义处理结果类型，获得完整的类型推导和编译时验证，显著减少运行时错误的可能性。
+通过利用TypeScript的类型系统，特别是泛型和不可变类型，处理模块实现了类型安全的API接口和结果类型。用户可以自定义处理结果类型，获得完整的类型推导和编译时验证，显著减少运行时错误的可能性。
 
-当前的实现不仅专注于基础验证功能和引用映射，还提供了类型安全的扩展机制，为未来功能扩展提供了坚实基础。
+当前的实现专注于基础验证功能和引用映射，并提供了类型安全的扩展机制，为未来功能扩展提供了坚实基础。
 
 业务流程概览：
 
 ```
-已解析文档 + 已处理Schema → API.processDocument<T> → Service层 → Manager层 → DocumentValidator → 返回处理结果<T>（验证状态、错误/警告、引用映射）
+已解析文档 + 已处理Schema → API.processDocument<T> → 模块服务层 → 验证器 → 返回处理结果<T>（验证状态、错误/警告、引用映射）
 ``` 
