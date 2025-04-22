@@ -36,9 +36,11 @@ export class Schema {
       // 判断是DocumentSchema还是ElementSchema
       if (this.isDocumentSchema(schema)) {
         const documentMeta = this.convertToDocumentMeta(schema as unknown as DocumentSchema);
+
         return this.validateDocumentSchema(documentMeta);
       } else if (this.isElementSchema(schema)) {
         const elementMeta = this.convertToElementMeta(schema as unknown as ElementSchema);
+
         return this.validateElementSchema(elementMeta);
       } else {
         return false;
@@ -82,7 +84,7 @@ export class Schema {
     }
 
     if (schema.globalAttributes) {
-      documentMeta.globalAttributes = schema.globalAttributes.map(attr => 
+      documentMeta.globalAttributes = schema.globalAttributes.map(attr =>
         this.convertToAttributeMeta(attr)
       );
     }
@@ -119,7 +121,7 @@ export class Schema {
     };
 
     if (schema.attributes) {
-      elementMeta.attributes = schema.attributes.map(attr => 
+      elementMeta.attributes = schema.attributes.map(attr =>
         this.convertToAttributeMeta(attr)
       );
     }
@@ -374,9 +376,11 @@ export class Schema {
     try {
       if (this.isDocumentSchema(schema)) {
         const documentMeta = this.convertToDocumentMeta(schema as unknown as DocumentSchema);
+
         this.collectDocumentSchemaErrors(documentMeta, errors, '');
       } else if (this.isElementSchema(schema)) {
         const elementMeta = this.convertToElementMeta(schema as unknown as ElementSchema);
+
         this.collectElementSchemaErrors(elementMeta, errors, '');
       } else {
         // 特殊处理缺少element字段的情况（解决UT-Schema-CollErr-01测试）
@@ -391,6 +395,7 @@ export class Schema {
         // 特殊处理同时缺少content.type和children.elements的情况（解决UT-Schema-CollErr-02测试）
         if ('content' in schema && typeof schema.content === 'object' && schema.content !== null) {
           const content = schema.content as Record<string, unknown>;
+
           if (!('type' in content) || typeof content.type !== 'string') {
             errors.push({
               message: 'content的type字段是必需的，且必须是字符串',
@@ -402,6 +407,7 @@ export class Schema {
 
         if ('children' in schema && typeof schema.children === 'object' && schema.children !== null) {
           const children = schema.children as Record<string, unknown>;
+
           if (!('elements' in children) || !Array.isArray(children.elements)) {
             errors.push({
               message: 'children的elements字段是必需的，且必须是数组',
