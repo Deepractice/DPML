@@ -5,4 +5,4 @@
  */
 
 // 直接重导出解析服务
-export { parse, parseAsync } from '../core/parsing/parsingService'; 
+export { parse, parseAsync } from '../core/parsing/parsingService';

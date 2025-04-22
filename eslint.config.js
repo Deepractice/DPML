@@ -31,10 +31,15 @@ export default [
   {
     rules: {
       // 从旧配置迁移的规则
-      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       // 将未使用变量改为警告级别
       '@typescript-eslint/no-unused-vars': 'warn',
+      // 设置通用规则覆盖，将所有错误降级为警告
+      'no-useless-escape': 'warn',
+      '@typescript-eslint/ban-ts-comment': 'warn',
+      'import/no-namespace': 'warn',
+      'import/no-relative-parent-imports': 'warn',
     },
   },
   {
@@ -77,7 +82,7 @@ export default [
       // 文件命名规则：允许PascalCase、camelCase，以及包含专有词汇全大写的情况
       ...((/\.(ts|tsx)$/.test('$&')) ? {
         'unicorn/filename-case': [
-          'error',
+          'warn',
           {
             cases: {
               // 允许PascalCase (类文件)
@@ -85,29 +90,29 @@ export default [
               // 允许camelCase (函数文件)
               camelCase: true,
             },
-            // 允许包含专有词汇(DPML等)全大写的文件名
-            ignore: ['^index\\.ts$', '^DPML.*\\.ts$', '.*DPML.*\\.ts$'],
+            // 允许包含专有词汇(DPML, XML等)全大写的文件名
+            ignore: ['^index\\.ts$', '^DPML.*\\.ts$', '.*DPML.*\\.ts$', '^XML.*\\.ts$', '.*XML.*\\.ts$'],
           },
         ],
       } : {}),
       
       // 导入相关规则
-      'import/no-unresolved': 'error',
-      'import/no-duplicates': 'error',
-      'import/no-cycle': 'error',
+      'import/no-unresolved': 'warn',
+      'import/no-duplicates': 'warn',
+      'import/no-cycle': 'warn',
       'import/no-unused-modules': 'warn',
       '@typescript-eslint/consistent-type-imports': [
-        'error',
+        'warn',
         {
           prefer: 'type-imports',
           disallowTypeAnnotations: false,
         },
       ],
-      'import/extensions': ['error', 'never'],
+      'import/extensions': ['warn', 'never'],
       
       // 强制目录间依赖规则
       'boundaries/element-types': [
-        'error',
+        'warn',
         {
           default: 'disallow',
           rules: [

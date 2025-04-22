@@ -14,7 +14,7 @@ export interface ParseOptions {
 
   /** 后处理器选项 */
   postProcessorOptions?: Record<string, boolean>;
-  
+
   /** 内存优化选项，用于处理大文件 */
   memoryOptimization?: MemoryOptimizationOptions;
 }
@@ -34,13 +34,13 @@ export interface XMLParserOptions {
 
   /** 最大嵌套层级 */
   maxDepth?: number;
-  
+
   /** 是否验证节点引用完整性 */
   validateReferences?: boolean;
-  
+
   /** 是否解析CDATA部分 */
   parseCDATA?: boolean;
-  
+
   /** 是否使用流式处理（用于大文件） */
   useStreaming?: boolean;
 }
@@ -51,13 +51,13 @@ export interface XMLParserOptions {
 export interface MemoryOptimizationOptions {
   /** 是否启用内存优化 */
   enabled?: boolean;
-  
+
   /** 大文件阈值（字节数），超过此值将应用优化 */
   largeFileThreshold?: number;
-  
+
   /** 是否使用流式处理 */
   useStreaming?: boolean;
-  
+
   /** 批处理大小 */
   batchSize?: number;
 }

@@ -1,6 +1,7 @@
 import { describe, test, expect } from 'vitest';
-import { DPMLDocument, DocumentMetadata } from '../../../types/DPMLDocument';
-import { DPMLNode } from '../../../types/DPMLNode';
+
+import type { DPMLDocument, DocumentMetadata } from '../../../types/DPMLDocument';
+import type { DPMLNode } from '../../../types/DPMLNode';
 
 describe('DPMLDocument类型契约测试', () => {
   test('CT-Type-Doc-01: DPMLDocument类型结构应符合契约', () => {
@@ -36,6 +37,7 @@ describe('DPMLDocument类型契约测试', () => {
   test('CT-Type-Doc-02: DPMLDocument属性应为只读', () => {
     // 准备 - 创建真正不可变的节点对象
     const rootNode = {} as DPMLNode;
+
     Object.defineProperties(rootNode, {
       tagName: {
         value: 'root',
@@ -70,6 +72,7 @@ describe('DPMLDocument类型契约测试', () => {
     });
 
     const metadata = {} as DocumentMetadata;
+
     Object.defineProperties(metadata, {
       title: {
         value: '测试文档',
@@ -89,6 +92,7 @@ describe('DPMLDocument类型契约测试', () => {
 
     // 创建真正不可变的文档对象
     const document = {} as DPMLDocument;
+
     Object.defineProperties(document, {
       rootNode: {
         value: rootNode,

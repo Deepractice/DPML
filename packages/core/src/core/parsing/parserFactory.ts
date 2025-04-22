@@ -1,7 +1,8 @@
-import { ParseOptions } from '../../types';
+import type { ParseOptions } from '../../types';
+
 import { DPMLAdapter } from './DPMLAdapter';
+import type { IXMLParser } from './types';
 import { XMLAdapter } from './XMLAdapter';
-import { IXMLParser } from './types';
 import { XMLParser } from './XMLParser';
 
 /**
@@ -52,6 +53,7 @@ export const parserFactory = {
 
     // 创建新的解析器实例并缓存
     this._xmlParser = new XMLParser();
+
     return this._xmlParser;
   }
 };

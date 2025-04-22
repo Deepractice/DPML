@@ -1,4 +1,5 @@
 import * as xml2js from 'xml2js';
+
 import type { IXMLParser, XMLNode, XMLPosition } from './types';
 
 /**
@@ -49,6 +50,7 @@ export class XMLParser implements IXMLParser {
       // xml2js只提供异步API，但我们需要同步版本
       // 使用一个简单的同步XML解析作为后备
       let result;
+
       xml2js.parseString(content, this.parserOptions, (err, parsed) => {
         if (err) throw err;
         result = parsed;
@@ -73,6 +75,7 @@ export class XMLParser implements IXMLParser {
   public async parseAsync(content: string): Promise<XMLNode> {
     try {
       const result = await this.parser.parseStringPromise(content);
+
       return this.transformToXMLNode(result, content);
     } catch (error) {
       // 捕获并增强错误信息
@@ -126,7 +129,7 @@ export class XMLParser implements IXMLParser {
     // 获取根元素名称和内容
     const rootTagName = Object.keys(parseResult)[0];
     const rootContent = parseResult[rootTagName];
-    
+
     // 处理根节点
     return this.processNode(rootTagName, rootContent, originalContent);
   }
@@ -143,10 +146,10 @@ export class XMLParser implements IXMLParser {
     const attributes: Record<string, string> = {};
     let text = '';
     const children: XMLNode[] = [];
-    
+
     // 特殊情况处理 - 如果nodeContent是数组，取第一个元素
     const content = Array.isArray(nodeContent) ? nodeContent[0] : nodeContent;
-    
+
     if (!content) {
       // 处理空节点
       return {
@@ -158,17 +161,18 @@ export class XMLParser implements IXMLParser {
         position: this.calculatePosition(tagName, originalContent)
       };
     }
-    
+
     // 处理属性（在$对象中）
     if (content && typeof content === 'object' && '$' in content) {
       const attrs = content.$;
+
       if (attrs && typeof attrs === 'object') {
         Object.entries(attrs).forEach(([key, value]) => {
           attributes[key] = String(value);
         });
       }
     }
-    
+
     // 处理文本内容（在_键中）
     if (content && typeof content === 'object' && '_' in content) {
       text = String(content._);
@@ -176,35 +180,38 @@ export class XMLParser implements IXMLParser {
       // 直接字符串内容
       text = content;
     }
-    
+
     // 文本内容可能在数组的第一个元素中（如<title>文本</title>）
     if (!text && Array.isArray(content) && content.length > 0) {
       const firstItem = content[0];
+
       if (typeof firstItem === 'string') {
         text = firstItem;
       } else if (firstItem && typeof firstItem === 'object' && '_' in firstItem) {
         text = String(firstItem._);
       }
     }
-    
+
     // 处理子节点
     // 遍历所有键，跳过$和_，它们分别表示属性和文本内容
     if (content && typeof content === 'object') {
       Object.keys(content).forEach(key => {
         if (key === '$' || key === '_') return;
-        
+
         // 子节点始终是数组（由于explicitArray设置为true）
         const childItems = (content as Record<string, unknown>)[key];
+
         if (Array.isArray(childItems)) {
           childItems.forEach(childItem => {
             // 递归处理每个子节点
             const childNode = this.processNode(key, [childItem], originalContent);
+
             children.push(childNode);
           });
         }
       });
     }
-    
+
     // 返回完整的节点结构
     return {
       type: 'element',
@@ -226,20 +233,21 @@ export class XMLParser implements IXMLParser {
     try {
       // 简单查找开始和结束标签
       const startPos = content.indexOf(`<${nodeName}`);
+
       if (startPos === -1) return undefined;
-      
+
       const closePos = content.indexOf(`</${nodeName}>`, startPos);
       const endPos = closePos !== -1 ? closePos + `</${nodeName}>`.length : content.indexOf('>', startPos) + 1;
-      
+
       // 计算行列信息
       const contentBeforeStart = content.substring(0, startPos);
       const startLine = (contentBeforeStart.match(/\n/g) || []).length + 1;
       const startColumn = startPos - (contentBeforeStart.lastIndexOf('\n') > -1 ? contentBeforeStart.lastIndexOf('\n') : 0);
-      
+
       const contentBeforeEnd = content.substring(0, endPos);
       const endLine = (contentBeforeEnd.match(/\n/g) || []).length + 1;
       const endColumn = endPos - (contentBeforeEnd.lastIndexOf('\n') > -1 ? contentBeforeEnd.lastIndexOf('\n') : 0);
-      
+
       return {
         start: {
           line: startLine,
@@ -269,7 +277,7 @@ export class XMLParser implements IXMLParser {
       // 计算上下文范围
       const start = Math.max(0, errorPos - 40);
       const end = Math.min(content.length, errorPos + 40);
-      
+
       // 提取上下文片段
       return content.substring(start, end);
     } catch {
@@ -288,30 +296,35 @@ export class XMLParser implements IXMLParser {
     if (error instanceof Error) {
       // 尝试提取位置信息
       const lineMatch = error.message.match(/line\s*(\d+)(?:,|\s+column\s+)(\d+)/i);
+
       if (lineMatch) {
         const line = parseInt(lineMatch[1], 10);
         const column = parseInt(lineMatch[2], 10);
-        
+
         // 计算内容中的实际位置
         let errorPos = 0;
         const lines = content.split('\n');
+
         for (let i = 0; i < Math.min(line - 1, lines.length); i++) {
           errorPos += lines[i].length + 1; // +1 for the newline character
         }
+
         errorPos += Math.min(column, lines[Math.min(line - 1, lines.length - 1)].length);
-        
+
         // 提取上下文
         const errorContext = this.extractErrorContext(content, errorPos);
-        
+
         // 创建包含详细位置信息的新错误
         const enhancedError = new Error(
           `XML解析错误: ${error.message}\n位置: 行 ${line}, 列 ${column}\n上下文: ${errorContext}`
         );
+
         enhancedError.stack = error.stack;
+
         return enhancedError;
       }
     }
-    
+
     // 无法增强时返回原始错误，确保始终返回Error类型
     return error instanceof Error ? error : new Error(String(error));
   }

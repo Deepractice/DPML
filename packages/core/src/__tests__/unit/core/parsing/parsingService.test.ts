@@ -1,10 +1,12 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { parse, parseAsync } from '../../../../core/parsing/parsingService';
-import { parserFactory } from '../../../../core/parsing/parserFactory';
+
 import { DPMLAdapter } from '../../../../core/parsing/DPMLAdapter';
+import type { ParseResult } from '../../../../core/parsing/errors';
+import { XMLParseError, DPMLParseError } from '../../../../core/parsing/errors';
+import { parserFactory } from '../../../../core/parsing/parserFactory';
+import { parse, parseAsync } from '../../../../core/parsing/parsingService';
+import type { DPMLDocument } from '../../../../types/DPMLDocument';
 import { createBasicDPMLFixture, createInvalidDPMLFixture } from '../../../fixtures/parsing/dpmlFixtures';
-import { DPMLDocument } from '../../../../types/DPMLDocument';
-import { XMLParseError, DPMLParseError, ParseResult } from '../../../../core/parsing/errors';
 
 // 模拟依赖模块
 vi.mock('../../../../core/parsing/parserFactory');
@@ -54,6 +56,7 @@ describe('parsingService', () => {
   test('UT-ParsingService-02: parse方法应统一处理错误', () => {
     // 准备 - 模拟解析错误
     const parseError = new Error('解析失败');
+
     mockDPMLAdapter.parse.mockImplementation(() => {
       throw parseError;
     });
@@ -109,6 +112,7 @@ describe('parsingService', () => {
   test('parseAsync方法应处理异步错误', async () => {
     // 准备 - 模拟异步解析错误
     const parseError = new Error('异步解析失败');
+
     mockDPMLAdapter.parseAsync.mockRejectedValue(parseError);
 
     // 执行 & 断言 - 应抛出增强的错误
@@ -129,6 +133,7 @@ describe('parsingService', () => {
       { startLine: 1, startColumn: 10, endLine: 1, endColumn: 20, fileName: 'test.dpml' },
       '<root><child>'
     );
+
     mockDPMLAdapter.parse.mockImplementation(() => {
       throw xmlError;
     });
@@ -155,6 +160,7 @@ describe('parsingService', () => {
       undefined,
       { startLine: 2, startColumn: 5, endLine: 2, endColumn: 15, fileName: 'test.dpml' }
     );
+
     mockDPMLAdapter.parse.mockImplementation(() => {
       throw dpmlError;
     });
@@ -177,6 +183,7 @@ describe('parsingService', () => {
   test('UT-ParsingService-07: 验证throwOnError选项行为', () => {
     // 准备 - 模拟解析错误
     const parseError = new DPMLParseError('测试错误');
+
     mockDPMLAdapter.parse.mockImplementation(() => {
       throw parseError;
     });

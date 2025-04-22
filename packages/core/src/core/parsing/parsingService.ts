@@ -1,6 +1,9 @@
-import { DPMLDocument, ParseOptions, MemoryOptimizationOptions } from '../../types';
+import type { DPMLDocument, ParseOptions } from '../../types';
+import { MemoryOptimizationOptions } from '../../types';
+
+import type { ParseResult } from './errors';
+import { ParseError, XMLParseError, DPMLParseError, createErrorResult, createSuccessResult } from './errors';
 import { parserFactory } from './parserFactory';
-import { ParseError, XMLParseError, DPMLParseError, ParseResult, createErrorResult, createSuccessResult } from './errors';
 
 /**
  * 默认的解析选项
@@ -26,7 +29,7 @@ const DEFAULT_OPTIONS: ParseOptions = {
  * 检查是否为测试环境
  * 在测试环境中，我们希望保持原始选项，而不进行默认值合并
  */
-const isTestEnvironment = process.env.NODE_ENV === 'test' || 
+const isTestEnvironment = process.env.NODE_ENV === 'test' ||
                           process.env.VITEST !== undefined ||
                           process.env.JEST_WORKER_ID !== undefined;
 
@@ -42,10 +45,10 @@ export function parse<T = DPMLDocument>(content: string, options: ParseOptions =
   try {
     // 在测试环境中使用原始选项，否则应用默认选项合并
     let effectiveOptions = isTestEnvironment ? options : mergeOptions(options);
-    
+
     // 根据内容大小应用内存优化
     effectiveOptions = applyMemoryOptimization(content, effectiveOptions);
-    
+
     // 创建适配器
     const adapter = parserFactory.createDPMLAdapter<T>(effectiveOptions);
 
@@ -57,6 +60,7 @@ export function parse<T = DPMLDocument>(content: string, options: ParseOptions =
   } catch (error) {
     // 统一处理解析错误
     const errorResult = handleParsingErrors<T>(error, options);
+
     // 如果throwOnError为false，返回错误结果
     return errorResult;
   }
@@ -73,10 +77,10 @@ export async function parseAsync<T = DPMLDocument>(content: string, options: Par
   try {
     // 在测试环境中使用原始选项，否则应用默认选项合并
     let effectiveOptions = isTestEnvironment ? options : mergeOptions(options);
-    
+
     // 根据内容大小应用内存优化
     effectiveOptions = applyMemoryOptimization(content, effectiveOptions);
-    
+
     // 创建适配器
     const adapter = parserFactory.createDPMLAdapter<T>(effectiveOptions);
 
@@ -88,6 +92,7 @@ export async function parseAsync<T = DPMLDocument>(content: string, options: Par
   } catch (error) {
     // 统一处理解析错误
     const errorResult = handleParsingErrors<T>(error, options);
+
     // 如果throwOnError为false，返回错误结果
     return errorResult;
   }
@@ -139,28 +144,29 @@ function mergeOptions(options: ParseOptions): ParseOptions {
 function applyMemoryOptimization(content: string, options: ParseOptions): ParseOptions {
   // 如果没有明确禁用内存优化，检查内容大小
   const memoryOpt = options.memoryOptimization || {};
-  
+
   // 确定是否应该启用优化
   let shouldEnableOptimization = memoryOpt.enabled;
-  
+
   // 如果未明确设置，但内容很大，自动启用优化
   if (shouldEnableOptimization === undefined) {
     const threshold = memoryOpt.largeFileThreshold || DEFAULT_OPTIONS.memoryOptimization!.largeFileThreshold!;
+
     shouldEnableOptimization = content.length > threshold;
   }
-  
+
   // 如果需要优化，应用优化设置
   if (shouldEnableOptimization) {
     // 创建新选项对象，避免修改原始选项
     const optimizedOptions = { ...options };
-    
+
     // 设置或更新内存优化选项
     optimizedOptions.memoryOptimization = {
       ...DEFAULT_OPTIONS.memoryOptimization,
       ...memoryOpt,
       enabled: true
     };
-    
+
     // 对大文件优化XML解析器选项
     optimizedOptions.xmlParserOptions = {
       ...optimizedOptions.xmlParserOptions,
@@ -171,10 +177,10 @@ function applyMemoryOptimization(content: string, options: ParseOptions): ParseO
       // 注意：此设置需要底层适配器支持
       useStreaming: content.length > 5 * 1024 * 1024 || memoryOpt.useStreaming
     };
-    
+
     return optimizedOptions;
   }
-  
+
   return options;
 }
 
@@ -223,16 +229,18 @@ function convertToParseError(error: unknown, fileName?: string): ParseError {
     // 尝试从错误消息中识别错误类型和位置信息
     const posMatch = error.message.match(/Line:\s*(\d+),\s*Column:\s*(\d+)/i);
     const isXmlError = /xml|标签|元素|属性|解析/i.test(error.message);
-    
+
     if (isXmlError) {
       return XMLParseError.fromError(error, undefined, fileName);
     }
-    
+
     // 提取位置信息（如果有）
     let position = undefined;
+
     if (posMatch) {
       const line = parseInt(posMatch[1], 10);
       const column = parseInt(posMatch[2], 10);
+
       position = {
         startLine: line,
         startColumn: column,
@@ -274,7 +282,7 @@ function processParseResult<T>(document: T, options?: ParseOptions): T | ParseRe
   if (options?.postProcessorOptions?.returnResultObject) {
     return createSuccessResult<T>(document);
   }
-  
+
   // 否则直接返回文档
   return document;
 }

@@ -1,8 +1,9 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
+
+import { XMLParseError } from '../../../../core/parsing/errors';
+import type { IXMLParser, XMLNode } from '../../../../core/parsing/types';
 import { XMLAdapter } from '../../../../core/parsing/XMLAdapter';
 import { createBasicDPMLFixture, createEmptyDPMLFixture, createInvalidDPMLFixture } from '../../../fixtures/parsing/dpmlFixtures';
-import { IXMLParser, XMLNode } from '../../../../core/parsing/types';
-import { XMLParseError } from '../../../../core/parsing/errors';
 
 describe('XMLAdapter', () => {
   // 创建模拟对象并使用类型断言
@@ -35,6 +36,7 @@ describe('XMLAdapter', () => {
         text: '内容'
       }]
     };
+
     (mockXMLParser.parse as any).mockReturnValue(mockResult);
 
     // 执行
@@ -53,6 +55,7 @@ describe('XMLAdapter', () => {
       attributes: {},
       children: []
     };
+
     (mockXMLParser.parse as any).mockReturnValue(mockResult);
 
     // 执行
@@ -66,6 +69,7 @@ describe('XMLAdapter', () => {
   test('UT-XMLAdapter-03: parse方法应传递XML解析错误', () => {
     // 准备
     const parseError = new Error('XML解析错误');
+
     (mockXMLParser.parse as any).mockImplementation(() => {
       throw parseError;
     });
@@ -91,6 +95,7 @@ describe('XMLAdapter', () => {
         text: ''
       }]
     };
+
     (mockXMLParser.parseAsync as any).mockResolvedValue(mockResult);
 
     // 执行
@@ -104,6 +109,7 @@ describe('XMLAdapter', () => {
   test('parseAsync方法应传递XML解析错误', async () => {
     // 准备
     const parseError = new Error('异步XML解析错误');
+
     (mockXMLParser.parseAsync as any).mockRejectedValue(parseError);
 
     // 执行 & 断言

@@ -1,6 +1,7 @@
-import { ParseOptions } from '../../types';
-import { IXMLParser, XMLNode } from './types';
+import type { ParseOptions } from '../../types';
+
 import { XMLParseError } from './errors';
+import type { IXMLParser, XMLNode } from './types';
 
 /**
  * XML适配器
@@ -42,6 +43,7 @@ export class XMLAdapter {
       }
 
       const xmlNode = this.xmlParser.parse(content);
+
       return this.processResult<T>(xmlNode);
     } catch (error) {
       // 捕获并增强错误信息
@@ -63,6 +65,7 @@ export class XMLAdapter {
       }
 
       const xmlNode = await this.xmlParser.parseAsync(content);
+
       return this.processResult<T>(xmlNode);
     } catch (error) {
       // 捕获并增强错误信息
@@ -78,6 +81,7 @@ export class XMLAdapter {
   private shouldApplyLargeContentOptimization(content: string): boolean {
     // 获取用户配置的阈值，默认为1MB
     const contentSizeThreshold = this.options.memoryOptimization?.largeFileThreshold || 1024 * 1024;
+
     return content.length > contentSizeThreshold;
   }
 
@@ -101,7 +105,7 @@ export class XMLAdapter {
     // 应用用户自定义的内存优化选项
     if (this.options.memoryOptimization) {
       const { batchSize, useStreaming } = this.options.memoryOptimization;
-      
+
       // 如果启用了流式处理，进一步优化
       if (useStreaming) {
         optimizationOptions.preserveChildrenOrder = false; // 流式处理不需要保持顺序
@@ -111,7 +115,7 @@ export class XMLAdapter {
 
     // 应用优化配置
     this.xmlParser.configure(optimizationOptions);
-    
+
     // 回收内存
     if (typeof global !== 'undefined' && global.gc) {
       try {
@@ -130,11 +134,11 @@ export class XMLAdapter {
     const xmlOptions: Record<string, unknown> = {};
 
     if (this.options.xmlParserOptions) {
-      const { 
-        preserveWhitespace, 
-        parseComments, 
-        enableNamespaces, 
-        maxDepth 
+      const {
+        preserveWhitespace,
+        parseComments,
+        enableNamespaces,
+        maxDepth
       } = this.options.xmlParserOptions;
 
       // 转换选项格式为xml2js接受的格式
@@ -164,10 +168,10 @@ export class XMLAdapter {
     try {
       // 验证XML节点结构
       this.validateNode(xmlNode);
-      
+
       // 执行后处理逻辑
       const processedNode = this.postProcessNode(xmlNode);
-      
+
       return processedNode as unknown as T;
     } catch (error) {
       throw error instanceof Error ? error : new Error(String(error));
@@ -182,7 +186,7 @@ export class XMLAdapter {
     if (!node) {
       throw new Error('解析结果为空');
     }
-    
+
     if (node.type !== 'element') {
       throw new Error(`无效的XML节点类型：${node.type}`);
     }
@@ -196,11 +200,11 @@ export class XMLAdapter {
   private postProcessNode(node: XMLNode): XMLNode {
     // 深度克隆以避免修改原始对象
     const clone = this.cloneNode(node);
-    
+
     // 应用后处理逻辑，例如自动纠正常见问题
     this.normalizeAttributes(clone);
     this.normalizeTextContent(clone);
-    
+
     return clone;
   }
 
@@ -211,7 +215,7 @@ export class XMLAdapter {
    */
   private cloneNode(node: XMLNode): XMLNode {
     if (!node) return node;
-    
+
     const clone: XMLNode = {
       type: node.type,
       name: node.name,
@@ -223,7 +227,7 @@ export class XMLAdapter {
         end: { ...node.position.end }
       } : undefined
     };
-    
+
     return clone;
   }
 
@@ -233,7 +237,7 @@ export class XMLAdapter {
    */
   private normalizeAttributes(node: XMLNode): void {
     if (!node.attributes) node.attributes = {};
-    
+
     // 确保所有属性值为字符串
     Object.keys(node.attributes).forEach(key => {
       if (node.attributes[key] === null || node.attributes[key] === undefined) {
@@ -242,7 +246,7 @@ export class XMLAdapter {
         node.attributes[key] = String(node.attributes[key]);
       }
     });
-    
+
     // 递归处理子节点
     if (node.children && node.children.length > 0) {
       node.children.forEach(child => this.normalizeAttributes(child));
@@ -258,7 +262,7 @@ export class XMLAdapter {
     if (node.text !== undefined && node.text !== null && typeof node.text !== 'string') {
       node.text = String(node.text);
     }
-    
+
     // 递归处理子节点
     if (node.children && node.children.length > 0) {
       node.children.forEach(child => this.normalizeTextContent(child));
@@ -279,42 +283,45 @@ export class XMLAdapter {
 
     // 创建增强的XML解析错误
     const enhancedError = XMLParseError.fromError(error, content, this.options.fileName);
-    
+
     // 增强错误信息，添加更多上下文
     if (content && content.length > 0) {
       // 尝试提取错误位置附近的内容片段
       try {
         let errorPosition = 0;
-        
+
         // 尝试从错误消息提取位置信息
         if (error instanceof Error) {
           const posMatch = error.message.match(/line\s*(\d+)(?:,|\s+column\s+)(\d+)/i);
+
           if (posMatch) {
             const line = parseInt(posMatch[1], 10);
             const column = parseInt(posMatch[2], 10);
-            
+
             // 计算近似位置
             const lines = content.split('\n');
             let offset = 0;
+
             for (let i = 0; i < Math.min(line - 1, lines.length); i++) {
               offset += lines[i].length + 1;
             }
+
             errorPosition = offset + Math.min(column, lines[Math.min(line - 1, lines.length - 1)].length);
           }
         }
-        
+
         // 提取错误位置附近的内容
         const start = Math.max(0, errorPosition - 40);
         const end = Math.min(content.length, errorPosition + 40);
         const snippet = content.substring(start, end);
-        
+
         // 将内容片段添加到错误消息中
         enhancedError.contextFragment = snippet;
       } catch {
         // 提取上下文失败，忽略
       }
     }
-    
+
     return enhancedError;
   }
 }

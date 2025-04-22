@@ -16,8 +16,8 @@ export const directoryRules = {
           // 允许camelCase (函数文件)
           camelCase: true,
         },
-        // 允许包含专有词汇(DPML等)全大写的文件名
-        ignore: ['^index\\.ts$', '^DPML.*\\.ts$', '.*DPML.*\\.ts$'],
+        // 允许包含专有词汇(DPML, XML等)全大写的文件名
+        ignore: ['^index\\.ts$', '^DPML.*\\.ts$', '.*DPML.*\\.ts$', '^XML.*\\.ts$', '.*XML.*\\.ts$'],
       },
     ],
     

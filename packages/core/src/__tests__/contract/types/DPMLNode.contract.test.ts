@@ -1,5 +1,6 @@
 import { describe, test, expect } from 'vitest';
-import { DPMLNode, SourceLocation } from '../../../types/DPMLNode';
+
+import type { DPMLNode, SourceLocation } from '../../../types/DPMLNode';
 
 describe('DPMLNode类型契约测试', () => {
   test('CT-Type-Node-01: DPMLNode类型结构应符合契约', () => {

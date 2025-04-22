@@ -1,11 +1,12 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import { parse, parseAsync } from '../../../core/parsing/parsingService';
-import { createBasicDPMLFixture, createComplexDPMLFixture, createInvalidDPMLFixture } from '../../fixtures/parsing/dpmlFixtures';
-import { DPMLDocument } from '../../../types/DPMLDocument';
-import { parserFactory } from '../../../core/parsing/parserFactory';
-import { IXMLParser } from '../../../core/parsing/types';
-import { XMLAdapter } from '../../../core/parsing/XMLAdapter';
+
 import { DPMLAdapter } from '../../../core/parsing/DPMLAdapter';
+import { parserFactory } from '../../../core/parsing/parserFactory';
+import { parse, parseAsync } from '../../../core/parsing/parsingService';
+import type { IXMLParser } from '../../../core/parsing/types';
+import { XMLAdapter } from '../../../core/parsing/XMLAdapter';
+import type { DPMLDocument } from '../../../types/DPMLDocument';
+import { createBasicDPMLFixture, createComplexDPMLFixture, createInvalidDPMLFixture } from '../../fixtures/parsing/dpmlFixtures';
 
 /**
  * 集成测试：解析流程
@@ -132,6 +133,7 @@ describe('解析流程集成测试', () => {
 
     // 验证header部分
     const header = result.rootNode.children[0];
+
     expect(header.tagName).toBe('header');
     expect(header.attributes.get('id')).toBe('header1');
     expect(header.children).toHaveLength(2);
@@ -151,6 +153,7 @@ describe('解析流程集成测试', () => {
   test('IT-Parsing-03: 解析服务应正确处理解析错误', () => {
     // 准备 - 模拟XML解析器抛出错误
     const parseError = new Error('XML语法错误: 未闭合的标签');
+
     (mockXMLParser.parse as any).mockImplementation(() => {
       throw parseError;
     });
@@ -158,6 +161,7 @@ describe('解析流程集成测试', () => {
     // 禁用DPMLAdapter中的预验证，以确保错误能够传到XMLParser
     // 在真实场景下保留预验证，但在测试中临时禁用
     const originalPrevalidate = DPMLAdapter.prototype.prevalidateXML;
+
     DPMLAdapter.prototype.prevalidateXML = () => {};
 
     try {

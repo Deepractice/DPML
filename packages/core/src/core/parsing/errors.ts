@@ -2,8 +2,9 @@
  * 解析错误类型定义
  * 定义解析过程中可能出现的各种错误类型
  */
-import { XMLPosition } from './types';
-import { SourceLocation } from '../../types';
+import type { SourceLocation } from '../../types';
+
+import type { XMLPosition } from './types';
 
 /**
  * 解析错误代码枚举
@@ -184,8 +185,8 @@ export class XMLParseError extends ParseError {
     // 提取相关源代码片段
     const source = content
       ? (position
-          ? XMLParseError.extractSourceSnippet(content, position.startLine, position.startColumn)
-          : content.substring(0, Math.min(30, content.length)))
+        ? XMLParseError.extractSourceSnippet(content, position.startLine, position.startColumn)
+        : content.substring(0, Math.min(30, content.length)))
       : undefined;
 
     return new XMLParseError(
@@ -206,9 +207,11 @@ export class XMLParseError extends ParseError {
   private static extractPositionFromMessage(message: string, fileName?: string): SourceLocation | undefined {
     // 尝试匹配常见的位置信息格式，如"Line: 10, Column: 5"
     const lineColMatch = message.match(/[Ll]ine[:\s]+(\d+)[\s,]+[Cc]olumn[:\s]+(\d+)/);
+
     if (lineColMatch) {
       const startLine = parseInt(lineColMatch[1], 10);
       const startColumn = parseInt(lineColMatch[2], 10);
+
       return {
         startLine,
         startColumn,

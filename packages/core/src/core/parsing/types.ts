@@ -14,14 +14,14 @@ export interface IXMLParser {
    * @returns 解析结果
    */
   parse(content: string): XMLNode;
-  
+
   /**
    * 异步解析XML内容
    * @param content XML内容
    * @returns 解析结果Promise
    */
   parseAsync(content: string): Promise<XMLNode>;
-  
+
   /**
    * 配置解析器行为
    * @param options 配置选项
@@ -35,19 +35,19 @@ export interface IXMLParser {
 export interface XMLNode {
   /** 节点类型 */
   type: string;
-  
+
   /** 节点名称 */
   name: string;
-  
+
   /** 节点属性 */
   attributes: Record<string, string>;
-  
+
   /** 子节点 */
   children: XMLNode[];
-  
+
   /** 文本内容 */
   text?: string;
-  
+
   /** 位置信息 */
   position?: XMLPosition;
 }
@@ -62,11 +62,11 @@ export interface XMLPosition {
     column: number;
     offset: number;
   };
-  
+
   /** 结束位置 */
   end: {
     line: number;
     column: number;
     offset: number;
   };
-} 
+}
