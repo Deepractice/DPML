@@ -43,9 +43,11 @@
   },
   "dependencies": {
     "@types/lodash": "^4.17.16",
+    "@types/xml2js": "^0.4.14",
     "fast-xml-parser": "^5.2.0",
     "lodash": "^4.17.21",
     "marked": "^15.0.7",
-    "strnum": "^2.0.5"
+    "strnum": "^2.0.5",
+    "xml2js": "^0.6.2"
   }
-} 
+}
