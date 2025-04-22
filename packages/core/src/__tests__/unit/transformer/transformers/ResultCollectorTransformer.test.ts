@@ -20,9 +20,9 @@ describe('ResultCollectorTransformer', () => {
       getReferences: vi.fn(),
       isDocumentValid: vi.fn(),
       getAllResults: vi.fn().mockReturnValue({
-        transformer1: { data: 'result1' },
-        transformer2: { data: 'result2' },
-        transformer3: { data: 'result3' }
+        transformer1: { data: 'result1', config: { value: 1 } },
+        transformer2: { data: 'result2', settings: { theme: 'dark' } },
+        transformer3: { data: 'result3', config: { key: 'test' } }
       })
     } as unknown as TransformContext;
   });
@@ -36,9 +36,9 @@ describe('ResultCollectorTransformer', () => {
 
     // 断言
     expect(result).toEqual({
-      transformer1: { data: 'result1' },
-      transformer2: { data: 'result2' },
-      transformer3: { data: 'result3' }
+      transformer1: { data: 'result1', config: { value: 1 } },
+      transformer2: { data: 'result2', settings: { theme: 'dark' } },
+      transformer3: { data: 'result3', config: { key: 'test' } }
     });
     expect(mockContext.getAllResults).toHaveBeenCalled();
   });
@@ -52,8 +52,8 @@ describe('ResultCollectorTransformer', () => {
 
     // 断言
     expect(result).toEqual({
-      transformer1: { data: 'result1' },
-      transformer3: { data: 'result3' }
+      transformer1: { data: 'result1', config: { value: 1 } },
+      transformer3: { data: 'result3', config: { key: 'test' } }
     });
     expect(mockContext.getAllResults).toHaveBeenCalled();
   });
@@ -67,9 +67,44 @@ describe('ResultCollectorTransformer', () => {
 
     // 断言 - 验证所有结果被正确返回
     expect(result).toEqual({
-      transformer1: { data: 'result1' },
-      transformer2: { data: 'result2' },
-      transformer3: { data: 'result3' }
+      transformer1: { data: 'result1', config: { value: 1 } },
+      transformer2: { data: 'result2', settings: { theme: 'dark' } },
+      transformer3: { data: 'result3', config: { key: 'test' } }
+    });
+  });
+
+  test('UT-RESCOL-04: transform应支持深度合并结果', () => {
+    // 准备 - 使用shouldMerge参数
+    const transformer = new ResultCollectorTransformer(undefined, true);
+
+    // 执行
+    const result = transformer.transform({}, mockContext);
+
+    // 断言 - 验证结果被深度合并
+    expect(result).toEqual({
+      data: 'result3', // 最后一个transformer3的结果覆盖之前的
+      config: {
+        value: 1,      // 来自transformer1
+        key: 'test'    // 来自transformer3
+      },
+      settings: {
+        theme: 'dark'  // 来自transformer2
+      }
+    });
+
+    // 测试指定转换器的合并
+    const specificTransformer = new ResultCollectorTransformer(['transformer1', 'transformer2'], true);
+    const specificResult = specificTransformer.transform({}, mockContext);
+
+    // 断言 - 验证只合并了指定的转换器结果
+    expect(specificResult).toEqual({
+      data: 'result2', // 最后一个transformer2的结果覆盖之前的
+      config: {
+        value: 1       // 来自transformer1
+      },
+      settings: {
+        theme: 'dark'  // 来自transformer2
+      }
     });
   });
 
@@ -82,7 +117,7 @@ describe('ResultCollectorTransformer', () => {
 
     // 断言
     expect(result).toEqual({
-      transformer1: { data: 'result1' }
+      transformer1: { data: 'result1', config: { value: 1 } }
     });
 
     // 验证警告被添加
