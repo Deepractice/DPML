@@ -1,4 +1,0 @@
-<agent id="test-agent" version="1.0">
-  <llm model="gpt-4" api-type="openai" />
-  <prompt>你是一个测试助手</prompt>
-</agent>
