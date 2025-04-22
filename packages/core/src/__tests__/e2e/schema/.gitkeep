@@ -1,0 +1,2 @@
+# This file exists to ensure the directory is created and tracked by git.
+# 该目录用于 Schema 模块的端到端测试，将在后续任务中实现. 

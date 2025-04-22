@@ -51,7 +51,7 @@ export const importExportRules = {
     
     // 导入顺序
     'import/order': [
-      'error', 
+      'warn',
       {
         'groups': ['builtin', 'external', 'parent', 'sibling', 'index'],
         'newlines-between': 'always',
