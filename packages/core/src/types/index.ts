@@ -6,3 +6,5 @@
 export * from './DPMLNode';
 export * from './DPMLDocument';
 export * from './ParseOptions';
+export * from './ParseError';
+export * from './ParseResult';

@@ -3,7 +3,8 @@
  */
 import { describe, test, expect } from 'vitest';
 
-import { ParseError, XMLParseError, DPMLParseError, ParseErrorCode, ParseResult, createSuccessResult, createErrorResult } from '../../../../core/parsing/errors';
+import { ParseError, XMLParseError, DPMLParseError, ParseErrorCode } from '../../../../types';
+import { createSuccessResult, createErrorResult } from '../../../../core/parsing/errors';
 import type { SourceLocation } from '../../../../types';
 
 describe('解析错误类型', () => {

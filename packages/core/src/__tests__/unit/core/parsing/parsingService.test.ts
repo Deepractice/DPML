@@ -1,11 +1,10 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
 import { DPMLAdapter } from '../../../../core/parsing/DPMLAdapter';
-import type { ParseResult } from '../../../../core/parsing/errors';
-import { XMLParseError, DPMLParseError } from '../../../../core/parsing/errors';
 import { parserFactory } from '../../../../core/parsing/parserFactory';
 import { parse, parseAsync } from '../../../../core/parsing/parsingService';
-import type { DPMLDocument } from '../../../../types/DPMLDocument';
+import type { DPMLDocument, ParseResult } from '../../../../types';
+import { XMLParseError, DPMLParseError } from '../../../../types';
 import { createBasicDPMLFixture, createInvalidDPMLFixture } from '../../../fixtures/parsing/dpmlFixtures';
 
 // 模拟依赖模块
