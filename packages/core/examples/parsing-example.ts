@@ -4,6 +4,7 @@
  */
 
 // 导入核心解析函数
+import { formatDPMLDocument, formatDPMLNode } from '@core/types/utils';
 import { parse, parseAsync } from '../src';
 import type { DPMLDocument, ParseOptions, ParseResult, ParseError } from '../src/types';
 
@@ -32,6 +33,7 @@ function basicParsingExample() {
   try {
     // 默认配置解析DPML内容
     const document = parse(simpleDPML) as DPMLDocument;
+    console.log('document', formatDPMLNode(document.rootNode, 10));
     
     // 访问解析后的文档结构
     console.log(`解析成功! 文档标题: ${document.metadata.title}`);
