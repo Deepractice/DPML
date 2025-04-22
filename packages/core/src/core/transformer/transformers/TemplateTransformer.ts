@@ -50,14 +50,75 @@ export class TemplateTransformer<TInput> implements Transformer<TInput, string> 
 
   /**
    * 执行模板转换
-   * 注意：这是一个架构占位，实际实现在后续任务中
    * @param input 输入数据
    * @param context 转换上下文
    * @returns 渲染后的字符串
    */
   transform(input: TInput, context: TransformContext): string {
-    // 这是一个占位实现，返回的是一个空字符串
-    // 实际实现在后续任务中完成
-    return '';
+    try {
+      // 应用数据预处理（如果有）
+      const processedData = this.dataPreprocessor ? this.dataPreprocessor(input) : input;
+
+      let result: string;
+
+      // 根据模板类型执行转换
+      if (typeof this.template === 'function') {
+        // 函数模板
+        result = this.template(processedData);
+      } else {
+        // 字符串模板
+        result = this.renderStringTemplate(this.template, processedData);
+      }
+
+      // 将结果存储到上下文
+      if (this.name) {
+        context.set(this.name, result);
+      }
+
+      return result;
+    } catch (error) {
+      // 处理异常情况
+      const warningsArray = context.get<unknown[]>('warnings') || [];
+
+      context.set('warnings', [
+        ...warningsArray,
+        {
+          code: 'template_render_error',
+          message: error instanceof Error ? error.message : '模板渲染错误',
+          transformer: this.name,
+          severity: 'medium'
+        }
+      ]);
+
+      // 返回空字符串作为默认结果
+      return '';
+    }
+  }
+
+  /**
+   * 渲染字符串模板
+   * 使用简单的模板占位符替换机制
+   * @param template 模板字符串
+   * @param data 要渲染的数据
+   * @returns 渲染后的字符串
+   */
+  private renderStringTemplate(template: string, data: unknown): string {
+    // 如果数据不是对象，无法进行渲染
+    if (!data || typeof data !== 'object') {
+      return template;
+    }
+
+    // 使用正则表达式替换{{property}}形式的占位符
+    return template.replace(/\{\{([^}]+)\}\}/g, (_, key) => {
+      // 处理嵌套属性路径，如a.b.c
+      const value = key.trim().split('.').reduce(
+        (obj: Record<string, unknown>, path: string) =>
+          (obj && typeof obj === 'object') ? obj[path] : undefined,
+        data as Record<string, unknown>
+      );
+
+      // 如果属性不存在返回空字符串
+      return value !== undefined ? String(value) : '';
+    });
   }
 }

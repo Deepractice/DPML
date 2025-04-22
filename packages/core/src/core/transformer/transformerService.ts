@@ -20,7 +20,7 @@ import {
 } from '../../types';
 
 import { Pipeline } from './Pipeline';
-import { createStructuralMapper, createAggregator, createTemplateTransformer, createRelationProcessor, createSemanticExtractor } from './transformerFactory';
+import { createStructuralMapper, createAggregator, createTemplateTransformer, createRelationProcessor, createSemanticExtractor, createResultCollector } from './transformerFactory';
 import { transformerRegistryFactory } from './TransformerRegistry';
 
 /**
@@ -67,8 +67,8 @@ export function transform<T>(
 
   // 添加结果收集器（如果使用full或merged模式）
   if (mergedOptions.resultMode !== 'raw') {
-    // 在这里，我们会添加ResultCollectorTransformer
-    // 注意：这里只做类型声明，实际实现在后续任务中
+    // 添加ResultCollectorTransformer以收集所有转换器结果
+    pipeline.add(createResultCollector());
   }
 
   // 执行管道
@@ -85,11 +85,11 @@ export function transform<T>(
   // 收集所有转换器的结果
   const transformerResults = context.getAllResults();
 
-  // 合并结果（这里只是占位，实际合并逻辑在后续任务中实现）
-  const merged = {} as T;
+  // 合并结果
+  const merged = deepMergeResults(transformerResults) as T;
 
   // 收集警告
-  const warnings: TransformWarning[] = [];
+  const warnings: TransformWarning[] = context.get<TransformWarning[]>('warnings') || [];
 
   // 根据结果模式创建返回值
   switch (mergedOptions.resultMode) {
@@ -118,6 +118,42 @@ export function transform<T>(
         metadata
       };
   }
+}
+
+/**
+ * 深度合并转换器结果
+ * @param results 转换器结果对象
+ * @returns 合并后的结果对象
+ */
+function deepMergeResults(results: Record<string, unknown>): unknown {
+  // 合并所有转换器的结果到一个对象
+  const merged: Record<string, unknown> = {};
+
+  // 遍历所有转换器结果
+  for (const [key, value] of Object.entries(results)) {
+    // 跳过警告和其他元数据
+    if (key === 'warnings') continue;
+
+    // 处理对象类型的值，进行深度合并
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      if (!merged[key] || typeof merged[key] !== 'object') {
+        merged[key] = {};
+      }
+
+      // 递归合并子对象
+      const mergedValue = deepMergeResults({
+        ...merged[key] as Record<string, unknown>,
+        ...value as Record<string, unknown>
+      });
+
+      merged[key] = mergedValue;
+    } else {
+      // 非对象类型直接覆盖
+      merged[key] = value;
+    }
+  }
+
+  return merged;
 }
 
 /**
@@ -215,11 +251,11 @@ function applyTransformerFilters(
   exclude?: string[]
 ): Array<Transformer<unknown, unknown>> {
   if (include && include.length > 0) {
-    return transformers.filter(t => include.includes(t.name));
+    return transformers.filter(t => t.name && include.includes(t.name));
   }
 
   if (exclude && exclude.length > 0) {
-    return transformers.filter(t => !exclude.includes(t.name));
+    return transformers.filter(t => !t.name || !exclude.includes(t.name));
   }
 
   return transformers;
