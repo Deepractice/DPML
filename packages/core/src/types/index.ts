@@ -8,3 +8,6 @@ export * from './DPMLDocument';
 export * from './ParseOptions';
 export * from './ParseError';
 export * from './ParseResult';
+export * from './Schema';
+export * from './ProcessedSchema';
+export * from './SchemaError';
