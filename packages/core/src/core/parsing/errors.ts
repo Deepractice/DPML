@@ -4,6 +4,7 @@
  */
 import { ParseError, ParseErrorCode, XMLParseError, DPMLParseError } from '../../types';
 import type { ParseResult } from '../../types';
+
 import type { XMLPosition } from './types';
 
 /**
