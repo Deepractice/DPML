@@ -15,10 +15,7 @@ export interface Transformer<TInput, TOutput> {
    */
   description?: string;
 
-  /**
-   * 转换器类型，分类用途（可选）
-   */
-  type?: string;
+
 
   /**
    * 执行转换的核心方法

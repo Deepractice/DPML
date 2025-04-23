@@ -25,10 +25,6 @@ describe('Transformer Interface Contract', () => {
     expectTypeOf<TestTransformer>().toHaveProperty('description');
     expectTypeOf<TestTransformer['description']>().toBeNullable();
 
-    // 验证接口可能定义了type属性
-    expectTypeOf<TestTransformer>().toHaveProperty('type');
-    expectTypeOf<TestTransformer['type']>().toBeNullable();
-
     // 验证接口定义了transform方法
     expectTypeOf<TestTransformer>().toHaveProperty('transform');
     expectTypeOf<TestTransformer['transform']>().toBeFunction();
