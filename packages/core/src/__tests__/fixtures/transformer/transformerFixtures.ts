@@ -48,6 +48,10 @@ export function createProcessingResultFixture(): ProcessingResult {
       ],
       content: '',
       parent: null
+    },
+    metadata: { // 添加必要的元数据字段
+      title: "测试文档",
+      description: "用于测试的DPML文档"
     }
   };
 
@@ -56,18 +60,12 @@ export function createProcessingResultFixture(): ProcessingResult {
     child.parent = document.rootNode;
   });
 
-  // 创建模拟的处理结果
+  // 创建模拟的处理结果，符合 ProcessingResult 接口
   return {
-    context: {
-      document,
-      schema: {} as any // 模拟的Schema对象
-    },
-    validation: {
-      isValid: true,
-      errors: []
-    },
+    document: document,
+    isValid: true, // 这是直接传递给 TransformContext.isDocumentValid() 的值
     references: new Map([['test-model', document.rootNode]]),
-    extensions: {}
+    schema: {} // 可选的 schema 对象
   };
 }
 
@@ -90,7 +88,14 @@ export function createMappingRulesFixture(): Array<MappingRule<unknown, unknown>
     {
       selector: 'prompt[type="system"]',
       targetPath: 'systemPrompt',
-      transform: (node: any) => node.content
+      transform: (node) => {
+        console.log('transformerFixtures - 处理 prompt[type="system"] 节点:', node);
+        if (Array.isArray(node)) {
+          return node.length > 0 ? node[0].content : '';
+        }
+
+        return node.content;
+      }
     }
   ];
 }

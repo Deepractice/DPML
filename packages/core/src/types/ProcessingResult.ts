@@ -1,5 +1,6 @@
 import type { DPMLDocument } from './DPMLDocument';
-import type { ReferenceMap } from './Reference';
+import type { ReferenceMap } from './ReferenceMap';
+import type { ValidationResult } from './ValidationResult';
 
 /**
  * 处理结果接口，包含解析和处理后的数据
@@ -24,4 +25,9 @@ export interface ProcessingResult {
    * 文档schema信息
    */
   schema?: unknown;
+
+  /**
+   * 验证结果详情
+   */
+  validation?: ValidationResult;
 }

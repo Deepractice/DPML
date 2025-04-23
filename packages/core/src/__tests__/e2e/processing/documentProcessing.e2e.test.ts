@@ -117,8 +117,9 @@ describe('文档处理端到端测试', () => {
     console.log(`文档处理完成，耗时: ${(endTime - startTime).toFixed(2)}ms`);
 
     // 断言1: 验证结果应为有效
-    expect(result.validation.isValid).toBe(true);
-    expect(result.validation.errors.length).toBe(0);
+    expect(result.validation).toBeDefined();
+    expect(result.validation!.isValid).toBe(true);
+    expect(result.validation!.errors.length).toBe(0);
 
     // 断言2: 引用映射应包含所有ID节点
     expect(result.references).toBeDefined();
@@ -131,8 +132,8 @@ describe('文档处理端到端测试', () => {
     expect(productNode?.attributes.get('category')).toBe('electronics');
 
     // 断言4: 上下文信息应正确
-    expect(result.context.document).toBe(document);
-    expect(result.context.schema).toBe(schema);
+    expect(result.document).toBe(document);
+    expect(result.schema).toBe(schema);
 
     console.log('E2E-PROC-01测试通过: 成功验证了符合Schema的文档');
   });
@@ -199,15 +200,16 @@ describe('文档处理端到端测试', () => {
     console.log(`找到 ${result.validation.errors.length} 个错误`);
 
     // 断言1: 验证结果应为无效
-    expect(result.validation.isValid).toBe(false);
-    expect(result.validation.errors.length).toBeGreaterThan(0);
+    expect(result.validation).toBeDefined();
+    expect(result.validation!.isValid).toBe(false);
+    expect(result.validation!.errors.length).toBeGreaterThan(0);
 
     // 断言2: 应该有特定的错误类型
-    const errorCodes = result.validation.errors.map(error => error.code);
-    const errorPaths = result.validation.errors.map(error => error.path);
+    const errorCodes = result.validation!.errors.map(error => error.code);
+    const errorPaths = result.validation!.errors.map(error => error.path);
 
     // 记录错误信息，便于调试
-    result.validation.errors.forEach(error => {
+    result.validation!.errors.forEach(error => {
       console.log(`错误 [${error.code}]: ${error.message} (${error.path})`);
     });
 
@@ -225,6 +227,10 @@ describe('文档处理端到端测试', () => {
 
     // 规格缺少name属性错误
     expect(errorPaths.some(path => path.includes('spec'))).toBe(true);
+
+    // 性能指标检查
+    expect(typeof result.validation!.errors.length).toBe('number');
+    expect(typeof result.validation!.warnings.length).toBe('number');
 
     console.log('E2E-PROC-02测试通过: 成功检测出不符合Schema的文档');
   });

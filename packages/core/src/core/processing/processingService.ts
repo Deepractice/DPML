@@ -270,20 +270,19 @@ export function processDocument<T extends ProcessingResult = ProcessingResult>(
   }
 
   const result: ProcessingResult = {
-    context: {
-      document,
-      schema
-    },
+    document,
+    isValid,
+    references: referenceMap,
+    schema,
     validation: {
-      isValid: isValid,
-      errors: [...validationResult.errors], // 深复制错误数组
-      warnings: [...validationResult.warnings, ...warnings] // 合并处理过程中收集的警告
-    },
-    references: referenceMap
+      isValid,
+      errors: [...validationResult.errors],
+      warnings: [...validationResult.warnings, ...warnings]
+    }
   };
 
   // 调试日志：最终结果
-  console.log(`处理完成，最终结果: isValid=${result.validation.isValid}`);
+  console.log(`处理完成，最终结果: isValid=${result.isValid}`);
 
   return result as T;
 }

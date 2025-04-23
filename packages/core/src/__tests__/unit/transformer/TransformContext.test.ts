@@ -1,7 +1,7 @@
-import { describe, test, expect, vi } from 'vitest';
+import { describe, test, expect, beforeEach } from 'vitest';
 
-import { TransformContext } from '../../../core/transformer/TransformContext';
-import type { ProcessingResult } from '../../../types/ProcessingResult';
+import type { ProcessingResult, DPMLDocument, ValidationResult } from '../../../types';
+import { TransformContext } from '../../../types/TransformContext';
 import { createProcessingResultFixture } from '../../fixtures/transformer/transformerFixtures';
 
 describe('TransformContext', () => {

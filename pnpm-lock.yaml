@@ -166,9 +166,6 @@ importers:
       '@types/xml2js':
         specifier: ^0.4.14
         version: 0.4.14
-      fast-xml-parser:
-        specifier: ^5.2.0
-        version: 5.2.0
       lodash:
         specifier: ^4.17.21
         version: 4.17.21

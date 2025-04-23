@@ -46,9 +46,9 @@ describe('Processing Flow Integration Tests', () => {
 
     // 验证结果
     expect(result).toBeDefined();
-    expect(result.context).toBeDefined();
-    expect(result.context.document).toBe(document);
-    expect(result.context.schema).toBe(schema);
+    expect(result.document).toBeDefined();
+    expect(result.document).toBe(document);
+    expect(result.schema).toBe(schema);
 
     // 验证验证结果
     expect(result.validation).toBeDefined();

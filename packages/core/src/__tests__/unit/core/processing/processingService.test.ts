@@ -66,16 +66,15 @@ describe('UT-PROCSRV', () => {
       // 验证结果结构
       expect(result).toBeDefined();
 
-      // 验证上下文
-      expect(result.context).toBeDefined();
-      expect(result.context.document).toBe(document);
-      expect(result.context.schema).toBe(schema);
+      // 验证基本属性
+      expect(result.document).toBe(document);
+      expect(result.schema).toBe(schema);
 
       // 验证验证结果
       expect(result.validation).toBeDefined();
-      expect(typeof result.validation.isValid).toBe('boolean');
-      expect(Array.isArray(result.validation.errors)).toBe(true);
-      expect(Array.isArray(result.validation.warnings)).toBe(true);
+      expect(typeof result.isValid).toBe('boolean');
+      expect(Array.isArray(result.validation!.errors)).toBe(true);
+      expect(Array.isArray(result.validation!.warnings)).toBe(true);
 
       // 验证引用映射
       expect(result.references).toBeDefined();
@@ -206,7 +205,7 @@ describe('UT-PROCSRV', () => {
       };
 
       // 验证标准字段
-      expect(result.context).toBeDefined();
+      expect(result.document).toBeDefined();
       expect(result.validation).toBeDefined();
       expect(result.references).toBeDefined();
 
