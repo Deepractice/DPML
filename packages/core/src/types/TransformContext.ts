@@ -85,7 +85,7 @@ export class TransformContext {
    * @returns 验证结果对象
    */
   getValidation(): ValidationResult {
-    return this.processingResult.validation;
+    return <ValidationResult> this.processingResult.validation;
   }
 
   /**
