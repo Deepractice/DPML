@@ -17,7 +17,7 @@
     "swc": "node -r @swc-node/register",
     "barrels": "node scripts/generate-barrels.js",
     "barrels:watch": "chokidar \"packages/*/src/**/*.{ts,tsx}\" -c \"pnpm barrels\"",
-    "docs": "typedoc",
+    "docs": "typedoc --disableOutputCheck",
     "docs:watch": "typedoc --watch",
     "docs:serve": "npx serve docs/api"
   },

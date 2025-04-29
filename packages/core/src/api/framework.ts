@@ -8,8 +8,8 @@ import {
   createTransformerDefiner as createTransformerDefinerImpl
 } from '../core/framework/domainService';
 import type {
-  DomainCompiler,
-  DomainConfig,
+  export DomainCompiler,
+  export DomainConfig,
   TransformerDefiner
 } from '../types';
 

@@ -1,6 +1,5 @@
 {
   "entryPoints": [
-    "packages/common/src/index.ts",
     "packages/core/src/index.ts",
     "packages/workflow/src/index.ts"
   ],

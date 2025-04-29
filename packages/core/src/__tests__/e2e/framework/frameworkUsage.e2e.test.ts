@@ -6,17 +6,11 @@
 import { describe, it, expect, afterEach } from 'vitest';
 
 import type { DomainCompiler, DomainConfig } from '../../../api/framework';
-import { TransformContext } from '../../../core/transformer';
 import {
   simpleModelTransformer,
   simpleModelSchema,
   simpleModelDPML,
-  complexModelSchema,
-  complexModelDPML,
-  invalidDPMLContent,
-  SimpleModel,
-  ComplexModel
-} from '../../fixtures/framework/frameworkFixtures';
+  invalidDPMLContent} from '../../fixtures/framework/frameworkFixtures';
 
 describe('Framework模块端到端测试', () => {
   let compiler: DomainCompiler<any>;
