@@ -10,7 +10,7 @@ import {
   simpleModelTransformer,
   simpleModelSchema,
   simpleModelDPML,
-  invalidDPMLContent} from '../../fixtures/framework/frameworkFixtures';
+  invalidDPMLContent } from '../../fixtures/framework/frameworkFixtures';
 
 describe('Framework模块端到端测试', () => {
   let compiler: DomainCompiler<any>;

@@ -162,31 +162,26 @@ export async function compileDPML<T>(content: string, state: DomainState): Promi
     }
 
     // 4. 转换为目标格式
-    try {
-      // 注册领域中定义的所有转换器
-      for (const transformer of state.transformers) {
-        registerTransformer(transformer);
-      }
+    // 注册领域中定义的所有转换器
+    for (const transformer of state.transformers) {
+      registerTransformer(transformer);
+    }
 
-      // 准备转换选项
-      const transformOptions = {
-        ...state.options.transformOptions
-      };
+    // 准备转换选项
+    const transformOptions = {
+      ...state.options.transformOptions
+    };
 
-      // 调用transform函数进行转换
-      const transformResult = transform<T>(processingResult, transformOptions);
+    // 调用transform函数进行转换
+    const transformResult = transform<T>(processingResult, transformOptions);
 
-      // 根据结果模式返回适当的结果
-      const resultMode = state.options.transformOptions?.resultMode || 'merged';
+    // 根据结果模式返回适当的结果
+    const resultMode = state.options.transformOptions?.resultMode || 'merged';
 
-      if (resultMode === 'raw' && transformResult && 'raw' in transformResult) {
-        return transformResult.raw as T;
-      } else {
-        return transformResult.merged as T;
-      }
-    } catch (transformError) {
-      // 如果转换过程中出错，重新抛出
-      throw transformError;
+    if (resultMode === 'raw' && transformResult && 'raw' in transformResult) {
+      return transformResult.raw as T;
+    } else {
+      return transformResult.merged as T;
     }
   } catch (error) {
     // 捕获并包装错误

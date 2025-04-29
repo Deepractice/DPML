@@ -8,10 +8,13 @@ import {
   createTransformerDefiner as createTransformerDefinerImpl
 } from '../core/framework/domainService';
 import type {
-  export DomainCompiler,
-  export DomainConfig,
+  DomainCompiler,
+  DomainConfig,
   TransformerDefiner
 } from '../types';
+
+// 导出类型
+export type { DomainCompiler, DomainConfig, TransformerDefiner };
 
 /**
  * 创建领域DPML编译器
