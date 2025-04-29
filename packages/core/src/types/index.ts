@@ -29,3 +29,9 @@ export * from './MappingRule';
 export * from './CollectorConfig';
 export * from './RelationConfig';
 export * from './SemanticExtractor';
+
+// Framework types
+export * from './DomainCompiler';
+export * from './DomainConfig';
+export * from './CompileOptions';
+export * from './FrameworkError';

@@ -1,549 +1,441 @@
-# DPML Framework模块设计文档
+# DPML Framework设计文档
 
 ## 1. 概述
 
-Framework模块是DPML核心的扩展模块，它通过集中式配置方式简化了DPML的使用流程，使开发者能够更容易地为特定领域定制和使用DPML。该模块整合了Schema定义、转换器配置和处理选项，提供了一站式的领域特定DPML应用创建机制。
+Framework模块是DPML核心的入口点，负责创建和管理领域特定的DPML编译器。它将解析、验证和转换等核心功能封装为统一的API，使应用开发者能够方便地定义和使用自己的领域语言。
 
 ### 1.1 设计目标
 
-- **简化使用**：提供简洁的API，降低DPML使用门槛
-- **集中配置**：支持通过单一配置对象定义完整的DPML应用
-- **领域定制**：便于为特定领域快速创建定制的处理流程
-- **类型安全**：利用TypeScript泛型提供端到端的类型安全
-- **与核心模块集成**：无缝整合Schema、处理和转换功能
-- **可扩展性**：支持动态扩展配置和自定义处理逻辑
+- **统一入口**：提供简洁的API作为领域编译器的单一入口点
+- **闭包设计**：通过闭包模式封装内部状态，保持API简洁性
+- **可扩展性**：支持动态扩展领域配置
+- **类型安全**：提供完全类型化的API和结果
+- **职责隔离**：严格遵守分层架构，确保关注点分离
 
 ## 2. 核心设计理念
 
-Framework模块的设计基于以下核心理念：
+基于项目需求和架构规范，我们确立了以下核心设计理念：
 
-1. **集中式配置**：
-   - 通过单一配置对象定义完整DPML应用
-   - 所有组件在一处配置，一目了然
-   - 简化API调用，减少学习曲线
+1. **API薄层设计**：
+   - API层保持极简，仅委托核心层功能
+   - 避免在API层实现业务逻辑
+   - 确保API易于理解和使用
 
-2. **声明式定义**：
-   - 采用声明式风格定义Schema和转换器
-   - 专注于"做什么"而非"怎么做"
-   - 配置对象结构直观反映应用架构
+2. **闭包状态管理**：
+   - 使用闭包模式封装领域状态
+   - 通过闭包函数提供对内部状态的受控访问
+   - 避免暴露内部实现细节
 
-3. **零样板代码**：
-   - 减少重复的初始化和连接代码
-   - 框架自动处理组件间的协调
-   - 用户只需关注领域特定的配置
+3. **完整流程封装**：
+   - 将解析、处理和转换流程整合为统一管道
+   - 提供端到端的DPML编译能力
+   - 隐藏流程细节，减轻用户负担
 
-4. **类型安全优先**：
-   - 全程利用TypeScript泛型保证类型安全
-   - 提供端到端的类型检查和智能提示
-   - 在编译时捕获类型错误
+4. **配置扩展机制**：
+   - 支持动态扩展和修改领域配置
+   - 允许用户调整Schema和转换器
+   - 维护配置一致性和有效性
 
-5. **直接复用核心类型**：
-   - 直接使用核心模块的现有类型
-   - 避免创建额外的抽象层
-   - 减少类型转换的复杂性
-
-6. **即时可用**：
-   - 配置完成后立即可用
-   - 单一函数调用创建完整应用
-   - 统一的处理流程入口
+5. **类型安全**：
+   - 利用TypeScript泛型确保类型安全
+   - 在编译时提供类型检查
+   - 支持用户自定义目标类型
 
 ## 3. 系统架构
 
-Framework模块遵循DPML的整体架构规则，在core包内作为一个领域模块存在，目录结构如下：
+Framework模块严格遵循项目的分层架构：
 
-```
-packages/
-  core/
-    src/
-      api/
-        domain.ts              # API层：createDomainDPML函数
-      
-      types/
-        DomainDPML.ts          # 对外类型：DomainDPML接口
-        DomainConfig.ts        # 对外类型：应用配置接口
-        TransformerDefinition.ts # 对外类型：转换器定义接口
-        DomainOptions.ts       # 对外类型：选项接口
-      
-      core/
-        framework/             # Framework领域目录
-          domainService.ts     # Service层
-          domainManager.ts     # Manager层
-          Domain.ts            # 主要业务类
-          domainFactory.ts     # 工厂模块
-          types.ts             # 内部类型定义
-```
-
-该架构确保Framework模块与核心模块保持一致的分层设计，同时专注于提供集中配置的能力。
+1. **API层**：framework模块，提供createDomainDPML函数
+2. **Types层**：定义DomainCompiler接口和配置类型
+3. **Core层**：实现domainService，管理编译流程
 
 ## 4. 组件设计
 
-### 4.1 数据类型设计
+### 4.1 API设计
 
-```mermaid
-classDiagram
-    class DomainDPML~T~ {
-        <<interface>>
-        +process(content: string): Promise<T>
-        +extend(extensionConfig: Partial<DomainConfig>): void
-        +getSchema(): Schema
-        +getTransformers(): Array<Transformer<unknown, unknown>>
-    }
-    note for DomainDPML "文件: types/DomainDPML.ts"
-    
-    class DomainConfig {
-        <<interface>>
-        +schema: Schema
-        +transformers: Array<Transformer<unknown, unknown>> | TransformerDefinition[]
-        +options?: DomainOptions
-    }
-    note for DomainConfig "文件: types/DomainConfig.ts"
-    
-    class TransformerDefinition {
-        <<interface>>
-        +type: 'structuralMapper' | 'templateTransformer' | 'semanticExtractor' | 'aggregator' | 'relationProcessor' | 'custom'
-        +name: string
-        +rules?: MappingRule<unknown, unknown>[] 
-        +template?: string | Function
-        +transform?: TransformerFunction
-    }
-    note for TransformerDefinition "文件: types/TransformerDefinition.ts"
-    
-    class DomainOptions {
-        <<interface>>
-        +strictMode?: boolean
-        +errorHandling?: 'throw' | 'warn' | 'silent'
-        +transformOptions?: TransformOptions
-    }
-    note for DomainOptions "文件: types/DomainOptions.ts"
+```typescript
+// api/framework.ts
+export function createDomainDPML<T>(config: DomainConfig): DomainCompiler<T> {
+  const state = domainService.initializeDomain(config);
+  
+  // 返回闭包对象，符合DomainCompiler接口
+  return {
+    compile: (content: string) => domainService.compileDPML<T>(content, state),
+    extend: (extensionConfig: Partial<DomainConfig>) => domainService.extendDomain(state, extensionConfig),
+    getSchema: () => domainService.getDomainSchema(state),
+    getTransformers: () => domainService.getDomainTransformers(state)
+  };
+}
 ```
 
-#### 关键类型说明
+### 4.2 类型定义
 
-- **DomainDPML<T>**：领域特定DPML应用的接口，泛型参数T表示处理结果的类型
-- **DomainConfig**：创建领域应用的配置对象，包含Schema、转换器和选项
-- **TransformerDefinition**：简化的转换器定义，用于方便创建各类转换器
-- **DomainOptions**：领域应用的选项设置，控制处理行为
+```typescript
+// types/DomainCompiler.ts
+export interface DomainCompiler<T> {
+  /**
+   * 编译DPML内容为领域对象
+   * @param content DPML内容字符串
+   * @returns 编译后的领域对象
+   */
+  compile(content: string): Promise<T>;
+  
+  /**
+   * 扩展当前配置
+   * @param extensionConfig 要合并的配置片段
+   */
+  extend(extensionConfig: Partial<DomainConfig>): void;
+  
+  /**
+   * 获取当前架构
+   * @returns 当前架构对象
+   */
+  getSchema(): Schema;
+  
+  /**
+   * 获取当前转换器集合
+   * @returns 转换器数组
+   */
+  getTransformers(): Array<Transformer<unknown, unknown>>;
+}
 
-### 4.2 业务类设计
+// types/DomainConfig.ts
+export interface DomainConfig {
+  /**
+   * 领域特定的架构定义
+   */
+  schema: Schema;
+  
+  /**
+   * 转换器实例数组
+   */
+  transformers: Array<Transformer<unknown, unknown>>;
+  
+  /**
+   * 可选的编译选项
+   */
+  options?: CompileOptions;
+}
 
-```mermaid
-classDiagram
-    class Domain~T~ {
-        <<class>>
-        -schema: Schema
-        -transformers: Array<Transformer<unknown, unknown>>
-        -options: DomainOptions
-        +constructor(config: DomainConfig)
-        +process(content: string): Promise<T>
-        +extend(extensionConfig: Partial<DomainConfig>): void
-        +getSchema(): Schema
-        +getTransformers(): Array<Transformer<unknown, unknown>>
-    }
-    note for Domain "文件: core/framework/Domain.ts"
+// types/CompileOptions.ts
+export interface CompileOptions {
+  /**
+   * 是否启用严格模式
+   */
+  strictMode?: boolean;
+  
+  /**
+   * 错误处理策略
+   */
+  errorHandling?: 'throw' | 'warn' | 'silent';
+  
+  /**
+   * 转换选项
+   */
+  transformOptions?: TransformOptions;
+  
+  /**
+   * 自定义选项
+   */
+  custom?: Record<string, any>;
+}
 ```
 
-Domain类实现了DomainDPML接口，是Framework模块的核心业务类，负责：
-- 封装处理流程
-- 管理Schema和转换器
-- 提供配置扩展能力
-- 处理DPML内容并返回类型安全的结果
+### 4.3 Core层设计
 
-### 4.3 工厂模块设计
+```typescript
+// core/framework/domainService.ts
+import { parse } from '../../api/parser';
+import { processDocument } from '../../api/processing';
+import { transform } from '../../api/transformer';
+import { DPMLError } from '../../types/errors';
 
-```mermaid
-classDiagram
-    class domainFactory {
-        <<factory>>
-        +createDomain<T>(config: DomainConfig): Domain<T>
-        +createTransformer(definition: TransformerDefinition): Transformer<unknown, unknown>
-    }
-    note for domainFactory "文件: core/framework/domainFactory.ts"
+export function initializeDomain(config: DomainConfig): DomainState {
+  // 验证配置
+  validateConfig(config);
+  
+  // 创建内部状态
+  return {
+    schema: config.schema,
+    transformers: [...config.transformers],
+    options: { ...defaultOptions, ...config.options }
+  };
+}
+
+export async function compileDPML<T>(content: string, state: DomainState): Promise<T> {
+  // 1. 解析DPML内容
+  const document = await parse(content);
+  
+  // 2. 处理并验证
+  const result = processDocument(document, state.schema);
+  if (!result.validation.isValid && state.options.errorHandling === 'throw') {
+    throw new DPMLError('Validation failed', result.validation.errors);
+  }
+  
+  // 3. 转换为目标格式
+  return transform<T>(result, state.transformers, state.options.transformOptions);
+}
+
+export function extendDomain(state: DomainState, config: Partial<DomainConfig>): void {
+  // 更新架构（如果提供）
+  if (config.schema) {
+    state.schema = config.schema;
+  }
+  
+  // 追加或替换转换器
+  if (config.transformers) {
+    state.transformers = [...state.transformers, ...config.transformers];
+  }
+  
+  // 合并选项
+  if (config.options) {
+    state.options = { ...state.options, ...config.options };
+  }
+}
+
+export function getDomainSchema(state: DomainState): Schema {
+  return state.schema;
+}
+
+export function getDomainTransformers(state: DomainState): Array<Transformer<unknown, unknown>> {
+  return [...state.transformers];
+}
 ```
 
-domainFactory负责：
-- 创建Domain实例
-- 将TransformerDefinition转换为Transformer实例
-- 处理配置验证和默认值
+### 4.4 领域状态设计
 
-### 4.4 API设计
-
-```mermaid
-classDiagram
-    class createDomainDPML {
-        <<function>>
-        +createDomainDPML<T>(config: DomainConfig): DomainDPML<T>
-    }
-    note for createDomainDPML "文件: api/domain.ts"
+```typescript
+// core/framework/types.ts
+export interface DomainState {
+  /**
+   * 领域架构
+   */
+  schema: Schema;
+  
+  /**
+   * 转换器数组
+   */
+  transformers: Array<Transformer<unknown, unknown>>;
+  
+  /**
+   * 编译选项
+   */
+  options: Required<CompileOptions>;
+}
 ```
-
-`createDomainDPML`是Framework模块的主要API入口，它：
-- 接收DomainConfig配置对象
-- 返回实现DomainDPML<T>接口的对象
-- 支持泛型参数T来指定处理结果的类型
 
 ## 5. 组件关系图
-
-以下是Framework模块的详细组件关系图:
 
 ```mermaid
 classDiagram
     %% API层
-    class createDomainDPML {
-        <<function>>
-        +createDomainDPML<T>(config: DomainConfig): DomainDPML<T>
+    class framework {
+        <<module>>
+        +createDomainDPML<T>(config: DomainConfig): DomainCompiler<T> "创建领域编译器，返回符合接口的闭包对象"
     }
+    note for framework "文件: api/framework.ts\n作为API层入口点，提供领域编译器创建功能"
     
-    %% 类型定义
-    class DomainDPML~T~ {
+    %% Types层
+    class DomainCompiler~T~ {
         <<interface>>
-        +process(content: string): Promise<T>
-        +extend(extensionConfig: Partial<DomainConfig>): void
-        +getSchema(): Schema
-        +getTransformers(): Array<Transformer<unknown, unknown>>
+        +compile(content: string): Promise<T> "编译DPML内容为领域对象"
+        +extend(extensionConfig: Partial<DomainConfig>): void "扩展当前配置"
+        +getSchema(): Schema "获取当前架构"
+        +getTransformers(): Array<Transformer<unknown, unknown>> "获取当前转换器集合"
     }
+    note for DomainCompiler "文件: types/DomainCompiler.ts\n定义闭包API的形状，保证类型安全"
     
     class DomainConfig {
         <<interface>>
-        +schema: Schema
-        +transformers: Array<Transformer<unknown, unknown>> | TransformerDefinition[]
-        +options?: DomainOptions
+        +schema: Schema "领域特定的架构定义"
+        +transformers: Array<Transformer<unknown, unknown>> "转换器实例数组"
+        +options?: CompileOptions "可选的编译选项"
     }
+    note for DomainConfig "文件: types/DomainConfig.ts\n领域配置接口，定义创建领域编译器所需的配置"
     
-    class TransformerDefinition {
+    class CompileOptions {
         <<interface>>
-        +type: string
-        +name: string
-        +rules?: MappingRule<unknown, unknown>[] 
-        +template?: string | Function
-        +transform?: TransformerFunction
+        +strictMode?: boolean "是否启用严格模式"
+        +errorHandling?: 'throw' | 'warn' | 'silent' "错误处理策略"
+        +transformOptions?: TransformOptions "转换选项"
+        +custom?: Record<string, any> "自定义选项"
     }
+    note for CompileOptions "文件: types/CompileOptions.ts\n编译选项接口，控制编译行为"
     
-    class DomainOptions {
-        <<interface>>
-        +strictMode?: boolean
-        +errorHandling?: 'throw' | 'warn' | 'silent'
-        +transformOptions?: TransformOptions
-    }
-    
-    %% Service层
+    %% Core层 - 模块服务层
     class domainService {
         <<module>>
-        +createDomainDPML<T>(config: DomainConfig): DomainDPML<T>
+        +initializeDomain(config: DomainConfig): DomainState "初始化领域状态"
+        +compileDPML<T>(content: string, state: DomainState): Promise<T> "编译DPML内容为领域对象"
+        +extendDomain(state: DomainState, config: Partial<DomainConfig>): void "扩展领域配置"
+        +getDomainSchema(state: DomainState): Schema "获取架构"
+        +getDomainTransformers(state: DomainState): Array<Transformer<unknown, unknown>> "获取转换器集合"
     }
+    note for domainService "文件: core/framework/domainService.ts\n模块服务层，管理领域状态\n协调编译流程"
     
-    %% Manager层
-    class domainManager {
-        <<module>>
-        +createDomain<T>(config: DomainConfig): Domain<T>
-        +processDPML<T>(domain: Domain<T>, content: string): Promise<T>
-        -setupTransformers(transformers: TransformerDefinition[]): Array<Transformer<unknown, unknown>>
+    class DomainState {
+        <<interface>>
+        +schema: Schema "领域架构"
+        +transformers: Array<Transformer<unknown, unknown>> "转换器数组"
+        +options: Required<CompileOptions> "编译选项"
     }
-    
-    %% 业务类
-    class Domain~T~ {
-        <<class>>
-        -schema: Schema
-        -transformers: Array<Transformer<unknown, unknown>>
-        -options: DomainOptions
-        +constructor(config: DomainConfig)
-        +process(content: string): Promise<T>
-        +extend(extensionConfig: Partial<DomainConfig>): void
-        +getSchema(): Schema
-        +getTransformers(): Array<Transformer<unknown, unknown>>
-    }
-    
-    %% 工厂模块
-    class domainFactory {
-        <<factory>>
-        +createDomain<T>(config: DomainConfig): Domain<T>
-        +createTransformer(definition: TransformerDefinition): Transformer<unknown, unknown>
-    }
+    note for DomainState "文件: core/framework/types.ts\n内部状态接口，管理领域配置"
     
     %% 关系定义
-    createDomainDPML --> domainService : 委托
-    domainService --> domainManager : 使用
-    domainManager --> domainFactory : 使用
-    domainFactory --> Domain : 创建
-    DomainDPML <|.. Domain : 实现
-    Domain --> Schema : 使用
-    Domain --> Transformer : 使用
-    DomainConfig --> Schema : 引用
-    DomainConfig --> TransformerDefinition : 包含
-    domainFactory ..> TransformerDefinition : 转换
-    Domain --> DomainOptions : 使用
-    DomainOptions --> TransformOptions : 包含
+    framework --> domainService : 委托 "API委托原则，薄层设计"
+    framework ..> DomainCompiler : 返回 "返回符合接口的闭包对象"
+    DomainConfig *-- Schema : 包含 "使用架构定义"
+    DomainConfig *-- Transformer : 包含多个 "包含转换器数组"
+    DomainConfig o-- CompileOptions : 可选包含 "可选编译选项"
+    domainService --> DomainState : 管理 "维护领域状态"
 ```
 
-## 6. 执行流程
+## 6. 流程图
 
-Framework模块的典型执行流程如下:
+```mermaid
+sequenceDiagram
+    %% 参与者定义
+    participant User as 应用开发者
+    participant API as framework.ts
+    participant Service as domainService.ts
+    participant Parser as parser模块
+    participant Processing as processing模块
+    participant Transform as transformer模块
 
-1. **初始化**:
-   - 用户调用`createDomainDPML<T>`函数，传入配置对象
-   - API层将请求委托给Service层
-   - Service层调用Manager层创建领域应用
+    %% 标题和描述
+    Note over User,Transform: DPML Framework模块完整编译流程
 
-2. **配置处理**:
-   - Manager层验证配置有效性
-   - 通过工厂创建Domain实例
-   - 设置Schema和转换器
-
-3. **内容处理**:
-   - 用户调用领域应用的`process`方法处理DPML内容
-   - Domain实例协调解析、处理和转换流程
-   - 按顺序执行：解析 → 验证 → 处理 → 转换
-
-4. **结果返回**:
-   - 转换完成后，生成类型为T的结果对象
-   - 返回处理结果，类型安全且符合预期
-
-### 6.1 配置处理流程
-
+    %% 创建领域编译器
+    User->>+API: createDomainDPML(config) "创建领域编译器"
+    API->>+Service: initializeDomain(config) "初始化领域状态"
+    Service-->>-API: domainState "返回内部状态"
+    API-->>-User: DomainCompiler对象 "返回符合接口的闭包对象"
+    
+    %% 编译DPML内容
+    User->>+API: compiler.compile(dpmlContent) "调用编译方法"
+    API->>+Service: compileDPML(content, domainState) "委托给服务层"
+    
+    %% 完整编译流程
+    Service->>+Parser: parse(content) "1. 解析DPML内容"
+    Parser-->>-Service: DPMLDocument "文档对象"
+    
+    Service->>+Processing: processDocument(document, state.schema) "2. 处理并验证"
+    Processing-->>-Service: ProcessingResult "处理结果"
+    
+    Service->>+Transform: transform<T>(result, options) "3. 转换为目标格式"
+    Transform-->>-Service: TransformResult<T> "转换结果"
+    
+    Service-->>-API: T类型结果 "编译结果"
+    API-->>-User: T类型结果 "转发给用户"
+    
+    %% 扩展配置示例
+    User->>+API: compiler.extend(extensionConfig) "扩展配置"
+    API->>+Service: extendDomain(domainState, extensionConfig) "委托扩展"
+    Service-->>-API: 更新完成 "状态已更新"
+    API-->>-User: void "操作完成"
 ```
-配置对象 → 验证配置 → 设置Schema → 创建转换器 → 创建Domain实例
-```
 
-### 6.2 DPML处理流程
+## 7. 用户使用方式
 
-```
-DPML内容 → 解析文档 → 验证Schema → 处理文档 → 执行转换器 → 返回类型T的结果
-```
-
-## 7. 使用示例
-
-### 7.1 基本使用
+以下是应用开发者如何使用DPML Framework模块的示例：
 
 ```typescript
 import { createDomainDPML } from '@dpml/core';
+import type { Schema, Transformer } from '@dpml/core';
 
-// 定义结果类型
-interface LLMConfig {
-  systemPrompt: string;
-  userPrompt: string;
-  parameters: {
-    temperature: number;
-    maxTokens: number;
-  };
-}
-
-// 创建LLM领域的DPML处理器
-const llmDomain = createDomainDPML<LLMConfig>({
-  // Schema定义
-  schema: {
-    tags: {
-      prompt: {
-        attributes: ['role', 'temperature'],
-        validChildren: ['content']
-      },
-      content: {
-        attributes: ['format']
-      }
-    }
-  },
-  
-  // 转换器定义
-  transformers: [
-    {
-      type: 'structuralMapper',
-      name: 'llmConfigMapper',
-      rules: [
-        { selector: 'prompt[role="system"] > content', targetPath: 'systemPrompt' },
-        { selector: 'prompt[role="user"] > content', targetPath: 'userPrompt' },
-        { selector: 'prompt[temperature]', targetPath: 'parameters.temperature',
-          transform: value => parseFloat(value) }
-      ]
-    }
+// 定义领域特定的Schema
+const formSchema: Schema = {
+  element: "form",
+  attributes: [
+    { name: "id", required: true },
+    { name: "action", required: true },
+    { name: "method", enum: ["GET", "POST"] }
   ],
-  
-  // 选项设置
+  children: {
+    elements: [
+      { 
+        element: "input",
+        attributes: [
+          { name: "type", required: true },
+          { name: "name", required: true }
+        ]
+      },
+      {
+        element: "button",
+        attributes: [
+          { name: "type", enum: ["submit", "reset", "button"] }
+        ],
+        content: { type: "text" }
+      }
+    ]
+  }
+};
+
+// 定义转换器，将DPML文档转换为目标格式
+const formTransformer: Transformer<ProcessingResult, FormModel> = {
+  transform(result) {
+    // 实现转换逻辑...
+    return {
+      id: result.document.root.attributes.id,
+      action: result.document.root.attributes.action,
+      method: result.document.root.attributes.method,
+      fields: result.document.root.children
+        .filter(child => child.tagName === 'input')
+        .map(input => ({
+          name: input.attributes.name,
+          type: input.attributes.type
+        }))
+    };
+  }
+};
+
+// 创建领域编译器
+const formCompiler = createDomainDPML<FormModel>({
+  schema: formSchema,
+  transformers: [formTransformer],
   options: {
     strictMode: true,
-    transformOptions: {
-      resultMode: 'merged'
-    }
+    errorHandling: 'throw'
   }
 });
 
-// 处理DPML内容
-const result = await llmDomain.process(`
-  <prompt role="system" temperature="0.7">
-    <content>你是一个AI助手</content>
-  </prompt>
-  <prompt role="user">
-    <content>请介绍一下自然语言处理技术</content>
-  </prompt>
-`);
+// 使用编译器处理DPML内容
+async function processForm(dpmlContent: string) {
+  try {
+    const formModel = await formCompiler.compile(dpmlContent);
+    console.log('表单处理成功:', formModel);
+    return formModel;
+  } catch (error) {
+    console.error('表单处理失败:', error);
+    throw error;
+  }
+}
 
-// 类型安全的结果访问
-console.log(result.systemPrompt);  // "你是一个AI助手"
-console.log(result.userPrompt);    // "请介绍一下自然语言处理技术"
-console.log(result.parameters.temperature);  // 0.7
-```
-
-### 7.2 高级使用
-
-```typescript
-import { createDomainDPML } from '@dpml/core';
-
-// 更复杂的领域应用配置
-const formDomain = createDomainDPML<FormData>({
-  schema: {
-    // Schema配置...
-  },
-  
-  // 使用多个转换器
-  transformers: [
-    // 结构映射
-    {
-      type: 'structuralMapper',
-      name: 'formFieldsMapper',
-      rules: [/* 字段映射规则 */]
-    },
-    
-    // 语义提取
-    {
-      type: 'semanticExtractor',
-      name: 'validationRulesExtractor',
-      // 提取表单验证规则
-    },
-    
-    // 自定义转换器
-    {
-      type: 'custom',
-      name: 'formProcessor',
-      transform: (input, context) => {
-        // 自定义处理逻辑
-        return processedFormData;
-      }
-    }
-  ],
-  
+// 扩展现有配置
+formCompiler.extend({
   options: {
-    // 选项配置...
+    strictMode: false,
+    errorHandling: 'warn'
   }
 });
 
-// 动态扩展配置
-formDomain.extend({
-  transformers: [
-    {
-      type: 'templateTransformer',
-      name: 'htmlGenerator',
-      template: data => generateHTML(data)
-    }
-  ]
-});
-
-// 处理表单DPML
-const formData = await formDomain.process(formDpmlContent);
+// 获取当前Schema
+const currentSchema = formCompiler.getSchema();
 ```
 
-## 8. 扩展点
+## 8. 总结
 
-Framework模块提供以下扩展点:
+DPML Framework模块采用闭包设计模式，提供了一个统一的入口点用于创建和管理领域特定的DPML编译器。它严格遵循分层架构原则，将API层设计为极简的薄层，而将实际实现委托给核心服务层。
 
-1. **动态配置扩展**:
-   - 通过`extend`方法添加或修改配置
-   - 运行时调整处理行为
-   ```typescript
-   domain.extend({
-     transformers: [/* 新增转换器 */]
-   });
-   ```
+通过闭包模式封装内部状态，Framework模块实现了简洁而强大的API，同时隐藏了实现细节。它将解析、处理和转换流程整合为统一的编译管道，使应用开发者能够专注于定义自己的领域Schema和转换器，而不必关心内部流程细节。
 
-2. **自定义转换器**:
-   - 通过`custom`类型定义自定义转换逻辑
-   ```typescript
-   transformers: [
-     {
-       type: 'custom',
-       name: 'customTransformer',
-       transform: (input, context) => {
-         // 自定义转换逻辑
-         return transformedData;
-       }
-     }
-   ]
-   ```
+Framework模块充分利用了TypeScript的类型系统，特别是泛型，确保了API和结果的类型安全。用户可以通过泛型指定目标类型，获得完整的类型推导和编译时验证。
 
-3. **转换器组合**:
-   - 组合多个转换器构建复杂处理流程
-   ```typescript
-   transformers: [
-     { type: 'structuralMapper', /* ... */ },
-     { type: 'semanticExtractor', /* ... */ },
-     { type: 'templateTransformer', /* ... */ }
-   ]
-   ```
+作为DPML核心的入口点，Framework模块连接了解析、Schema、处理和转换等模块，实现了端到端的DPML编译流程。
 
-4. **处理选项定制**:
-   - 通过选项配置控制处理行为
-   ```typescript
-   options: {
-     strictMode: true,
-     errorHandling: 'throw',
-     transformOptions: {
-       resultMode: 'full',
-       include: ['transformer1', 'transformer2']
-     }
-   }
-   ```
-
-## 9. 未来扩展方向
-
-1. **插件系统**:
-   - 支持通过插件扩展框架功能
-   - 提供插件生命周期管理
-   - 允许注册自定义组件类型
-
-2. **配置文件支持**:
-   - 支持从外部文件加载配置
-   - 提供配置验证和错误提示
-   ```typescript
-   const domain = createDomainDPML.fromConfig('./dpml.config.json');
-   ```
-
-3. **热重载**:
-   - 支持配置热重载能力
-   - 动态更新Schema和转换器
-   ```typescript
-   domain.reload(newConfig);
-   ```
-
-4. **钩子系统**:
-   - 提供处理生命周期钩子
-   - 支持自定义前处理和后处理逻辑
-   ```typescript
-   {
-     hooks: {
-       beforeParse: (content) => { /* ... */ },
-       afterTransform: (result) => { /* ... */ }
-     }
-   }
-   ```
-
-5. **多语言支持**:
-   - 为不同语言提供文件生成器
-   - 生成兼容的Schema和处理程序
-   ```typescript
-   domain.generateClient({ language: 'python' });
-   ```
-
-## 10. 总结
-
-DPML Framework模块通过集中式配置方式简化了DPML的使用流程，使开发者能够更容易地为特定领域定制和使用DPML。它的核心价值在于：
-
-- **简化使用体验**：通过声明式配置和一站式API简化开发流程
-- **提升开发效率**：减少样板代码，专注于领域特定配置
-- **类型安全保障**：利用TypeScript泛型确保端到端类型安全
-- **灵活可扩展**：支持动态扩展配置和自定义处理逻辑
-- **与核心无缝集成**：直接利用核心模块的类型和功能
-
-Framework模块作为DPML的上层抽象，为用户提供了一种更简单、更直观的方式来定义和使用领域特定语言，同时保持了底层的灵活性和可扩展性。它遵循"配置优于代码"的理念，使DPML能够更好地服务于各种领域应用场景。
+业务流程概览：
 
 ```
-解析文档 → 验证Schema → 处理文档 → 执行转换器 → 领域特定结果<T>
-                ↑                                   ↑
-                └───────────── Domain<T> ──────────┘
-                        (集中式配置和处理)
-``` 
+创建领域编译器 → 初始化内部状态 → 返回符合接口的闭包对象 → 
+用户调用compile方法 → 解析DPML → 处理并验证 → 转换为目标格式 → 返回结果
+```
