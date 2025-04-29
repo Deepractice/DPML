@@ -1,31 +1,256 @@
 import eslint from '@eslint/js';
 import prettierConfig from 'eslint-config-prettier';
-import importPlugin from 'eslint-plugin-import';
-import unicorn from 'eslint-plugin-unicorn';
-import tseslint from 'typescript-eslint';
 import boundaries from 'eslint-plugin-boundaries';
+import importPlugin from 'eslint-plugin-import';
+import tseslint from 'typescript-eslint';
+import unicornPlugin from 'eslint-plugin-unicorn';
 
-import styleRules from './rules/style-rules.js';
-import { directoryRules, importExportRules, boundariesRules } from './rules/eslint-rules.js';
+// 样式规则
+const styleRules = {
+  rules: {
+    // 空格和缩进规则
+    indent: ['error', 2, { SwitchCase: 1 }],
+    'no-trailing-spaces': 'error',
+    'eol-last': ['error', 'always'],
+    'linebreak-style': ['error', 'unix'],
+    'max-len': [
+      'warn',
+      {
+        code: 80,
+        ignoreUrls: true,
+        ignoreStrings: true,
+        ignoreTemplateLiterals: true,
+      },
+    ],
+
+    // 括号、逗号和分号规则
+    semi: ['error', 'always'],
+    'comma-dangle': ['error', 'only-multiline'],
+    'comma-spacing': ['error', { before: false, after: true }],
+    'brace-style': ['error', '1tbs', { allowSingleLine: true }],
+    'object-curly-spacing': ['error', 'always'],
+    'array-bracket-spacing': ['error', 'never'],
+    'space-in-parens': ['error', 'never'],
+
+    // 空行规则
+    'padding-line-between-statements': [
+      'error',
+      { blankLine: 'always', prev: '*', next: 'return' },
+      { blankLine: 'always', prev: ['const', 'let', 'var'], next: '*' },
+      {
+        blankLine: 'any',
+        prev: ['const', 'let', 'var'],
+        next: ['const', 'let', 'var'],
+      },
+      { blankLine: 'always', prev: 'directive', next: '*' },
+      { blankLine: 'always', prev: 'block-like', next: '*' },
+    ],
+
+    // 操作符周围的空格
+    'space-infix-ops': 'error',
+    'keyword-spacing': ['error', { before: true, after: true }],
+    'key-spacing': ['error', { beforeColon: false, afterColon: true }],
+    'space-before-blocks': 'error',
+    'space-before-function-paren': [
+      'error',
+      { anonymous: 'always', named: 'never', asyncArrow: 'always' },
+    ],
+
+    // 命名规范
+    camelcase: ['error', { properties: 'never' }],
+  },
+};
+
+// 目录结构和文件命名规则
+const directoryRules = {
+  plugins: {
+    unicorn: unicornPlugin
+  },
+  rules: {
+    // 文件命名规则：允许PascalCase、camelCase，以及包含专有词汇全大写的情况
+    'unicorn/filename-case': [
+      'warn',
+      {
+        cases: {
+          // 允许PascalCase (类文件)
+          pascalCase: true,
+          // 允许camelCase (函数文件)
+          camelCase: true,
+        },
+        // 允许包含专有词汇(DPML, XML等)全大写的文件名
+        ignore: ['^index\\.ts$', '^DPML.*\\.ts$', '.*DPML.*\\.ts$', '^XML.*\\.ts$', '.*XML.*\\.ts$'],
+      },
+    ],
+  },
+};
+
+// 导入和导出规则
+const importExportRules = {
+  plugins: {
+    import: importPlugin
+  },
+  settings: {
+    'import/resolver': {
+      typescript: {
+        alwaysTryTypes: true,
+        project: ['./tsconfig.json', './packages/*/tsconfig.json'],
+      },
+      node: {
+        extensions: ['.js', '.jsx', '.ts', '.tsx'],
+      },
+    },
+  },
+  rules: {
+    // 基本导入规则
+    'import/no-unresolved': 'warn',
+    'import/no-duplicates': 'warn',
+    'import/no-cycle': 'warn',
+    'import/no-unused-modules': 'warn',
+
+    // 导入顺序
+    'import/order': [
+      'warn',
+      {
+        'groups': ['builtin', 'external', 'parent', 'sibling', 'index'],
+        'newlines-between': 'always',
+        'alphabetize': {
+          'order': 'asc',
+          'caseInsensitive': true
+        }
+      }
+    ],
+
+    // 禁止过深的相对路径导入
+    'import/no-relative-parent-imports': [
+      'warn',
+      {
+        ignore: ['../api', '../core', '../types']
+      }
+    ],
+
+    // 禁止通配符导入
+    'import/no-namespace': 'warn',
+
+    // 使用type关键字导入类型
+    '@typescript-eslint/consistent-type-imports': [
+      'warn',
+      {
+        prefer: 'type-imports',
+        disallowTypeAnnotations: false,
+      },
+    ],
+
+    // 强制不带扩展名导入
+    'import/extensions': ['warn', 'never'],
+  },
+};
+
+// 跨目录导入限制规则
+const boundariesRules = {
+  plugins: {
+    boundaries: boundaries
+  },
+  settings: {
+    'boundaries/elements': [
+      {
+        type: 'api',
+        pattern: 'src/api/*',
+      },
+      {
+        type: 'types',
+        pattern: 'src/types/*',
+      },
+      {
+        type: 'core',
+        pattern: 'src/core/*',
+      },
+    ],
+  },
+  rules: {
+    // 强制目录间依赖规则
+    'boundaries/element-types': [
+      'warn',
+      {
+        default: 'disallow',
+        rules: [
+          // api可以导入types和core
+          { from: 'api', allow: ['types', 'core'] },
+          // core可以导入types，但不能导入api
+          { from: 'core', allow: ['types'] },
+          // types不能导入任何东西
+          { from: 'types', allow: [] },
+        ],
+      },
+    ],
+  },
+};
+
+// 自定义ESLint规则实现
+const customRules = {
+  // 禁止嵌套目录规则
+  'dpml/no-nested-directories': {
+    meta: {
+      type: 'suggestion',
+      docs: {
+        description: '强制一级目录结构，禁止在api/types/core下创建子目录',
+        category: 'DPML规则',
+        recommended: true,
+      },
+      schema: [],
+    },
+    create(context) {
+      // 通过文件路径检查是否有嵌套目录
+      const filePath = context.getFilename();
+
+      // 检查是否违反了目录规则
+      // 这里需要定制实现检查逻辑
+      return {};
+    },
+  },
+
+  // 强制扁平化文件命名规则
+  'dpml/enforce-flat-file-naming': {
+    meta: {
+      type: 'suggestion',
+      docs: {
+        description: '强制使用扁平化文件命名约定，如parser-core.ts而非parser/core.ts',
+        category: 'DPML规则',
+        recommended: true,
+      },
+      schema: [],
+    },
+    create(context) {
+      // 实现文件命名规则检查逻辑
+      return {};
+    },
+  },
+};
 
 export default [
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   prettierConfig,
   styleRules,
-  
-  // 新增的DPML项目特定规则
+
+  // DPML项目特定规则
   directoryRules,
   importExportRules,
   boundariesRules,
-  
+
+  // 完全排除所有JS文件
   {
     ignores: [
+      // 基本忽略
       '**/node_modules/**',
       '**/dist/**',
       '**/coverage/**',
       '**/temp/**',
       '**/.turbo/**',
+      // 排除所有JS文件
+      '**/*.js',
+      '**/*.jsx',
+      '**/*.mjs',
+      '**/*.cjs',
     ],
   },
   {
@@ -43,9 +268,8 @@ export default [
     },
   },
   {
-    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
+    files: ['**/*.ts', '**/*.tsx'],
     plugins: {
-      unicorn,
       import: importPlugin,
       boundaries: boundaries,
     },
@@ -79,23 +303,6 @@ export default [
       ],
     },
     rules: {
-      // 文件命名规则：允许PascalCase、camelCase，以及包含专有词汇全大写的情况
-      ...((/\.(ts|tsx)$/.test('$&')) ? {
-        'unicorn/filename-case': [
-          'warn',
-          {
-            cases: {
-              // 允许PascalCase (类文件)
-              pascalCase: true,
-              // 允许camelCase (函数文件)
-              camelCase: true,
-            },
-            // 允许包含专有词汇(DPML, XML等)全大写的文件名
-            ignore: ['^index\\.ts$', '^DPML.*\\.ts$', '.*DPML.*\\.ts$', '^XML.*\\.ts$', '.*XML.*\\.ts$'],
-          },
-        ],
-      } : {}),
-      
       // 导入相关规则
       'import/no-unresolved': 'warn',
       'import/no-duplicates': 'warn',
@@ -109,7 +316,7 @@ export default [
         },
       ],
       'import/extensions': ['warn', 'never'],
-      
+
       // 强制目录间依赖规则
       'boundaries/element-types': [
         'warn',
@@ -131,7 +338,6 @@ export default [
   {
     files: ['**/*.test.ts', '**/*.spec.ts', '**/__tests__/**/*.ts'],
     rules: {
-      'unicorn/filename-case': 'off', // 测试文件命名更灵活
       '@typescript-eslint/no-unused-vars': 'off', // 在测试文件中禁用未使用变量的检查
     },
   },

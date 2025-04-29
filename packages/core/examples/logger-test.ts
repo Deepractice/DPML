@@ -1,6 +1,6 @@
 /**
  * 日志功能测试示例
- * 
+ *
  * 运行方式:
  * ts-node packages/core/examples/logger-test.ts
  */
@@ -31,12 +31,12 @@ const simpleLogger = createLogger('core:simple', {
  */
 function demonstrateBasicLogging() {
   console.log('\n=== Basic Logging ===');
-  
+
   logger.debug('This is a debug message');
   logger.info('This is an info message');
   logger.warn('This is a warning message');
   logger.error('This is an error message');
-  
+
   // 使用结构化数据
   logger.info('Processing completed', { duration: 120, itemsProcessed: 50 });
 }
@@ -46,7 +46,7 @@ function demonstrateBasicLogging() {
  */
 function demonstrateCustomFormatting() {
   console.log('\n=== Custom Format Logging ===');
-  
+
   customLogger.info('Custom formatted log message');
   customLogger.error('Custom formatted error with data', { code: 500 });
 }
@@ -56,7 +56,7 @@ function demonstrateCustomFormatting() {
  */
 function demonstrateSimpleLogging() {
   console.log('\n=== Simple Logging (No Code Location) ===');
-  
+
   simpleLogger.info('Simple log without code location');
   simpleLogger.warn('Simple warning without function name');
 }
@@ -66,16 +66,16 @@ function demonstrateSimpleLogging() {
  */
 function demonstrateNestedCalls() {
   console.log('\n=== Nested Function Calls ===');
-  
+
   function nestedFunction() {
     function deeplyNestedFunction() {
       logger.info('Log from deeply nested function');
     }
-    
+
     logger.info('Log from nested function');
     deeplyNestedFunction();
   }
-  
+
   logger.info('Log from outer function');
   nestedFunction();
 }
@@ -85,14 +85,14 @@ function demonstrateNestedCalls() {
  */
 class LoggingDemo {
   private logger = createLogger('core:class-demo');
-  
+
   public demonstrateClassLogging() {
     console.log('\n=== Class Method Logging ===');
-    
+
     this.logger.info('Log from class method');
     this.helperMethod();
   }
-  
+
   private helperMethod() {
     this.logger.info('Log from private helper method');
   }
@@ -108,7 +108,8 @@ demonstrateSimpleLogging();
 demonstrateNestedCalls();
 
 const demo = new LoggingDemo();
+
 demo.demonstrateClassLogging();
 
 console.log('\n========================');
-console.log('Demo completed'); 
+console.log('Demo completed');

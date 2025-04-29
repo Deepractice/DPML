@@ -3,8 +3,9 @@
  * 验证TransformerDefiner接口符合预期的类型定义
  */
 
-import type { TransformerDefiner, MappingRule, CollectorConfig, RelationConfig, SemanticExtractor, Transformer } from '../../../types';
 import { describe, it, expect } from 'vitest';
+
+import type { TransformerDefiner, MappingRule, CollectorConfig, RelationConfig, SemanticExtractor, Transformer } from '../../../types';
 
 describe('TransformerDefiner类型契约测试', () => {
   // 创建一个符合TransformerDefiner接口的模拟实现

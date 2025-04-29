@@ -1,11 +1,11 @@
-import * as path from 'path';
+import { resolve } from 'path';
 
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   resolve: {
     alias: {
-      '@agent': path.resolve(__dirname, './src'),
+      '@agent': resolve(__dirname, './src'),
     },
   },
   test: {

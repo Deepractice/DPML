@@ -1,5 +1,7 @@
-import * as path from 'path';
+import { resolve } from 'path';
+
 import { defineConfig } from 'tsup';
+
 import { baseConfig } from '../../tsup.base.config';
 
 export default defineConfig({
@@ -12,9 +14,9 @@ export default defineConfig({
   clean: true,
   esbuildOptions(options) {
     options.alias = {
-      '@core': path.resolve(__dirname, './src')
+      '@core': resolve(__dirname, './src')
     };
     options.preserveSymlinks = true;
     options.resolveExtensions = ['.tsx', '.ts', '.jsx', '.js', '.css', '.json'];
   },
-}); 
+});
