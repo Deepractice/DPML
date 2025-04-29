@@ -1,7 +1,7 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-import { Pipeline } from '../../../core/transformer/Pipeline';
 import { createResultCollector } from '../../../core/framework/transformer/transformerFactory';
+import { Pipeline } from '../../../core/transformer/Pipeline';
 import { transformerRegistryFactory } from '../../../core/transformer/TransformerRegistry';
 import { transform, registerTransformer } from '../../../core/transformer/transformerService';
 import type { Transformer } from '../../../types';

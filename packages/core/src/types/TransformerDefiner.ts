@@ -62,8 +62,8 @@ export interface TransformerDefiner {
 }
 
 // 导入必要的类型
-import type { MappingRule } from './MappingRule';
 import type { CollectorConfig } from './CollectorConfig';
+import type { MappingRule } from './MappingRule';
 import type { RelationConfig } from './RelationConfig';
 import type { SemanticExtractor } from './SemanticExtractor';
-import type { Transformer } from './Transformer'; 
+import type { Transformer } from './Transformer';

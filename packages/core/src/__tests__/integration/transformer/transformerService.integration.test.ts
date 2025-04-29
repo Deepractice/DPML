@@ -5,8 +5,8 @@
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 
-import { registerTransformer, transform } from '../../../core/transformer/transformerService';
 import { createStructuralMapper, createAggregator } from '../../../core/framework/transformer/transformerFactory';
+import { registerTransformer, transform } from '../../../core/transformer/transformerService';
 import type { Transformer, TransformContext, CollectorConfig } from '../../../types';
 import { createProcessingResultFixture, createMappingRulesFixture } from '../../fixtures/transformer/transformerFixtures';
 
@@ -323,13 +323,13 @@ describe('transformerService集成测试', () => {
     // 准备
     const processingResult = createProcessingResultFixture();
     const mappingRules = createMappingRulesFixture();
-    
+
     // 创建转换器
     const structuralMapper = createStructuralMapper(mappingRules);
-    
+
     // 注册转换器
     registerTransformer(structuralMapper);
-    
+
     // 执行
     const result = transform(processingResult);
 
@@ -348,13 +348,13 @@ describe('transformerService集成测试', () => {
     const config: CollectorConfig = {
       selector: 'prompt'
     };
-    
+
     // 创建转换器
     const aggregator = createAggregator(config);
-    
+
     // 注册转换器
     registerTransformer(aggregator);
-    
+
     // 执行
     const result = transform(processingResult);
 

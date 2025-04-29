@@ -11,12 +11,12 @@ import type {
 } from '../../../types';
 
 // 导入本地的转换器实现
-import { StructuralMapperTransformer } from './StructuralMapperTransformer';
 import { AggregatorTransformer } from './AggregatorTransformer';
-import { TemplateTransformer } from './TemplateTransformer';
 import { RelationProcessorTransformer } from './RelationProcessorTransformer';
 import { ResultCollectorTransformer } from './ResultCollectorTransformer';
 import { SemanticExtractorTransformer } from './SemanticExtractorTransformer';
+import { StructuralMapperTransformer } from './StructuralMapperTransformer';
+import { TemplateTransformer } from './TemplateTransformer';
 
 /**
  * 创建结构映射转换器
@@ -86,4 +86,4 @@ export function createResultCollector<TOutput>(
   transformerNames?: string[]
 ): ResultCollectorTransformer<TOutput> {
   return new ResultCollectorTransformer<TOutput>(transformerNames);
-} 
+}

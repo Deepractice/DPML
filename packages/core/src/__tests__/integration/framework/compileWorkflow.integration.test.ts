@@ -44,6 +44,7 @@ describe('Framework编译工作流集成测试', () => {
       transform: (input: any, context: any) => {
         // 直接从文档中提取数据
         const document = context.getDocument();
+
         if (!document || !document.rootNode) {
           return {
             metadata: { id: 'unknown', version: 'unknown', createdAt: 0 },
@@ -72,7 +73,7 @@ describe('Framework编译工作流集成测试', () => {
             const paragraphs = section.children
               .filter((p: any) => p.tagName === 'paragraph')
               .map((p: any) => p.content || '');
-            
+
             return { heading, paragraphs };
           });
 

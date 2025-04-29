@@ -497,4 +497,4 @@ export class StructuralMapperTransformer<TInput, TOutput> implements Transformer
       }
     ]);
   }
-} 
+}

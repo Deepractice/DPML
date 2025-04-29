@@ -5,10 +5,10 @@
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 
-import { Pipeline } from '../../../core/transformer/Pipeline';
 import { AggregatorTransformer } from '../../../core/framework/transformer/AggregatorTransformer';
 import { StructuralMapperTransformer } from '../../../core/framework/transformer/StructuralMapperTransformer';
 import { TemplateTransformer } from '../../../core/framework/transformer/TemplateTransformer';
+import { Pipeline } from '../../../core/transformer/Pipeline';
 import { TransformContext } from '../../../types';
 import { createProcessingResultFixture, createMappingRulesFixture } from '../../fixtures/transformer/transformerFixtures';
 

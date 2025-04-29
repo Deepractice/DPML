@@ -10,4 +10,4 @@ export * from './domainService';
 export * from './transformer';
 
 // 导出类型
-export * from './types'; 
+export * from './types';

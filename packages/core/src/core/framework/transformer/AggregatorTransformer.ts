@@ -175,4 +175,4 @@ export class AggregatorTransformer<TInput, TOutput> implements Transformer<TInpu
 
     return elementsArray as unknown as TOutput;
   }
-} 
+}

@@ -1,18 +1,19 @@
 /**
  * 转换过程的端到端测试
- * 
+ *
  * 这个测试验证DPML文档从解析到转换的整个流程
  */
 import { describe, test, beforeEach, afterEach, expect, vi } from 'vitest';
+
 import { parse } from '../../../api/parser';
-import { processDocument } from '../../../core/processing/processingService';
-import { TransformContext } from '../../../types';
-import { StructuralMapperTransformer } from '../../../core/framework/transformer/StructuralMapperTransformer';
 import { AggregatorTransformer } from '../../../core/framework/transformer/AggregatorTransformer';
+import { StructuralMapperTransformer } from '../../../core/framework/transformer/StructuralMapperTransformer';
 import { TemplateTransformer } from '../../../core/framework/transformer/TemplateTransformer';
+import { processDocument } from '../../../core/processing/processingService';
 import { Pipeline } from '../../../core/transformer/Pipeline';
 import { transformerRegistryFactory } from '../../../core/transformer/TransformerRegistry';
 import { registerTransformer, transform } from '../../../core/transformer/transformerService';
+import { TransformContext } from '../../../types';
 import type { DPMLDocument, ProcessedSchema } from '../../../types';
 
 // 定义测试结果的类型以解决类型错误

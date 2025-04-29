@@ -8,27 +8,24 @@ import { processDocument } from '../../api/processing';
 import { processSchema } from '../../api/schema';
 import { transform, registerTransformer } from '../../api/transformer';
 import { ConfigurationError, CompilationError } from '../../types';
+import type { CollectorConfig } from '../../types/CollectorConfig';
 import type { CompileOptions } from '../../types/CompileOptions';
+import type { DomainCompiler } from '../../types/DomainCompiler';
 import type { DomainConfig } from '../../types/DomainConfig';
 import type { DPMLDocument } from '../../types/DPMLDocument';
+import type { MappingRule } from '../../types/MappingRule';
 import type { ParseResult } from '../../types/ParseResult';
 import type { ProcessedSchema } from '../../types/ProcessedSchema';
 import type { ProcessingResult } from '../../types/ProcessingResult';
+import type { RelationConfig } from '../../types/RelationConfig';
 import type { Schema } from '../../types/Schema';
+import type { SemanticExtractor } from '../../types/SemanticExtractor';
 import type { TransformContext } from '../../types/TransformContext';
 import type { Transformer } from '../../types/Transformer';
+import type { TransformerDefiner } from '../../types/TransformerDefiner';
 import type { TransformResult } from '../../types/TransformResult';
 import type { ValidationResult } from '../../types/ValidationResult';
-import type { TransformerDefiner } from '../../types/TransformerDefiner';
-import type { MappingRule } from '../../types/MappingRule';
-import type { CollectorConfig } from '../../types/CollectorConfig';
-import type { RelationConfig } from '../../types/RelationConfig';
-import type { SemanticExtractor } from '../../types/SemanticExtractor';
-import type { DomainCompiler } from '../../types/DomainCompiler';
 
-import type { DomainState } from './types';
-
-// 导入transformer工厂函数
 import {
   createStructuralMapper,
   createAggregator,
@@ -37,6 +34,9 @@ import {
   createSemanticExtractor,
   createResultCollector
 } from './transformer/transformerFactory';
+import type { DomainState } from './types';
+
+// 导入transformer工厂函数
 
 // 导入API层函数
 

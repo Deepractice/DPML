@@ -1,12 +1,12 @@
 import { describe, test, expect, vi } from 'vitest';
 
-import { createStructuralMapper, createAggregator, createTemplateTransformer, createResultCollector, createRelationProcessor, createSemanticExtractor } from '../../../../core/framework/transformer/transformerFactory';
 import { AggregatorTransformer } from '../../../../core/framework/transformer/AggregatorTransformer';
 import { RelationProcessorTransformer } from '../../../../core/framework/transformer/RelationProcessorTransformer';
 import { ResultCollectorTransformer } from '../../../../core/framework/transformer/ResultCollectorTransformer';
 import { SemanticExtractorTransformer } from '../../../../core/framework/transformer/SemanticExtractorTransformer';
 import { StructuralMapperTransformer } from '../../../../core/framework/transformer/StructuralMapperTransformer';
 import { TemplateTransformer } from '../../../../core/framework/transformer/TemplateTransformer';
+import { createStructuralMapper, createAggregator, createTemplateTransformer, createResultCollector, createRelationProcessor, createSemanticExtractor } from '../../../../core/framework/transformer/transformerFactory';
 
 // 模拟转换器构造函数
 vi.mock('../../../../core/framework/transformer/StructuralMapperTransformer', () => {

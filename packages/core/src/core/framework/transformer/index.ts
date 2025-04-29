@@ -14,4 +14,4 @@ export {
 } from './transformerFactory';
 
 // 导出类型
-export * from './types'; 
+export * from './types';

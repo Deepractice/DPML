@@ -12,9 +12,9 @@ import type {
   TransformMetadata
 } from '../../types';
 import { TransformContext } from '../../types/TransformContext';
+import { createResultCollector } from '../framework/transformer/transformerFactory';
 
 import { Pipeline } from './Pipeline';
-import { createResultCollector } from '../framework/transformer/transformerFactory';
 import { transformerRegistryFactory } from './TransformerRegistry';
 
 /**

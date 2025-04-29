@@ -7,9 +7,9 @@ import {
   createDomainCompiler,
   createTransformerDefiner as createTransformerDefinerImpl
 } from '../core/framework/domainService';
-import type { 
-  DomainCompiler, 
-  DomainConfig, 
+import type {
+  DomainCompiler,
+  DomainConfig,
   TransformerDefiner
 } from '../types';
 
@@ -44,20 +44,20 @@ export function createDomainDPML<T>(config: DomainConfig): DomainCompiler<T> {
 
 /**
  * 创建转换器定义器
- * 
+ *
  * @returns 转换器定义器实例，提供各种转换器的定义方法
- * 
+ *
  * @example
  * ```typescript
  * // 获取转换器定义器
  * const definer = createTransformerDefiner();
- * 
+ *
  * // 定义结构映射转换器
  * const mapperTransformer = definer.defineStructuralMapper([
  *   { selector: 'user', targetPath: 'userInfo' },
  *   { selector: 'user[id]', targetPath: 'userInfo.id' }
  * ]);
- * 
+ *
  * // 定义模板转换器
  * const templateTransformer = definer.defineTemplateTransformer('Hello, {{name}}!');
  * ```

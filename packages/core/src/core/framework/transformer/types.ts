@@ -7,10 +7,10 @@
 export * from '../../../types/Transformer';
 
 // 导出其他必要的类型
-export type { 
+export type {
   MappingRule,
   TransformContext,
   Transformer,
   DPMLNode,
   DPMLDocument
-} from '../../../types'; 
+} from '../../../types';

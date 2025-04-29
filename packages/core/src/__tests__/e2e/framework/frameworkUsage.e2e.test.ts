@@ -4,7 +4,9 @@
  */
 
 import { describe, it, expect, afterEach } from 'vitest';
-import { DomainCompiler, DomainConfig } from '../../../api/framework';
+
+import type { DomainCompiler, DomainConfig } from '../../../api/framework';
+import { TransformContext } from '../../../core/transformer';
 import {
   simpleModelTransformer,
   simpleModelSchema,
@@ -15,7 +17,6 @@ import {
   SimpleModel,
   ComplexModel
 } from '../../fixtures/framework/frameworkFixtures';
-import { TransformContext } from '../../../core/transformer';
 
 describe('Framework模块端到端测试', () => {
   let compiler: DomainCompiler<any>;
@@ -31,7 +32,7 @@ describe('Framework模块端到端测试', () => {
       schema: simpleModelSchema,
       transformers: [simpleModelTransformer]
     };
-    
+
     // @ts-ignore - 忽略类型错误，使用现有API
     compiler = { compile: async (content: string) => {
       // 简单模拟编译结果
@@ -41,7 +42,7 @@ describe('Framework模块端到端测试', () => {
         description: '这是一个测试模型',
         tags: ['test', 'model']
       };
-    }};
+    } };
 
     // 编译DPML内容
     const result = await compiler.compile(simpleModelDPML);
@@ -60,9 +61,10 @@ describe('Framework模块端到端测试', () => {
       name: 'limitedTransformer',
       transform: (doc: any) => {
         if (!doc || !doc.root) return {};
-        
+
         // 有限的转换器只提取id和name
         const model = doc.root.querySelector('model');
+
         return {
           id: model?.getAttribute('id'),
           name: model?.querySelector('name')?.textContent
@@ -70,14 +72,15 @@ describe('Framework模块端到端测试', () => {
         };
       }
     };
-    
+
     // 定义扩展转换器，提取description和tags
     const extensionTransformer = {
       name: 'extensionTransformer',
       transform: (doc: any) => {
         if (!doc || !doc.root) return {};
-        
+
         const model = doc.root.querySelector('model');
+
         return {
           description: model?.querySelector('description')?.textContent,
           tags: Array.from(model?.querySelectorAll('tag') || [])
@@ -109,6 +112,7 @@ describe('Framework模块端到端测试', () => {
 
     // 使用初始编译器编译DPML - 应只有id和name
     const initialResult = await initialCompiler.compile(simpleModelDPML);
+
     expect(initialResult).toBeDefined();
     expect(initialResult.id).toBe('test-123');
     expect(initialResult.name).toBe('测试模型');
@@ -117,6 +121,7 @@ describe('Framework模块端到端测试', () => {
 
     // 使用扩展编译器编译DPML - 应包含所有属性
     const extendedResult = await extendedCompiler.compile(simpleModelDPML);
+
     expect(extendedResult).toBeDefined();
     expect(extendedResult.id).toBe('test-123');
     expect(extendedResult.name).toBe('测试模型');
@@ -132,6 +137,7 @@ describe('Framework模块端到端测试', () => {
         if (content === invalidDPMLContent) {
           throw new Error('解析错误');
         }
+
         return {};
       }
     };
@@ -150,6 +156,7 @@ describe('Framework模块端到端测试', () => {
 
     // 在宽松模式下应返回部分结果
     const result = await lenientCompiler.compile(invalidDPMLContent);
+
     expect(result).toBeDefined();
     // 由于文档无效，部分字段可能无法提取，但编译器不应抛出错误
   });
@@ -166,11 +173,13 @@ describe('Framework模块端到端测试', () => {
 
     // 获取并验证Schema
     const schema = compiler.getSchema();
+
     expect(schema).toBeDefined();
     expect(schema.name).toBe('测试Schema');
 
     // 获取并验证转换器
     const transformers = compiler.getTransformers();
+
     expect(transformers).toBeDefined();
     expect(transformers.length).toBeGreaterThan(0);
     expect(transformers[0].name).toBe(simpleModelTransformer.name);
@@ -182,8 +191,9 @@ describe('Framework模块端到端测试', () => {
       name: 'customTransformer',
       transform: (doc: any, context: any) => {
         if (!doc || !doc.root) return {};
-        
+
         const model = doc.root.querySelector('model');
+
         return {
           metadata: {
             id: model?.getAttribute('id'),
@@ -225,4 +235,4 @@ describe('Framework模块端到端测试', () => {
     expect(result.content.description).toBe('这是一个测试模型');
     expect(result.content.keywords).toEqual(['test', 'model']);
   });
-}); 
+});
