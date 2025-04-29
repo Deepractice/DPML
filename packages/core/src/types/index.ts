@@ -35,3 +35,5 @@ export * from './DomainCompiler';
 export * from './DomainConfig';
 export * from './CompileOptions';
 export * from './FrameworkError';
+
+export * from './TransformerDefiner';

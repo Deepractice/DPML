@@ -4,13 +4,14 @@
  */
 
 import {
-  initializeDomain,
-  compileDPML,
-  extendDomain,
-  getDomainSchema,
-  getDomainTransformers,
+  createDomainCompiler,
+  createTransformerDefiner as createTransformerDefinerImpl
 } from '../core/framework/domainService';
-import type { DomainCompiler, DomainConfig, Schema, Transformer } from '../types';
+import type { 
+  DomainCompiler, 
+  DomainConfig, 
+  TransformerDefiner
+} from '../types';
 
 /**
  * 创建领域DPML编译器
@@ -38,42 +39,29 @@ import type { DomainCompiler, DomainConfig, Schema, Transformer } from '../types
  * ```
  */
 export function createDomainDPML<T>(config: DomainConfig): DomainCompiler<T> {
-  // 初始化领域状态，使用闭包模式保持状态隔离
-  const state = initializeDomain(config);
+  return createDomainCompiler<T>(config);
+}
 
-  // 返回领域编译器实现
-  return {
-    /**
-     * 编译DPML内容为领域对象
-     * @param content DPML内容字符串
-     * @returns 编译后的领域对象
-     */
-    compile: async (content: string): Promise<T> => {
-      return compileDPML<T>(content, state);
-    },
-
-    /**
-     * 扩展当前配置
-     * @param extensionConfig 要合并的配置片段
-     */
-    extend: (extensionConfig: Partial<DomainConfig>): void => {
-      extendDomain(state, extensionConfig);
-    },
-
-    /**
-     * 获取当前架构
-     * @returns 当前架构对象
-     */
-    getSchema: (): Schema => {
-      return getDomainSchema(state);
-    },
-
-    /**
-     * 获取当前转换器集合
-     * @returns 转换器数组
-     */
-    getTransformers: (): Array<Transformer<unknown, unknown>> => {
-      return getDomainTransformers(state);
-    }
-  };
+/**
+ * 创建转换器定义器
+ * 
+ * @returns 转换器定义器实例，提供各种转换器的定义方法
+ * 
+ * @example
+ * ```typescript
+ * // 获取转换器定义器
+ * const definer = createTransformerDefiner();
+ * 
+ * // 定义结构映射转换器
+ * const mapperTransformer = definer.defineStructuralMapper([
+ *   { selector: 'user', targetPath: 'userInfo' },
+ *   { selector: 'user[id]', targetPath: 'userInfo.id' }
+ * ]);
+ * 
+ * // 定义模板转换器
+ * const templateTransformer = definer.defineTemplateTransformer('Hello, {{name}}!');
+ * ```
+ */
+export function createTransformerDefiner(): TransformerDefiner {
+  return createTransformerDefinerImpl();
 }

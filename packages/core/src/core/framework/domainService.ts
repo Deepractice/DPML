@@ -19,9 +19,24 @@ import type { TransformContext } from '../../types/TransformContext';
 import type { Transformer } from '../../types/Transformer';
 import type { TransformResult } from '../../types/TransformResult';
 import type { ValidationResult } from '../../types/ValidationResult';
+import type { TransformerDefiner } from '../../types/TransformerDefiner';
+import type { MappingRule } from '../../types/MappingRule';
+import type { CollectorConfig } from '../../types/CollectorConfig';
+import type { RelationConfig } from '../../types/RelationConfig';
+import type { SemanticExtractor } from '../../types/SemanticExtractor';
+import type { DomainCompiler } from '../../types/DomainCompiler';
 
 import type { DomainState } from './types';
 
+// 导入transformer工厂函数
+import {
+  createStructuralMapper,
+  createAggregator,
+  createTemplateTransformer,
+  createRelationProcessor,
+  createSemanticExtractor,
+  createResultCollector
+} from './transformer/transformerFactory';
 
 // 导入API层函数
 
@@ -243,4 +258,130 @@ export function getDomainSchema(state: DomainState): Schema {
 export function getDomainTransformers(state: DomainState): Array<Transformer<unknown, unknown>> {
   // 返回副本而非直接引用，避免外部修改
   return [...state.transformers];
+}
+
+/**
+ * 创建领域编译器
+ * @template T 编译后的领域对象类型
+ * @param config 领域配置
+ * @returns 领域编译器实例
+ */
+export function createDomainCompiler<T>(config: DomainConfig): DomainCompiler<T> {
+  // 初始化领域状态，使用闭包模式保持状态隔离
+  const state = initializeDomain(config);
+
+  // 返回领域编译器实现
+  return {
+    /**
+     * 编译DPML内容为领域对象
+     * @param content DPML内容字符串
+     * @returns 编译后的领域对象
+     */
+    compile: async (content: string): Promise<T> => {
+      return compileDPML<T>(content, state);
+    },
+
+    /**
+     * 扩展当前配置
+     * @param extensionConfig 要合并的配置片段
+     */
+    extend: (extensionConfig: Partial<DomainConfig>): void => {
+      extendDomain(state, extensionConfig);
+    },
+
+    /**
+     * 获取当前架构
+     * @returns 当前架构对象
+     */
+    getSchema: (): Schema => {
+      return getDomainSchema(state);
+    },
+
+    /**
+     * 获取当前转换器集合
+     * @returns 转换器数组
+     */
+    getTransformers: (): Array<Transformer<unknown, unknown>> => {
+      return getDomainTransformers(state);
+    }
+  };
+}
+
+/**
+ * 创建转换器定义器
+ * @returns 转换器定义器实例
+ */
+export function createTransformerDefiner(): TransformerDefiner {
+  // 使用闭包模式返回TransformerDefiner接口实现
+  return {
+    /**
+     * 定义结构映射转换器
+     * @param rules 映射规则数组
+     * @returns 结构映射转换器实例
+     */
+    defineStructuralMapper<TInput, TOutput>(
+      rules: Array<MappingRule<unknown, unknown>>
+    ): Transformer<TInput, TOutput> {
+      return createStructuralMapper<TInput, TOutput>(rules);
+    },
+
+    /**
+     * 定义聚合转换器
+     * @param config 收集配置
+     * @returns 聚合转换器实例
+     */
+    defineAggregator<TInput, TOutput>(
+      config: CollectorConfig
+    ): Transformer<TInput, TOutput> {
+      return createAggregator<TInput, TOutput>(config);
+    },
+
+    /**
+     * 定义模板转换器
+     * @param template 模板字符串或函数
+     * @param preprocessor 可选的数据预处理函数
+     * @returns 模板转换器实例
+     */
+    defineTemplateTransformer<TInput>(
+      template: string | ((data: unknown) => string),
+      preprocessor?: (input: TInput) => unknown
+    ): Transformer<TInput, string> {
+      return createTemplateTransformer<TInput>(template, preprocessor);
+    },
+
+    /**
+     * 定义关系处理转换器
+     * @param nodeSelector 节点选择器
+     * @param config 关系配置
+     * @returns 关系处理转换器实例
+     */
+    defineRelationProcessor<TInput, TOutput>(
+      nodeSelector: string,
+      config: RelationConfig
+    ): Transformer<TInput, TOutput> {
+      return createRelationProcessor<TInput, TOutput>(nodeSelector, config);
+    },
+
+    /**
+     * 定义语义提取转换器
+     * @param extractors 提取器数组
+     * @returns 语义提取转换器实例
+     */
+    defineSemanticExtractor<TInput, TOutput>(
+      extractors: Array<SemanticExtractor<unknown, unknown>>
+    ): Transformer<TInput, TOutput> {
+      return createSemanticExtractor<TInput, TOutput>(extractors);
+    },
+
+    /**
+     * 定义结果收集转换器
+     * @param transformerNames 可选的转换器名称数组，用于选择性收集
+     * @returns 结果收集转换器实例
+     */
+    defineResultCollector<TOutput>(
+      transformerNames?: string[]
+    ): Transformer<unknown, TOutput> {
+      return createResultCollector<TOutput>(transformerNames);
+    }
+  };
 }
