@@ -3,7 +3,7 @@
  */
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-import { AggregatorTransformer } from '../../../../core/transformer/transformers/AggregatorTransformer';
+import { AggregatorTransformer } from '../../../../core/framework/transformer/AggregatorTransformer';
 import type { DPMLNode } from '../../../../types';
 import type { CollectorConfig } from '../../../../types/CollectorConfig';
 import type { TransformContext } from '../../../../types/TransformContext';

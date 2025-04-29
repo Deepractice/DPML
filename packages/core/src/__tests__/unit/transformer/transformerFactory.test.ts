@@ -1,15 +1,15 @@
 import { describe, test, expect, vi } from 'vitest';
 
-import { createStructuralMapper, createAggregator, createTemplateTransformer, createResultCollector, createRelationProcessor, createSemanticExtractor } from '../../../core/transformer/transformerFactory';
-import { AggregatorTransformer } from '../../../core/transformer/transformers/AggregatorTransformer';
-import { RelationProcessorTransformer } from '../../../core/transformer/transformers/RelationProcessorTransformer';
-import { ResultCollectorTransformer } from '../../../core/transformer/transformers/ResultCollectorTransformer';
-import { SemanticExtractorTransformer } from '../../../core/transformer/transformers/SemanticExtractorTransformer';
-import { StructuralMapperTransformer } from '../../../core/transformer/transformers/StructuralMapperTransformer';
-import { TemplateTransformer } from '../../../core/transformer/transformers/TemplateTransformer';
+import { createStructuralMapper, createAggregator, createTemplateTransformer, createResultCollector, createRelationProcessor, createSemanticExtractor } from '../../../core/framework/transformer/transformerFactory';
+import { AggregatorTransformer } from '../../../core/framework/transformer/AggregatorTransformer';
+import { RelationProcessorTransformer } from '../../../core/framework/transformer/RelationProcessorTransformer';
+import { ResultCollectorTransformer } from '../../../core/framework/transformer/ResultCollectorTransformer';
+import { SemanticExtractorTransformer } from '../../../core/framework/transformer/SemanticExtractorTransformer';
+import { StructuralMapperTransformer } from '../../../core/framework/transformer/StructuralMapperTransformer';
+import { TemplateTransformer } from '../../../core/framework/transformer/TemplateTransformer';
 
 // 模拟转换器构造函数
-vi.mock('../../../core/transformer/transformers/StructuralMapperTransformer', () => {
+vi.mock('../../../core/framework/transformer/StructuralMapperTransformer', () => {
   return {
     StructuralMapperTransformer: vi.fn().mockImplementation(() => ({
       name: 'structuralMapper',
@@ -18,7 +18,7 @@ vi.mock('../../../core/transformer/transformers/StructuralMapperTransformer', ()
   };
 });
 
-vi.mock('../../../core/transformer/transformers/AggregatorTransformer', () => {
+vi.mock('../../../core/framework/transformer/AggregatorTransformer', () => {
   return {
     AggregatorTransformer: vi.fn().mockImplementation(() => ({
       name: 'aggregator',
@@ -27,7 +27,7 @@ vi.mock('../../../core/transformer/transformers/AggregatorTransformer', () => {
   };
 });
 
-vi.mock('../../../core/transformer/transformers/TemplateTransformer', () => {
+vi.mock('../../../core/framework/transformer/TemplateTransformer', () => {
   return {
     TemplateTransformer: vi.fn().mockImplementation(() => ({
       name: 'templateTransformer',
@@ -36,7 +36,7 @@ vi.mock('../../../core/transformer/transformers/TemplateTransformer', () => {
   };
 });
 
-vi.mock('../../../core/transformer/transformers/ResultCollectorTransformer', () => {
+vi.mock('../../../core/framework/transformer/ResultCollectorTransformer', () => {
   return {
     ResultCollectorTransformer: vi.fn().mockImplementation(() => ({
       name: 'resultCollector',
@@ -45,7 +45,7 @@ vi.mock('../../../core/transformer/transformers/ResultCollectorTransformer', () 
   };
 });
 
-vi.mock('../../../core/transformer/transformers/RelationProcessorTransformer', () => {
+vi.mock('../../../core/framework/transformer/RelationProcessorTransformer', () => {
   return {
     RelationProcessorTransformer: vi.fn().mockImplementation(() => ({
       name: 'relationProcessor',
@@ -54,7 +54,7 @@ vi.mock('../../../core/transformer/transformers/RelationProcessorTransformer', (
   };
 });
 
-vi.mock('../../../core/transformer/transformers/SemanticExtractorTransformer', () => {
+vi.mock('../../../core/framework/transformer/SemanticExtractorTransformer', () => {
   return {
     SemanticExtractorTransformer: vi.fn().mockImplementation(() => ({
       name: 'semanticExtractor',

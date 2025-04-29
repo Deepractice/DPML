@@ -1,15 +1,18 @@
 /**
- * 转换处理流程端到端测试
+ * 转换过程的端到端测试
+ * 
+ * 这个测试验证DPML文档从解析到转换的整个流程
  */
-import { describe, test, expect, beforeEach, afterEach } from 'vitest';
-
-import { parse } from '../../../core/parsing/parsingService';
+import { describe, test, beforeEach, afterEach, expect, vi } from 'vitest';
+import { parse } from '../../../api/parser';
 import { processDocument } from '../../../core/processing/processingService';
+import { TransformContext } from '../../../types';
+import { StructuralMapperTransformer } from '../../../core/framework/transformer/StructuralMapperTransformer';
+import { AggregatorTransformer } from '../../../core/framework/transformer/AggregatorTransformer';
+import { TemplateTransformer } from '../../../core/framework/transformer/TemplateTransformer';
+import { Pipeline } from '../../../core/transformer/Pipeline';
 import { transformerRegistryFactory } from '../../../core/transformer/TransformerRegistry';
-import { AggregatorTransformer } from '../../../core/transformer/transformers/AggregatorTransformer';
-import { StructuralMapperTransformer } from '../../../core/transformer/transformers/StructuralMapperTransformer';
-import { TemplateTransformer } from '../../../core/transformer/transformers/TemplateTransformer';
-import { transform, registerTransformer } from '../../../core/transformer/transformerService';
+import { registerTransformer, transform } from '../../../core/transformer/transformerService';
 import type { DPMLDocument, ProcessedSchema } from '../../../types';
 
 // 定义测试结果的类型以解决类型错误

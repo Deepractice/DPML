@@ -1,9 +1,9 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
 import { Pipeline } from '../../../core/transformer/Pipeline';
-import { createStructuralMapper, createAggregator, createTemplateTransformer } from '../../../core/transformer/transformerFactory';
+import { createResultCollector } from '../../../core/framework/transformer/transformerFactory';
 import { transformerRegistryFactory } from '../../../core/transformer/TransformerRegistry';
-import { transform, registerTransformer, registerStructuralMapper, registerAggregator, registerTemplateTransformer } from '../../../core/transformer/transformerService';
+import { transform, registerTransformer } from '../../../core/transformer/transformerService';
 import type { Transformer } from '../../../types';
 import { createProcessingResultFixture } from '../../fixtures/transformer/transformerFixtures';
 
@@ -29,14 +29,9 @@ vi.mock('../../../core/transformer/TransformerRegistry', () => {
   };
 });
 
-// 模拟transformerFactory
-vi.mock('../../../core/transformer/transformerFactory', () => {
+// 模拟转换器工厂
+vi.mock('../../../core/framework/transformer/transformerFactory', () => {
   return {
-    createStructuralMapper: vi.fn().mockReturnValue({ name: 'structuralMapper' }),
-    createAggregator: vi.fn().mockReturnValue({ name: 'aggregator' }),
-    createTemplateTransformer: vi.fn().mockReturnValue({ name: 'templateTransformer' }),
-    createRelationProcessor: vi.fn().mockReturnValue({ name: 'relationProcessor' }),
-    createSemanticExtractor: vi.fn().mockReturnValue({ name: 'semanticExtractor' }),
     createResultCollector: vi.fn().mockReturnValue({ name: 'resultCollector' })
   };
 });
@@ -214,45 +209,6 @@ describe('transformerService', () => {
 
       // 断言
       expect(transformerRegistryFactory().register).toHaveBeenCalledWith(mockTransformer);
-    });
-  });
-
-  describe('便捷注册方法', () => {
-    test('registerStructuralMapper应创建并注册结构映射转换器', () => {
-      // 准备
-      const rules = [{ selector: 'test', targetPath: 'target' }];
-
-      // 执行
-      registerStructuralMapper(rules);
-
-      // 断言
-      expect(createStructuralMapper).toHaveBeenCalledWith(rules);
-      expect(transformerRegistryFactory().register).toHaveBeenCalled();
-    });
-
-    test('registerAggregator应创建并注册聚合转换器', () => {
-      // 准备
-      const config = { selector: 'test' };
-
-      // 执行
-      registerAggregator(config);
-
-      // 断言
-      expect(createAggregator).toHaveBeenCalledWith(config);
-      expect(transformerRegistryFactory().register).toHaveBeenCalled();
-    });
-
-    test('registerTemplateTransformer应创建并注册模板转换器', () => {
-      // 准备
-      const template = 'template';
-      const preprocessor = vi.fn();
-
-      // 执行
-      registerTemplateTransformer(template, preprocessor);
-
-      // 断言
-      expect(createTemplateTransformer).toHaveBeenCalledWith(template, preprocessor);
-      expect(transformerRegistryFactory().register).toHaveBeenCalled();
     });
   });
 });

@@ -5,7 +5,8 @@
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 
-import { registerTransformer, transform, registerStructuralMapper, registerAggregator } from '../../../core/transformer/transformerService';
+import { registerTransformer, transform } from '../../../core/transformer/transformerService';
+import { createStructuralMapper, createAggregator } from '../../../core/framework/transformer/transformerFactory';
 import type { Transformer, TransformContext, CollectorConfig } from '../../../types';
 import { createProcessingResultFixture, createMappingRulesFixture } from '../../fixtures/transformer/transformerFixtures';
 
@@ -316,15 +317,20 @@ describe('transformerService集成测试', () => {
 
   /**
    * ID: IT-TRANSVC-08
-   * 描述: registerStructuralMapper应创建并注册结构映射转换器
+   * 描述: 使用StructuralMapperTransformer进行测试
    */
-  test('registerStructuralMapper应创建并注册结构映射转换器', () => {
+  test('可以直接创建和注册StructuralMapperTransformer', () => {
     // 准备
     const processingResult = createProcessingResultFixture();
     const mappingRules = createMappingRulesFixture();
-
+    
+    // 创建转换器
+    const structuralMapper = createStructuralMapper(mappingRules);
+    
+    // 注册转换器
+    registerTransformer(structuralMapper);
+    
     // 执行
-    registerStructuralMapper(mappingRules);
     const result = transform(processingResult);
 
     // 断言
@@ -334,17 +340,22 @@ describe('transformerService集成测试', () => {
   });
 
   /**
-   * 额外测试：registerAggregator应创建并注册聚合转换器
+   * 额外测试：直接创建和注册聚合转换器
    */
-  test('registerAggregator应创建并注册聚合转换器', () => {
+  test('可以直接创建和注册AggregatorTransformer', () => {
     // 准备
     const processingResult = createProcessingResultFixture();
     const config: CollectorConfig = {
       selector: 'prompt'
     };
-
+    
+    // 创建转换器
+    const aggregator = createAggregator(config);
+    
+    // 注册转换器
+    registerTransformer(aggregator);
+    
     // 执行
-    registerAggregator(config);
     const result = transform(processingResult);
 
     // 断言

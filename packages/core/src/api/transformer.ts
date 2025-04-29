@@ -8,11 +8,7 @@ import type {
   ProcessingResult,
   Transformer,
   TransformOptions,
-  TransformResult,
-  MappingRule,
-  CollectorConfig,
-  RelationConfig,
-  SemanticExtractor
+  TransformResult
 } from '../types';
 
 // 导入核心服务模块
@@ -39,58 +35,4 @@ export function registerTransformer<TInput, TOutput>(
   transformer: Transformer<TInput, TOutput>
 ): void {
   transformerService.registerTransformer(transformer);
-}
-
-/**
- * 注册结构映射转换器
- * @param rules 映射规则数组
- */
-export function registerStructuralMapper<TInput, TOutput>(
-  rules: Array<MappingRule<unknown, unknown>>
-): void {
-  transformerService.registerStructuralMapper<TInput, TOutput>(rules);
-}
-
-/**
- * 注册聚合转换器
- * @param config 收集配置
- */
-export function registerAggregator<TInput, TOutput>(
-  config: CollectorConfig
-): void {
-  transformerService.registerAggregator<TInput, TOutput>(config);
-}
-
-/**
- * 注册模板转换器
- * @param template 模板字符串或函数
- * @param preprocessor 可选的数据预处理函数
- */
-export function registerTemplateTransformer<TInput>(
-  template: string | ((data: unknown) => string),
-  preprocessor?: (input: TInput) => unknown
-): void {
-  transformerService.registerTemplateTransformer<TInput>(template, preprocessor);
-}
-
-/**
- * 注册关系处理转换器
- * @param nodeSelector 节点选择器
- * @param config 关系配置
- */
-export function registerRelationProcessor<TInput, TOutput>(
-  nodeSelector: string,
-  config: RelationConfig
-): void {
-  transformerService.registerRelationProcessor<TInput, TOutput>(nodeSelector, config);
-}
-
-/**
- * 注册语义提取转换器
- * @param extractors 提取器数组
- */
-export function registerSemanticExtractor<TInput, TOutput>(
-  extractors: Array<SemanticExtractor<unknown, unknown>>
-): void {
-  transformerService.registerSemanticExtractor<TInput, TOutput>(extractors);
 }

@@ -9,16 +9,12 @@ import type {
   TransformOptions,
   TransformResult,
   TransformWarning,
-  TransformMetadata,
-  MappingRule,
-  CollectorConfig,
-  RelationConfig,
-  SemanticExtractor
+  TransformMetadata
 } from '../../types';
 import { TransformContext } from '../../types/TransformContext';
 
 import { Pipeline } from './Pipeline';
-import { createStructuralMapper, createAggregator, createTemplateTransformer, createRelationProcessor, createSemanticExtractor, createResultCollector } from './transformerFactory';
+import { createResultCollector } from '../framework/transformer/transformerFactory';
 import { transformerRegistryFactory } from './TransformerRegistry';
 
 /**
@@ -237,70 +233,6 @@ export function registerTransformer<TInput, TOutput>(
 }
 
 /**
- * 注册结构映射转换器
- * @param rules 映射规则数组
- */
-export function registerStructuralMapper<TInput, TOutput>(
-  rules: Array<MappingRule<unknown, unknown>>
-): void {
-  const transformer = createStructuralMapper<TInput, TOutput>(rules);
-
-  registerTransformer(transformer);
-}
-
-/**
- * 注册聚合转换器
- * @param config 收集配置
- */
-export function registerAggregator<TInput, TOutput>(
-  config: CollectorConfig
-): void {
-  const transformer = createAggregator<TInput, TOutput>(config);
-
-  registerTransformer(transformer);
-}
-
-/**
- * 注册模板转换器
- * @param template 模板字符串或函数
- * @param preprocessor 可选的数据预处理函数
- */
-export function registerTemplateTransformer<TInput>(
-  template: string | ((data: unknown) => string),
-  preprocessor?: (input: TInput) => unknown
-): void {
-  const transformer = createTemplateTransformer<TInput>(template, preprocessor);
-
-  registerTransformer(transformer);
-}
-
-/**
- * 注册关系处理转换器
- * @param nodeSelector 节点选择器
- * @param config 关系配置
- */
-export function registerRelationProcessor<TInput, TOutput>(
-  nodeSelector: string,
-  config: RelationConfig
-): void {
-  const transformer = createRelationProcessor<TInput, TOutput>(nodeSelector, config);
-
-  registerTransformer(transformer);
-}
-
-/**
- * 注册语义提取转换器
- * @param extractors 提取器数组
- */
-export function registerSemanticExtractor<TInput, TOutput>(
-  extractors: Array<SemanticExtractor<unknown, unknown>>
-): void {
-  const transformer = createSemanticExtractor<TInput, TOutput>(extractors);
-
-  registerTransformer(transformer);
-}
-
-/**
  * 获取或创建转换管道
  * @returns Pipeline实例
  */
@@ -334,10 +266,5 @@ function applyTransformerFilters(
 // 导出所有转换模块服务函数作为一个对象
 export const transformerService = {
   transform,
-  registerTransformer,
-  registerStructuralMapper,
-  registerAggregator,
-  registerTemplateTransformer,
-  registerRelationProcessor,
-  registerSemanticExtractor
+  registerTransformer
 };

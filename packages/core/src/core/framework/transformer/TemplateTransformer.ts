@@ -274,4 +274,4 @@ export class TemplateTransformer<TInput> implements Transformer<TInput, string> 
       // 忽略日志错误
     }
   }
-}
+} 

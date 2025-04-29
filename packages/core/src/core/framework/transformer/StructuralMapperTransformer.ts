@@ -3,7 +3,7 @@
  * 执行组件，实现结构映射逻辑
  */
 
-import type { Transformer, TransformContext, MappingRule, DPMLNode, DPMLDocument } from '../../../types';
+import type { Transformer, TransformContext, MappingRule, DPMLNode, DPMLDocument } from './types';
 
 /**
  * 使用简单的节点查询函数
@@ -497,4 +497,4 @@ export class StructuralMapperTransformer<TInput, TOutput> implements Transformer
       }
     ]);
   }
-}
+} 

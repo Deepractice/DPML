@@ -177,4 +177,4 @@ export class ResultCollectorTransformer<TOutput = Record<string, unknown>> imple
     return (this.shouldMerge && 'merged' in filteredResults ?
       filteredResults.merged : filteredResults) as TOutput;
   }
-}
+} 

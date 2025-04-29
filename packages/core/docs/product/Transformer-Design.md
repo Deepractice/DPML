@@ -63,7 +63,7 @@ DPML转换模块遵循项目的整体架构规则，采用分层设计：
 2. **Types层** - 定义转换相关的数据结构，保持纯数据类型定义
 3. **Core层** - 包含所有内部实现，主要分为：
    - **模块服务层** - 提供业务功能，实现转换服务，协调领域组件
-   - **业务实现层** - 实现具体转换逻辑和组件
+   - **业务实现层** - 实现具体转换逻辑和组件，现位于framework模块
 
 整体架构如下：
 
@@ -86,11 +86,19 @@ DPML转换模块遵循项目的整体架构规则，采用分层设计：
 │  └──────────┬─────────────────┬───────────────────────────┘   │
 │             │                 │                               │
 │  ┌──────────▼─────────┐  ┌────▼─────────────────────────┐     │
-│  │    Pipeline        │  │    转换器实现                 │     │
-│  │  (业务类/协调组件)   │  │  (执行组件/业务类)             │     │
+│  │    transformer     │  │    framework                 │     │
+│  │     模块组件        │  │    模块组件                   │     │
+│  │                    │  │                              │     │
+│  │  - Pipeline        │  │  - StructuralMapperTransformer │   │
+│  │  - TransformerRegistry│ - AggregatorTransformer      │     │
+│  │                    │  │  - TemplateTransformer       │     │
+│  │                    │  │  - 其他转换器实现              │     │
+│  │                    │  │  - transformerFactory        │     │
 │  └────────────────────┘  └──────────────────────────────┘     │
 └───────────────────────────────────────────────────────────────┘
 ```
+
+这个架构反映了当前的设计，其中转换器实现（如StructuralMapperTransformer、AggregatorTransformer等）已从transformer模块迁移到framework模块，而Pipeline和TransformerRegistry等基础组件仍保留在transformer模块中。这种设计使transformer模块保持纯净，只包含框架组件和运行逻辑，而所有具体实现都位于framework模块中。
 
 ## 4. 组件设计
 

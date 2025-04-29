@@ -8,15 +8,15 @@ import type {
   CollectorConfig,
   RelationConfig,
   SemanticExtractor,
-} from '../../types';
+} from '../../../types';
 
-// 注意：这些导入是类型导入，实际实现在后续任务中完成
-import { AggregatorTransformer } from './transformers/AggregatorTransformer';
-import { RelationProcessorTransformer } from './transformers/RelationProcessorTransformer';
-import { ResultCollectorTransformer } from './transformers/ResultCollectorTransformer';
-import { SemanticExtractorTransformer } from './transformers/SemanticExtractorTransformer';
-import { StructuralMapperTransformer } from './transformers/StructuralMapperTransformer';
-import { TemplateTransformer } from './transformers/TemplateTransformer';
+// 导入本地的转换器实现
+import { StructuralMapperTransformer } from './StructuralMapperTransformer';
+import { AggregatorTransformer } from './AggregatorTransformer';
+import { TemplateTransformer } from './TemplateTransformer';
+import { RelationProcessorTransformer } from './RelationProcessorTransformer';
+import { ResultCollectorTransformer } from './ResultCollectorTransformer';
+import { SemanticExtractorTransformer } from './SemanticExtractorTransformer';
 
 /**
  * 创建结构映射转换器
@@ -86,4 +86,4 @@ export function createResultCollector<TOutput>(
   transformerNames?: string[]
 ): ResultCollectorTransformer<TOutput> {
   return new ResultCollectorTransformer<TOutput>(transformerNames);
-}
+} 

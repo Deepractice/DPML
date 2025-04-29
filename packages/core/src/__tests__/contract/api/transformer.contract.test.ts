@@ -20,12 +20,7 @@ vi.mock('../../../core/transformer/transformerService', () => ({
         timestamp: Date.now()
       }
     }),
-    registerTransformer: vi.fn(),
-    registerStructuralMapper: vi.fn(),
-    registerAggregator: vi.fn(),
-    registerTemplateTransformer: vi.fn(),
-    registerRelationProcessor: vi.fn(),
-    registerSemanticExtractor: vi.fn()
+    registerTransformer: vi.fn()
   }
 }));
 
@@ -33,23 +28,13 @@ import { describe, test, expectTypeOf, expect } from 'vitest';
 
 import {
   transform,
-  registerTransformer,
-  registerStructuralMapper,
-  registerAggregator,
-  registerTemplateTransformer,
-  registerRelationProcessor,
-  registerSemanticExtractor
+  registerTransformer
 } from '../../../api/transformer';
 import type {
   ProcessingResult,
   Transformer,
   TransformOptions,
-  TransformResult,
-  MappingRule } from '../../../types';
-import {
-  CollectorConfig,
-  RelationConfig,
-  SemanticExtractor
+  TransformResult
 } from '../../../types';
 
 describe('Transformer API Contract', () => {
@@ -90,26 +75,6 @@ describe('Transformer API Contract', () => {
     expectTypeOf(registerTransformer).returns.toBeVoid();
   });
 
-  // CT-API-TRANS-03
-  test('registerStructuralMapper API should maintain type signature', () => {
-    // 验证函数存在
-    expectTypeOf(registerStructuralMapper).toBeFunction();
-
-    // 创建测试映射规则
-    const rules: Array<MappingRule<unknown, unknown>> = [
-      {
-        selector: 'test',
-        targetPath: 'output'
-      }
-    ];
-
-    // 应该能通过编译时检查
-    registerStructuralMapper<{input: string}, {output: number}>(rules);
-
-    // 验证返回类型
-    expectTypeOf(registerStructuralMapper).returns.toBeVoid();
-  });
-
   // CT-API-TRANS-04
   test('transform<T> API should return result conforming to TransformResult interface', () => {
     // 执行测试
@@ -136,20 +101,5 @@ describe('Transformer API Contract', () => {
     // 验证可以使用自定义类型作为泛型参数
     expectTypeOf(transform<CustomType>).returns.toMatchTypeOf<TransformResult<CustomType>>();
     expectTypeOf<TransformResult<CustomType>['merged']>().toMatchTypeOf<CustomType>();
-  });
-
-  // 其他API函数的契约测试
-  test('other transformer API functions should maintain their signatures', () => {
-    // registerAggregator
-    expectTypeOf(registerAggregator).toBeFunction();
-
-    // registerTemplateTransformer
-    expectTypeOf(registerTemplateTransformer).toBeFunction();
-
-    // registerRelationProcessor
-    expectTypeOf(registerRelationProcessor).toBeFunction();
-
-    // registerSemanticExtractor
-    expectTypeOf(registerSemanticExtractor).toBeFunction();
   });
 });

@@ -84,7 +84,7 @@ classDiagram
     }
     note for transformerService "文件: core/transformer/transformerService.ts\n模块服务层，实现业务逻辑并协调组件\n管理转换器注册、创建流水线和执行转换流程"
     
-    %% Core层 - 业务类/协调组件
+    %% Core层 - transformer模块基础组件
     class Pipeline {
         <<class>>
         -transformers: Array<Transformer<unknown, unknown>> "转换器数组"
@@ -101,8 +101,8 @@ classDiagram
     }
     note for TransformerRegistry "文件: core/transformer/TransformerRegistry.ts\n状态管理组件，维护转换器注册表\n管理全局转换器注册状态"
     
-    %% Core层 - 工厂组件
-    class transformerFactory {
+    %% Core层 - framework模块转换器工厂
+    class frameworkTransformerFactory {
         <<factory>>
         +createStructuralMapper<TInput, TOutput>(rules: Array<MappingRule<unknown, unknown>>): StructuralMapperTransformer<TInput, TOutput> "创建结构映射转换器"
         +createAggregator<TInput, TOutput>(config: CollectorConfig): AggregatorTransformer<TInput, TOutput> "创建聚合转换器"
@@ -111,9 +111,9 @@ classDiagram
         +createSemanticExtractor<TInput, TOutput>(extractors: Array<SemanticExtractor<unknown, unknown>>): SemanticExtractorTransformer<TInput, TOutput> "创建语义提取转换器"
         +createResultCollector<TOutput>(transformerNames?: string[]): ResultCollectorTransformer<TOutput> "创建结果收集转换器"
     }
-    note for transformerFactory "文件: core/transformer/transformerFactory.ts\n创建组件，负责创建转换器实例\n封装转换器创建逻辑，注入依赖"
+    note for frameworkTransformerFactory "文件: core/framework/transformer/transformerFactory.ts\n创建组件，负责创建转换器实例\n封装转换器创建逻辑，注入依赖"
     
-    %% Core层 - 执行组件
+    %% Core层 - framework模块转换器实现
     class StructuralMapperTransformer~TInput, TOutput~ {
         <<class>>
         -mappingRules: Array<MappingRule<unknown, unknown>> "映射规则数组"
@@ -123,7 +123,7 @@ classDiagram
         +constructor(mappingRules: Array<MappingRule<unknown, unknown>>) "构造器，接收映射规则"
         +transform(input: TInput, context: TransformContext): TOutput "执行结构映射转换"
     }
-    note for StructuralMapperTransformer "文件: core/transformer/StructuralMapperTransformer.ts\n执行组件，实现结构映射逻辑\n将选择器定位的数据映射到目标结构"
+    note for StructuralMapperTransformer "文件: core/framework/transformer/StructuralMapperTransformer.ts\n执行组件，实现结构映射逻辑\n将选择器定位的数据映射到目标结构"
     
     class TemplateTransformer~TInput~ {
         <<class>>
@@ -135,21 +135,21 @@ classDiagram
         +constructor(template: string | Function, dataPreprocessor?: Function) "构造器，接收模板和预处理器"
         +transform(input: TInput, context: TransformContext): string "执行模板渲染转换"
     }
-    note for TemplateTransformer "文件: core/transformer/TemplateTransformer.ts\n执行组件，实现模板渲染逻辑\n将数据应用到模板生成输出"
+    note for TemplateTransformer "文件: core/framework/transformer/TemplateTransformer.ts\n执行组件，实现模板渲染逻辑\n将数据应用到模板生成输出"
     
     %% 定义关系
     transformer --> transformerService : 委托 "API委托原则，薄层设计"
     transformerService --> Pipeline : 创建并使用 "协调组件关系"
     transformerService --> TransformerRegistry : 使用 "状态管理关系"
-    transformerService --> transformerFactory : 使用 "创建组件关系"
+    transformerService --> frameworkTransformerFactory : 使用 "创建组件关系"
     Pipeline --> Transformer : 包含 "组合关系"
     TransformerRegistry --> Transformer : 存储 "集合关系"
     
     Transformer <|.. StructuralMapperTransformer : 实现 "接口实现关系"
     Transformer <|.. TemplateTransformer : 实现 "接口实现关系"
     
-    transformerFactory ..> StructuralMapperTransformer : 创建 "工厂创建关系"
-    transformerFactory ..> TemplateTransformer : 创建 "工厂创建关系"
+    frameworkTransformerFactory ..> StructuralMapperTransformer : 创建 "工厂创建关系"
+    frameworkTransformerFactory ..> TemplateTransformer : 创建 "工厂创建关系"
     
     transformer ..> TransformResult : 返回 "返回类型关系"
     transformer ..> TransformOptions : 使用 "参数类型关系"
@@ -291,3 +291,28 @@ sequenceDiagram
         end
     end
 ```
+
+## 转换器迁移说明
+
+为了改进架构设计和职责分离，转换器实现已从transformer模块迁移到framework模块。这种变化带来以下优势：
+
+1. **关注点分离**：
+   - transformer模块现在只包含框架组件（Pipeline、TransformerRegistry）和运行逻辑
+   - 所有具体转换器实现都位于framework模块中，便于统一管理和扩展
+
+2. **架构清晰**：
+   - 基础框架组件和具体实现组件明确分离
+   - framework模块统一存放领域特定实现
+   - transformer模块保持纯净，专注于基础能力
+
+3. **迁移内容**：
+   - 所有转换器类（StructuralMapperTransformer、AggregatorTransformer等）迁移至`core/framework/transformer/`
+   - 转换器工厂（transformerFactory）迁移至`core/framework/transformer/transformerFactory.ts`
+   - 转换器类型定义保持不变，仍在Types层
+
+4. **接口保持稳定**：
+   - API层接口保持不变
+   - transformerService接口保持不变，但实现上改为调用framework模块中的工厂
+   - 所有用户代码无需修改，保持向后兼容
+
+开发者在实现自定义转换器时，可以继续使用原有的接口和注册方式，框架会正确处理组件创建和转换流程的协调。

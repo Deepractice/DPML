@@ -152,4 +152,4 @@ export class SemanticExtractorTransformer<TInput, TOutput> implements Transforme
     });
     context.set('warnings', warnings);
   }
-}
+} 

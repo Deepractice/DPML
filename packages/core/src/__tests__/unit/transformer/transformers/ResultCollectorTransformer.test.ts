@@ -3,7 +3,7 @@
  */
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-import { ResultCollectorTransformer } from '../../../../core/transformer/transformers/ResultCollectorTransformer';
+import { ResultCollectorTransformer } from '../../../../core/framework/transformer/ResultCollectorTransformer';
 import type { TransformContext } from '../../../../types/TransformContext';
 
 describe('ResultCollectorTransformer', () => {

@@ -3,7 +3,7 @@
  */
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-import { TemplateTransformer } from '../../../../core/transformer/transformers/TemplateTransformer';
+import { TemplateTransformer } from '../../../../core/framework/transformer/TemplateTransformer';
 import type { TransformContext } from '../../../../types';
 
 describe('TemplateTransformer', () => {

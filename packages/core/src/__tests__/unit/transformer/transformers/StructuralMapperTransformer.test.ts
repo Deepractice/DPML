@@ -4,7 +4,7 @@
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-import { StructuralMapperTransformer } from '../../../../core/transformer/transformers/StructuralMapperTransformer';
+import { StructuralMapperTransformer } from '../../../../core/framework/transformer/StructuralMapperTransformer';
 import type { TransformContext, MappingRule } from '../../../../types';
 import {
   createProcessingResultFixture,
