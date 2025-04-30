@@ -33,6 +33,7 @@ export * from './SemanticExtractor';
 // Framework types
 export * from './DomainCompiler';
 export * from './DomainConfig';
+export * from './DomainAction';
 export * from './CompileOptions';
 export * from './FrameworkError';
 

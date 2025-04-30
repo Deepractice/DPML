@@ -8,6 +8,7 @@ import { processDocument } from '../../api/processing';
 import { processSchema } from '../../api/schema';
 import { transform, registerTransformer } from '../../api/transformer';
 import { ConfigurationError, CompilationError } from '../../types';
+import type { CommandDefinition } from '../../types/CLI';
 import type { CollectorConfig } from '../../types/CollectorConfig';
 import type { CompileOptions } from '../../types/CompileOptions';
 import type { DomainCompiler } from '../../types/DomainCompiler';
@@ -26,6 +27,8 @@ import type { TransformerDefiner } from '../../types/TransformerDefiner';
 import type { TransformResult } from '../../types/TransformResult';
 import type { ValidationResult } from '../../types/ValidationResult';
 
+import { adaptDomainActions } from './cli/commandAdapter';
+import standardActions from './cli/standardActions';
 import {
   createStructuralMapper,
   createAggregator,
@@ -34,11 +37,25 @@ import {
   createSemanticExtractor,
   createResultCollector
 } from './transformer/transformerFactory';
-import type { DomainState } from './types';
+import type { DomainContext } from './types';
 
-// 导入transformer工厂函数
+// 全局命令注册表
+const commandRegistry: CommandDefinition[] = [];
 
-// 导入API层函数
+/**
+ * 命令管理相关日志记录器
+ */
+const commandLogger = {
+  info: (message: string) => {
+    console.log(`[命令管理] ${message}`);
+  },
+  warn: (message: string) => {
+    console.warn(`[命令管理] ${message}`);
+  },
+  error: (message: string) => {
+    console.error(`[命令管理] ${message}`);
+  }
+};
 
 /**
  * 默认编译选项
@@ -77,17 +94,19 @@ function validateConfig(config: DomainConfig): void {
 }
 
 /**
- * 初始化领域状态
+ * 初始化领域上下文
  * @param config 领域配置
- * @returns 初始化的领域状态
+ * @returns 初始化的领域上下文
  * @throws {ConfigurationError} 当配置无效时抛出
  */
-export function initializeDomain(config: DomainConfig): DomainState {
+export function initializeDomain(config: DomainConfig): DomainContext {
   // 验证配置
   validateConfig(config);
 
-  // 创建内部状态，合并默认选项
-  return {
+  // 创建内部上下文，合并默认选项
+  const context: DomainContext = {
+    domain: config.domain,
+    description: config.description,
     schema: config.schema,
     transformers: [...config.transformers],
     options: {
@@ -100,16 +119,24 @@ export function initializeDomain(config: DomainConfig): DomainState {
       }
     }
   };
+
+  // 处理命令配置
+  if (config.commands) {
+    commandLogger.info(`处理领域 '${config.domain}' 的命令配置`);
+    processDomainCommands(config.commands, context);
+  }
+
+  return context;
 }
 
 /**
  * 编译DPML内容为领域对象
  * @param content DPML内容字符串
- * @param state 领域状态
+ * @param context 领域上下文
  * @returns 编译后的领域对象
  * @throws {CompilationError} 当编译过程中发生错误时抛出
  */
-export async function compileDPML<T>(content: string, state: DomainState): Promise<T> {
+export async function compileDPML<T>(content: string, context: DomainContext): Promise<T> {
   try {
     // 1. 解析DPML内容
     const parseResult = await parse(content);
@@ -135,7 +162,7 @@ export async function compileDPML<T>(content: string, state: DomainState): Promi
     }
 
     // 2. 处理Schema
-    const processedSchema = processSchema(state.schema);
+    const processedSchema = processSchema(context.schema);
 
     // 确保Schema处理成功
     if (!processedSchema.isValid) {
@@ -153,7 +180,7 @@ export async function compileDPML<T>(content: string, state: DomainState): Promi
     };
 
     // 如果验证失败且错误处理策略为throw，则抛出错误
-    if (!validation.isValid && state.options.errorHandling === 'throw') {
+    if (!validation.isValid && context.options.errorHandling === 'throw') {
       throw new CompilationError(
         `文档验证失败: ${validation.errors
           .map(err => err.message)
@@ -163,20 +190,20 @@ export async function compileDPML<T>(content: string, state: DomainState): Promi
 
     // 4. 转换为目标格式
     // 注册领域中定义的所有转换器
-    for (const transformer of state.transformers) {
+    for (const transformer of context.transformers) {
       registerTransformer(transformer);
     }
 
     // 准备转换选项
     const transformOptions = {
-      ...state.options.transformOptions
+      ...context.options.transformOptions
     };
 
     // 调用transform函数进行转换
     const transformResult = transform<T>(processingResult, transformOptions);
 
     // 根据结果模式返回适当的结果
-    const resultMode = state.options.transformOptions?.resultMode || 'merged';
+    const resultMode = context.options.transformOptions?.resultMode || 'merged';
 
     if (resultMode === 'raw' && transformResult && 'raw' in transformResult) {
       return transformResult.raw as T;
@@ -199,14 +226,23 @@ export async function compileDPML<T>(content: string, state: DomainState): Promi
 
 /**
  * 扩展领域配置
- * @param state 当前领域状态
+ * @param context 当前领域上下文
  * @param config 要合并的配置片段
  * @throws {ConfigurationError} 当扩展配置无效时抛出
  */
-export function extendDomain(state: DomainState, config: Partial<DomainConfig>): void {
+export function extendDomain(context: DomainContext, config: Partial<DomainConfig>): void {
+  // 更新domain和description（如果提供）
+  if (config.domain) {
+    context.domain = config.domain;
+  }
+
+  if (config.description !== undefined) {
+    context.description = config.description;
+  }
+
   // 更新schema（如果提供）
   if (config.schema) {
-    state.schema = config.schema;
+    context.schema = config.schema;
   }
 
   // 追加或替换转换器（如果提供）
@@ -219,17 +255,17 @@ export function extendDomain(state: DomainState, config: Partial<DomainConfig>):
     }
 
     // 添加新的转换器
-    state.transformers = [...state.transformers, ...config.transformers];
+    context.transformers = [...context.transformers, ...config.transformers];
   }
 
   // 合并选项（如果提供）
   if (config.options) {
-    state.options = {
-      ...state.options,
+    context.options = {
+      ...context.options,
       ...config.options,
       // 确保custom正确合并
       custom: {
-        ...state.options.custom,
+        ...context.options.custom,
         ...(config.options.custom || {})
       }
     };
@@ -238,19 +274,19 @@ export function extendDomain(state: DomainState, config: Partial<DomainConfig>):
 
 /**
  * 获取当前领域架构
- * @param state 领域状态
+ * @param state 领域上下文
  * @returns 当前架构对象
  */
-export function getDomainSchema(state: DomainState): Schema {
+export function getDomainSchema(state: DomainContext): Schema {
   return state.schema;
 }
 
 /**
  * 获取当前领域转换器集合
- * @param state 领域状态
+ * @param state 领域上下文
  * @returns 转换器数组副本
  */
-export function getDomainTransformers(state: DomainState): Array<Transformer<unknown, unknown>> {
+export function getDomainTransformers(state: DomainContext): Array<Transformer<unknown, unknown>> {
   // 返回副本而非直接引用，避免外部修改
   return [...state.transformers];
 }
@@ -379,4 +415,92 @@ export function createTransformerDefiner(): TransformerDefiner {
       return createResultCollector<TOutput>(transformerNames);
     }
   };
+}
+
+/**
+ * 处理领域命令配置
+ * @param commands 命令配置
+ * @param context 领域上下文
+ */
+export function processDomainCommands(
+  commands: DomainConfig['commands'],
+  context: DomainContext
+): void {
+  if (!commands) return;
+
+  const { domain } = context;
+
+  commandLogger.info(`开始处理领域 '${domain}' 的命令配置`);
+
+  // 处理标准命令
+  if (commands.includeStandard) {
+    commandLogger.info(`包含标准命令到领域 '${domain}'`);
+    const standardCommandDefinitions = adaptDomainActions(
+      standardActions,
+      domain,
+      context
+    );
+
+    registerCommands(standardCommandDefinitions);
+  }
+
+  // 处理自定义命令
+  if (commands.actions && commands.actions.length > 0) {
+    commandLogger.info(`处理领域 '${domain}' 的 ${commands.actions.length} 个自定义命令`);
+    const customCommandDefinitions = adaptDomainActions(
+      commands.actions,
+      domain,
+      context
+    );
+
+    registerCommands(customCommandDefinitions);
+  }
+
+  commandLogger.info(`领域 '${domain}' 的命令处理完成`);
+}
+
+/**
+ * 注册命令到全局注册表
+ * @param commands 命令定义数组
+ * @throws {ConfigurationError} 当有命令名称冲突时抛出
+ */
+export function registerCommands(commands: CommandDefinition[]): void {
+  if (!commands.length) {
+    commandLogger.warn(`尝试注册空的命令数组`);
+
+    return;
+  }
+
+  for (const command of commands) {
+    // 检查命令名称冲突
+    const existingCommand = commandRegistry.find(cmd => cmd.name === command.name);
+
+    if (existingCommand) {
+      const errorMessage = `命令名称冲突: '${command.name}' 已存在`;
+
+      commandLogger.error(errorMessage);
+      throw new ConfigurationError(errorMessage);
+    }
+
+    commandLogger.info(`注册命令: '${command.name}'`);
+    commandRegistry.push(command);
+  }
+
+  commandLogger.info(`成功注册 ${commands.length} 个命令`);
+}
+
+/**
+ * 获取所有注册的命令
+ * @returns 命令定义数组的副本
+ */
+export function getAllRegisteredCommands(): CommandDefinition[] {
+  return [...commandRegistry];
+}
+
+/**
+ * 重置命令注册表（主要用于测试）
+ */
+export function resetCommandRegistry(): void {
+  commandLogger.info(`重置命令注册表`);
+  commandRegistry.length = 0;
 }

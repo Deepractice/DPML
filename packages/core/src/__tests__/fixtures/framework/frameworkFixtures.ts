@@ -120,6 +120,8 @@ export const simpleModelDPML = `
  * 测试用简单模型的配置
  */
 export const simpleModelConfig: DomainConfig = {
+  domain: 'simple-model',
+  description: 'Simple Model Domain',
   schema: simpleModelSchema,
   transformers: [simpleModelTransformer],
   options: {
@@ -329,6 +331,8 @@ export const complexModelDPML = `
  * 测试用复杂模型的配置
  */
 export const complexModelConfig: DomainConfig = {
+  domain: 'complex-model',
+  description: 'Complex Model Domain',
   schema: complexModelSchema,
   transformers: [complexModelTransformer],
   options: {
@@ -344,6 +348,7 @@ export const complexModelConfig: DomainConfig = {
  */
 export function createInvalidConfig(): DomainConfig {
   return {
+    domain: 'invalid-domain',
     schema: {} as Schema, // 无效架构
     transformers: [] // 空转换器数组
   };
@@ -354,6 +359,7 @@ export function createInvalidConfig(): DomainConfig {
  */
 export function createInvalidTransformerConfig(): DomainConfig {
   return {
+    domain: 'invalid-transformer-domain',
     schema: simpleModelSchema,
     transformers: [
       // @ts-expect-error - 故意创建无效的转换器用于测试
@@ -381,6 +387,8 @@ export const invalidDPMLContent = `
  */
 export function createDomainConfigFixture(): DomainConfig {
   return {
+    domain: 'test-domain',
+    description: 'Test Domain Description',
     schema: simpleModelSchema,
     transformers: [simpleModelTransformer],
     options: {
@@ -429,13 +437,15 @@ export function createExtensionConfigFixture(): Partial<DomainConfig> {
 }
 
 /**
- * 创建领域状态夹具
- * 模拟domainService内部状态
+ * 创建领域上下文夹具
+ * 模拟domainService内部上下文
  */
-export function createDomainStateFixture(): any {
+export function createDomainContextFixture(): any {
   const config = createDomainConfigFixture();
 
   return {
+    domain: 'test-domain',
+    description: 'Test Domain Description',
     schema: config.schema,
     transformers: [...config.transformers],
     options: {
@@ -447,6 +457,14 @@ export function createDomainStateFixture(): any {
       custom: {}
     }
   };
+}
+
+/**
+ * 创建领域状态夹具 (已弃用，保留为了兼容性)
+ * @deprecated 请使用createDomainContextFixture替代
+ */
+export function createDomainStateFixture(): any {
+  return createDomainContextFixture();
 }
 
 /**
