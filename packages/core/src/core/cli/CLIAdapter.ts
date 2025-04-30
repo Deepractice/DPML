@@ -18,7 +18,7 @@ export class CLIAdapter {
   /**
    * Commander程序实例
    */
-  private program: Command;
+  private readonly program: Command;
 
   /**
    * 已注册的命令路径集合
