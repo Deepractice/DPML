@@ -1,7 +1,7 @@
 import { expect, describe, it, vi, beforeEach } from 'vitest';
 
 import { mergeDefaultOptions, validateCommands, getCommandPath } from '../../../../core/cli/commandUtils';
-import type { CLIOptions, CommandDefinition } from '../../../../types/CLITypes';
+import type { CLIOptions, CommandDefinition } from '../../../../types/CLI';
 import { createCrossDomainDuplicateCommandsFixture } from '../../../fixtures/cli/cliFixtures';
 
 // 模拟控制台输出，避免测试输出过多

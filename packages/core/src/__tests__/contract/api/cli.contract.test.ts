@@ -6,7 +6,7 @@
 import { describe, test, expect } from 'vitest';
 
 import { createCLI } from '../../../api/cli';
-import type { CLITypes, CLIOptions, CommandDefinition } from '../../../types/CLITypes';
+import type { CLI, CLIOptions, CommandDefinition } from '../../../types/CLI';
 
 describe('CLITypes API契约测试', () => {
   // CT-API-CLITypes-01: createCLI API应维持类型签名
@@ -98,7 +98,7 @@ describe('CLITypes API契约测试', () => {
     ];
 
     // 执行 - 创建CLI，验证类型系统接受复杂命令定义
-    const cli: CLITypes = createCLI(options, commands);
+    const cli: CLI = createCLI(options, commands);
 
     // 断言 - CLI实例具有正确的接口
     expect(cli).toHaveProperty('execute');

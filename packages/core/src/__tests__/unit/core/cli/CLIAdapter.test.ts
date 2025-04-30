@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
 
 import { CLIAdapter } from '../../../../core/cli/CLIAdapter';
-import type { CommandDefinition } from '../../../../types/CLITypes';
+import type { CommandDefinition } from '../../../../types/CLI';
 
 // 模拟 commander
 vi.mock('commander', () => {

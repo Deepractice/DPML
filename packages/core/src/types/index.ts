@@ -40,13 +40,13 @@ export * from './TransformerDefiner';
 
 // CLI类型
 export type {
-  CLITypes,
+  CLI,
   CLIOptions,
   CommandDefinition,
   ArgumentDefinition,
   OptionDefinition,
   CommandAction
-} from './CLITypes';
+} from './CLI';
 
 // 错误类型
 export {

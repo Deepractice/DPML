@@ -3,7 +3,7 @@
  * 提供CLI命令处理的辅助函数
  */
 
-import type { CLIOptions, CommandDefinition } from '../../types/CLITypes';
+import type { CLIOptions, CommandDefinition } from '../../types/CLI';
 
 /**
  * 合并默认选项

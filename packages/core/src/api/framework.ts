@@ -12,7 +12,7 @@ import type {
   DomainConfig,
   TransformerDefiner
 } from '../types';
-import type { CommandDefinition } from '../types/CLITypes';
+import type { CommandDefinition } from '../types/CLI';
 
 // 导出类型
 export type { DomainCompiler, DomainConfig, TransformerDefiner };

@@ -3,7 +3,7 @@ import { expect, describe, it, vi, beforeEach } from 'vitest';
 import { CLIAdapter } from '../../../../core/cli/CLIAdapter';
 import { createCLI, registerExternalCommands } from '../../../../core/cli/cliService';
 import { mergeDefaultOptions, validateCommands } from '../../../../core/cli/commandUtils';
-import type { CLIOptions, CommandDefinition } from '../../../../types/CLITypes';
+import type { CLIOptions, CommandDefinition } from '../../../../types/CLI';
 
 // 模拟依赖
 vi.mock('../../../../core/cli/CLIAdapter');

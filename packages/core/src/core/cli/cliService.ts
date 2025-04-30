@@ -3,7 +3,7 @@
  * 提供CLI创建和管理功能
  */
 
-import type { CLITypes, CLIOptions, CommandDefinition } from '../../types/CLITypes';
+import type { CLI, CLIOptions, CommandDefinition } from '../../types/CLI';
 
 import { CLIAdapter } from './CLIAdapter';
 import { mergeDefaultOptions, validateCommands } from './commandUtils';
@@ -15,7 +15,7 @@ import { mergeDefaultOptions, validateCommands } from './commandUtils';
  * @param commands 命令定义数组
  * @returns CLI实例
  */
-export function createCLI(options: CLIOptions, commands: CommandDefinition[]): CLITypes {
+export function createCLI(options: CLIOptions, commands: CommandDefinition[]): CLI {
   // 合并默认选项
   const mergedOptions = mergeDefaultOptions(options);
 
