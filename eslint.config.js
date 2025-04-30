@@ -78,7 +78,7 @@ const directoryRules = {
           camelCase: true,
         },
         // 允许包含专有词汇(DPML, XML等)全大写的文件名
-        ignore: ['^index\\.ts$', '^DPML.*\\.ts$', '.*DPML.*\\.ts$', '^XML.*\\.ts$', '.*XML.*\\.ts$'],
+        ignore: ['^index\\.ts$', '^DPML.*\\.ts$', '.*DPML.*\\.ts$', '^XML.*\\.ts$', '.*XML.*\\.ts$', '^CLI.*\\.ts$', '.*CLI.*\\.ts$'],
       },
     ],
   },

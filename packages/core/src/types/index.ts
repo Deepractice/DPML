@@ -37,3 +37,20 @@ export * from './CompileOptions';
 export * from './FrameworkError';
 
 export * from './TransformerDefiner';
+
+// CLI类型
+export type {
+  CLI,
+  CLIOptions,
+  CommandDefinition,
+  ArgumentDefinition,
+  OptionDefinition,
+  CommandAction
+} from './cli';
+
+// 错误类型
+export {
+  DuplicateCommandError,
+  InvalidCommandError,
+  CommandExecutionError
+} from './errors';
