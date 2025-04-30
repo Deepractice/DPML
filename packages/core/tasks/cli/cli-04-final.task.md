@@ -86,8 +86,8 @@
 - **测试相关**:
   - 所有单元测试和集成测试应已通过
   - 端到端测试用例:
-    - E2E-CLI-01, E2E-CLI-02, E2E-CLI-03, E2E-CLI-04
-    - E2E-CLI-05, E2E-CLI-06, E2E-CLI-07, E2E-CLI-08
+    - E2E-CLITypes-01, E2E-CLITypes-02, E2E-CLITypes-03, E2E-CLITypes-04
+    - E2E-CLITypes-05, E2E-CLITypes-06, E2E-CLITypes-07, E2E-CLITypes-08
   - 剩余反向测试用例: UT-CLISVC-NEG-03 (跨领域命令重复检测)
 
 - **实现要点**:
@@ -102,7 +102,7 @@
   - 端到端测试实现:
     ```typescript
     // cliUsage.e2e.test.ts
-    describe('E2E-CLI', () => {
+    describe('E2E-CLITypes', () => {
       test('用户应能定义和执行基本命令', async () => {
         // 创建CLI并执行基本命令
       });

@@ -40,17 +40,17 @@ export * from './TransformerDefiner';
 
 // CLI类型
 export type {
-  CLI,
+  CLITypes,
   CLIOptions,
   CommandDefinition,
   ArgumentDefinition,
   OptionDefinition,
   CommandAction
-} from './cli';
+} from './CLITypes';
 
 // 错误类型
 export {
   DuplicateCommandError,
   InvalidCommandError,
   CommandExecutionError
-} from './errors';
+} from './CLIErrors';

@@ -1,4 +1,4 @@
-# DPML CLI 使用示例
+# DPML CLITypes 使用示例
 
 本文档提供了DPML CLI模块的使用示例和最佳实践，帮助您快速上手CLI功能的开发和扩展。
 

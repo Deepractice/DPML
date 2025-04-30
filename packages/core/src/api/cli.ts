@@ -4,7 +4,7 @@
  */
 
 import { createCLI as coreCreateCLI } from '../core/cli/cliService';
-import type { CLI, CLIOptions, CommandDefinition } from '../types/cli';
+import type { CLITypes, CLIOptions, CommandDefinition } from '../types/CLITypes';
 
 /**
  * 创建命令行界面
@@ -47,6 +47,6 @@ import type { CLI, CLIOptions, CommandDefinition } from '../types/cli';
 export function createCLI(
   options: CLIOptions,
   commands: CommandDefinition[]
-): CLI {
+): CLITypes {
   return coreCreateCLI(options, commands);
 }

@@ -1,4 +1,4 @@
-# DPML CLI 设计规范
+# DPML CLITypes 设计规范
 
 ## 1. 概述
 

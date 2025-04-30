@@ -3,7 +3,7 @@ import { expect, describe, it, vi, beforeEach } from 'vitest';
 import { CLIAdapter } from '../../../../core/cli/CLIAdapter';
 import { createCLI, registerExternalCommands } from '../../../../core/cli/cliService';
 import { mergeDefaultOptions, validateCommands } from '../../../../core/cli/commandUtils';
-import type { CLIOptions, CommandDefinition } from '../../../../types/cli';
+import type { CLIOptions, CommandDefinition } from '../../../../types/CLITypes';
 
 // 模拟依赖
 vi.mock('../../../../core/cli/CLIAdapter');
@@ -16,7 +16,7 @@ vi.mock('../../../../core/cli/commandUtils', () => ({
   getCommandPath: vi.fn().mockImplementation(command => command.name)
 }));
 
-describe('CLI Service', () => {
+describe('CLITypes Service', () => {
   let mockAdapter: any;
 
   beforeEach(() => {
@@ -40,7 +40,7 @@ describe('CLI Service', () => {
       const options: CLIOptions = {
         name: 'test-cli',
         version: '1.0.0',
-        description: 'Test CLI'
+        description: 'Test CLITypes'
       };
 
       const commands: CommandDefinition[] = [
@@ -74,7 +74,7 @@ describe('CLI Service', () => {
       const options: CLIOptions = {
         name: 'test-cli',
         version: '1.0.0',
-        description: 'Test CLI'
+        description: 'Test CLITypes'
       };
 
       // 执行测试
@@ -90,7 +90,7 @@ describe('CLI Service', () => {
       const options: CLIOptions = {
         name: 'test-cli',
         version: '1.0.0',
-        description: 'Test CLI'
+        description: 'Test CLITypes'
       };
 
       // 模拟console.log
@@ -127,7 +127,7 @@ describe('CLI Service', () => {
       createCLI({
         name: 'test-cli',
         version: '1.0.0',
-        description: 'Test CLI'
+        description: 'Test CLITypes'
       }, commands);
 
       // 验证结果：应为每个命令调用setupCommand
@@ -142,7 +142,7 @@ describe('CLI Service', () => {
       const options: CLIOptions = {
         name: 'test-cli',
         version: '1.0.0',
-        description: 'Test CLI'
+        description: 'Test CLITypes'
       };
 
       const initialCommands: CommandDefinition[] = [
@@ -181,7 +181,7 @@ describe('CLI Service', () => {
       const cli = createCLI({
         name: 'test-cli',
         version: '1.0.0',
-        description: 'Test CLI'
+        description: 'Test CLITypes'
       }, []);
 
       const testArgs = ['node', 'script.js', 'command'];
@@ -240,7 +240,7 @@ describe('CLI Service', () => {
       const options: CLIOptions = {
         name: 'test-cli',
         version: '1.0.0',
-        description: 'Test CLI'
+        description: 'Test CLITypes'
       };
 
       const commands: CommandDefinition[] = [
@@ -268,7 +268,7 @@ describe('CLI Service', () => {
       const options: CLIOptions = {
         name: 'test-cli',
         version: '1.0.0',
-        description: 'Test CLI'
+        description: 'Test CLITypes'
       };
 
       // 执行测试：不应抛出错误

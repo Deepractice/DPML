@@ -1,7 +1,7 @@
 import { expect, describe, it, vi, beforeEach } from 'vitest';
 
 import { mergeDefaultOptions, validateCommands, getCommandPath } from '../../../../core/cli/commandUtils';
-import type { CLIOptions, CommandDefinition } from '../../../../types/cli';
+import type { CLIOptions, CommandDefinition } from '../../../../types/CLITypes';
 import { createCrossDomainDuplicateCommandsFixture } from '../../../fixtures/cli/cliFixtures';
 
 // 模拟控制台输出，避免测试输出过多
@@ -18,7 +18,7 @@ describe('Command Utils', () => {
       const options: CLIOptions = {
         name: 'test-cli',
         version: '1.0.0',
-        description: 'Test CLI'
+        description: 'Test CLITypes'
       };
 
       // 执行测试
@@ -28,7 +28,7 @@ describe('Command Utils', () => {
       expect(result).toEqual({
         name: 'test-cli',
         version: '1.0.0',
-        description: 'Test CLI',
+        description: 'Test CLITypes',
         defaultDomain: 'core'
       });
     });
@@ -38,7 +38,7 @@ describe('Command Utils', () => {
       const options: CLIOptions = {
         name: 'test-cli',
         version: '1.0.0',
-        description: 'Test CLI',
+        description: 'Test CLITypes',
         defaultDomain: 'custom'
       };
 

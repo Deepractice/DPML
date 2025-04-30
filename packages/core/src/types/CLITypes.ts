@@ -2,7 +2,7 @@
  * CLI核心接口
  * 提供命令行界面核心功能
  */
-export interface CLI {
+export interface CLITypes {
   /**
    * 执行CLI处理命令行参数
    * @param argv 命令行参数数组，默认使用process.argv

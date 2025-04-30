@@ -5,13 +5,13 @@
 
 import { describe, test, expect } from 'vitest';
 
-import type { CLI } from '../../../types/cli';
+import type { CLITypes } from '../../../types/CLITypes';
 
 describe('CLI接口契约测试', () => {
-  // CT-TYPE-CLI-01: CLI接口应维持结构稳定性
+  // CT-TYPE-CLITypes-01: CLI接口应维持结构稳定性
   test('CLI接口应维持结构稳定性', () => {
     // 准备 - 创建符合接口定义的对象
-    const cli: CLI = {
+    const cli: CLITypes = {
       execute: async () => {},
       showHelp: () => {},
       showVersion: () => {}
@@ -33,10 +33,10 @@ describe('CLI接口契约测试', () => {
     expect(executeResult).toBeInstanceOf(Promise);
   });
 
-  // CT-TYPE-CLI-02: CLI.execute应返回Promise<void>
-  test('CLI.execute应返回Promise<void>', async () => {
+  // CT-TYPE-CLITypes-02: CLITypes.execute应返回Promise<void>
+  test('CLITypes.execute应返回Promise<void>', async () => {
     // 准备 - 创建一个返回解决的Promise的execute方法
-    const cli: CLI = {
+    const cli: CLITypes = {
       execute: async () => {
         // 返回一个解决的Promise<void>
         return;

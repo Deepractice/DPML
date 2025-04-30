@@ -5,7 +5,7 @@
 
 import { describe, test, expect } from 'vitest';
 
-import type { CommandDefinition } from '../../../types/cli';
+import type { CommandDefinition } from '../../../types/CLITypes';
 
 describe('CommandDefinition接口契约测试', () => {
   // CT-TYPE-CMDF-01: CommandDefinition接口应维持结构稳定性

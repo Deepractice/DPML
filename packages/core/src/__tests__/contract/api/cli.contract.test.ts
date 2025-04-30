@@ -1,15 +1,15 @@
 /**
- * CLI API契约测试
+ * CLITypes API契约测试
  * 验证CLI API的稳定性
  */
 
 import { describe, test, expect } from 'vitest';
 
 import { createCLI } from '../../../api/cli';
-import type { CLI, CLIOptions, CommandDefinition } from '../../../types/cli';
+import type { CLITypes, CLIOptions, CommandDefinition } from '../../../types/CLITypes';
 
-describe('CLI API契约测试', () => {
-  // CT-API-CLI-01: createCLI API应维持类型签名
+describe('CLITypes API契约测试', () => {
+  // CT-API-CLITypes-01: createCLI API应维持类型签名
   test('createCLI API应维持类型签名', () => {
     // 验证函数存在
     expect(typeof createCLI).toBe('function');
@@ -22,7 +22,7 @@ describe('CLI API契约测试', () => {
     expect(functionStr).toContain('commands');
   });
 
-  // CT-API-CLI-02: createCLI API应返回符合CLI接口的对象
+  // CT-API-CLITypes-02: createCLI API应返回符合CLI接口的对象
   test('createCLI API应返回符合CLI接口的对象', () => {
     // 准备 - 创建测试输入
     const options: CLIOptions = {
@@ -58,7 +58,7 @@ describe('CLI API契约测试', () => {
     expect(result).toBeInstanceOf(Promise);
   });
 
-  // CT-API-CLI-03: createCLI API应支持类型安全的命令定义
+  // CT-API-CLITypes-03: createCLI API应支持类型安全的命令定义
   test('createCLI API应支持类型安全的命令定义', () => {
     // 准备 - 创建有效的命令定义
     const options: CLIOptions = {
@@ -98,7 +98,7 @@ describe('CLI API契约测试', () => {
     ];
 
     // 执行 - 创建CLI，验证类型系统接受复杂命令定义
-    const cli: CLI = createCLI(options, commands);
+    const cli: CLITypes = createCLI(options, commands);
 
     // 断言 - CLI实例具有正确的接口
     expect(cli).toHaveProperty('execute');

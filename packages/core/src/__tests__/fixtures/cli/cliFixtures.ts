@@ -4,7 +4,7 @@
  */
 import { vi } from 'vitest';
 
-import type { CLIOptions, CommandDefinition } from '../../../types/cli';
+import type { CLIOptions, CommandDefinition } from '../../../types/CLITypes';
 
 /**
  * 创建基本CLI选项夹具

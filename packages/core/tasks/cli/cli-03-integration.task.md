@@ -82,7 +82,7 @@
   - `packages/core/src/core/cli/cliService.ts`: CLI服务层
   - `packages/core/src/core/cli/CLIAdapter.ts`: Commander适配器
   - `packages/core/src/api/framework.ts`: Framework API
-  - `packages/core/src/api/cli.ts`: CLI API层
+  - `packages/core/src/api/CLITypes.ts`: CLITypes API层
 
 - **测试相关**:
   - 单元测试用例: UT-CLISVC-05 (领域命令注册)

@@ -1,4 +1,4 @@
-# CLI Develop Design
+# CLITypes Develop Design
 
 ## UML
 
@@ -8,18 +8,18 @@ classDiagram
     %% API层
     class cli {
         <<module>>
-        +createCLI(options: CLIOptions, commands: CommandDefinition[]): CLI "创建CLI实例，传入配置和命令"
+        +createCLI(options: CLIOptions, commands: CommandDefinition[]): CLITypes "创建CLI实例，传入配置和命令"
     }
-    note for cli "文件: api/cli.ts\n作为API层的薄层接口，直接委托模块服务层实现\n符合API委托原则，不包含业务逻辑"
+    note for cli "文件: api/CLITypes.ts\n作为API层的薄层接口，直接委托模块服务层实现\n符合API委托原则，不包含业务逻辑"
     
     %% Types层 - 核心接口
-    class CLI {
+    class CLITypes {
         <<interface>>
         +execute(argv?: string[]): Promise<void> "执行CLI处理命令行参数"
         +showHelp(): void "显示帮助信息"
         +showVersion(): void "显示版本信息"
     }
-    note for CLI "文件: types/CLI.ts\n执行器接口，只负责CLI执行\n符合单一职责原则"
+    note for CLITypes "文件: types/CLITypes.ts\n执行器接口，只负责CLI执行\n符合单一职责原则"
     
     class CLIOptions {
         <<interface>>
@@ -28,7 +28,7 @@ classDiagram
         +description: string "CLI描述"
         +defaultDomain?: string "默认领域，默认为'core'"
     }
-    note for CLIOptions "文件: types/CLI.ts\nCLI基本配置选项"
+    note for CLIOptions "文件: types/CLITypes.ts\nCLI基本配置选项"
     
     class CommandDefinition {
         <<interface>>
@@ -40,7 +40,7 @@ classDiagram
         +subcommands?: CommandDefinition[] "子命令定义"
         +domain?: string "所属领域，用于组织命令层次结构"
     }
-    note for CommandDefinition "文件: types/CLI.ts\n声明式定义命令的接口\n支持嵌套子命令结构"
+    note for CommandDefinition "文件: types/CLITypes.ts\n声明式定义命令的接口\n支持嵌套子命令结构"
     
     class ArgumentDefinition {
         <<interface>>
@@ -50,7 +50,7 @@ classDiagram
         +variadic?: boolean "是否可变长度，默认为false"
         +defaultValue?: any "默认值"
     }
-    note for ArgumentDefinition "文件: types/CLI.ts\n位置参数定义"
+    note for ArgumentDefinition "文件: types/CLITypes.ts\n位置参数定义"
     
     class OptionDefinition {
         <<interface>>
@@ -60,13 +60,13 @@ classDiagram
         +required?: boolean "是否必需，默认为false"
         +choices?: string[] "可选值列表"
     }
-    note for OptionDefinition "文件: types/CLI.ts\n选项参数定义"
+    note for OptionDefinition "文件: types/CLITypes.ts\n选项参数定义"
     
     class CommandAction {
         <<type>>
         +(...args: any[]): Promise<void> | void "命令执行函数类型"
     }
-    note for CommandAction "文件: types/CLI.ts\n命令处理函数类型\n支持同步和异步处理"
+    note for CommandAction "文件: types/CLITypes.ts\n命令处理函数类型\n支持同步和异步处理"
     
     %% 错误类型
     class DuplicateCommandError {
@@ -76,7 +76,7 @@ classDiagram
         +name: string "错误名称，值为'DuplicateCommandError'"
         +message: string "错误信息"
     }
-    note for DuplicateCommandError "文件: types/errors.ts\n命令重复定义错误"
+    note for DuplicateCommandError "文件: types/CLIErrors.ts\n命令重复定义错误"
     
     class CommandExecutionError {
         <<class>>
@@ -85,12 +85,12 @@ classDiagram
         +constructor(message: string, command: string, originalError: Error) "创建错误实例"
         +name: string "错误名称，值为'CommandExecutionError'"
     }
-    note for CommandExecutionError "文件: types/errors.ts\n命令执行错误"
+    note for CommandExecutionError "文件: types/CLIErrors.ts\n命令执行错误"
     
     %% Core层 - 模块服务层
     class cliService {
         <<module>>
-        +createCLI(options: CLIOptions, commands: CommandDefinition[]): CLI "创建CLI实例"
+        +createCLI(options: CLIOptions, commands: CommandDefinition[]): CLITypes "创建CLI实例"
         -setupGlobalOptions(adapter: CLIAdapter, options: Required<CLIOptions>): void "设置全局选项"
         -setupUserCommands(adapter: CLIAdapter, commands: CommandDefinition[]): void "设置用户定义命令"
         -setupFrameworkCommands(adapter: CLIAdapter): void "设置framework中注册的命令"
@@ -149,7 +149,7 @@ classDiagram
     %% 定义关系
     cli --> cliService : uses "API委托原则"
     cliService --> CLIAdapter : creates "创建适配器实例"
-    cliService ..> CLI : returns "返回闭包接口"
+    cliService ..> CLITypes : returns "返回闭包接口"
     cliService ..> DuplicateCommandError : throws "检测到重复命令时抛出"
     cliService ..> CommandExecutionError : throws "命令执行失败时抛出" 
     cliService --> commandUtils : uses "使用命令工具函数"
@@ -160,7 +160,7 @@ classDiagram
     CommandDefinition o-- OptionDefinition : contains "包含选项参数定义"
     CommandDefinition o-- CommandAction : contains "包含命令处理函数"
     CommandDefinition o-- CommandDefinition : contains "包含子命令定义(递归)"
-    CLI -- Command : abstracts "抽象Commander功能"
+    CLITypes -- Command : abstracts "抽象Commander功能"
 ```
 
 
@@ -170,7 +170,7 @@ classDiagram
 sequenceDiagram
     %% 参与者定义
     participant User as 应用开发者
-    participant API as cli.ts
+    participant API as CLITypes.ts
     participant Service as cliService.ts
     participant Utils as commandUtils.ts
     participant Adapter as CLIAdapter

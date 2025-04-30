@@ -64,11 +64,11 @@
 **目标(O)**:
 - 创建CLI模块的基础目录结构
 - 创建并实现以下文件：
-  - `packages/core/src/types/cli.ts`: CLI核心类型和接口
-  - `packages/core/src/types/errors.ts`: 错误类型定义(添加CLI相关)
-  - `packages/core/src/api/cli.ts`: CLI模块API函数
+  - `packages/core/src/types/CLITypes.ts`: CLI核心类型和接口
+  - `packages/core/src/types/CLIErrors.ts`: 错误类型定义(添加CLI相关)
+  - `packages/core/src/api/CLITypes.ts`: CLI模块API函数
 - 创建并实现以下测试文件：
-  - `packages/core/src/__tests__/contract/types/CLI.contract.test.ts`
+  - `packages/core/src/__tests__/contract/types/CLITypes.contract.test.ts`
   - `packages/core/src/__tests__/contract/types/CommandDefinition.contract.test.ts`
   - `packages/core/src/__tests__/contract/api/cli.contract.test.ts`
 - 实现CLI模块所需的所有接口和类型定义
@@ -83,19 +83,19 @@
   - 依赖模块：Framework模块已完成
 
 - **代码相关**:
-  - `packages/core/docs/product/CLI-Design.md`: CLI模块设计文档
-  - `packages/core/docs/develop/CLI-Testcase-Design.md`: CLI模块测试用例设计
+  - `packages/core/docs/product/CLITypes-Design.md`: CLI模块设计文档
+  - `packages/core/docs/develop/CLITypes-Testcase-Design.md`: CLI模块测试用例设计
   - `packages/core/src/api/framework.ts`: Framework模块参考实现
   
 - **测试相关**:
-  - 契约测试用例: CT-API-CLI-01, CT-API-CLI-02, CT-API-CLI-03
-  - 类型测试用例: CT-TYPE-CLI-01, CT-TYPE-CLI-02, CT-TYPE-CMDF-01, CT-TYPE-CMDF-02
+  - 契约测试用例: CT-API-CLITypes-01, CT-API-CLITypes-02, CT-API-CLITypes-03
+  - 类型测试用例: CT-TYPE-CLITypes-01, CT-TYPE-CLITypes-02, CT-TYPE-CMDF-01, CT-TYPE-CMDF-02
 
 - **实现要点**:
   - Types层定义：
     ```typescript
     // CLI主接口
-    export interface CLI {
+    export interface CLITypes {
       execute(argv?: string[]): Promise<void>;
       showHelp(): void;
       showVersion(): void;
@@ -128,7 +128,7 @@
     export function createCLI(
       options: CLIOptions, 
       commands: CommandDefinition[]
-    ): CLI {
+    ): CLITypes {
       // 仅实现契约，内部逻辑在后续任务中实现
       return {
         execute: async () => {},
@@ -148,9 +148,9 @@
 - **基础达标**:
   - 创建所有必要的文件和目录结构
   - 所有类型和接口定义完备
-  - 契约测试CT-TYPE-CLI-01, CT-TYPE-CLI-02通过
+  - 契约测试CT-TYPE-CLITypes-01, CT-TYPE-CLITypes-02通过
   - 契约测试CT-TYPE-CMDF-01, CT-TYPE-CMDF-02通过
-  - 契约测试CT-API-CLI-01, CT-API-CLI-02, CT-API-CLI-03通过
+  - 契约测试CT-API-CLITypes-01, CT-API-CLITypes-02, CT-API-CLITypes-03通过
   
 - **预期品质**:
   - 类型定义全面且符合TypeScript最佳实践

@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
 
 import { CLIAdapter } from '../../../../core/cli/CLIAdapter';
-import type { CommandDefinition } from '../../../../types/cli';
+import type { CommandDefinition } from '../../../../types/CLITypes';
 
 // 模拟 commander
 vi.mock('commander', () => {
@@ -64,7 +64,7 @@ describe('CLIAdapter', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    adapter = new CLIAdapter('test-cli', '1.0.0', 'Test CLI');
+    adapter = new CLIAdapter('test-cli', '1.0.0', 'Test CLITypes');
     commanderMock = new Command();
   });
 
@@ -74,7 +74,7 @@ describe('CLIAdapter', () => {
       // 验证结果
       expect(Command).toHaveBeenCalled();
       expect(commanderMock.version).toHaveBeenCalledWith('1.0.0');
-      expect(commanderMock.description).toHaveBeenCalledWith('Test CLI');
+      expect(commanderMock.description).toHaveBeenCalledWith('Test CLITypes');
     });
   });
 
@@ -249,7 +249,7 @@ describe('CLIAdapter', () => {
   describe('命令重复检测', () => {
     it('应检测到重复命令', () => {
       // 修改commandPaths的可见性以便测试
-      const adapter = new CLIAdapter('test-cli', '1.0.0', 'Test CLI');
+      const adapter = new CLIAdapter('test-cli', '1.0.0', 'Test CLITypes');
 
       (adapter as any).commandPaths = new Set(['duplicate']);
 

@@ -85,9 +85,9 @@
   - 依赖关系：需要先完成契约实现任务中的类型定义和API设计
 
 - **代码相关**:
-  - `packages/core/src/types/cli.ts`: CLI类型定义
-  - `packages/core/src/api/cli.ts`: CLI API层
-  - `packages/core/docs/product/CLI-Design.md`: CLI设计文档
+  - `packages/core/src/types/CLITypes.ts`: CLI类型定义
+  - `packages/core/src/api/CLITypes.ts`: CLITypes API层
+  - `packages/core/docs/product/CLITypes-Design.md`: CLI设计文档
   - 外部依赖: commander.js（需要安装并引入）
 
 - **测试相关**:
@@ -150,7 +150,7 @@
   - cliService服务:
     ```typescript
     // 公共API函数实现
-    export function createCLI(options: CLIOptions, commands: CommandDefinition[]): CLI {
+    export function createCLI(options: CLIOptions, commands: CommandDefinition[]): CLITypes {
       // 验证命令无重复
       // 创建适配器
       // 设置选项和命令

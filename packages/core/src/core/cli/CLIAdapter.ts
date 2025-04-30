@@ -5,8 +5,8 @@
 
 import { Command } from 'commander';
 
-import type { CommandDefinition } from '../../types/cli';
-import { ArgumentDefinition, OptionDefinition } from '../../types/cli';
+import type { CommandDefinition } from '../../types/CLITypes';
+import { ArgumentDefinition, OptionDefinition } from '../../types/CLITypes';
 
 import { getCommandPath } from './commandUtils';
 

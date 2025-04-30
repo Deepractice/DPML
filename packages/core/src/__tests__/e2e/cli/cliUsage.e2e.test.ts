@@ -72,7 +72,7 @@ describe('CLI使用端到端测试', () => {
     }
   });
 
-  // E2E-CLI-01: 测试基本命令执行
+  // E2E-CLITypes-01: 测试基本命令执行
   test('用户应能定义和执行基本命令', async () => {
     // 准备 - 创建带有测试命令的CLI
     const commands = [
@@ -98,7 +98,7 @@ describe('CLI使用端到端测试', () => {
     expect(consoleLogSpy).toHaveBeenCalledWith('你好，世界！');
   });
 
-  // E2E-CLI-02: 测试带参数的命令
+  // E2E-CLITypes-02: 测试带参数的命令
   test('用户应能定义和执行带参数的命令', async () => {
     // 准备 - 创建带有参数的命令
     const commands = [
@@ -131,7 +131,7 @@ describe('CLI使用端到端测试', () => {
     expect(consoleLogSpy).toHaveBeenCalledWith('你好，张三！');
   });
 
-  // E2E-CLI-03: 测试带选项的命令
+  // E2E-CLITypes-03: 测试带选项的命令
   test('用户应能定义和执行带选项的命令', async () => {
     // 准备 - 创建带有选项的命令
     const commands = [
@@ -172,7 +172,7 @@ describe('CLI使用端到端测试', () => {
     expect(consoleLogSpy).toHaveBeenCalledWith('你好，尊敬的张三！');
   });
 
-  // E2E-CLI-04: 测试嵌套子命令
+  // E2E-CLITypes-04: 测试嵌套子命令
   test('用户应能定义和执行嵌套子命令', async () => {
     // 准备 - 创建带有子命令的命令
     const commands = [
@@ -228,7 +228,7 @@ describe('CLI使用端到端测试', () => {
     expect(consoleLogSpy).toHaveBeenCalledWith('创建用户: 张三');
   });
 
-  // E2E-CLI-05: 测试帮助信息
+  // E2E-CLITypes-05: 测试帮助信息
   test('用户应能获取帮助信息', async () => {
     // 准备 - 使用标准命令夹具
     const options = createCLIOptionsFixture();
@@ -244,7 +244,7 @@ describe('CLI使用端到端测试', () => {
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('可用命令'));
   });
 
-  // E2E-CLI-06: 测试版本信息
+  // E2E-CLITypes-06: 测试版本信息
   test('用户应能获取版本信息', async () => {
     // 准备 - 使用标准命令夹具
     const options = createCLIOptionsFixture();
@@ -260,7 +260,7 @@ describe('CLI使用端到端测试', () => {
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('平台'));
   });
 
-  // E2E-CLI-07: 测试无效命令处理
+  // E2E-CLITypes-07: 测试无效命令处理
   test('CLI应正确处理无效命令', async () => {
     // 准备 - 使用标准命令夹具
     const options = createCLIOptionsFixture();
@@ -285,7 +285,7 @@ describe('CLI使用端到端测试', () => {
     }
   });
 
-  // E2E-CLI-08: 测试动态注册命令
+  // E2E-CLITypes-08: 测试动态注册命令
   test('CLI应支持动态注册命令', async () => {
     // 准备 - 创建基本CLI和外部命令
     const options = createCLIOptionsFixture();

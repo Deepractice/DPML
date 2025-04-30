@@ -28,17 +28,17 @@
 
 | ID | 测试用例名称 | 测试目的 | 测试输入 | 期望结果 | Mock情况 |
 |:---|:------------|:---------|:---------|:---------|:---------|
-| CT-API-CLI-01 | `createCLI` API应维持类型签名 | 验证API契约稳定性 | 类型检查 | 符合公开文档的函数签名 | 无需模拟 |
-| CT-API-CLI-02 | `createCLI` API应返回符合CLI接口的对象 | 验证返回类型契约 | 有效的CLIOptions和CommandDefinition[] | 返回符合CLI接口的对象 | 模拟cliService返回符合契约的数据 |
-| CT-API-CLI-03 | `createCLI` API应支持类型安全的命令定义 | 验证类型安全性 | 不同类型的CommandDefinition | 类型错误被类型系统捕获 | 无需模拟 |
+| CT-API-CLITypes-01 | `createCLI` API应维持类型签名 | 验证API契约稳定性 | 类型检查 | 符合公开文档的函数签名 | 无需模拟 |
+| CT-API-CLITypes-02 | `createCLI` API应返回符合CLI接口的对象 | 验证返回类型契约 | 有效的CLIOptions和CommandDefinition[] | 返回符合CLI接口的对象 | 模拟cliService返回符合契约的数据 |
+| CT-API-CLITypes-03 | `createCLI` API应支持类型安全的命令定义 | 验证类型安全性 | 不同类型的CommandDefinition | 类型错误被类型系统捕获 | 无需模拟 |
 
-#### 文件: `packages/core/src/__tests__/contract/types/CLI.contract.test.ts`
+#### 文件: `packages/core/src/__tests__/contract/types/CLITypes.contract.test.ts`
 
 | ID | 测试用例名称 | 测试目的 | 测试输入 | 期望结果 | Mock情况 |
 |:---|:------------|:---------|:---------|:---------|:---------|
-| CT-TYPE-CLI-01 | CLI接口应维持结构稳定性 | 验证类型结构契约 | 类型检查 | 接口包含execute、showHelp、showVersion和registerCommands方法 | 无需模拟 |
-| CT-TYPE-CLI-02 | CLI.execute应返回Promise<void> | 验证返回类型 | 类型检查 | execute方法返回Promise<void>类型 | 无需模拟 |
-| CT-TYPE-CLI-03 | CLI.registerCommands应接受命令定义数组 | 验证参数类型 | 类型检查 | registerCommands接受CommandDefinition[]参数 | 无需模拟 |
+| CT-TYPE-CLITypes-01 | CLI接口应维持结构稳定性 | 验证类型结构契约 | 类型检查 | 接口包含execute、showHelp、showVersion和registerCommands方法 | 无需模拟 |
+| CT-TYPE-CLITypes-02 | CLITypes.execute应返回Promise<void> | 验证返回类型 | 类型检查 | execute方法返回Promise<void>类型 | 无需模拟 |
+| CT-TYPE-CLITypes-03 | CLITypes.registerCommands应接受命令定义数组 | 验证参数类型 | 类型检查 | registerCommands接受CommandDefinition[]参数 | 无需模拟 |
 
 #### 文件: `packages/core/src/__tests__/contract/types/CommandDefinition.contract.test.ts`
 
@@ -116,14 +116,14 @@
 
 | ID | 测试用例名称 | 测试目的 | 测试输入 | 期望结果 | Mock情况 |
 |:---|:------------|:---------|:---------|:---------|:---------|
-| E2E-CLI-01 | 用户应能定义和执行基本命令 | 验证基本用例 | 基本命令定义和执行 | 命令被正确执行 | 最小模拟 |
-| E2E-CLI-02 | 用户应能定义和执行带参数的命令 | 验证参数用例 | 带参数的命令定义和执行 | 参数被正确处理 | 最小模拟 |
-| E2E-CLI-03 | 用户应能定义和执行带选项的命令 | 验证选项用例 | 带选项的命令定义和执行 | 选项被正确处理 | 最小模拟 |
-| E2E-CLI-04 | 用户应能定义和执行嵌套子命令 | 验证子命令用例 | 嵌套命令定义和执行 | 子命令被正确解析和执行 | 最小模拟 |
-| E2E-CLI-05 | 用户应能获取帮助信息 | 验证帮助功能 | --help选项 | 显示正确的帮助信息 | 最小模拟 |
-| E2E-CLI-06 | 用户应能获取版本信息 | 验证版本功能 | --version选项 | 显示正确的版本信息 | 最小模拟 |
-| E2E-CLI-07 | CLI应正确处理无效命令 | 验证错误处理 | 未定义的命令 | 显示适当的错误信息 | 最小模拟 |
-| E2E-CLI-08 | CLI应支持动态注册命令 | 验证动态注册 | 后续注册的外部命令 | 外部命令被正确执行 | 最小模拟 |
+| E2E-CLITypes-01 | 用户应能定义和执行基本命令 | 验证基本用例 | 基本命令定义和执行 | 命令被正确执行 | 最小模拟 |
+| E2E-CLITypes-02 | 用户应能定义和执行带参数的命令 | 验证参数用例 | 带参数的命令定义和执行 | 参数被正确处理 | 最小模拟 |
+| E2E-CLITypes-03 | 用户应能定义和执行带选项的命令 | 验证选项用例 | 带选项的命令定义和执行 | 选项被正确处理 | 最小模拟 |
+| E2E-CLITypes-04 | 用户应能定义和执行嵌套子命令 | 验证子命令用例 | 嵌套命令定义和执行 | 子命令被正确解析和执行 | 最小模拟 |
+| E2E-CLITypes-05 | 用户应能获取帮助信息 | 验证帮助功能 | --help选项 | 显示正确的帮助信息 | 最小模拟 |
+| E2E-CLITypes-06 | 用户应能获取版本信息 | 验证版本功能 | --version选项 | 显示正确的版本信息 | 最小模拟 |
+| E2E-CLITypes-07 | CLI应正确处理无效命令 | 验证错误处理 | 未定义的命令 | 显示适当的错误信息 | 最小模拟 |
+| E2E-CLITypes-08 | CLI应支持动态注册命令 | 验证动态注册 | 后续注册的外部命令 | 外部命令被正确执行 | 最小模拟 |
 
 ## 4. 测试夹具设计
 

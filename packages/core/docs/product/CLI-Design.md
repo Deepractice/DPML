@@ -54,11 +54,11 @@ CLI模块严格遵循项目的分层架构：
 ### 4.1 API设计
 
 ```typescript
-// api/cli.ts
+// api/CLITypes.ts
 export function createCLI(
   options: CLIOptions, 
   commands: CommandDefinition[]
-): CLI {
+): CLITypes {
   return cliService.createCLI(options, commands);
 }
 ```
@@ -66,8 +66,8 @@ export function createCLI(
 ### 4.2 类型定义
 
 ```typescript
-// types/CLI.ts
-export interface CLI {
+// types/CLITypes.ts
+export interface CLITypes {
   /**
    * 执行CLI处理命令行参数
    * @param argv 命令行参数数组，默认使用process.argv
@@ -152,7 +152,7 @@ export interface CommandDefinition {
   domain?: string;
 }
 
-// types/errors.ts
+// types/CLIErrors.ts
 export class DuplicateCommandError extends Error {
   constructor(
     public readonly commandPath: string
@@ -170,7 +170,7 @@ export class DuplicateCommandError extends Error {
 import { Command } from 'commander';
 import { CLIAdapter } from './CLIAdapter';
 import { DuplicateCommandError } from '../../types/errors';
-import type { CLI, CLIOptions, CommandDefinition } from '../../types';
+import type { CLITypes, CLIOptions, CommandDefinition } from '../../types';
 
 // 默认选项
 const defaultOptions: Partial<CLIOptions> = {
@@ -180,7 +180,7 @@ const defaultOptions: Partial<CLIOptions> = {
 export function createCLI(
   options: CLIOptions, 
   userCommands: CommandDefinition[]
-): CLI {
+): CLITypes {
   // 合并选项
   const mergedOptions: Required<CLIOptions> = {
     ...defaultOptions,
@@ -386,19 +386,19 @@ classDiagram
     %% API层
     class cli {
         <<module>>
-        +createCLI(options: CLIOptions, commands: CommandDefinition[]): CLI "创建CLI实例，传入配置和命令"
+        +createCLI(options: CLIOptions, commands: CommandDefinition[]): CLITypes "创建CLI实例，传入配置和命令"
     }
-    note for cli "文件: api/cli.ts\n作为API层的薄层接口，返回CLI执行器"
+    note for cli "文件: api/CLITypes.ts\n作为API层的薄层接口，返回CLI执行器"
     
     %% Types层
-    class CLI {
+    class CLITypes {
         <<interface>>
         +execute(argv?: string[]): Promise<void> "执行CLI处理命令行参数"
         +showHelp(): void "显示帮助信息"
         +showVersion(): void "显示版本信息"
         +registerCommands(commands: CommandDefinition[]): void "注册外部命令"
     }
-    note for CLI "文件: types/CLI.ts\n执行器接口，只负责CLI执行"
+    note for CLITypes "文件: types/CLITypes.ts\n执行器接口，只负责CLI执行"
     
     class CLIOptions {
         <<interface>>
@@ -407,7 +407,7 @@ classDiagram
         +description: string "CLI描述"
         +defaultDomain?: string "默认领域，默认为'core'"
     }
-    note for CLIOptions "文件: types/CLI.ts\nCLI基本配置选项"
+    note for CLIOptions "文件: types/CLITypes.ts\nCLI基本配置选项"
     
     class CommandDefinition {
         <<interface>>
@@ -419,12 +419,12 @@ classDiagram
         +subcommands?: CommandDefinition[] "子命令定义"
         +domain?: string "所属领域，用于组织命令层次结构"
     }
-    note for CommandDefinition "文件: types/CLI.ts\n声明式定义命令的接口"
+    note for CommandDefinition "文件: types/CLITypes.ts\n声明式定义命令的接口"
     
     %% Core层 - 模块服务层
     class cliService {
         <<module>>
-        +createCLI(options: CLIOptions, commands: CommandDefinition[]): CLI "创建CLI实例"
+        +createCLI(options: CLIOptions, commands: CommandDefinition[]): CLITypes "创建CLI实例"
         -setupGlobalOptions(adapter: CLIAdapter, options: Required<CLIOptions>): void "设置全局选项"
         -setupUserCommands(adapter: CLIAdapter, commands: CommandDefinition[]): void "设置用户定义命令"
         -registerExternalCommands(adapter: CLIAdapter, commands: CommandDefinition[]): void "注册外部命令"
@@ -463,13 +463,13 @@ classDiagram
         +message: string "错误信息"
         +constructor(commandPath: string) "创建错误实例"
     }
-    note for DuplicateCommandError "文件: types/errors.ts\n命令重复定义错误"
+    note for DuplicateCommandError "文件: types/CLIErrors.ts\n命令重复定义错误"
     
     %% 定义关系
     cli --> cliService : uses "API委托原则"
     cliService --> CLIAdapter : creates "创建适配器"
     cliService --> commandUtils : uses "使用工具函数"
-    cliService ..> CLI : returns "返回闭包接口"
+    cliService ..> CLITypes : returns "返回闭包接口"
     cliService ..> DuplicateCommandError : throws "检测到重复命令时抛出"
     CLIAdapter ..> DuplicateCommandError : throws "验证命令时检测到重复"
     CommandDefinition *-- ArgumentDefinition : contains "位置参数定义"
@@ -482,7 +482,7 @@ classDiagram
 sequenceDiagram
     %% 参与者定义
     participant User as 应用开发者
-    participant API as cli.ts
+    participant API as CLITypes.ts
     participant Service as cliService.ts
     participant Adapter as CLIAdapter
     participant Commander as Commander.js

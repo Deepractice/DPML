@@ -70,7 +70,7 @@
   - `packages/core/src/core/parsing/parsingService.ts` - 含有handleParsingErrors未实现函数
   - `packages/core/src/core/parsing/XMLAdapter.ts` - 需增强错误传递
   - `packages/core/src/core/parsing/DPMLAdapter.ts` - 需增强错误传递
-  - 需创建新文件: `packages/core/src/core/parsing/errors.ts` - 定义错误类型
+  - 需创建新文件: `packages/core/src/core/parsing/CLIErrors.ts` - 定义错误类型
   
 - **测试相关**:
   - `packages/core/src/__tests__/unit/core/parsing/parsingService.test.ts` - 包含错误处理的测试
