@@ -57,15 +57,38 @@ export function getCommandPath(command: CommandDefinition, parentPath?: string):
  */
 export function validateCommands(commands: CommandDefinition[]): void {
   const pathSet = new Set<string>();
+  // 新增：跨领域命令映射，用于检测不同领域的同名命令
+  const crossDomainMap = new Map<string, string[]>();
 
   function validateCommandTree(command: CommandDefinition, parentPath?: string) {
     const path = getCommandPath(command, parentPath);
 
+    // 检查完整路径（包含领域）是否重复
     if (pathSet.has(path)) {
       throw new Error(`重复的命令定义: ${path}`);
     }
 
     pathSet.add(path);
+
+    // 新增：跨领域命令检测
+    // 不考虑子命令，只检测顶级命令
+    if (!parentPath && command.name) {
+      // 记录命令名到领域的映射
+      const domain = command.domain || 'default';
+      const registeredDomains = crossDomainMap.get(command.name) || [];
+
+      // 检查此命令名是否已在其他领域注册
+      if (registeredDomains.length > 0 && !registeredDomains.includes(domain)) {
+        const conflictDomains = registeredDomains.join(', ');
+
+        console.warn(`警告: 命令 "${command.name}" 在多个领域中定义: ${conflictDomains} 和 ${domain}`);
+      }
+
+      // 记录此命令名的领域
+      if (!registeredDomains.includes(domain)) {
+        crossDomainMap.set(command.name, [...registeredDomains, domain]);
+      }
+    }
 
     if (command.subcommands && command.subcommands.length > 0) {
       for (const subcommand of command.subcommands) {
@@ -76,5 +99,15 @@ export function validateCommands(commands: CommandDefinition[]): void {
 
   for (const command of commands) {
     validateCommandTree(command);
+  }
+
+  // 输出跨领域命令信息
+  if (crossDomainMap.size > 0) {
+    console.log('跨领域命令映射:');
+    crossDomainMap.forEach((domains, cmdName) => {
+      if (domains.length > 1) {
+        console.log(`  命令 "${cmdName}" 存在于以下领域: ${domains.join(', ')}`);
+      }
+    });
   }
 }

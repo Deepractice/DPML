@@ -1,7 +1,7 @@
 import { expect, describe, it, vi, beforeEach } from 'vitest';
 
 import { CLIAdapter } from '../../../../core/cli/CLIAdapter';
-import { createCLI } from '../../../../core/cli/cliService';
+import { createCLI, registerExternalCommands } from '../../../../core/cli/cliService';
 import { mergeDefaultOptions, validateCommands } from '../../../../core/cli/commandUtils';
 import type { CLIOptions, CommandDefinition } from '../../../../types/cli';
 
@@ -25,7 +25,6 @@ describe('CLI Service', () => {
     // 重置CLIAdapter模拟
     mockAdapter = {
       setupCommand: vi.fn(),
-      setupDomainCommands: vi.fn(),
       parse: vi.fn().mockResolvedValue(undefined),
       showHelp: vi.fn(),
       showVersion: vi.fn()
@@ -66,6 +65,7 @@ describe('CLI Service', () => {
       expect(cli).toHaveProperty('execute');
       expect(cli).toHaveProperty('showHelp');
       expect(cli).toHaveProperty('showVersion');
+      expect(cli).toHaveProperty('registerCommands');
     });
 
     // UT-CLISVC-02: 测试默认选项
@@ -136,6 +136,45 @@ describe('CLI Service', () => {
       expect(mockAdapter.setupCommand).toHaveBeenCalledWith(commands[1]);
     });
 
+    // UT-CLISVC-05: 测试注册外部命令
+    it('应正确注册外部命令', () => {
+      // 准备测试数据
+      const options: CLIOptions = {
+        name: 'test-cli',
+        version: '1.0.0',
+        description: 'Test CLI'
+      };
+
+      const initialCommands: CommandDefinition[] = [
+        {
+          name: 'initial',
+          description: 'Initial Command',
+          action: vi.fn()
+        }
+      ];
+
+      const externalCommands: CommandDefinition[] = [
+        {
+          name: 'external',
+          description: 'External Command',
+          action: vi.fn()
+        }
+      ];
+
+      // 执行测试 - 创建CLI并注册外部命令
+      const cli = createCLI(options, initialCommands);
+
+      // 重置模拟计数以便验证额外的命令
+      mockAdapter.setupCommand.mockClear();
+
+      cli.registerCommands(externalCommands);
+
+      // 验证结果：应验证并注册外部命令
+      expect(validateCommands).toHaveBeenCalledWith(externalCommands);
+      expect(mockAdapter.setupCommand).toHaveBeenCalledTimes(1);
+      expect(mockAdapter.setupCommand).toHaveBeenCalledWith(externalCommands[0]);
+    });
+
     // UT-CLISVC-06: 测试接口方法调用
     it('应将接口方法正确委托给适配器', async () => {
       // 准备测试数据
@@ -156,6 +195,41 @@ describe('CLI Service', () => {
       expect(mockAdapter.parse).toHaveBeenCalledWith(testArgs);
       expect(mockAdapter.showHelp).toHaveBeenCalled();
       expect(mockAdapter.showVersion).toHaveBeenCalled();
+    });
+  });
+
+  // 测试registerExternalCommands函数
+  describe('registerExternalCommands', () => {
+    it('应遍历注册外部命令', () => {
+      // 准备测试数据
+      const commands: CommandDefinition[] = [
+        {
+          name: 'external1',
+          description: 'External Command 1',
+          action: vi.fn()
+        },
+        {
+          name: 'external2',
+          description: 'External Command 2',
+          action: vi.fn()
+        }
+      ];
+
+      // 执行测试
+      registerExternalCommands(mockAdapter, commands);
+
+      // 验证结果：应为每个命令调用setupCommand
+      expect(mockAdapter.setupCommand).toHaveBeenCalledTimes(2);
+      expect(mockAdapter.setupCommand).toHaveBeenCalledWith(commands[0]);
+      expect(mockAdapter.setupCommand).toHaveBeenCalledWith(commands[1]);
+    });
+
+    it('应处理空命令数组', () => {
+      // 执行测试
+      registerExternalCommands(mockAdapter, []);
+
+      // 验证结果：不应调用setupCommand
+      expect(mockAdapter.setupCommand).not.toHaveBeenCalled();
     });
   });
 

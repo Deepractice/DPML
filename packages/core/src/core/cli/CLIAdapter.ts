@@ -126,8 +126,7 @@ export class CLIAdapter {
         try {
           await command.action(...args);
         } catch (err) {
-          console.error(`错误: ${(err as Error).message}`);
-          process.exit(1);
+          this.handleError(err as Error, command);
         }
       });
     }
@@ -143,6 +142,7 @@ export class CLIAdapter {
   /**
    * 注册领域命令
    *
+   * @deprecated 此方法已弃用，请使用setupCommand直接注册命令。提供此方法仅为向后兼容。
    * @param domain 领域名称
    * @param commands 命令定义数组
    */
@@ -160,6 +160,23 @@ export class CLIAdapter {
    * 显示CLI帮助信息
    */
   public showHelp(): void {
+    console.log(`\n${this.program.name()} - ${this.program.description()}`);
+    console.log(`版本: ${this.program.version()}`);
+    console.log('\n可用命令:');
+    this.program.commands.forEach(cmd => {
+      // 命令名称和描述
+      console.log(`  ${cmd.name().padEnd(15)} ${cmd.description()}`);
+
+      // 如果命令有子命令，显示子命令
+      if (cmd.commands && cmd.commands.length > 0) {
+        cmd.commands.forEach(subcmd => {
+          console.log(`    ${cmd.name()} ${subcmd.name().padEnd(10)} ${subcmd.description()}`);
+        });
+      }
+    });
+
+    console.log('\n使用 "<命令> --help" 查看特定命令的帮助信息');
+    // 调用原始的帮助输出
     this.program.outputHelp();
   }
 
@@ -167,7 +184,11 @@ export class CLIAdapter {
    * 显示版本信息
    */
   public showVersion(): void {
-    console.log(this.program.version());
+    const version = this.program.version();
+
+    console.log(`${this.program.name()} 版本: ${version}`);
+    console.log(`Node.js 版本: ${process.version}`);
+    console.log(`平台: ${process.platform} ${process.arch}`);
   }
 
   /**
@@ -244,5 +265,44 @@ export class CLIAdapter {
     }
 
     return parentCommand;
+  }
+
+  /**
+   * 处理命令执行错误
+   *
+   * @param error 捕获的错误
+   * @param command 相关的命令定义（可选）
+   */
+  private handleError(error: Error, command?: CommandDefinition): void {
+    console.error(`执行错误: ${error.message}`);
+
+    // 根据错误类型提供不同的错误信息
+    if (error.name === 'ValidationError') {
+      console.error('验证错误: 请检查输入参数是否符合要求');
+    } else if (error.name === 'CommandError') {
+      console.error('命令错误: 命令执行失败');
+    } else if (error.message.includes('Missing required argument')) {
+      console.error('参数错误: 缺少必需的参数');
+      if (command) {
+        console.error(`命令 "${command.name}" 需要以下参数:`);
+        command.arguments?.filter(arg => arg.required).forEach(arg => {
+          console.error(`  - ${arg.name}: ${arg.description}`);
+        });
+      }
+    } else if (error.message.includes('option')) {
+      console.error('选项错误: 选项格式或值无效');
+    }
+
+    // 对于特定命令，显示命令帮助
+    if (command) {
+      console.error(`\n尝试使用 --help 选项查看命令 "${command.name}" 的帮助信息`);
+    } else {
+      console.error('\n尝试使用 --help 选项查看可用命令');
+    }
+
+    // 非测试环境时退出进程
+    if (process.env.NODE_ENV !== 'test' && !process.env.VITEST) {
+      process.exit(1);
+    }
   }
 }

@@ -2,15 +2,15 @@
 
 ## 1. 概述
 
-CLI模块是DPML核心的命令行接口，负责提供一致、直观的命令行工具，使用户能够通过终端访问DPML的各项功能。它将Framework和其他核心功能封装为结构化的命令集，同时提供声明式API用于定义和组织命令。
+CLI模块是DPML核心的命令行接口，负责提供一致、直观的命令行工具，使用户能够通过终端访问DPML的各项功能。它提供结构化的命令集和声明式API用于定义和组织命令。
 
 ### 1.1 设计目标
 
 - **统一接口**：提供一致的命令行界面，作为DPML功能的统一入口
 - **声明式定义**：支持通过声明式API定义命令及其结构
-- **领域整合**：无缝整合Framework中注册的领域命令
-- **可扩展性**：支持扩展新的命令和领域
+- **可扩展性**：支持动态注册外部命令
 - **类型安全**：提供完全类型化的API和配置
+- **关注点分离**：与其他模块保持清晰的界限，不直接依赖具体实现
 
 ## 2. 核心设计理念
 
@@ -31,10 +31,10 @@ CLI模块是DPML核心的命令行接口，负责提供一致、直观的命令�
    - 在设置阶段而非运行时发现冲突
    - 提供明确的错误信息帮助定位问题
 
-4. **领域命令集成**：
-   - 自动从Framework获取已注册领域
-   - 将领域配置转换为相应的命令结构
-   - 维持领域和命令的一致性
+4. **外部命令接口**：
+   - 提供标准的命令注册接口
+   - 接受符合CommandDefinition规范的外部命令
+   - 保持CLI对命令来源的无感知性
 
 5. **完全封装外部依赖**：
    - 完全封装Commander.js，不暴露外部库实例
@@ -83,6 +83,12 @@ export interface CLI {
    * 显示版本信息
    */
   showVersion(): void;
+  
+  /**
+   * 注册外部命令
+   * @param commands 符合CommandDefinition规范的命令数组
+   */
+  registerCommands(commands: CommandDefinition[]): void;
 }
 
 // types/CLIOptions.ts
@@ -163,7 +169,6 @@ export class DuplicateCommandError extends Error {
 // core/cli/cliService.ts
 import { Command } from 'commander';
 import { CLIAdapter } from './CLIAdapter';
-import { framework } from '../../api/framework';
 import { DuplicateCommandError } from '../../types/errors';
 import type { CLI, CLIOptions, CommandDefinition } from '../../types';
 
@@ -196,14 +201,15 @@ export function createCLI(
   validateCommands(userCommands);
   setupUserCommands(adapter, userCommands);
   
-  // 获取并设置framework中注册的命令
-  setupFrameworkCommands(adapter);
-  
   // 返回CLI接口
   return {
     execute: (argv?: string[]) => adapter.parse(argv),
     showHelp: () => adapter.showHelp(),
-    showVersion: () => adapter.showVersion()
+    showVersion: () => adapter.showVersion(),
+    registerCommands: (commands: CommandDefinition[]) => {
+      validateCommands(commands);
+      registerExternalCommands(adapter, commands);
+    }
   };
 }
 
@@ -223,13 +229,12 @@ function setupUserCommands(
   commands.forEach(command => adapter.setupCommand(command));
 }
 
-// 设置framework中注册的领域命令
-function setupFrameworkCommands(adapter: CLIAdapter): void {
-  const domains = framework.getDomains();
-  
-  domains.forEach(domain => {
-    adapter.setupDomainCommands(domain.name, domain.commands);
-  });
+// 注册外部命令
+function registerExternalCommands(
+  adapter: CLIAdapter, 
+  commands: CommandDefinition[]
+): void {
+  commands.forEach(command => adapter.setupCommand(command));
 }
 
 // 验证命令集是否有重复定义
@@ -391,6 +396,7 @@ classDiagram
         +execute(argv?: string[]): Promise<void> "执行CLI处理命令行参数"
         +showHelp(): void "显示帮助信息"
         +showVersion(): void "显示版本信息"
+        +registerCommands(commands: CommandDefinition[]): void "注册外部命令"
     }
     note for CLI "文件: types/CLI.ts\n执行器接口，只负责CLI执行"
     
@@ -421,7 +427,7 @@ classDiagram
         +createCLI(options: CLIOptions, commands: CommandDefinition[]): CLI "创建CLI实例"
         -setupGlobalOptions(adapter: CLIAdapter, options: Required<CLIOptions>): void "设置全局选项"
         -setupUserCommands(adapter: CLIAdapter, commands: CommandDefinition[]): void "设置用户定义命令"
-        -setupFrameworkCommands(adapter: CLIAdapter): void "设置framework中注册的命令"
+        -registerExternalCommands(adapter: CLIAdapter, commands: CommandDefinition[]): void "注册外部命令"
         -validateCommands(commands: CommandDefinition[]): void "验证命令是否有重复定义"
         -getCommandPath(command: CommandDefinition, parentPath?: string): string "获取完整命令路径"
     }
@@ -479,7 +485,6 @@ sequenceDiagram
     participant API as cli.ts
     participant Service as cliService.ts
     participant Adapter as CLIAdapter
-    participant Framework as framework模块
     participant Commander as Commander.js
 
     %% 标题和描述
@@ -499,17 +504,18 @@ sequenceDiagram
     Service->>+Service: setupGlobalOptions(adapter, options) "设置全局选项"
     Service->>+Service: setupUserCommands(adapter, commands) "设置用户命令"
     
-    Service->>+Framework: getDomains() "获取注册领域"
-    Framework-->>-Service: domains "返回领域定义"
-    
-    Service->>+Service: setupFrameworkCommands(adapter) "设置领域命令"
-    Service->>+Adapter: setupDomainCommands(name, commands) "设置领域命令"
-    Adapter->>+Adapter: setupCommand() "递归设置命令"
-    Adapter-->>-Adapter: commandPaths.add() "记录命令路径"
-    Adapter-->>-Service: void "命令设置完成"
-    
     Service-->>-API: cli "返回CLI接口"
     API-->>-User: cli "返回CLI接口"
+    
+    %% 注册外部命令
+    User->>+API: cli.registerCommands(externalCommands) "注册外部命令"
+    API->>+Service: registerExternalCommands(adapter, commands) "注册命令"
+    Service->>+Service: validateCommands(commands) "验证命令无重复"
+    Service->>+Adapter: setupCommand() "递归设置命令"
+    Adapter-->>-Adapter: commandPaths.add() "记录命令路径"
+    Adapter-->>-Service: void "命令设置完成"
+    Service-->>-API: void "注册完成"
+    API-->>-User: void "操作完成"
     
     %% 执行CLI
     User->>+API: cli.execute(process.argv) "执行CLI"
@@ -667,19 +673,25 @@ dpml parse --help
 dpml --version
 ```
 
+// 添加框架集成示例
+import { getCommandDefinitions } from '@dpml/core/api/framework';
+
+// 注册来自其他模块的命令
+cli.registerCommands(getCommandDefinitions());
+
 ## 8. 总结
 
 DPML CLI模块采用闭包设计模式，提供了统一的命令行界面用于访问DPML的各项功能。它严格遵循分层架构原则，将API层设计为薄层，而将实际实现委托给核心服务层。
 
-通过声明式命令定义API，CLI模块使开发者能够轻松地定义结构化命令，同时提供了命令重复检测机制，确保命令定义的一致性和唯一性。CLI模块还能够自动集成Framework中注册的领域命令，为不同领域提供统一的命令行访问接口。
+通过声明式命令定义API，CLI模块使开发者能够轻松地定义结构化命令，同时提供了命令重复检测机制，确保命令定义的一致性和唯一性。CLI模块通过registerCommands接口提供了扩展点，允许其他模块注册自己的命令，而无需CLI模块直接依赖这些模块的内部实现。
 
 CLI模块完全封装了Commander.js库，提供了简洁且类型安全的接口，不暴露任何底层实现细节。这种设计既保持了API的简洁性，又提高了系统的内聚性和可维护性。
 
-作为DPML核心功能的命令行入口，CLI模块连接了Framework和其他核心模块，实现了端到端的命令行交互能力，为用户提供了便捷的DPML功能访问方式。
+作为DPML核心功能的命令行入口，CLI模块提供了端到端的命令行交互能力，为用户提供了便捷的DPML功能访问方式，同时严格遵循关注点分离原则。
 
 业务流程概览：
 
 ```
-创建CLI实例 → 验证命令定义 → 设置用户命令 → 集成领域命令 → 
-返回CLI接口 → 用户执行CLI → 解析命令行参数 → 执行匹配命令
+创建CLI实例 → 验证命令定义 → 设置用户命令 → 
+返回CLI接口 → 注册外部命令 → 用户执行CLI → 解析命令行参数 → 执行匹配命令
 ``` 

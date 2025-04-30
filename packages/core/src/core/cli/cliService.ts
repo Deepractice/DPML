@@ -39,7 +39,11 @@ export function createCLI(options: CLIOptions, commands: CommandDefinition[]): C
   return {
     execute: (argv?: string[]) => adapter.parse(argv),
     showHelp: () => adapter.showHelp(),
-    showVersion: () => adapter.showVersion()
+    showVersion: () => adapter.showVersion(),
+    registerCommands: (externalCommands: CommandDefinition[]) => {
+      validateCommands(externalCommands);
+      registerExternalCommands(adapter, externalCommands);
+    }
   };
 }
 
@@ -63,5 +67,15 @@ function setupGlobalOptions(adapter: CLIAdapter, options: Required<CLIOptions>):
  * @param commands 命令定义数组
  */
 function setupUserCommands(adapter: CLIAdapter, commands: CommandDefinition[]): void {
+  commands.forEach(command => adapter.setupCommand(command));
+}
+
+/**
+ * 注册外部命令
+ *
+ * @param adapter CLI适配器
+ * @param commands 命令定义数组
+ */
+export function registerExternalCommands(adapter: CLIAdapter, commands: CommandDefinition[]): void {
   commands.forEach(command => adapter.setupCommand(command));
 }

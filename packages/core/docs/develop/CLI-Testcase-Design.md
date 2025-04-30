@@ -17,7 +17,7 @@
 
 - **契约测试**: 确保API和类型定义的稳定性，防止意外的破坏性变更
 - **单元测试**: 验证各组件的独立功能，特别是cliService和CLIAdapter的各个函数
-- **集成测试**: 验证CLI如何协调Commander.js和Framework模块，确保完整命令执行流程
+- **集成测试**: 验证CLI的命令注册和执行流程，确保完整命令执行流程
 - **端到端测试**: 验证从用户输入命令到执行结果的完整工作流程
 
 ## 3. 测试用例详情
@@ -36,8 +36,9 @@
 
 | ID | 测试用例名称 | 测试目的 | 测试输入 | 期望结果 | Mock情况 |
 |:---|:------------|:---------|:---------|:---------|:---------|
-| CT-TYPE-CLI-01 | CLI接口应维持结构稳定性 | 验证类型结构契约 | 类型检查 | 接口包含execute、showHelp和showVersion方法 | 无需模拟 |
+| CT-TYPE-CLI-01 | CLI接口应维持结构稳定性 | 验证类型结构契约 | 类型检查 | 接口包含execute、showHelp、showVersion和registerCommands方法 | 无需模拟 |
 | CT-TYPE-CLI-02 | CLI.execute应返回Promise<void> | 验证返回类型 | 类型检查 | execute方法返回Promise<void>类型 | 无需模拟 |
+| CT-TYPE-CLI-03 | CLI.registerCommands应接受命令定义数组 | 验证参数类型 | 类型检查 | registerCommands接受CommandDefinition[]参数 | 无需模拟 |
 
 #### 文件: `packages/core/src/__tests__/contract/types/CommandDefinition.contract.test.ts`
 
@@ -57,7 +58,7 @@
 | UT-CLISVC-02 | createCLI应设置默认选项 | 验证默认值处理 | 不含defaultDomain的CLIOptions | 使用'core'作为默认领域 | 模拟CLIAdapter |
 | UT-CLISVC-03 | setupGlobalOptions应设置全局选项 | 验证全局选项设置 | CLIAdapter和Options | 全局选项被设置 | 模拟CLIAdapter |
 | UT-CLISVC-04 | setupUserCommands应遍历注册用户命令 | 验证命令注册 | CLIAdapter和CommandDefinition[] | 所有命令被注册 | 模拟CLIAdapter.setupCommand |
-| UT-CLISVC-05 | setupFrameworkCommands应获取并注册领域命令 | 验证领域命令注册 | CLIAdapter | 所有领域命令被注册 | 模拟framework.getDomains和CLIAdapter.setupDomainCommands |
+| UT-CLISVC-05 | registerExternalCommands应正确注册外部命令 | 验证外部命令注册 | CLIAdapter和CommandDefinition[] | 外部命令被正确注册 | 模拟CLIAdapter.setupCommand |
 | UT-CLISVC-06 | validateCommands应验证命令无重复 | 验证命令冲突检测 | 无重复的CommandDefinition[] | 不抛出异常 | 无需模拟 |
 | **反向测试** |
 | UT-CLISVC-NEG-01 | validateCommands应检测到重复命令 | 验证命令冲突检测 | 包含重复命令的数组 | 抛出DuplicateCommandError | 无需模拟 |
@@ -99,7 +100,7 @@
 | IT-CLIEXC-02 | CLI应处理带参数的命令 | 验证参数处理 | 带参数的命令定义和输入 | 参数被正确传递给action | 模拟action函数 |
 | IT-CLIEXC-03 | CLI应处理带选项的命令 | 验证选项处理 | 带选项的命令定义和输入 | 选项被正确传递给action | 模拟action函数 |
 | IT-CLIEXC-04 | CLI应处理嵌套子命令 | 验证子命令流程 | 嵌套命令定义和输入 | 子命令被正确执行 | 模拟子命令action函数 |
-| IT-CLIEXC-05 | CLI应处理领域命令 | 验证领域命令流程 | 领域命令定义和输入 | 领域命令被正确执行 | 模拟framework.getDomains和action函数 |
+| IT-CLIEXC-05 | CLI应处理外部注册的命令 | 验证外部命令执行 | 外部注册的命令定义和输入 | 外部命令被正确执行 | 模拟action函数 |
 
 #### 文件: `packages/core/src/__tests__/integration/cli/closureState.integration.test.ts`
 
@@ -122,7 +123,7 @@
 | E2E-CLI-05 | 用户应能获取帮助信息 | 验证帮助功能 | --help选项 | 显示正确的帮助信息 | 最小模拟 |
 | E2E-CLI-06 | 用户应能获取版本信息 | 验证版本功能 | --version选项 | 显示正确的版本信息 | 最小模拟 |
 | E2E-CLI-07 | CLI应正确处理无效命令 | 验证错误处理 | 未定义的命令 | 显示适当的错误信息 | 最小模拟 |
-| E2E-CLI-08 | CLI应与Framework集成处理领域命令 | 验证领域集成 | 领域相关命令 | 领域命令被正确执行 | 模拟framework |
+| E2E-CLI-08 | CLI应支持动态注册命令 | 验证动态注册 | 后续注册的外部命令 | 外部命令被正确执行 | 最小模拟 |
 
 ## 4. 测试夹具设计
 
@@ -286,6 +287,26 @@ export function createCrossDomainDuplicateCommandsFixture() {
 export function createCommandLineArgsFixture(command: string) {
   return ['node', 'dpml', ...command.split(' ')];
 }
+
+// 创建外部命令夹具
+export function createExternalCommandsFixture() {
+  return [
+    {
+      name: 'external',
+      description: '外部命令示例',
+      arguments: [
+        { 
+          name: 'input', 
+          description: '输入文件', 
+          required: true 
+        }
+      ],
+      action: vi.fn().mockImplementation((input) => {
+        console.log(`处理外部命令: ${input}`);
+      })
+    }
+  ];
+}
 ```
 
 ## 5. 测试实现示例
@@ -293,23 +314,24 @@ export function createCommandLineArgsFixture(command: string) {
 ```typescript
 // packages/core/src/__tests__/unit/core/cli/cliService.test.ts
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { createCLI, setupGlobalOptions, setupUserCommands, setupFrameworkCommands, validateCommands } from '../../../../src/core/cli/cliService';
+import { 
+  createCLI, 
+  setupGlobalOptions, 
+  setupUserCommands, 
+  registerExternalCommands, 
+  validateCommands 
+} from '../../../../src/core/cli/cliService';
 import { CLIAdapter } from '../../../../src/core/cli/CLIAdapter';
 import { DuplicateCommandError } from '../../../../src/types/errors';
-import { framework } from '../../../../src/api/framework';
 import { 
   createCLIOptionsFixture, 
   createCommandDefinitionsFixture, 
-  createDuplicateCommandsFixture 
+  createDuplicateCommandsFixture,
+  createExternalCommandsFixture
 } from '../../../fixtures/cli/cliFixtures';
 
 // 模拟依赖
 vi.mock('../../../../src/core/cli/CLIAdapter');
-vi.mock('../../../../src/api/framework', () => ({
-  framework: {
-    getDomains: vi.fn()
-  }
-}));
 
 describe('UT-CLISVC', () => {
   beforeEach(() => {
@@ -346,6 +368,21 @@ describe('UT-CLISVC', () => {
     // 执行与断言
     expect(() => validateCommands(duplicateCommands)).toThrow(DuplicateCommandError);
   });
+
+  test('registerExternalCommands应正确注册外部命令', () => {
+    // 准备
+    const externalCommands = createExternalCommandsFixture();
+    const mockAdapter = {
+      setupCommand: vi.fn()
+    };
+    
+    // 执行
+    registerExternalCommands(mockAdapter as any, externalCommands);
+    
+    // 断言
+    expect(mockAdapter.setupCommand).toHaveBeenCalledTimes(externalCommands.length);
+    expect(mockAdapter.setupCommand).toHaveBeenCalledWith(externalCommands[0]);
+  });
 });
 
 // packages/core/src/__tests__/integration/cli/commandExecution.integration.test.ts
@@ -353,7 +390,8 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { createCLI } from '../../../../src/api/cli';
 import { 
   createCLIOptionsFixture, 
-  createCommandDefinitionsFixture, 
+  createCommandDefinitionsFixture,
+  createExternalCommandsFixture,
   createCommandLineArgsFixture 
 } from '../../../fixtures/cli/cliFixtures';
 
@@ -380,6 +418,27 @@ describe('IT-CLIEXC', () => {
     // 断言
     expect(parseAction).toHaveBeenCalledWith('test.dpml', expect.objectContaining({ format: 'json' }));
   });
+
+  test('CLI应处理外部注册的命令', async () => {
+    // 准备
+    const options = createCLIOptionsFixture();
+    const commands = createCommandDefinitionsFixture();
+    const externalCommands = createExternalCommandsFixture();
+    const cmdArgs = createCommandLineArgsFixture('external test-input.txt');
+    
+    // 获取模拟action
+    const externalAction = externalCommands[0].action;
+    
+    // 创建CLI并注册外部命令
+    const cli = createCLI(options, commands);
+    cli.registerCommands(externalCommands);
+    
+    // 执行
+    await cli.execute(cmdArgs);
+    
+    // 断言
+    expect(externalAction).toHaveBeenCalledWith('test-input.txt', expect.anything());
+  });
 });
 ```
 
@@ -394,7 +453,7 @@ describe('IT-CLIEXC', () => {
 
 - **契约测试**: 主要进行类型检查，部分情况下需要模拟cliService返回符合契约的数据。
 - **单元测试**:
-  - 测试cliService时，模拟CLIAdapter和framework.getDomains
+  - 测试cliService时，模拟CLIAdapter
   - 测试CLIAdapter时，模拟Commander.js的实例和方法
   - 重点测试命令注册和冲突检测逻辑
 - **集成测试**: 模拟命令的action函数，验证参数传递和执行流程。
@@ -406,7 +465,7 @@ describe('IT-CLIEXC', () => {
 
 1. **契约测试**: 确保API和类型的稳定性和一致性
 2. **单元测试**: 验证cliService和CLIAdapter各函数的独立功能
-3. **集成测试**: 验证CLI对Commander.js的适配和闭包状态管理
+3. **集成测试**: 验证CLI对Commander.js的适配和命令注册执行流程
 4. **端到端测试**: 验证完整用户命令行交互流程
 
 测试用例设计注重正向测试和反向测试的平衡，确保既测试正常功能路径，也测试错误处理和冲突检测机制。测试夹具设计提供了丰富的命令定义和配置数据，便于测试的实施和维护。

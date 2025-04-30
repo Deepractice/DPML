@@ -18,6 +18,12 @@ export interface CLI {
    * 显示版本信息
    */
   showVersion(): void;
+
+  /**
+   * 注册外部命令
+   * @param commands 符合CommandDefinition规范的命令数组
+   */
+  registerCommands(commands: CommandDefinition[]): void;
 }
 
 /**

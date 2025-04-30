@@ -12,6 +12,7 @@ import type {
   DomainConfig,
   TransformerDefiner
 } from '../types';
+import type { CommandDefinition } from '../types/cli';
 
 // 导出类型
 export type { DomainCompiler, DomainConfig, TransformerDefiner };
@@ -67,4 +68,16 @@ export function createDomainDPML<T>(config: DomainConfig): DomainCompiler<T> {
  */
 export function createTransformerDefiner(): TransformerDefiner {
   return createTransformerDefinerImpl();
+}
+
+/**
+ * 获取framework注册的所有命令，以CLI可接受的CommandDefinition[]格式返回
+ *
+ * @returns 符合CLI要求的命令定义数组
+ */
+export function getCommandDefinitions(): CommandDefinition[] {
+  // 这里从framework内部获取领域命令
+  // 实际实现需要与domainService协调
+  // 这只是一个适配层，将framework内部命令格式转换为CLI可接受的格式
+  return [];
 }

@@ -1,7 +1,14 @@
-import { expect, describe, it } from 'vitest';
+import { expect, describe, it, vi, beforeEach } from 'vitest';
 
 import { mergeDefaultOptions, validateCommands, getCommandPath } from '../../../../core/cli/commandUtils';
 import type { CLIOptions, CommandDefinition } from '../../../../types/cli';
+import { createCrossDomainDuplicateCommandsFixture } from '../../../fixtures/cli/cliFixtures';
+
+// 模拟控制台输出，避免测试输出过多
+beforeEach(() => {
+  vi.spyOn(console, 'log').mockImplementation(() => {});
+  vi.spyOn(console, 'warn').mockImplementation(() => {});
+});
 
 describe('Command Utils', () => {
   // UT-CLIUTL-01: 测试合并默认选项
@@ -107,6 +114,30 @@ describe('Command Utils', () => {
 
       // 执行测试：应抛出异常
       expect(() => validateCommands(commands)).toThrow(/重复的命令定义/);
+    });
+
+    // UT-CLISVC-NEG-03: 验证跨领域命令重复检测
+    it('应识别和警告跨领域重复命令', () => {
+      // 准备
+      const commands = createCrossDomainDuplicateCommandsFixture();
+      const consoleWarnSpy = vi.spyOn(console, 'warn');
+
+      // 执行
+      validateCommands(commands);
+
+      // 验证 - 应发出警告但不抛出异常
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('警告: 命令 "export" 在多个领域中定义')
+      );
+    });
+
+    // 验证完整领域命令路径不冲突的情况
+    it('应不会混淆不同领域的同名命令', () => {
+      // 准备 - 不同领域的同名命令
+      const commands = createCrossDomainDuplicateCommandsFixture();
+
+      // 执行与验证 - 不应抛出异常
+      expect(() => validateCommands(commands)).not.toThrow();
     });
   });
 
