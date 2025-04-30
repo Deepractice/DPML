@@ -3,6 +3,7 @@
  * 提供创建命令行界面的功能
  */
 
+import { createCLI as coreCreateCLI } from '../core/cli/cliService';
 import type { CLI, CLIOptions, CommandDefinition } from '../types/cli';
 
 /**
@@ -47,10 +48,5 @@ export function createCLI(
   options: CLIOptions,
   commands: CommandDefinition[]
 ): CLI {
-  // 仅实现契约，内部逻辑在后续任务中实现
-  return {
-    execute: async () => {},
-    showHelp: () => {},
-    showVersion: () => {}
-  };
+  return coreCreateCLI(options, commands);
 }
