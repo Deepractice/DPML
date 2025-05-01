@@ -421,14 +421,14 @@ if (processedSchema.isValid) {
   const result = processDocument<CustomProcessingResult>(document, processedSchema);
   
   if (result.validation.isValid) {
-    console.log("文档验证通过");
-    console.log(`处理时间: ${result.metadata.processingTime}ms`);
-    console.log(`验证了 ${result.metadata.validatedElements} 个元素`);
+    
+    
+    
     
     // 使用引用映射（类型安全）
     const submitButton = result.references?.idMap.get("submit-btn");
     if (submitButton) {
-      console.log(`找到按钮: ${submitButton.tagName}`);
+      
     }
   } else {
     // 类型安全的错误处理

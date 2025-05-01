@@ -1,7 +1,6 @@
 import { describe, test, expect, vi } from 'vitest';
 
 import { TransformerRegistry, transformerRegistryFactory } from '../../../core/transformer/TransformerRegistry';
-import { TransformContext } from '../../../types/TransformContext';
 import type { Transformer } from '../../../types/Transformer';
 
 describe('TransformerRegistry', () => {

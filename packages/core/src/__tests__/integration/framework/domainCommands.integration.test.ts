@@ -3,9 +3,8 @@
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
-import { createDomainDPML, getCommandDefinitions } from '../../../api/framework';
+import { createDomainDPML } from '../../../api/framework';
 import { getAllRegisteredCommands, resetCommandRegistry, registerCommands } from '../../../core/framework/domainService';
-import { ConfigurationError } from '../../../types';
 import type { CommandDefinition } from '../../../types/CLI';
 import type { DomainConfig } from '../../../types/DomainConfig';
 
@@ -54,7 +53,7 @@ describe('IT-DMCMD: 领域命令集成测试', () => {
               { flags: '--format <type>', description: '输出格式' }
             ],
             action: async (context, input, options) => {
-              console.log(`执行自定义命令: ${input}, ${options?.format}`);
+
             }
           }
         ]
@@ -108,7 +107,7 @@ describe('IT-DMCMD: 领域命令集成测试', () => {
             name: 'domain2-action',
             description: '领域2专用命令',
             action: async (context) => {
-              console.log('执行领域2命令');
+
             }
           }
         ]

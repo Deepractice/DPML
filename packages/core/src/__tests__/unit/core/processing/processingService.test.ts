@@ -1,7 +1,7 @@
 import { describe, test, expect } from 'vitest';
 
 import { buildIdMap, processDocument } from '../../../../core/processing/processingService';
-import type { DPMLDocument, DPMLNode, ProcessingResult, ProcessedSchema, ValidationResult } from '../../../../types';
+import type { DPMLDocument, DPMLNode, ProcessingResult, ProcessedSchema } from '../../../../types';
 
 describe('UT-PROCSRV', () => {
   // 测试用例UT-PROCSRV-01: processDocument应返回正确结构的结果

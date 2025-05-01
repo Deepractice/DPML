@@ -5,7 +5,6 @@
 
 import type { DomainContext } from '../../../core/framework/types';
 import type { DomainAction } from '../../../types/DomainAction';
-import type { Schema } from '../../../types/Schema';
 
 /**
  * 创建基本领域配置夹具（包含CLI命令）

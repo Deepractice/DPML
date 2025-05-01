@@ -93,7 +93,7 @@ export class ResultCollectorTransformer<TOutput = Record<string, unknown>> imple
     const allResults = context.getAllResults();
 
     // 日志输出当前收集到的结果，用于调试
-    console.log('ResultCollectorTransformer: 收集到的结果键:', Object.keys(allResults));
+
 
     // b. 如果未指定转换器名称，返回所有结果或合并后的结果
     if (!this.transformerNames || this.transformerNames.length === 0) {
@@ -120,7 +120,7 @@ export class ResultCollectorTransformer<TOutput = Record<string, unknown>> imple
       // 修复：将所有转换器的结果集缓存到上下文中的「transformerResults」键下
       context.set('transformerResults', allResults);
 
-      console.log('ResultCollectorTransformer: 已将结果设置到上下文中');
+
 
       return result as TOutput;
     }
@@ -171,7 +171,7 @@ export class ResultCollectorTransformer<TOutput = Record<string, unknown>> imple
     // 修复：将过滤后的转换器结果集缓存到上下文中的「transformerResults」键下
     context.set('transformerResults', filteredResults);
 
-    console.log('ResultCollectorTransformer: 已将过滤结果设置到上下文中');
+
 
     // f. 返回过滤后的结果或合并后的结果
     return (this.shouldMerge && 'merged' in filteredResults ?

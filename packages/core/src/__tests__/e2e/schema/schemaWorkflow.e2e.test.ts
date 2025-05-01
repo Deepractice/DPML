@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
 import { processSchema } from '../../../api/schema'; // 导入 API 层
-import type { ProcessedSchema } from '../../../types/ProcessedSchema';
 
 // 定义一些测试用的Schema类型和对象 (可以复用或单独定义)
 interface SimpleSchema {

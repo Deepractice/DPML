@@ -10,7 +10,6 @@ import { describe, test, expect, beforeAll, afterAll, beforeEach, afterEach } fr
 
 import { createDomainDPML } from '../../../api/framework';
 import { getAllRegisteredCommands, resetCommandRegistry } from '../../../core/framework/domainService';
-import type { DomainAction } from '../../../types/DomainAction';
 import type { DomainConfig } from '../../../types/DomainConfig';
 import type { Transformer } from '../../../types/Transformer';
 
@@ -70,7 +69,7 @@ describe('命令集成端到端测试', () => {
             options: [{ flags: '--format <type>', description: '输出格式' }],
             action: async (context, input, options) => {
               // 仅打印信息，不返回值以符合void类型要求
-              console.log(`Executed with ${input} and ${options.format || 'default'}`);
+
             }
           }
         ]
@@ -130,7 +129,7 @@ describe('命令集成端到端测试', () => {
             description: '领域2特殊命令',
             action: async (context) => {
               // 仅打印信息，不返回值以符合void类型要求
-              console.log('domain2 special command executed');
+
             }
           }
         ]

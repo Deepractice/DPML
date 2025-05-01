@@ -229,13 +229,7 @@ export class TemplateTransformer<TInput> implements Transformer<TInput, string> 
    */
   private logDebugInfo(message: string, ...args: unknown[]): void {
     try {
-      if (args.length === 1) {
-        console.log(`TemplateTransformer(${this.name}): ${message}: "${args[0]}"`);
-      } else if (args.length > 1) {
-        console.log(`TemplateTransformer(${this.name}): ${message}:`, ...args);
-      } else {
-        console.log(`TemplateTransformer(${this.name}): ${message}`);
-      }
+      // 调试日志功能当前未实现
     } catch (e) {
       // 忽略日志错误
     }
@@ -246,15 +240,7 @@ export class TemplateTransformer<TInput> implements Transformer<TInput, string> 
    */
   private logTemplateDataKeys(data: Record<string, unknown>): void {
     try {
-      if (data && typeof data === 'object') {
-        const keys = Object.keys(data);
-
-        if (keys.length > 0) {
-          console.log(`TemplateTransformer(${this.name}): 模板数据键: ${keys.join(', ')}`);
-        } else {
-          console.log(`TemplateTransformer(${this.name}): 模板数据为空对象`);
-        }
-      }
+      // 记录模板数据功能当前未实现
     } catch (e) {
       // 忽略日志错误
     }
@@ -265,11 +251,7 @@ export class TemplateTransformer<TInput> implements Transformer<TInput, string> 
    */
   private logPlaceholderReplacement(key: string, value: unknown): void {
     try {
-      if (value !== undefined) {
-        console.log(`TemplateTransformer(${this.name}): 占位符 {{${key}}} 的值: ${String(value)}`);
-      } else {
-        console.log(`TemplateTransformer(${this.name}): 占位符 {{${key}}} 的值不存在`);
-      }
+      // 占位符替换日志功能当前未实现
     } catch (e) {
       // 忽略日志错误
     }

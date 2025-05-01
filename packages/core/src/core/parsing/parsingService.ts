@@ -1,5 +1,4 @@
 import type { DPMLDocument, ParseOptions } from '../../types';
-import { MemoryOptimizationOptions } from '../../types';
 
 import type { ParseResult } from './errors';
 import { ParseError, XMLParseError, DPMLParseError, createErrorResult, createSuccessResult } from './errors';

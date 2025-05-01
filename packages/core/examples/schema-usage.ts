@@ -23,10 +23,7 @@ const buttonSchema: ElementSchema = {
 // 验证简单元素Schema
 const buttonResult = processSchema(buttonSchema);
 
-console.log('Button Schema 验证结果:', buttonResult.isValid);
-if (!buttonResult.isValid && buttonResult.errors) {
-  console.log('错误:', buttonResult.errors);
-}
+
 
 // 示例2：定义一个包含类型引用的文档Schema
 const promptDocumentSchema: DocumentSchema = {
@@ -79,10 +76,8 @@ const promptDocumentSchema: DocumentSchema = {
 // 验证文档Schema
 const promptResult = processSchema(promptDocumentSchema);
 
-console.log('Prompt Document Schema 验证结果:', promptResult.isValid);
-if (!promptResult.isValid && promptResult.errors) {
-  console.log('错误:', promptResult.errors);
-}
+
+
 
 // 示例3：故意定义一个无效的元素Schema
 const invalidElementSchema = {
@@ -98,7 +93,5 @@ const invalidElementSchema = {
 // 验证无效元素Schema
 const invalidResult = processSchema(invalidElementSchema);
 
-console.log('无效元素Schema验证结果:', invalidResult.isValid);
-if (!invalidResult.isValid && invalidResult.errors) {
-  console.log('错误:', invalidResult.errors);
-}
+
+

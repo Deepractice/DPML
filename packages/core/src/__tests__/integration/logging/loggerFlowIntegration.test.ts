@@ -7,7 +7,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import { createLogger, setDefaultLogLevel, getDefaultLogger } from '../../../core/logging/loggingService';
 import type { LoggerConfig } from '../../../types/log';
-import { LogLevel, Logger } from '../../../types/log';
+import { LogLevel } from '../../../types/log';
 
 // 模拟控制台方法
 beforeEach(() => {

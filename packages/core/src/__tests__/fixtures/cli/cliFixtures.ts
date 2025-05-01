@@ -45,8 +45,10 @@ export function createCommandDefinitionsFixture(): CommandDefinition[] {
       ],
       action: vi.fn().mockImplementation((file, options) => {
         console.log(`解析文件: ${file}`);
-        console.log(`输出路径: ${options.output || '标准输出'}`);
-        console.log(`输出格式: ${options.format}`);
+        console.log(`输出格式: ${options.format || 'json'}`);
+        if (options.output) {
+          console.log(`输出文件: ${options.output}`);
+        }
       })
     },
     {
@@ -67,7 +69,9 @@ export function createCommandDefinitionsFixture(): CommandDefinition[] {
       ],
       action: vi.fn().mockImplementation((file, options) => {
         console.log(`验证文件: ${file}`);
-        console.log(`严格模式: ${options.strict ? '是' : '否'}`);
+        if (options.strict) {
+          console.log('使用严格模式');
+        }
       })
     },
     {

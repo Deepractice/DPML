@@ -1078,12 +1078,12 @@ const transformResult = Transformer.transform<PromptTemplate>(result, {
 
 // 类型安全的结果处理
 const { transformers, merged, metadata } = transformResult;
-console.log(`转换使用了 ${metadata.transformers.length} 个转换器`);
-console.log(`执行时间: ${metadata.executionTime}ms`);
+
+
 
 // 类型安全地访问模板输出
 const templateOutput = transformers.templateTransformer as string;
-console.log('模板输出:', templateOutput);
+
 
 // 类型安全地访问参数
 const temperature = merged.parameters.temperature;

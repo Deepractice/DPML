@@ -56,7 +56,7 @@ public async parse(argv?: string[]): Promise<void> {
     
     // 在测试环境中特殊处理
     if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
-      console.log(`CLI错误: ${err}`);
+      
       return;
     }
     

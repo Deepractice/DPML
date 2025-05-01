@@ -6,7 +6,6 @@
 import { Command } from 'commander';
 
 import type { CommandDefinition } from '../../types/CLI';
-import { ArgumentDefinition, OptionDefinition } from '../../types/CLI';
 
 import { getCommandPath } from './commandUtils';
 
@@ -43,7 +42,7 @@ export class CLIAdapter {
     if (typeof this.program.exitOverride === 'function' &&
         process.env.NODE_ENV !== 'test' &&
         !process.env.VITEST) {
-      console.log('启用exitOverride');
+
       this.program.exitOverride();
     }
   }
@@ -57,7 +56,7 @@ export class CLIAdapter {
   public setupCommand(command: CommandDefinition, parentPath?: string): void {
     const path = getCommandPath(command, parentPath);
 
-    console.log(`注册命令路径: ${path}, 父路径: ${parentPath || '无'}`);
+
 
     // 检查命令路径是否已存在
     if (this.commandPaths.has(path)) {
@@ -94,7 +93,7 @@ export class CLIAdapter {
     // 设置选项
     if (command.options && command.options.length > 0) {
       for (const opt of command.options) {
-        console.log(`设置选项: ${opt.flags}, ${opt.description}, 默认值: ${opt.defaultValue}`);
+
 
         // 确保使用与测试期望一致的调用格式
         if (opt.defaultValue !== undefined) {
@@ -147,7 +146,7 @@ export class CLIAdapter {
    * @param commands 命令定义数组
    */
   public setupDomainCommands(domain: string, commands: CommandDefinition[]): void {
-    console.log(`注册领域命令: ${domain}, 命令数量: ${commands.length}`);
+
     for (const command of commands) {
       this.setupCommand({
         ...command,
@@ -160,9 +159,11 @@ export class CLIAdapter {
    * 显示CLI帮助信息
    */
   public showHelp(): void {
-    console.log(`\n${this.program.name()} - ${this.program.description()}`);
+    console.log(`dpml - 数据处理标记语言`);
     console.log(`版本: ${this.program.version()}`);
-    console.log('\n可用命令:');
+    console.log(`用法: dpml [选项] [命令]`);
+    console.log(`\n可用命令:`);
+
     this.program.commands.forEach(cmd => {
       // 命令名称和描述
       console.log(`  ${cmd.name().padEnd(15)} ${cmd.description()}`);
@@ -170,12 +171,13 @@ export class CLIAdapter {
       // 如果命令有子命令，显示子命令
       if (cmd.commands && cmd.commands.length > 0) {
         cmd.commands.forEach(subcmd => {
-          console.log(`    ${cmd.name()} ${subcmd.name().padEnd(10)} ${subcmd.description()}`);
+          console.log(`    ${subcmd.name().padEnd(13)} ${subcmd.description()}`);
         });
       }
     });
 
-    console.log('\n使用 "<命令> --help" 查看特定命令的帮助信息');
+    console.log(`\n获取命令帮助: dpml [命令] --help`);
+
     // 调用原始的帮助输出
     this.program.outputHelp();
   }
@@ -186,7 +188,7 @@ export class CLIAdapter {
   public showVersion(): void {
     const version = this.program.version();
 
-    console.log(`${this.program.name()} 版本: ${version}`);
+    console.log(`dpml 版本: ${version}`);
     console.log(`Node.js 版本: ${process.version}`);
     console.log(`平台: ${process.platform} ${process.arch}`);
   }
@@ -202,7 +204,7 @@ export class CLIAdapter {
     } catch (err) {
       // 在测试环境中捕获process.exit命令，防止测试被终止
       if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
-        console.log(`CLI输出帮助信息: ${this.program.name()}`);
+
 
         return;
       }
@@ -230,7 +232,7 @@ export class CLIAdapter {
       nameToFind = nameToFind.split(':')[1];
     }
 
-    console.log(`查找父命令: ${parentPath}, 名称: ${nameToFind}`);
+
 
     // 在已注册命令中找到匹配名称的命令
     const commands = this.program.commands;

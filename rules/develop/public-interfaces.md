@@ -116,7 +116,7 @@ export function validate(document: Document, schema: Schema): ValidationResult;
  * @example
  * ```typescript
  * const doc = parseXml('<root><child>value</child></root>');
- * console.log(doc.root.child.textContent); // 输出: value
+ *  // 输出: value
  * ```
  */
 export function parseXml(source: string, options?: XmlParserOptions): XmlDocument;

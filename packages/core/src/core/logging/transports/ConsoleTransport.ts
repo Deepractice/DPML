@@ -52,7 +52,7 @@ export class ConsoleTransport extends BaseTransport {
           console.error(formatted);
           break;
         default:
-          console.log(formatted);
+
       }
     } catch (err) {
       // 处理控制台方法可能抛出的错误

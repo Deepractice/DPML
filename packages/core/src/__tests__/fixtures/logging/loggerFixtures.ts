@@ -5,7 +5,7 @@
  */
 
 import type { LogEntry, LoggerConfig, LogFormatter, LogTransport, CallerInfo } from '../../../types/log';
-import { LogLevel, Logger } from '../../../types/log';
+import { LogLevel } from '../../../types/log';
 
 /**
  * 创建日志条目夹具

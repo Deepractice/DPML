@@ -52,8 +52,8 @@ export function setupDomainCommands(adapter: CLIAdapter, domain: string, command
     description: `${domain}领域命令`,
     action: () => {
       // 显示帮助信息
-      console.log(`使用 'dpml ${domain} <command>' 执行特定命令`);
-      console.log(`可用命令：${commands.map(cmd => cmd.name).join(', ')}`);
+      
+      
     }
   };
 

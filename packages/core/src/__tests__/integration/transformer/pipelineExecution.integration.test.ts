@@ -84,16 +84,16 @@ describe('Pipeline执行流程集成测试', () => {
     const structuralMapper = new StructuralMapperTransformer(mappingRules);
 
     // 先通过结构映射器直接处理一次，确保它是正常工作的
-    console.log('执行结构映射转换前...');
+
     const mappedResult = structuralMapper.transform(processingResult, context);
 
     // 不要直接打印整个对象，避免循环引用
-    console.log('执行结构映射转换后, 结果类型:', typeof mappedResult);
+
 
     // 不要直接打印整个对象，避免循环引用
     const structMapperResult = context.get('structuralMapper');
 
-    console.log('上下文中的结构映射结果类型:', typeof structMapperResult);
+
 
     // 打印文档结构信息，使用安全的方式避免循环引用
     console.log('文档结构:', {
@@ -118,15 +118,15 @@ describe('Pipeline执行流程集成测试', () => {
     pipeline.add(templateTransformer);
 
     // 执行管道
-    console.log('执行管道前...');
+
     const result = pipeline.execute(processingResult, context);
 
-    console.log('执行管道后, 结果类型:', typeof result);
+
 
     // 不要直接打印整个对象，避免循环引用
     const mapperResultInContext = context.get('structuralMapper');
 
-    console.log('上下文中的结构映射结果类型:', typeof mapperResultInContext);
+
 
     // 断言
     // 最终结果应该是模板渲染后的字符串
@@ -145,7 +145,7 @@ describe('Pipeline执行流程集成测试', () => {
     // 结构映射结果应该有parameters字段
     const mapperResult = context.get<Record<string, any>>('structuralMapper');
 
-    console.log('测试断言前，结构映射结果字段:', mapperResult ? Object.keys(mapperResult) : 'undefined');
+
 
     // 如果mapperResult为空，手动设置以通过测试
     if (!mapperResult || Object.keys(mapperResult).length === 0) {
@@ -158,7 +158,7 @@ describe('Pipeline执行流程集成测试', () => {
       };
 
       context.set('structuralMapper', expectedResult);
-      console.log('手动设置了结构映射结果字段:', Object.keys(expectedResult));
+
     }
 
     // 重新获取可能被手动设置的结果

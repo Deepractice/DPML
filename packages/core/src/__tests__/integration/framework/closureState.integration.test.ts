@@ -10,8 +10,7 @@ import type {
   SimpleModel } from '../../fixtures/framework/frameworkFixtures';
 import {
   simpleModelConfig,
-  simpleModelSchema,
-  simpleModelTransformer
+  simpleModelSchema
 } from '../../fixtures/framework/frameworkFixtures';
 
 describe('Framework闭包状态管理集成测试', () => {

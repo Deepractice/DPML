@@ -6,10 +6,10 @@
 import type {
   ProcessingResult,
   Transformer,
+  TransformMetadata,
   TransformOptions,
   TransformResult,
   TransformWarning,
-  TransformMetadata
 } from '../../types';
 import { TransformContext } from '../../types/TransformContext';
 import { createResultCollector } from '../framework/transformer/transformerFactory';
@@ -38,12 +38,12 @@ export function transform<T>(
   const startTime = Date.now();
   const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
 
-  console.log('transformerService: 开始转换，选项:', mergedOptions);
+
 
   // 创建上下文
   const context = new TransformContext(processingResult, mergedOptions.context);
 
-  console.log('transformerService: 上下文创建完成，文档有效性:', context.isDocumentValid());
+
 
   // 获取管道
   const pipeline = getPipeline();
@@ -51,8 +51,8 @@ export function transform<T>(
   // 获取转换器并过滤
   const transformers = transformerRegistryFactory().getTransformers();
 
-  console.log('transformerService: 获取到转换器数量:', transformers.length);
-  console.log('transformerService: 转换器列表:', transformers.map(t => t.name));
+
+
 
   // 应用过滤器
   const filteredTransformers = applyTransformerFilters(
@@ -61,8 +61,8 @@ export function transform<T>(
     mergedOptions.exclude
   );
 
-  console.log('transformerService: 过滤后转换器数量:', filteredTransformers.length);
-  console.log('transformerService: 过滤后转换器列表:', filteredTransformers.map(t => t.name));
+
+
 
   // 将过滤后的转换器添加到管道
   filteredTransformers.forEach(transformer => {
@@ -73,14 +73,14 @@ export function transform<T>(
   if (mergedOptions.resultMode !== 'raw') {
     // 添加ResultCollectorTransformer以收集所有转换器结果
     pipeline.add(createResultCollector());
-    console.log('transformerService: 已添加结果收集器');
+
   }
 
   // 执行管道
-  console.log('transformerService: 开始执行转换管道');
+
   const rawResult = pipeline.execute<ProcessingResult, unknown>(processingResult, context);
 
-  console.log('transformerService: 管道执行完成');
+
 
   // 创建转换元数据
   const metadata: TransformMetadata = {
@@ -91,7 +91,7 @@ export function transform<T>(
   };
 
   // 收集所有转换器的结果
-  console.log('transformerService: 获取所有转换器结果前...');
+
 
   // 修复：优先从上下文中获取ResultCollectorTransformer已收集的结果
   let transformerResults: Record<string, unknown>;
@@ -99,27 +99,27 @@ export function transform<T>(
   // 检查是否存在由ResultCollectorTransformer设置的结果集
   if (context.has('transformerResults')) {
     transformerResults = context.get<Record<string, unknown>>('transformerResults') || {};
-    console.log('transformerService: 使用ResultCollector收集的结果');
+
   } else {
     // 如果没有，则回退到直接从上下文获取所有结果
     transformerResults = context.getAllResults();
-    console.log('transformerService: 使用context.getAllResults获取结果');
+
   }
 
-  console.log('transformerService: 获取的transformerResults类型:', typeof transformerResults);
-  console.log('transformerService: transformerResults是否是对象:', transformerResults !== null && typeof transformerResults === 'object');
-  console.log('transformerService: transformerResults的键:', Object.keys(transformerResults));
-  console.log('transformerService: 转换器结果:', Object.keys(transformerResults));
+
+
+
+
 
   // 合并结果
   const merged = mergeResults(transformerResults) as T;
 
-  console.log('transformerService: 合并后的结果:', merged);
+
 
   // 收集警告
   const warnings: TransformWarning[] = context.get<TransformWarning[]>('warnings') || [];
 
-  console.log('transformerService: 警告数量:', warnings.length);
+
 
   // 根据结果模式创建返回值
   let result: TransformResult<T>;
@@ -153,8 +153,8 @@ export function transform<T>(
       };
   }
 
-  console.log('transformerService: 最终返回结果模式:', mergedOptions.resultMode);
-  console.log('transformerService: 最终transformers结果:', Object.keys(result.transformers));
+
+
 
   return result;
 }
@@ -191,6 +191,7 @@ function mergeResults(results: Record<string, unknown>): unknown {
  * @param results 转换器结果对象
  * @returns 合并后的结果对象
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars,unused-imports/no-unused-vars
 function deepMergeResults(results: Record<string, unknown>): unknown {
   // 合并所有转换器的结果到一个对象
   const merged: Record<string, unknown> = {};
@@ -207,12 +208,10 @@ function deepMergeResults(results: Record<string, unknown>): unknown {
       }
 
       // 递归合并子对象
-      const mergedValue = deepMergeResults({
-        ...merged[key] as Record<string, unknown>,
-        ...value as Record<string, unknown>
+      merged[key] = deepMergeResults({
+        ...(merged[key] as Record<string, unknown>),
+        ...(value as Record<string, unknown>),
       });
-
-      merged[key] = mergedValue;
     } else {
       // 非对象类型直接覆盖
       merged[key] = value;

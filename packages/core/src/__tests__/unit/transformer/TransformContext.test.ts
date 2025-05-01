@@ -1,6 +1,6 @@
-import { describe, test, expect, beforeEach } from 'vitest';
+import { describe, test, expect } from 'vitest';
 
-import type { ProcessingResult, DPMLDocument, ValidationResult } from '../../../types';
+import type { ProcessingResult } from '../../../types';
 import { TransformContext } from '../../../types/TransformContext';
 import { createProcessingResultFixture } from '../../fixtures/transformer/transformerFixtures';
 

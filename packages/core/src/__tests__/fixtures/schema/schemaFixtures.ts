@@ -3,7 +3,7 @@
  * 用于单元测试和端到端测试
  */
 
-import type { ProcessedSchema, DocumentSchema, ElementSchema } from '../../../types';
+import type { ProcessedSchema, DocumentSchema } from '../../../types';
 
 /**
  * 获取模拟Schema

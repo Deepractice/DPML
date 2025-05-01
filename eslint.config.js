@@ -4,6 +4,7 @@ import boundaries from 'eslint-plugin-boundaries';
 import importPlugin from 'eslint-plugin-import';
 import tseslint from 'typescript-eslint';
 import unicornPlugin from 'eslint-plugin-unicorn';
+import unusedImports from 'eslint-plugin-unused-imports';
 
 // 样式规则
 const styleRules = {
@@ -16,7 +17,7 @@ const styleRules = {
     'max-len': [
       'warn',
       {
-        code: 80,
+        code: 150,
         ignoreUrls: true,
         ignoreStrings: true,
         ignoreTemplateLiterals: true,
@@ -185,45 +186,25 @@ const boundariesRules = {
   },
 };
 
-// 自定义ESLint规则实现
-const customRules = {
-  // 禁止嵌套目录规则
-  'dpml/no-nested-directories': {
-    meta: {
-      type: 'suggestion',
-      docs: {
-        description: '强制一级目录结构，禁止在api/types/core下创建子目录',
-        category: 'DPML规则',
-        recommended: true,
-      },
-      schema: [],
-    },
-    create(context) {
-      // 通过文件路径检查是否有嵌套目录
-      const filePath = context.getFilename();
-
-      // 检查是否违反了目录规则
-      // 这里需要定制实现检查逻辑
-      return {};
-    },
+// 变量使用规则
+const variableUsageRules = {
+  plugins: {
+    'unused-imports': unusedImports
   },
-
-  // 强制扁平化文件命名规则
-  'dpml/enforce-flat-file-naming': {
-    meta: {
-      type: 'suggestion',
-      docs: {
-        description: '强制使用扁平化文件命名约定，如parser-core.ts而非parser/core.ts',
-        category: 'DPML规则',
-        recommended: true,
-      },
-      schema: [],
-    },
-    create(context) {
-      // 实现文件命名规则检查逻辑
-      return {};
-    },
-  },
+  rules: {
+    // 禁止未使用的变量
+    '@typescript-eslint/no-unused-vars': 'off', // 关闭默认规则以避免冲突
+    'unused-imports/no-unused-imports': 'error',
+    'unused-imports/no-unused-vars': [
+      'warn',
+      { 
+        vars: 'all', 
+        varsIgnorePattern: '^_', 
+        args: 'after-used', 
+        argsIgnorePattern: '^_' 
+      }
+    ],
+  }
 };
 
 export default [
@@ -236,6 +217,7 @@ export default [
   directoryRules,
   importExportRules,
   boundariesRules,
+  variableUsageRules,
 
   // 完全排除所有JS文件
   {

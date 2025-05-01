@@ -3,7 +3,6 @@ import type {
   DPMLNode,
   ProcessingResult,
   ProcessedSchema,
-  ValidationResult,
   ReferenceMap,
   ProcessingWarning
 } from '../../types';
@@ -82,7 +81,7 @@ function collectNodesWithIdIterative(
         idMap.set(id, node);
 
         // 调试信息 - 输出路径以验证节点层次
-        console.log(`节点 ${id} (${node.tagName}) 的路径: ${buildNodePath(node)}`);
+
       }
     }
 
@@ -102,6 +101,7 @@ function collectNodesWithIdIterative(
  * @param idMap - ID到节点的映射
  * @param warnings - 警告集合
  */
+// eslint-disable-next-line unused-imports/no-unused-vars,@typescript-eslint/no-unused-vars
 function collectNodesWithId(
   node: DPMLNode,
   idMap: Map<string, DPMLNode>,
@@ -135,9 +135,9 @@ function collectNodesWithId(
 
   // 递归处理子节点
   for (const child of node.children) {
-    // 验证parent关系是否正确（不修改parent）
+    // 验证parent关系是否正确（仅检查，不修改关系）
     if (child.parent !== node) {
-      console.log(`警告: 节点 ${child.tagName} 的parent错误，期望${node.tagName}，实际为${child.parent?.tagName || 'null'}`);
+      // 在此只检测parent关系，问题通常在解析阶段处理，这里不再修复
     }
 
     collectNodesWithId(child, idMap, warnings);
@@ -190,17 +190,17 @@ export function processDocument<T extends ProcessingResult = ProcessingResult>(
   const validator = validatorFactory.createValidator();
 
   // 调试日志：开始验证
-  console.log(`开始验证文档，根元素: ${document.rootNode.tagName}`);
+
 
   // 验证文档
   const validationResult = validator.validateDocument(document, schema);
 
   // 调试日志：验证结果
-  console.log(`验证结果: isValid=${validationResult.isValid}, 错误数量=${validationResult.errors.length}, 警告数量=${validationResult.warnings.length}`);
+
   if (validationResult.errors.length > 0) {
-    console.log('验证错误列表:');
+
     validationResult.errors.forEach((error, i) => {
-      console.log(`错误[${i + 1}]: ${error.code} - ${error.message} (${error.path})`);
+
     });
   }
 
@@ -208,14 +208,14 @@ export function processDocument<T extends ProcessingResult = ProcessingResult>(
   const warnings: ProcessingWarning[] = [];
 
   // 构建ID引用映射
-  console.log('开始构建ID映射...');
+
   const idMap = buildIdMap(document);
 
-  console.log(`ID映射构建完成，包含 ${idMap.size} 个节点`);
+
 
   // 调试: 检查引用关系
   if (idMap.size > 0 && validationResult.errors.length > 0) {
-    console.log('检查部分节点的父子关系:');
+
     // 取样几个ID节点检查父子关系
     for (const [id, node] of idMap.entries()) {
       if (id.startsWith('para-')) { // 只检查段落节点的层次关系
@@ -227,7 +227,7 @@ export function processDocument<T extends ProcessingResult = ProcessingResult>(
           current = current.parent;
         }
 
-        console.log(`节点 ${id} 的层次路径: ${path}`);
+
       }
     }
   }
@@ -262,7 +262,7 @@ export function processDocument<T extends ProcessingResult = ProcessingResult>(
         ];
 
         if (validationResult.errors.every(err => ignorableErrorCodes.includes(err.code))) {
-          console.log('检测到简单Schema测试场景，将结果标记为有效');
+
           isValid = true;
         }
       }
@@ -282,7 +282,7 @@ export function processDocument<T extends ProcessingResult = ProcessingResult>(
   };
 
   // 调试日志：最终结果
-  console.log(`处理完成，最终结果: isValid=${result.isValid}`);
+
 
   return result as T;
 }

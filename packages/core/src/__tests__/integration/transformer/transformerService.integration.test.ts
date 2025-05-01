@@ -7,7 +7,7 @@ import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 
 import { createStructuralMapper, createAggregator } from '../../../core/framework/transformer/transformerFactory';
 import { registerTransformer, transform } from '../../../core/transformer/transformerService';
-import type { Transformer, TransformContext, CollectorConfig } from '../../../types';
+import type { Transformer, CollectorConfig } from '../../../types';
 import { createProcessingResultFixture, createMappingRulesFixture } from '../../fixtures/transformer/transformerFixtures';
 
 // 清除测试夹具中可能注册了的转换器

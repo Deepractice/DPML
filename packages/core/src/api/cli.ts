@@ -33,8 +33,8 @@ import type { CLI, CLIOptions, CommandDefinition } from '../types/CLI';
  *         { flags: '-o, --output <file>', description: '输出文件路径' }
  *       ],
  *       action: (file, options) => {
- *         console.log(`解析文件: ${file}`);
- *         console.log(`输出路径: ${options.output || '标准输出'}`);
+ *
+ *
  *       }
  *     }
  *   ]

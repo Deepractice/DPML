@@ -180,7 +180,7 @@ describe('CLI使用端到端测试', () => {
         name: 'user',
         description: '用户管理',
         action: () => {
-          console.log('用户管理主命令');
+          console.log('用户管理命令');
         },
         subcommands: [
           {

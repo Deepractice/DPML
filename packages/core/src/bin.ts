@@ -5,10 +5,8 @@
  */
 
 import { createCLI } from './api/cli';
-import standardActions from './core/framework/cli/standardActions';
 import {
   getAllRegisteredCommands,
-  registerCommands,
   initializeDomain,
   processDomainCommands
 } from './core/framework/domainService';

@@ -5,7 +5,6 @@
 
 import fs from 'fs/promises';
 
-import { formatDPMLDocument } from '@core/types/utils';
 
 import { parse } from '../../../api/parser';
 import { processDocument } from '../../../api/processing';
@@ -32,7 +31,7 @@ export const standardActions: DomainAction[] = [
         // 读取文件内容
         const content = await fs.readFile(file, 'utf-8');
 
-        console.log(`读取文件: ${file}`);
+        console.log(`验证文件: ${file}`);
 
         // 处理Schema
         const processedSchema = processSchema(context.schema);
@@ -45,19 +44,22 @@ export const standardActions: DomainAction[] = [
         // 解析DPML内容
         const document = await parse(content);
 
-        console.log(`解析文件成功: ${file}`);
+        // 安全地访问文档信息
+        const rootTag = 'document' in document && document.document ?
+          document.document.rootNode?.tagName :
+          (document.rootNode?.tagName || '未知');
+
+        console.log(`成功解析文档，根节点: ${rootTag}`);
 
         // 使用领域上下文中的schema进行验证
         const strictMode = options?.strict !== undefined ? options.strict : context.options.strictMode;
-
-        console.log(`验证模式: ${strictMode ? '严格' : '标准'}`);
 
         // 处理并验证文档
         const processingResult = processDocument(document, processedSchema);
 
         // 输出验证结果
         if (processingResult.isValid) {
-          console.log('验证成功: 文档符合领域规范');
+          console.log(`验证成功: 文档符合领域规范`);
         } else {
           console.error('验证失败: 文档不符合领域规范');
 
@@ -68,14 +70,12 @@ export const standardActions: DomainAction[] = [
           }
 
           // 如果是严格模式，验证失败时抛出错误
-          console.log(`严格模式状态: ${strictMode}`);
           if (strictMode) {
-            console.log('即将抛出错误: 文档验证失败');
+            console.error(`严格模式验证失败，终止处理`);
             throw new Error('文档验证失败');
           }
 
           // 非严格模式下只输出错误信息，不抛出异常
-          console.log('非严格模式，不抛出错误');
         }
 
         // 返回验证结果
@@ -105,14 +105,18 @@ export const standardActions: DomainAction[] = [
         // 读取文件内容
         const content = await fs.readFile(file, 'utf-8');
 
-        console.log(`读取文件: ${file}`);
+        console.log(`解析文件: ${file}`);
 
         // 解析DPML内容
         const document = parse(content);
 
-        console.log(`解析文件成功: ${file}`);
+        // 安全地访问文档信息
+        const rootTag = 'document' in document && document.document ?
+          document.document.rootNode?.tagName :
+          (document.rootNode?.tagName || '未知');
 
-        console.log(`解析结果：`, formatDPMLDocument(document));
+        console.log(`成功解析文档，根节点: ${rootTag}`);
+        console.log(`输出格式: ${options?.format || 'json'}`);
 
         // 处理Schema
         const processedSchema = processSchema(context.schema);
@@ -162,7 +166,7 @@ export const standardActions: DomainAction[] = [
           await fs.writeFile(options.output, outputContent, 'utf-8');
           console.log(`结果已保存到: ${options.output}`);
         } else {
-          console.log('解析结果:');
+          console.log(`解析结果:`);
           console.log(outputContent);
         }
 

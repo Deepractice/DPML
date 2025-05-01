@@ -162,11 +162,11 @@ export const complexModelTransformer: Transformer<unknown, ComplexModel> = {
     let title = 'Default Title';
     let sections: Array<{heading: string; paragraphs: string[]}> = [];
 
-    console.log('ComplexModelTransformer开始处理, input类型:', typeof input);
+
 
     // 提取XML数据
     if (input && input.document && input.document.rootNode) {
-      console.log('找到根节点:', input.document.rootNode.tagName);
+
       const rootNode = input.document.rootNode;
 
       // 从attributes中获取属性
@@ -180,53 +180,51 @@ export const complexModelTransformer: Transformer<unknown, ComplexModel> = {
           createdAt = parseInt(createdAtStr, 10) || createdAt;
         }
 
-        console.log('提取的属性:', { docId, version, createdAt });
+
       }
 
       // 提取title和sections
       if (Array.isArray(rootNode.children)) {
-        console.log('子节点数量:', rootNode.children.length);
-        console.log('子节点类型:', rootNode.children.map((c: any) => c.tagName).join(', '));
+
+
 
         // 提取title
         const titleNode = rootNode.children.find((child: any) => child.tagName === 'title');
 
         if (titleNode) {
-          console.log('找到title节点, 内容:', titleNode.content);
+
           title = titleNode.content || title;
-        } else {
-          console.log('未找到title节点');
         }
 
         // 提取sections
         const sectionNodes = rootNode.children.filter((child: any) => child.tagName === 'section');
 
-        console.log('找到section节点数量:', sectionNodes.length);
+
 
         sections = sectionNodes.map((section: any) => {
           const heading = section.attributes instanceof Map
             ? section.attributes.get('heading') || 'Untitled Section'
             : 'Untitled Section';
 
-          console.log('section heading:', heading);
+
 
           const paragraphs = Array.isArray(section.children)
             ? section.children
               .filter((child: any) => child.tagName === 'paragraph')
               .map((p: any) => {
-                console.log('paragraph content:', p.content);
+
 
                 return p.content || '';
               })
             : [];
 
-          console.log('段落数量:', paragraphs.length);
+
 
           return { heading, paragraphs };
         });
       }
     } else if (input && typeof input === 'object') {
-      console.log('输入是普通对象，直接读取属性');
+
 
       // 直接使用输入的属性
       if (input.metadata) {

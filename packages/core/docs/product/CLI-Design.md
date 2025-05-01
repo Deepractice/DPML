@@ -340,7 +340,7 @@ export class CLIAdapter {
   }
   
   public showVersion(): void {
-    console.log(this.program.version());
+    
   }
   
   private buildCommandPath(command: CommandDefinition, parentPath?: string): string {
@@ -560,9 +560,9 @@ const commands: CommandDefinition[] = [
       }
     ],
     action: async (file, options) => {
-      console.log(`解析文件: ${file}`);
-      console.log(`输出路径: ${options.output || '标准输出'}`);
-      console.log(`输出格式: ${options.format}`);
+      
+      
+      
       
       // 实际解析逻辑
       // const result = await parseFile(file, options);
@@ -590,10 +590,10 @@ const commands: CommandDefinition[] = [
       }
     ],
     action: (file, options) => {
-      console.log(`验证文件: ${file}`);
-      console.log(`严格模式: ${options.strict ? '是' : '否'}`);
+      
+      
       if (options.schema) {
-        console.log(`使用模式: ${options.schema}`);
+        
       }
       
       // 实际验证逻辑
@@ -616,7 +616,7 @@ const commands: CommandDefinition[] = [
           }
         ],
         action: (file) => {
-          console.log(`转换文件到JSON: ${file}`);
+          
           // 实际转换逻辑
         }
       },
@@ -631,7 +631,7 @@ const commands: CommandDefinition[] = [
           }
         ],
         action: (file) => {
-          console.log(`转换文件到XML: ${file}`);
+          
           // 实际转换逻辑
         }
       }

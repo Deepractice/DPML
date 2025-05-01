@@ -257,12 +257,12 @@ export class StructuralMapperTransformer<TInput, TOutput> implements Transformer
    * @returns 转换后的输出
    */
   transform(input: TInput, context: TransformContext): TOutput {
-    console.log('StructuralMapperTransformer: 开始转换，映射规则数量:', this.mappingRules.length);
+
 
     // 检查文档是否有效
     if (!context.isDocumentValid()) {
       // 添加警告
-      console.log('StructuralMapperTransformer: 文档无效');
+
       this.addWarning(context, 'invalid_document', '文档无效，无法执行结构映射');
 
       // 返回空对象
@@ -272,25 +272,25 @@ export class StructuralMapperTransformer<TInput, TOutput> implements Transformer
     // 获取文档 - 使用提取函数处理多种数据结构
     const document = extractDocument(input, context);
 
-    console.log('StructuralMapperTransformer: 提取的文档:', document ? '有效' : '无效');
+
 
     // 确保文档存在
     if (!document || !document.rootNode) {
-      console.log('StructuralMapperTransformer: 文档结构无效');
+
       this.addWarning(context, 'invalid_document_structure', '文档结构无效');
 
       return {} as TOutput;
     }
 
-    console.log('StructuralMapperTransformer: 文档根节点标签:', document.rootNode.tagName);
-    console.log('StructuralMapperTransformer: 文档根节点子元素数量:', document.rootNode.children.length);
+
+
 
     // 创建结果对象
     const result: Record<string, any> = {};
 
     // 应用每个映射规则
     for (const rule of this.mappingRules) {
-      console.log('StructuralMapperTransformer: 处理规则 ->', rule.selector, '->', rule.targetPath);
+
       try {
         // 查找匹配选择器的元素
         const attributeMatch = rule.selector.match(/^([a-zA-Z0-9-_]+)\[([a-zA-Z0-9-_]+)\]$/);
@@ -302,7 +302,7 @@ export class StructuralMapperTransformer<TInput, TOutput> implements Transformer
           const [, tagName, attributeName, attributeValue] = attributeValueMatch;
           const elements = querySelectorAll(document, rule.selector);
 
-          console.log(`StructuralMapperTransformer: 属性值选择器 ${rule.selector} 匹配元素数量:`, elements.length);
+
 
           if (elements && elements.length > 0) {
             // 如果有转换函数，应用于整个节点数组
@@ -311,9 +311,9 @@ export class StructuralMapperTransformer<TInput, TOutput> implements Transformer
             if (rule.transform) {
               try {
                 value = rule.transform(elements as any);
-                console.log(`StructuralMapperTransformer: 应用转换函数后的值:`, value);
+
               } catch (error) {
-                console.log(`StructuralMapperTransformer: 转换函数错误:`, error);
+
                 this.addWarning(
                   context,
                   'transform_error',
@@ -324,9 +324,9 @@ export class StructuralMapperTransformer<TInput, TOutput> implements Transformer
             }
 
             setByPath(result, rule.targetPath, value);
-            console.log(`StructuralMapperTransformer: 已设置 ${rule.targetPath} 的值`);
+
           } else {
-            console.log(`StructuralMapperTransformer: 选择器 ${rule.selector} 未找到匹配元素`);
+
             this.addWarning(
               context,
               'selector_no_match',
@@ -337,20 +337,20 @@ export class StructuralMapperTransformer<TInput, TOutput> implements Transformer
           // 单个属性选择器，如agent[temperature]
           const element = querySelector(document, rule.selector);
 
-          console.log(`StructuralMapperTransformer: 属性选择器 ${rule.selector} 匹配元素:`, element ? '找到' : '未找到');
+
           if (element) {
             const [, , attributeName] = attributeMatch;
             let value: unknown = element.attributes.get(attributeName);
 
-            console.log(`StructuralMapperTransformer: 获取属性 ${attributeName} 的值:`, value);
+
 
             // 应用转换函数(如果有)
             if (rule.transform) {
               try {
                 value = rule.transform(value as any);
-                console.log(`StructuralMapperTransformer: 应用转换函数后的值:`, value);
+
               } catch (error) {
-                console.log(`StructuralMapperTransformer: 转换函数错误:`, error);
+
                 this.addWarning(
                   context,
                   'transform_error',
@@ -361,9 +361,9 @@ export class StructuralMapperTransformer<TInput, TOutput> implements Transformer
             }
 
             setByPath(result, rule.targetPath, value);
-            console.log(`StructuralMapperTransformer: 已设置 ${rule.targetPath} 的值`);
+
           } else {
-            console.log(`StructuralMapperTransformer: 选择器 ${rule.selector} 未找到匹配元素`);
+
             this.addWarning(
               context,
               'selector_no_match',
@@ -376,22 +376,22 @@ export class StructuralMapperTransformer<TInput, TOutput> implements Transformer
           const isArrayPath = rule.targetPath.endsWith('[]');
           const targetPath = isArrayPath ? rule.targetPath.slice(0, -2) : rule.targetPath;
 
-          console.log(`StructuralMapperTransformer: 标签选择器 ${rule.selector}, 是否数组:`, isArrayPath);
+
 
           if (isArrayPath) {
             // 返回所有匹配元素的数组
             const elements = querySelectorAll(document, rule.selector);
 
-            console.log(`StructuralMapperTransformer: 标签选择器(数组) ${rule.selector} 匹配元素数量:`, elements.length);
+
             if (elements && elements.length > 0) {
               let value: unknown = elements;
 
               if (rule.transform) {
                 try {
                   value = rule.transform(elements as any);
-                  console.log(`StructuralMapperTransformer: 应用转换函数后的值:`, value);
+
                 } catch (error) {
-                  console.log(`StructuralMapperTransformer: 转换函数错误:`, error);
+
                   this.addWarning(
                     context,
                     'transform_error',
@@ -402,9 +402,9 @@ export class StructuralMapperTransformer<TInput, TOutput> implements Transformer
               }
 
               setByPath(result, targetPath, value);
-              console.log(`StructuralMapperTransformer: 已设置 ${targetPath} 的值`);
+
             } else {
-              console.log(`StructuralMapperTransformer: 选择器 ${rule.selector} 未找到匹配元素`);
+
               this.addWarning(
                 context,
                 'selector_no_match',
@@ -415,16 +415,16 @@ export class StructuralMapperTransformer<TInput, TOutput> implements Transformer
             // 返回单个元素
             const element = querySelector(document, rule.selector);
 
-            console.log(`StructuralMapperTransformer: 标签选择器 ${rule.selector} 匹配元素:`, element ? '找到' : '未找到');
+
             if (element) {
               let value: unknown = element;
 
               if (rule.transform) {
                 try {
                   value = rule.transform(value as any);
-                  console.log(`StructuralMapperTransformer: 应用转换函数后的值:`, value);
+
                 } catch (error) {
-                  console.log(`StructuralMapperTransformer: 转换函数错误:`, error);
+
                   this.addWarning(
                     context,
                     'transform_error',
@@ -435,9 +435,9 @@ export class StructuralMapperTransformer<TInput, TOutput> implements Transformer
               }
 
               setByPath(result, targetPath, value);
-              console.log(`StructuralMapperTransformer: 已设置 ${targetPath} 的值`);
+
             } else {
-              console.log(`StructuralMapperTransformer: 选择器 ${rule.selector} 未找到匹配元素`);
+
               this.addWarning(
                 context,
                 'selector_no_match',
@@ -448,7 +448,7 @@ export class StructuralMapperTransformer<TInput, TOutput> implements Transformer
         }
       } catch (error) {
         // 处理整体异常
-        console.log(`StructuralMapperTransformer: 映射错误:`, error);
+
         this.addWarning(
           context,
           'mapping_error',
@@ -457,7 +457,7 @@ export class StructuralMapperTransformer<TInput, TOutput> implements Transformer
       }
     }
 
-    console.log('StructuralMapperTransformer: 最终结果:', result);
+
 
     // 将结果存储到上下文
     if (this.name) {

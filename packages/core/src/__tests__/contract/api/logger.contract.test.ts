@@ -13,8 +13,7 @@ import {
   getLogger,
   createLogger,
   setDefaultLogLevel,
-  LogLevel,
-  Logger
+  LogLevel
 } from '../../../api/logger';
 import { getDefaultLogger, getLogger, createLogger } from '../../../core/logging/loggingService';
 

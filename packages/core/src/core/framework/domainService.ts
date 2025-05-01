@@ -15,16 +15,11 @@ import type { DomainCompiler } from '../../types/DomainCompiler';
 import type { DomainConfig } from '../../types/DomainConfig';
 import type { DPMLDocument } from '../../types/DPMLDocument';
 import type { MappingRule } from '../../types/MappingRule';
-import type { ParseResult } from '../../types/ParseResult';
-import type { ProcessedSchema } from '../../types/ProcessedSchema';
-import type { ProcessingResult } from '../../types/ProcessingResult';
 import type { RelationConfig } from '../../types/RelationConfig';
 import type { Schema } from '../../types/Schema';
 import type { SemanticExtractor } from '../../types/SemanticExtractor';
-import type { TransformContext } from '../../types/TransformContext';
 import type { Transformer } from '../../types/Transformer';
 import type { TransformerDefiner } from '../../types/TransformerDefiner';
-import type { TransformResult } from '../../types/TransformResult';
 import type { ValidationResult } from '../../types/ValidationResult';
 
 import { adaptDomainActions } from './cli/commandAdapter';
@@ -47,7 +42,7 @@ const commandRegistry: CommandDefinition[] = [];
  */
 const commandLogger = {
   info: (message: string) => {
-    console.log(`[命令管理] ${message}`);
+
   },
   warn: (message: string) => {
     console.warn(`[命令管理] ${message}`);

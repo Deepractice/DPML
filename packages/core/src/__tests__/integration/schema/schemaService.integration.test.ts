@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 
 import { processSchema } from '../../../core/schema/schemaService'; // 直接测试Service层
 import type { ProcessedSchema } from '../../../types/ProcessedSchema';
-import type { SchemaError } from '../../../types/SchemaError';
 
 // 定义一些测试用的Schema类型和对象
 interface SimpleSchema {
@@ -55,8 +54,8 @@ describe('schemaService Integration Tests', () => {
 
     const resultWrongType = processSchema(invalidSchemaWrongAttributeType);
 
-    console.log('DEBUG - invalidSchemaWrongAttributeType错误:', JSON.stringify(resultWrongType.errors, null, 2));
-    console.log('DEBUG - 错误代码列表:', resultWrongType.errors?.map(e => e.code));
+
+
 
     expect(resultWrongType).toBeDefined();
     expect(resultWrongType.schema).toEqual(invalidSchemaWrongAttributeType);

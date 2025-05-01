@@ -89,7 +89,7 @@ export function createMappingRulesFixture(): Array<MappingRule<unknown, unknown>
       selector: 'prompt[type="system"]',
       targetPath: 'systemPrompt',
       transform: (node) => {
-        console.log('transformerFixtures - 处理 prompt[type="system"] 节点:', node);
+
         if (Array.isArray(node)) {
           return node.length > 0 ? node[0].content : '';
         }

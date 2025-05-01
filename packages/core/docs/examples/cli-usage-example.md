@@ -29,15 +29,15 @@ const commands: CommandDefinition[] = [
       }
     ],
     action: async (file, options) => {
-      console.log(`解析文件: ${file}`);
-      console.log(`输出路径: ${options.output || '标准输出'}`);
+      
+      
       
       // 实际解析逻辑
       // const result = await parseFile(file);
       // if (options.output) {
       //   fs.writeFileSync(options.output, JSON.stringify(result));
       // } else {
-      //   console.log(JSON.stringify(result, null, 2));
+      //   
       // }
     }
   }
@@ -80,7 +80,7 @@ const commands: CommandDefinition[] = [
     name: 'convert',
     description: '转换DPML文档',
     action: () => {
-      console.log('请指定转换格式');
+      
     },
     subcommands: [
       {
@@ -90,7 +90,7 @@ const commands: CommandDefinition[] = [
           { name: 'file', description: 'DPML文件路径', required: true }
         ],
         action: (file) => {
-          console.log(`转换文件 ${file} 为JSON格式`);
+          
           // 实际转换逻辑
         }
       },
@@ -101,7 +101,7 @@ const commands: CommandDefinition[] = [
           { name: 'file', description: 'DPML文件路径', required: true }
         ],
         action: (file) => {
-          console.log(`转换文件 ${file} 为XML格式`);
+          
           // 实际转换逻辑
         }
       }
@@ -135,7 +135,7 @@ const additionalCommands: CommandDefinition[] = [
       { name: 'file', description: 'DPML文件路径', required: true }
     ],
     action: (file) => {
-      console.log(`验证文件: ${file}`);
+      
       // 实际验证逻辑
     }
   }
@@ -223,7 +223,7 @@ const commands = [
       try {
         // 读取文件
         const content = readFileSync(file, 'utf-8');
-        console.log(`成功读取文件: ${file}`);
+        
         
         // 解析处理逻辑
         const result = { message: `已解析 ${file}` };
@@ -231,10 +231,10 @@ const commands = [
         // 输出结果
         if (options.output) {
           writeFileSync(options.output, JSON.stringify(result, null, 2));
-          console.log(`结果已保存到: ${options.output}`);
+          
         } else {
-          console.log('解析结果:');
-          console.log(JSON.stringify(result, null, 2));
+          
+          
         }
       } catch (error) {
         console.error(`处理文件时出错: ${error.message}`);

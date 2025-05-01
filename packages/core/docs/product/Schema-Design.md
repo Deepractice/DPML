@@ -353,7 +353,7 @@ const buttonSchema: ElementSchema = {
 const processed = processSchema<ElementSchema>(buttonSchema);
 
 if (processed.isValid) {
-    console.log("Schema有效，可以使用");
+    
     
     // 类型安全的访问Schema属性
     const buttonElement = processed.schema.element; // 类型为string

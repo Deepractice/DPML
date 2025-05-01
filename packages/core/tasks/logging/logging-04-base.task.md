@@ -233,7 +233,7 @@
           console.error(formatted);
           break;
         default:
-          console.log(formatted);
+          
       }
     }
   }

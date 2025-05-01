@@ -5,7 +5,7 @@
  * ts-node packages/core/examples/logger-test.ts
  */
 
-import { createLogger, LogLevel, TextFormatter } from '../../common/src/logger';
+import { createLogger, TextFormatter } from '../../common/src/logger';
 
 // 创建基本日志记录器
 const logger = createLogger('core:examples');
@@ -30,7 +30,7 @@ const simpleLogger = createLogger('core:simple', {
  * 基本日志演示函数
  */
 function demonstrateBasicLogging() {
-  console.log('\n=== Basic Logging ===');
+
 
   logger.debug('This is a debug message');
   logger.info('This is an info message');
@@ -45,7 +45,7 @@ function demonstrateBasicLogging() {
  * 自定义格式日志演示函数
  */
 function demonstrateCustomFormatting() {
-  console.log('\n=== Custom Format Logging ===');
+
 
   customLogger.info('Custom formatted log message');
   customLogger.error('Custom formatted error with data', { code: 500 });
@@ -55,7 +55,7 @@ function demonstrateCustomFormatting() {
  * 简化格式日志演示函数
  */
 function demonstrateSimpleLogging() {
-  console.log('\n=== Simple Logging (No Code Location) ===');
+
 
   simpleLogger.info('Simple log without code location');
   simpleLogger.warn('Simple warning without function name');
@@ -65,7 +65,7 @@ function demonstrateSimpleLogging() {
  * 嵌套调用演示函数
  */
 function demonstrateNestedCalls() {
-  console.log('\n=== Nested Function Calls ===');
+
 
   function nestedFunction() {
     function deeplyNestedFunction() {
@@ -87,7 +87,7 @@ class LoggingDemo {
   private logger = createLogger('core:class-demo');
 
   public demonstrateClassLogging() {
-    console.log('\n=== Class Method Logging ===');
+
 
     this.logger.info('Log from class method');
     this.helperMethod();
@@ -99,8 +99,8 @@ class LoggingDemo {
 }
 
 // 执行所有演示
-console.log('LOGGER FUNCTIONALITY DEMO');
-console.log('========================\n');
+
+
 
 demonstrateBasicLogging();
 demonstrateCustomFormatting();
@@ -111,5 +111,5 @@ const demo = new LoggingDemo();
 
 demo.demonstrateClassLogging();
 
-console.log('\n========================');
-console.log('Demo completed');
+
+

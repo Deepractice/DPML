@@ -452,8 +452,8 @@ interface CustomDocument extends DPMLDocument {
 // 同步解析字符串
 try {
   const document = parse<CustomDocument>('<root><child id="item1">内容</child></root>');
-  console.log(document.rootNode.children.length); // 1
-  console.log(document.additionalData.version); // 类型安全访问
+   // 1
+   // 类型安全访问
 } catch (error) {
   if (error instanceof ParseError) {
     console.error('解析错误:', error.message, error.location);
@@ -472,7 +472,7 @@ const document = parseFile('./example.dpml', {
 parseAsync<CustomDocument>('./large-document.dpml')
   .then(document => {
     // 处理文档，类型安全的访问
-    console.log(document.additionalData.metadata);
+    
   })
   .catch(error => {
     // 类型化的错误处理

@@ -11,7 +11,7 @@ import { parse } from '../../../../../api/parser';
 import { processDocument } from '../../../../../api/processing';
 import { processSchema } from '../../../../../api/schema';
 import { standardActions } from '../../../../../core/framework/cli/standardActions';
-import { createStandardActionTestFixture, createTestFileContent, createInvalidTestFileContent } from '../../../../fixtures/framework/cliFixtures';
+import { createStandardActionTestFixture } from '../../../../fixtures/framework/cliFixtures';
 
 // 模拟依赖模块
 vi.mock('fs/promises');
@@ -210,8 +210,8 @@ describe('UT-STDACT: 标准命令测试', () => {
     vi.clearAllMocks();
 
     // 执行命令 - 严格模式，应该抛出错误
-    console.log('开始测试严格模式抛出错误的情况');
-    console.log('传入的strict参数:', { strict: true });
+
+
 
     // 使用try/catch来捕获错误
     try {
@@ -221,11 +221,11 @@ describe('UT-STDACT: 标准命令测试', () => {
         { strict: true }
       );
       // 如果执行到这里，说明没有抛出错误
-      console.log('错误: 没有抛出预期的错误');
+
       fail('应该抛出错误，但没有');
     } catch (error) {
       // 验证错误消息
-      console.log('捕获到错误:', error.message);
+
       expect(error.message).toBe('文档验证失败');
     }
   });

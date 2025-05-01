@@ -56,6 +56,7 @@ export function createCLI(options: CLIOptions, commands: CommandDefinition[]): C
 function setupGlobalOptions(adapter: CLIAdapter, options: Required<CLIOptions>): void {
   // 全局选项实现
   // 这里可以根据需要添加全局选项，如--verbose等
+
   console.log(`CLI初始化: ${options.name} v${options.version}`);
   console.log(`默认领域: ${options.defaultDomain}`);
 }

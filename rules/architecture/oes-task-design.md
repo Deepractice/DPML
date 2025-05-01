@@ -949,7 +949,7 @@ function findSchemaForNode(node: DPMLNode, schema: ProcessedSchema): ElementDefi
   const elementDef = schema.elements.find(el => el.name === node.tagName);
   
   if (!elementDef) {
-    console.log('[findSchemaForNode] 未找到匹配的Schema定义', { nodeTag: node.tagName });
+    
     return null;
   }
   
@@ -1023,12 +1023,12 @@ function validateChildren(node: DPMLNode, elementDef: ElementDefinition): Childr
 4. **验证解决方案**：
    ```typescript
    // 修复前添加验证日志
-   console.log('[VERIFY] 修复前状态', { /* 相关状态 */ });
+   
    
    // 应用修复
    
    // 修复后再次检查
-   console.log('[VERIFY] 修复后状态', { /* 相关状态 */ });
+   
    ```
 
 #### 10.7.3 测试比对调试
@@ -1037,9 +1037,9 @@ function validateChildren(node: DPMLNode, elementDef: ElementDefinition): Childr
 
 ```typescript
 // 对象比对示例
-console.log('[COMPARE] 深度比较预期结果与实际结果');
-console.log('预期:', JSON.stringify(expected, null, 2));
-console.log('实际:', JSON.stringify(actual, null, 2));
+
+
+
 
 // 结构化差异分析
 const diff = {};
@@ -1051,7 +1051,7 @@ Object.keys(expected).forEach(key => {
     };
   }
 });
-console.log('[DIFF] 不匹配的属性:', diff);
+
 ```
 
 遵循这些调试模式和示例，AI执行者可以系统地识别和解决问题，避免依赖猜测或修改测试来规避实现难点。

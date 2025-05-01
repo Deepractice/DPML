@@ -164,9 +164,9 @@ export function createCommandDefinitionsFixture() {
         }
       ],
       action: vi.fn().mockImplementation((file, options) => {
-        console.log(`解析文件: ${file}`);
-        console.log(`输出路径: ${options.output || '标准输出'}`);
-        console.log(`输出格式: ${options.format}`);
+        
+        
+        
       })
     },
     {
@@ -186,8 +186,8 @@ export function createCommandDefinitionsFixture() {
         }
       ],
       action: vi.fn().mockImplementation((file, options) => {
-        console.log(`验证文件: ${file}`);
-        console.log(`严格模式: ${options.strict ? '是' : '否'}`);
+        
+        
       })
     },
     {
@@ -205,7 +205,7 @@ export function createCommandDefinitionsFixture() {
             }
           ],
           action: vi.fn().mockImplementation((file) => {
-            console.log(`转换文件到JSON: ${file}`);
+            
           })
         },
         {
@@ -219,7 +219,7 @@ export function createCommandDefinitionsFixture() {
             }
           ],
           action: vi.fn().mockImplementation((file) => {
-            console.log(`转换文件到XML: ${file}`);
+            
           })
         }
       ]
@@ -302,7 +302,7 @@ export function createExternalCommandsFixture() {
         }
       ],
       action: vi.fn().mockImplementation((input) => {
-        console.log(`处理外部命令: ${input}`);
+        
       })
     }
   ];

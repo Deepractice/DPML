@@ -19,7 +19,6 @@ import type { CommandDefinition } from '../../../../types/CLI';
 import {
   createDomainConfigFixture,
   createDomainContextFixture,
-  createDomainStateFixture,
   createValidDPMLFixture,
   createInvalidDPMLFixture,
   createExtensionConfigFixture,

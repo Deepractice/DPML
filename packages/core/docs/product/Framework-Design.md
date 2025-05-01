@@ -403,7 +403,7 @@ const formCompiler = createDomainDPML<FormModel>({
 async function processForm(dpmlContent: string) {
   try {
     const formModel = await formCompiler.compile(dpmlContent);
-    console.log('表单处理成功:', formModel);
+    
     return formModel;
   } catch (error) {
     console.error('表单处理失败:', error);

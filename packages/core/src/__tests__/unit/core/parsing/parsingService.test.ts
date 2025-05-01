@@ -1,6 +1,5 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-import { DPMLAdapter } from '../../../../core/parsing/DPMLAdapter';
 import { parserFactory } from '../../../../core/parsing/parserFactory';
 import { parse, parseAsync } from '../../../../core/parsing/parsingService';
 import type { DPMLDocument, ParseResult } from '../../../../types';

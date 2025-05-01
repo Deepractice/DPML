@@ -4,7 +4,6 @@ import { DPMLAdapter } from '../../../core/parsing/DPMLAdapter';
 import { parserFactory } from '../../../core/parsing/parserFactory';
 import { parse, parseAsync } from '../../../core/parsing/parsingService';
 import type { IXMLParser } from '../../../core/parsing/types';
-import { XMLAdapter } from '../../../core/parsing/XMLAdapter';
 import type { DPMLDocument } from '../../../types/DPMLDocument';
 import { createBasicDPMLFixture, createComplexDPMLFixture, createInvalidDPMLFixture } from '../../fixtures/parsing/dpmlFixtures';
 

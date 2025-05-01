@@ -28,7 +28,7 @@ export function mergeDefaultOptions(options: CLIOptions): Required<CLIOptions> {
  * @returns 完整命令路径
  */
 export function getCommandPath(command: CommandDefinition, parentPath?: string): string {
-  console.log(`生成命令路径, 命令: ${command.name}, 父路径: ${parentPath || '无'}, 领域: ${command.category || '无'}`);
+
 
   // 构建基本路径
   let path = command.name;
@@ -43,7 +43,7 @@ export function getCommandPath(command: CommandDefinition, parentPath?: string):
     path = `${command.category}:${path}`;
   }
 
-  console.log(`最终路径: ${path}`);
+
 
   return path;
 }
@@ -101,13 +101,5 @@ export function validateCommands(commands: CommandDefinition[]): void {
     validateCommandTree(command);
   }
 
-  // 输出跨领域命令信息
-  if (crossDomainMap.size > 0) {
-    console.log('跨领域命令映射:');
-    crossDomainMap.forEach((domains, cmdName) => {
-      if (domains.length > 1) {
-        console.log(`  命令 "${cmdName}" 存在于以下领域: ${domains.join(', ')}`);
-      }
-    });
-  }
+  // 警告已在validateCommandTree函数中实时显示，无需额外处理
 }

@@ -250,29 +250,29 @@ const checkTsupConfig = packageDir => {
 
 // 运行检查
 const main = () => {
-  console.log(`${colors.blue}开始检查DPML包配置一致性...${colors.reset}\n`);
+
 
   const packageDirs = getPackageDirs();
 
-  console.log(`发现 ${packageDirs.length} 个包需要检查\n`);
+
 
   let hasErrors = false;
 
   packageDirs.forEach(packageDir => {
     const packageName = path.basename(packageDir);
 
-    console.log(`${colors.blue}检查包: ${packageName}${colors.reset}`);
+
 
     // 检查package.json
     const packageJsonResult = checkPackageJson(packageDir);
 
     if (packageJsonResult.success) {
-      console.log(`${colors.green}✓ package.json 配置正确${colors.reset}`);
+
     } else {
       hasErrors = true;
-      console.log(`${colors.red}✗ package.json 存在问题:${colors.reset}`);
+
       packageJsonResult.errors.forEach(error => {
-        console.log(`  - ${error}`);
+
       });
     }
 
@@ -280,12 +280,12 @@ const main = () => {
     const tsconfigResult = checkTsConfig(packageDir);
 
     if (tsconfigResult.success) {
-      console.log(`${colors.green}✓ tsconfig.json 配置正确${colors.reset}`);
+
     } else {
       hasErrors = true;
-      console.log(`${colors.red}✗ tsconfig.json 存在问题:${colors.reset}`);
+
       tsconfigResult.errors.forEach(error => {
-        console.log(`  - ${error}`);
+
       });
     }
 
@@ -303,7 +303,7 @@ const main = () => {
           `${colors.red}✗ tsconfig.build.json 存在问题:${colors.reset}`
         );
         tsconfigBuildResult.errors.forEach(error => {
-          console.log(`  - ${error}`);
+
         });
       }
     }
@@ -312,16 +312,16 @@ const main = () => {
     const tsupConfigResult = checkTsupConfig(packageDir);
 
     if (tsupConfigResult.success) {
-      console.log(`${colors.green}✓ tsup.config.ts 配置正确${colors.reset}`);
+
     } else {
       hasErrors = true;
-      console.log(`${colors.red}✗ tsup.config.ts 存在问题:${colors.reset}`);
+
       tsupConfigResult.errors.forEach(error => {
-        console.log(`  - ${error}`);
+
       });
     }
 
-    console.log('\n');
+
   });
 
   if (hasErrors) {
@@ -330,7 +330,7 @@ const main = () => {
     );
     process.exit(1);
   } else {
-    console.log(`${colors.green}恭喜！所有包配置都符合项目标准${colors.reset}`);
+
   }
 };
 

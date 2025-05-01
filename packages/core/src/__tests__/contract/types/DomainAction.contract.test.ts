@@ -30,7 +30,7 @@ describe('DomainAction Interface Contract', () => {
       name: 'test-action',
       description: 'Test Action',
       action: (context) => {
-        console.log('Test action executed');
+
       }
     };
 
@@ -54,7 +54,7 @@ describe('DomainAction Interface Contract', () => {
         }
       ],
       action: async (context, arg1, options) => {
-        console.log(`Test action executed with arg1: ${arg1} and options: ${JSON.stringify(options)}`);
+
       }
     };
 
@@ -68,21 +68,21 @@ describe('DomainAction Interface Contract', () => {
 
     // 验证executor函数可以是同步的
     const syncExecutor: DomainAction['action'] = (context) => {
-      console.log('Sync executor');
+
     };
 
     expectTypeOf(syncExecutor).toMatchTypeOf<DomainAction['action']>();
 
     // 验证executor函数可以是异步的
     const asyncExecutor: DomainAction['action'] = async (context) => {
-      console.log('Async executor');
+
     };
 
     expectTypeOf(asyncExecutor).toMatchTypeOf<DomainAction['action']>();
 
     // 验证executor函数可以接收额外参数
     const executorWithArgs: DomainAction['action'] = (context, arg1, options) => {
-      console.log(`Executor with args: ${arg1} and options: ${JSON.stringify(options)}`);
+
     };
 
     expectTypeOf(executorWithArgs).toMatchTypeOf<DomainAction['action']>();

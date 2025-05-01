@@ -3,17 +3,15 @@
  *
  * 这个测试验证DPML文档从解析到转换的整个流程
  */
-import { describe, test, beforeEach, afterEach, expect, vi } from 'vitest';
+import { describe, test, afterEach, expect } from 'vitest';
 
 import { parse } from '../../../api/parser';
 import { AggregatorTransformer } from '../../../core/framework/transformer/AggregatorTransformer';
 import { StructuralMapperTransformer } from '../../../core/framework/transformer/StructuralMapperTransformer';
 import { TemplateTransformer } from '../../../core/framework/transformer/TemplateTransformer';
 import { processDocument } from '../../../core/processing/processingService';
-import { Pipeline } from '../../../core/transformer/Pipeline';
 import { transformerRegistryFactory } from '../../../core/transformer/TransformerRegistry';
 import { registerTransformer, transform } from '../../../core/transformer/transformerService';
-import { TransformContext } from '../../../types';
 import type { DPMLDocument, ProcessedSchema } from '../../../types';
 
 // 定义测试结果的类型以解决类型错误
@@ -52,7 +50,7 @@ describe('转换处理流程端到端测试', () => {
     const registry = transformerRegistryFactory();
     const existingTransformers = registry.getTransformers();
 
-    console.log(`测试结束，清理前有 ${existingTransformers.length} 个转换器`);
+
 
     // 这里我们没有提供直接清空注册表的API，但在实际实现中应该有这个功能
     // 临时解决方案是，每个测试都确保使用唯一的转换器名称
@@ -89,7 +87,7 @@ describe('转换处理流程端到端测试', () => {
     `;
 
     // 2. 解析DPML
-    console.log('E2E-TRANS-01: 开始解析DPML...');
+
     const parsedResult = parse(dpmlContent);
     // 断言 parsedResult 是 DPMLDocument 类型
     const document = parsedResult as DPMLDocument;
@@ -98,7 +96,7 @@ describe('转换处理流程端到端测试', () => {
     expect(document.rootNode.tagName).toBe('workflow');
 
     // 3. 处理文档
-    console.log('E2E-TRANS-01: 开始处理文档...');
+
     // 创建符合 ProcessedSchema 接口的模拟 Schema
     const mockSchema: ProcessedSchema<any> = {
       schema: {
@@ -126,7 +124,7 @@ describe('转换处理流程端到端测试', () => {
     expect(processingResult.document).toBe(document);
 
     // 4. 配置转换器
-    console.log('E2E-TRANS-01: 配置转换器...');
+
     // 结构映射规则
     const mappingRules = [
       {
@@ -192,7 +190,7 @@ describe('转换处理流程端到端测试', () => {
     const registry = transformerRegistryFactory();
     const existingTransformers = registry.getTransformers();
 
-    console.log(`E2E-TRANS-01: 清理前有 ${existingTransformers.length} 个转换器`);
+
 
     // 创建并注册转换器
     const structuralMapper = new StructuralMapperTransformer(mappingRules);
@@ -212,18 +210,18 @@ describe('转换处理流程端到端测试', () => {
     registerTransformer(aggregator);
     registerTransformer(templateTransformer);
 
-    console.log(`E2E-TRANS-01: 注册后有 ${registry.getTransformers().length} 个转换器`);
+
 
     // 5. 执行转换
-    console.log('E2E-TRANS-01: 执行转换...');
+
     const result = transform(processingResult, {
       resultMode: 'full', // 确保返回完整结果
       include: ['e2e1_structuralMapper', 'e2e1_aggregator', 'e2e1_templateTransformer'] // 只使用我们注册的转换器
     });
 
     // 6. 验证转换结果
-    console.log('E2E-TRANS-01: 验证转换结果...');
-    console.log('转换结果类型:', typeof result);
+
+
 
     // 验证结构映射结果
     expect(result.transformers).toHaveProperty('e2e1_structuralMapper');
@@ -236,13 +234,6 @@ describe('转换处理流程端到端测试', () => {
 
     // 验证聚合结果
     expect(result.transformers).toHaveProperty('e2e1_aggregator');
-    const aggregatorResult = result.transformers.e2e1_aggregator as TestAggregatorResult;
-
-    console.log('聚合结果类型:', typeof aggregatorResult);
-    if (aggregatorResult && typeof aggregatorResult === 'object') {
-      console.log('聚合结果键:', Object.keys(aggregatorResult));
-    }
-
     // 验证模板转换结果
     expect(result.transformers).toHaveProperty('e2e1_templateTransformer');
     const templateResult = result.transformers.e2e1_templateTransformer as string;
@@ -265,7 +256,7 @@ describe('转换处理流程端到端测试', () => {
    */
   test('E2E-TRANS-02: 转换大型文档的性能', () => {
     // 1. 生成大型测试文档
-    console.log('E2E-TRANS-02: 生成大型测试文档...');
+
 
     // 生成1000个items的集合文档
     let itemsXml = '';
@@ -302,19 +293,19 @@ describe('转换处理流程端到端测试', () => {
     `;
 
     // 2. 解析DPML
-    console.log('E2E-TRANS-02: 开始解析大型DPML文档...');
+
     const startParse = Date.now();
     const parsedResult = parse(dpmlContent);
     const document = parsedResult as DPMLDocument;
     const parseTime = Date.now() - startParse;
 
-    console.log(`解析耗时: ${parseTime}ms`);
+
 
     expect(document).toBeDefined();
     expect(document.rootNode.tagName).toBe('collection');
 
     // 3. 处理文档
-    console.log('E2E-TRANS-02: 开始处理大型文档...');
+
     const startProcess = Date.now();
     // 创建符合 ProcessedSchema 接口的模拟 Schema
     const mockSchema: ProcessedSchema<any> = {
@@ -338,26 +329,24 @@ describe('转换处理流程端到端测试', () => {
     const processingResult = processDocument(document, mockSchema);
     const processTime = Date.now() - startProcess;
 
-    console.log(`处理耗时: ${processTime}ms`);
+
 
     expect(processingResult).toBeDefined();
 
     // 检查文档有效性，但不阻止测试继续进行
     if (!processingResult.isValid) {
-      console.log('警告: 文档验证未通过，但测试将继续进行');
-      console.log('验证错误:', processingResult.validation?.errors);
+
+
 
       // 为了继续测试，我们强制设置isValid为true
       processingResult.isValid = true;
-    } else {
-      console.log('文档验证通过');
     }
 
     // 确保测试可以继续进行
     expect(processingResult.isValid).toBe(true);
 
     // 4. 配置转换器
-    console.log('E2E-TRANS-02: 配置转换器...');
+
     // 结构映射规则
     const mappingRules = [
       {
@@ -393,7 +382,7 @@ describe('转换处理流程端到端测试', () => {
     const registry = transformerRegistryFactory();
     const existingTransformers = registry.getTransformers();
 
-    console.log(`清理前有 ${existingTransformers.length} 个转换器`);
+
 
     // 创建并注册转换器
     const structuralMapper = new StructuralMapperTransformer(mappingRules);
@@ -408,20 +397,20 @@ describe('转换处理流程端到端测试', () => {
     registerTransformer(structuralMapper);
     registerTransformer(aggregator);
 
-    console.log(`注册后有 ${registry.getTransformers().length} 个转换器`);
+
 
     // 5. 执行转换
-    console.log('E2E-TRANS-02: 执行大型文档转换...');
+
     const startTransform = Date.now();
     const result = transform(processingResult, {
       resultMode: 'full' // 确保返回完整结果
     });
     const transformTime = Date.now() - startTransform;
 
-    console.log(`转换耗时: ${transformTime}ms`);
+
 
     // 6. 验证转换结果
-    console.log('E2E-TRANS-02: 验证大型文档转换结果...');
+
 
     // 验证结构映射结果
     expect(result.transformers).toHaveProperty('structuralMapper');
@@ -463,13 +452,13 @@ describe('转换处理流程端到端测试', () => {
     // 验证性能指标
     const totalTime = parseTime + processTime + transformTime;
 
-    console.log(`总耗时: ${totalTime}ms (解析: ${parseTime}ms, 处理: ${processTime}ms, 转换: ${transformTime}ms)`);
+
 
     // 验证解析速度 (1MB文档应当在1秒内完成)
     const docSizeKB = dpmlContent.length / 1024;
     const parseSpeed = docSizeKB / (parseTime / 1000);
 
-    console.log(`解析速度: ${parseSpeed.toFixed(2)} KB/s`);
+
 
     // 仅作为信息记录，不作为测试失败的条件
     if (parseSpeed < 1000) {

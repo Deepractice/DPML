@@ -3,7 +3,7 @@ import { describe, test, expect } from 'vitest';
 import { parse } from '../../../api/parser';
 import { processDocument } from '../../../api/processing';
 import { processSchema } from '../../../api/schema';
-import type { DPMLDocument, ProcessingResult, ValidationResult, ParseResult } from '../../../types';
+import type { DPMLDocument, ProcessingResult, ParseResult } from '../../../types';
 
 /**
  * 处理流程集成测试

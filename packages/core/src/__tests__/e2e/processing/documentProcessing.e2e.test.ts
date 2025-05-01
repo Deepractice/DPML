@@ -7,7 +7,6 @@ import type {
   DPMLDocument,
   DPMLNode,
   ProcessingResult,
-  ValidationResult,
   ParseResult,
   ProcessingError
 } from '../../../types';
@@ -109,12 +108,12 @@ describe('文档处理端到端测试', () => {
     const schema = processSchema(schemaContent);
 
     // 步骤3: 处理文档
-    console.log('开始处理符合Schema的文档...');
+
     const startTime = performance.now();
     const result = processDocument(document, schema);
     const endTime = performance.now();
 
-    console.log(`文档处理完成，耗时: ${(endTime - startTime).toFixed(2)}ms`);
+
 
     // 断言1: 验证结果应为有效
     expect(result.validation).toBeDefined();
@@ -135,7 +134,7 @@ describe('文档处理端到端测试', () => {
     expect(result.document).toBe(document);
     expect(result.schema).toBe(schema);
 
-    console.log('E2E-PROC-01测试通过: 成功验证了符合Schema的文档');
+
   });
 
   // E2E-PROC-02: 完整处理流程应检测不符合Schema的文档
@@ -194,10 +193,10 @@ describe('文档处理端到端测试', () => {
     const schema = processSchema(schemaContent);
 
     // 步骤3: 处理文档
-    console.log('开始处理不符合Schema的文档...');
+
     const result = processDocument(document, schema);
 
-    console.log(`找到 ${result.validation.errors.length} 个错误`);
+
 
     // 断言1: 验证结果应为无效
     expect(result.validation).toBeDefined();
@@ -210,7 +209,7 @@ describe('文档处理端到端测试', () => {
 
     // 记录错误信息，便于调试
     result.validation!.errors.forEach(error => {
-      console.log(`错误 [${error.code}]: ${error.message} (${error.path})`);
+
     });
 
     // 断言3: 检查特定错误
@@ -232,7 +231,7 @@ describe('文档处理端到端测试', () => {
     expect(typeof result.validation!.errors.length).toBe('number');
     expect(typeof result.validation!.warnings.length).toBe('number');
 
-    console.log('E2E-PROC-02测试通过: 成功检测出不符合Schema的文档');
+
   });
 
   // E2E-PROC-03: 完整处理流程应支持引用查找
@@ -272,16 +271,16 @@ describe('文档处理端到端测试', () => {
     const schema = processSchema(schemaContent);
     const result = processDocument(document, schema);
 
-    console.log('开始测试引用查找功能...');
+
 
     // 断言1: 引用映射应包含所有ID
     expect(result.references).toBeDefined();
     const { idMap } = result.references!;
 
-    console.log(`引用映射包含 ${idMap.size} 个ID节点`);
+
     const allIds = Array.from(idMap.keys());
 
-    console.log(`所有ID: ${allIds.join(', ')}`);
+
 
     // 断言2: 模拟引用解析 - 检查引用目标是否存在
     // 获取所有reference元素
@@ -298,7 +297,7 @@ describe('文档处理端到端测试', () => {
     }
 
     findReferenceElements(document.rootNode);
-    console.log(`找到 ${allReferences.length} 个引用元素`);
+
 
     // 检查每个引用的目标是否在ID映射中
     let validReferences = 0;
@@ -312,12 +311,12 @@ describe('文档处理端到端测试', () => {
         // 获取目标节点
         const targetNode = idMap.get(targetId);
 
-        console.log(`引用 "${refNode.content}" 指向 ${targetNode?.tagName} [${targetId}]`);
+
       }
     }
 
     expect(validReferences).toBe(allReferences.length);
-    console.log(`所有 ${validReferences} 个引用都有效`);
+
 
     // 断言3: 检查复杂引用关系
     // 获取所有需要的节点
@@ -330,12 +329,12 @@ describe('文档处理端到端测试', () => {
     expect(para11).toBeDefined();
 
     // 检查节点层次结构 - 调试版本
-    console.log('para-1-1节点的层次结构:');
+
     let current: DPMLNode | null = para11 || null;
     let depth = 0;
 
     while (current) {
-      console.log(`  层级${depth}: ${current.tagName}${current.attributes.has('id') ? ` (id=${current.attributes.get('id')})` : ''}`);
+
       current = current.parent;
       depth++;
     }
@@ -345,7 +344,7 @@ describe('文档处理端到端测试', () => {
     expect(para11?.parent?.parent?.tagName).toBe('section');
     expect(para11?.parent?.parent?.attributes.get('id')).toBe('section-1');
 
-    console.log('E2E-PROC-03测试通过: 成功验证引用查找功能');
+
   });
 
   // E2E-PROC-04: 完整处理流程应支持自定义结果类型
@@ -375,7 +374,7 @@ describe('文档处理端到端测试', () => {
     const dpmlContent = '<root id="root1"><child id="child1">测试</child></root>';
     const schemaContent = { root: { element: 'root' } };
 
-    console.log('开始测试自定义结果类型...');
+
 
     // 模拟计时
     const startTime = performance.now();
@@ -438,9 +437,9 @@ describe('文档处理端到端测试', () => {
     };
 
     // 打印增强的结果信息
-    console.log('增强的处理结果:');
-    console.log(`- 性能: 解析=${result.performance.parseTime.toFixed(2)}ms, 总计=${result.performance.totalTime.toFixed(2)}ms`);
-    console.log(`- 指标: ${result.metrics.nodeCount}个节点, ${result.metrics.withIdCount}个带ID节点, 深度=${result.metrics.maxDepth}`);
+
+
+
 
     // 断言基本功能正常
     expect(result.validation.isValid).toBe(true);
@@ -458,7 +457,7 @@ describe('文档处理端到端测试', () => {
     expect(result.debug?.idList).toContain('root1');
     expect(result.debug?.idList).toContain('child1');
 
-    console.log('E2E-PROC-04测试通过: 成功验证自定义结果类型支持');
+
   });
 
   // 性能测试: 大型文档处理
@@ -486,13 +485,13 @@ describe('文档处理端到端测试', () => {
 
     const largeDocSize = dpmlContent.length;
 
-    console.log(`生成了 ${largeDocSize / 1024} KB 大小的文档，包含 ${itemCount} 个条目`);
+
 
     // 简单Schema
     const schemaContent = { root: { element: 'root' } };
 
     // 测量性能
-    console.log('开始处理大型文档...');
+
     const startTime = performance.now();
 
     // 解析
@@ -512,16 +511,16 @@ describe('文档处理端到端测试', () => {
     const parseTime = parseEndTime - parseStartTime;
     const processTime = processEndTime - processStartTime;
 
-    console.log(`大型文档处理完成:`);
-    console.log(`- 总耗时: ${totalTime.toFixed(2)}ms`);
-    console.log(`- 解析耗时: ${parseTime.toFixed(2)}ms (${(parseTime / totalTime * 100).toFixed(1)}%)`);
-    console.log(`- 处理耗时: ${processTime.toFixed(2)}ms (${(processTime / totalTime * 100).toFixed(1)}%)`);
-    console.log(`- 处理速度: ${(largeDocSize / 1024 / (totalTime / 1000)).toFixed(2)} KB/s`);
+
+
+
+
+
 
     // ID映射统计
     const idMapSize = result.references?.idMap.size || 0;
 
-    console.log(`- ID映射大小: ${idMapSize} 个条目`);
+
 
     // 性能断言
     expect(result.validation.isValid).toBe(true);
@@ -533,6 +532,6 @@ describe('文档处理端到端测试', () => {
     // 如果在合理时间内完成处理，测试通过
     expect(totalTime).toBeLessThan(5000); // 大文档处理应在5秒内完成
 
-    console.log('性能测试通过: 成功处理大型文档');
+
   });
 });

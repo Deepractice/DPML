@@ -3,7 +3,7 @@ import { describe, test, expect } from 'vitest';
 import { parse, parseAsync } from '../../../api/parser';
 import type { DPMLDocument } from '../../../types/DPMLDocument';
 import type { DPMLNode } from '../../../types/DPMLNode';
-import { createBasicDPMLFixture, createComplexDPMLFixture, createInvalidDPMLFixture, createE2EBasicDPMLFixture, createE2EComplexDPMLFixture } from '../../fixtures/parsing/dpmlFixtures';
+import { createBasicDPMLFixture, createInvalidDPMLFixture, createE2EBasicDPMLFixture, createE2EComplexDPMLFixture } from '../../fixtures/parsing/dpmlFixtures';
 
 /**
  * 端到端测试：解析工作流
@@ -12,8 +12,8 @@ import { createBasicDPMLFixture, createComplexDPMLFixture, createInvalidDPMLFixt
  */
 describe('解析工作流端到端测试', () => {
   test('E2E-Parsing-01: 用户应能解析有效DPML内容', () => {
-    console.log('===== 测试 E2E-Parsing-01 开始 =====');
-    console.log('测试数据:', createE2EBasicDPMLFixture());
+
+
 
     // 使用专门为E2E测试准备的夹具
     const result = parse<DPMLDocument>(createE2EBasicDPMLFixture()) as DPMLDocument;
@@ -28,15 +28,15 @@ describe('解析工作流端到端测试', () => {
     }, null, 2));
 
     // 递归输出完整结构，限制深度为3层
-    console.log('递归结构 (最多3层):');
+
     const printStructure = (node: DPMLNode, depth: number = 0, maxDepth: number = 3) => {
       if (depth > maxDepth) return;
 
       const indent = '  '.repeat(depth);
 
-      console.log(`${indent}节点: ${node.tagName}, 子节点数: ${node.children.length}`);
-      console.log(`${indent}属性:`, Object.fromEntries([...node.attributes.entries()]));
-      console.log(`${indent}内容: "${node.content}"`);
+
+
+
 
       if (depth < maxDepth && node.children.length > 0) {
         node.children.forEach(child => printStructure(child, depth + 1, maxDepth));
@@ -44,7 +44,7 @@ describe('解析工作流端到端测试', () => {
     };
 
     printStructure(result.rootNode);
-    console.log('===== 测试 E2E-Parsing-01 结构输出完成 =====');
+
 
     // 直接从rootNode获取child节点
     expect(result.rootNode.children.length).toBeGreaterThan(0);
@@ -64,8 +64,8 @@ describe('解析工作流端到端测试', () => {
   });
 
   test('E2E-Parsing-02: 用户应能异步解析大型DPML', async () => {
-    console.log('===== 测试 E2E-Parsing-02 开始 =====');
-    console.log('测试数据:', createE2EComplexDPMLFixture().substring(0, 100) + '...');
+
+
 
     // 使用专门为E2E测试准备的夹具
     const result = await parseAsync<DPMLDocument>(createE2EComplexDPMLFixture()) as DPMLDocument;
@@ -78,15 +78,15 @@ describe('解析工作流端到端测试', () => {
     }, null, 2));
 
     // 递归输出完整结构，限制深度为3层
-    console.log('递归结构 (最多3层):');
+
     const printStructure = (node: DPMLNode, depth: number = 0, maxDepth: number = 3) => {
       if (depth > maxDepth) return;
 
       const indent = '  '.repeat(depth);
 
-      console.log(`${indent}节点: ${node.tagName}, 子节点数: ${node.children.length}`);
-      console.log(`${indent}属性:`, Object.fromEntries([...node.attributes.entries()]));
-      console.log(`${indent}内容: "${node.content}"`);
+
+
+
 
       if (depth < maxDepth && node.children.length > 0) {
         node.children.forEach(child => printStructure(child, depth + 1, maxDepth));
@@ -94,7 +94,7 @@ describe('解析工作流端到端测试', () => {
     };
 
     printStructure(result.rootNode);
-    console.log('===== 测试 E2E-Parsing-02 结构输出完成 =====');
+
 
     // 验证基本结构
     expect(result).toBeDefined();

@@ -1,6 +1,5 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-import { createResultCollector } from '../../../core/framework/transformer/transformerFactory';
 import { Pipeline } from '../../../core/transformer/Pipeline';
 import { transformerRegistryFactory } from '../../../core/transformer/TransformerRegistry';
 import { transform, registerTransformer } from '../../../core/transformer/transformerService';
@@ -189,7 +188,7 @@ describe('transformerService', () => {
       });
 
       // 添加调试日志
-      console.log('修改后的测试结果:', JSON.stringify(result));
+
 
       // 断言 - 验证结果包含我们模拟的转换器结果
       expect(result.transformers).toEqual(mockResults);

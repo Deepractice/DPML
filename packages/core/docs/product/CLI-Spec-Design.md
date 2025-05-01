@@ -253,7 +253,7 @@ program
   .command('parser')
   .description('DPML解析器相关命令')
   .action(() => {
-    console.log('请指定解析器子命令');
+    
   });
 
 // 解析器验证命令

@@ -206,7 +206,7 @@ function fetchData(url: string, abortSignal?: AbortSignal): Promise<Data>;
  * @example
  * ```typescript
  * const doc = parseXml('<root><child>value</child></root>');
- * console.log(doc.root.child.textContent); // 输出: value
+ *  // 输出: value
  * ```
  */
 function parseXml(content: string, options?: XmlParserOptions): XmlDocument;

@@ -41,7 +41,7 @@ const buttonSchema: ElementSchema = {
 
 // 验证该元素Schema
 const result = processSchema(buttonSchema);
-console.log(result.isValid); // true
+ // true
 ```
 
 ### 完整文档定义
@@ -102,7 +102,7 @@ const formDocumentSchema: DocumentSchema = {
 
 // 验证该文档Schema
 const result = processSchema(formDocumentSchema);
-console.log(result.isValid); // true
+ // true
 ```
 
 ### 使用类型引用
@@ -158,7 +158,7 @@ const promptDocumentSchema: DocumentSchema = {
 
 // 验证该文档Schema
 const result = processSchema(promptDocumentSchema);
-console.log(result.isValid); // true
+ // true
 ```
 
 ## 错误处理示例
@@ -177,8 +177,8 @@ const invalidElementSchema = {
 
 // 验证该元素Schema
 const result = processSchema(invalidElementSchema);
-console.log(result.isValid); // false
-console.log(result.errors);
+ // false
+
 // 输出:
 // [
 //   {

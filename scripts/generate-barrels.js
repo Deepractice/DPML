@@ -18,7 +18,7 @@ async function runBarrelsby(directory) {
     return;
   }
 
-  console.log(`为 ${directory} 生成barrel文件...`);
+
   const command = `npx barrelsby --directory ${directory} --delete --location top --structure flat --singleQuotes --exportDefault`;
 
   return new Promise((resolve, reject) => {
@@ -33,7 +33,7 @@ async function runBarrelsby(directory) {
         console.error(`stderr: ${stderr}`);
       }
 
-      console.log(stdout);
+
       resolve();
     });
   });
@@ -100,12 +100,12 @@ async function main() {
 
         await runBarrelsby(dirPath).catch(() => {
           // 忽略不存在的目录错误
-          console.log(`跳过不存在的目录: ${dirPath}`);
+
         });
       }
     }
 
-    console.log('所有barrel文件生成完成！');
+
   } catch (error) {
     console.error('生成barrel文件时出错:', error);
     process.exit(1);

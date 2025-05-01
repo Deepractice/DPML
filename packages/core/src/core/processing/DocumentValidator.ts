@@ -1,8 +1,9 @@
-import type { DPMLDocument, DPMLNode } from '../../types/DPMLNode';
+import type { DPMLDocument } from '../../types/DPMLDocument';
+import type { DPMLNode } from '../../types/DPMLNode';
 import type { ProcessedSchema } from '../../types/ProcessedSchema';
 import type { ProcessingError } from '../../types/ProcessingError';
 import type { ProcessingWarning } from '../../types/ProcessingWarning';
-import type { ElementSchema, AttributeSchema, ContentSchema, ChildrenSchema, TypeReference } from '../../types/Schema';
+import type { ElementSchema, TypeReference, DocumentSchema } from '../../types/Schema';
 import type { ValidationResult } from '../../types/ValidationResult';
 
 /**
@@ -90,13 +91,13 @@ export class DocumentValidator {
    */
   public validateDocument<T extends ValidationResult = ValidationResult>(
     document: DPMLDocument,
-    schema: ProcessedSchema
+    schema: ProcessedSchema<object>
   ): T {
-    console.log(`[DocumentValidator] 开始验证文档，根节点标签: ${document.rootNode.tagName}`);
+    ;
 
     // 如果Schema本身无效，直接返回验证结果
     if (!schema.isValid) {
-      console.log('[DocumentValidator] Schema无效，返回错误');
+      ;
 
       return {
         isValid: false,
@@ -118,15 +119,14 @@ export class DocumentValidator {
       } as unknown as T;
     }
 
-    console.log(`[DocumentValidator] Schema有效，开始验证根节点`);
+    ;
 
     // 验证文档根节点
     const rootResult = this.validateNode(document.rootNode, schema);
 
-    console.log(`[DocumentValidator] 根节点验证完成，是否有效: ${rootResult.isValid}, 错误数量: ${rootResult.errors.length}`);
+    ;
     if (rootResult.errors.length > 0) {
-      console.log(`[DocumentValidator] 验证错误：`);
-      rootResult.errors.forEach(error => console.log(`  - ${error.code}: ${error.message} at ${error.path}`));
+      ;
     }
 
     // 返回验证结果
@@ -145,10 +145,10 @@ export class DocumentValidator {
    */
   public validateNode(
     node: DPMLNode,
-    schema: ProcessedSchema
+    schema: ProcessedSchema<object>
   ): NodeValidationResult {
     // 查找节点对应的Schema定义
-    console.log(`[DocumentValidator] 验证节点 '${node.tagName}'${node.attributes.has('id') ? ` (id=${node.attributes.get('id')})` : ''}`);
+    ;
 
     const elementDef = this.findSchemaForNode(node, schema);
     const errors: ProcessingError[] = [];
@@ -156,7 +156,7 @@ export class DocumentValidator {
 
     // 如果找不到对应的Schema定义，添加错误并返回
     if (!elementDef) {
-      console.log(`[DocumentValidator] 未找到节点 '${node.tagName}' 的Schema定义`);
+      ;
       errors.push({
         code: 'UNKNOWN_ELEMENT',
         message: `未知元素: ${node.tagName}`,
@@ -173,11 +173,11 @@ export class DocumentValidator {
       return { isValid: false, errors, warnings };
     }
 
-    console.log(`[DocumentValidator] 找到节点 '${node.tagName}' 的Schema定义`);
+    ;
 
     // 验证节点标签
     if (elementDef.element !== node.tagName) {
-      console.log(`[DocumentValidator] 标签不匹配: 期望 ${elementDef.element}, 实际为 ${node.tagName}`);
+      ;
       errors.push({
         code: 'TAG_MISMATCH',
         message: `标签不匹配: 期望 ${elementDef.element}, 实际为 ${node.tagName}`,
@@ -235,14 +235,14 @@ export class DocumentValidator {
    */
   public findSchemaForNode(
     node: DPMLNode,
-    schema: ProcessedSchema
+    schema: ProcessedSchema<object>
   ): ElementSchema | null {
     // 如果Schema无效，返回null
     if (!schema.isValid || !schema.schema) {
       return null;
     }
 
-    const docSchema = schema.schema as any;
+    const docSchema = schema.schema as DocumentSchema;
 
     // 处理根元素
     if (node.parent === null) {
@@ -280,14 +280,14 @@ export class DocumentValidator {
         (!docSchema.types || docSchema.types.length === 0)) {
       // 在仅定义了根元素的简单Schema中，对于未定义的子元素采取宽松验证
       // 创建一个虚拟的通用元素定义
-      console.log(`[DocumentValidator] 对元素 '${node.tagName}' 采用宽松验证，因为Schema仅定义了根元素`);
+      ;
 
       return {
         element: node.tagName,
         // 添加最小限度的约束，保持灵活性
         attributes: [],
         children: { elements: [] },
-        content: { type: 'any' }
+        content: { type: 'mixed' }
       };
     }
 
@@ -356,10 +356,12 @@ export class DocumentValidator {
         const value = node.attributes.get(attrDef.name)!;
 
         // 检查枚举约束
-        if (attrDef.enum && attrDef.enum.length > 0 && !attrDef.enum.includes(value)) {
+        if (attrDef.enum && attrDef.enum.length > 0 &&
+            !attrDef.enum.includes(value)) {
           errors.push({
             code: 'INVALID_ATTRIBUTE_VALUE',
-            message: `属性 ${attrDef.name} 的值无效: ${value}, 允许的值: ${attrDef.enum.join(', ')}`,
+            message: `属性 ${attrDef.name} 的值无效: ${value}, ` +
+              `允许的值: ${attrDef.enum.join(', ')}`,
             path: `${this.buildNodePath(node)}/@${attrDef.name}`,
             source: node.sourceLocation || {
               startLine: 1,
@@ -423,7 +425,7 @@ export class DocumentValidator {
     if (!elementDef.children && node.children.length > 0) {
       if (isLenientMode) {
         // 在宽松模式下(简单Schema)，只添加警告不添加错误
-        console.log(`[DocumentValidator] 宽松模式：允许元素 ${node.tagName} 包含未定义的子元素`);
+        ;
         warnings.push({
           code: 'UNDEFINED_CHILDREN',
           message: `元素 ${node.tagName} 未定义子元素，但在宽松模式下被允许`,
@@ -584,7 +586,8 @@ export class DocumentValidator {
     if (contentDef.type === 'text' && node.children.length > 0) {
       errors.push({
         code: 'INVALID_CONTENT_TYPE',
-        message: `元素 ${node.tagName} 只允许纯文本内容，不允许子元素`,
+        message: `元素 ${node.tagName} 只允许纯文本内容，` +
+          `不允许子元素`,
         path: this.buildNodePath(node),
         source: node.sourceLocation || {
           startLine: 1,

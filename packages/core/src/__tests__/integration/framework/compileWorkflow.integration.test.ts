@@ -3,7 +3,7 @@
  * 验证Framework模块的完整编译流程
  */
 
-import { describe, test, expect, vi } from 'vitest';
+import { describe, test, expect } from 'vitest';
 
 import { createDomainDPML } from '../../../api/framework';
 import type {
