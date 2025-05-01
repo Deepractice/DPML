@@ -125,7 +125,10 @@ export class CLIAdapter {
         try {
           await command.action(...args);
         } catch (err) {
+          // 首先处理错误（例如记录、格式化）
           this.handleError(err as Error, command);
+          // 然后重新抛出错误，以便上层（如 cliService）可以捕获
+          throw err;
         }
       });
     }
@@ -202,13 +205,21 @@ export class CLIAdapter {
     try {
       await this.program.parseAsync(argv || process.argv);
     } catch (err) {
+      // 检查是否为 Commander.js 的已知非错误退出代码
+      if (err && typeof err === 'object' && 'code' in err) {
+        if (err.code === 'commander.helpDisplayed' || err.code === 'commander.version') {
+          // 这些是 Commander.js 处理的正常流程（如显示帮助或版本），不应视为错误抛出
+          return;
+        }
+      }
+
       // 在测试环境中捕获process.exit命令，防止测试被终止
       if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
-
-
+        // 测试环境下，即使是其他错误也直接返回，由测试用例断言
         return;
       }
 
+      // 对于非测试环境下的其他未知错误，继续抛出
       throw err;
     }
   }

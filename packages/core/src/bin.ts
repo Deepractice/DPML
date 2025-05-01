@@ -72,27 +72,13 @@ async function main() {
   // 注册无前缀版本
   cli.registerCommands(unprefixedCoreCommands);
 
-  // 执行CLI
-  try {
-    await cli.execute();
-  } catch (error) {
-    // Commander.js通过抛出特殊错误显示帮助信息，这不是真正的错误
-    if (
-      error &&
-      typeof error === 'object' &&
-      'code' in error &&
-      (error.code === 'commander.helpDisplayed' || error.code === 'commander.version')
-    ) {
-      process.exit(0); // 正常退出
-    }
-
-    console.error('命令执行出错:', error);
-    process.exit(1);
-  }
+  // 执行CLI - 错误处理已移至cliService.execute内部
+  await cli.execute();
 }
 
 // 执行主函数
 main().catch(error => {
-  console.error('CLI启动失败:', error);
+  // 捕获main函数执行期间（如初始化阶段）的未处理错误
+  console.error('CLI启动或执行过程中发生意外错误:', error);
   process.exit(1);
 });

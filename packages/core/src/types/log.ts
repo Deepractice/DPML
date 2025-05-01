@@ -20,7 +20,7 @@ export enum LogLevel {
  * 日志器接口，定义日志记录的核心方法
  * 所有日志器实现必须实现此接口
  */
-export interface Logger {
+export type Logger = {
   /**
    * 记录调试级别的日志
    * @param message 日志消息
@@ -66,7 +66,7 @@ export interface Logger {
  * 日志条目结构，表示一条完整的日志记录
  * 包含时间戳、级别、消息和可选的上下文信息、错误对象和调用位置
  */
-export interface LogEntry {
+export type LogEntry = {
   /**
    * 日志记录的时间戳
    */
@@ -102,7 +102,7 @@ export interface LogEntry {
  * 调用位置信息，记录日志调用的代码位置
  * 用于调试和问题定位
  */
-export interface CallerInfo {
+export type CallerInfo = {
   /**
    * 文件名
    */
@@ -132,7 +132,7 @@ export interface CallerInfo {
 /**
  * 日志器配置，控制日志器的行为
  */
-export interface LoggerConfig {
+export type LoggerConfig = {
   /**
    * 最低记录级别，低于此级别的日志将被忽略
    */
@@ -157,7 +157,7 @@ export interface LoggerConfig {
 /**
  * 调用位置捕获配置，控制调用位置捕获的行为
  */
-export interface CallSiteCaptureConfig {
+export type CallSiteCaptureConfig = {
   /**
    * 是否启用调用位置捕获
    */
@@ -173,7 +173,7 @@ export interface CallSiteCaptureConfig {
 /**
  * 日志格式化器接口，负责将日志条目格式化为字符串
  */
-export interface LogFormatter {
+export type LogFormatter = {
   /**
    * 将日志条目格式化为字符串
    * @param entry 要格式化的日志条目
@@ -185,7 +185,7 @@ export interface LogFormatter {
 /**
  * 日志传输器接口，负责将日志写入到目标位置
  */
-export interface LogTransport {
+export type LogTransport = {
   /**
    * 将日志条目写入到目标位置
    * @param entry 要写入的日志条目

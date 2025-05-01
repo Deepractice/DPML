@@ -45,13 +45,46 @@ CLI模块是DPML核心的命令行接口，负责提供一致、直观的命令�
 
 CLI模块严格遵循项目的分层架构：
 
-1. **API层**：cli模块，提供createCLI函数
-2. **Types层**：定义CLI接口、CommandDefinition和相关类型
-3. **Core层**：实现cliService，管理命令注册和执行
+1. **API层**：`api/cli.ts` 模块，提供 `createCLI` 函数作为唯一入口。
+2. **Types层**：定义 `CLI` 接口、`CommandDefinition` 和相关类型，确保类型安全。
+3. **Core层**：`core/cli` 目录，包含 `cliService.ts` (服务逻辑) 和 `CLIAdapter.ts` (底层库适配器)。
 
-## 4. 组件设计
+## 4. 模块职责
 
-### 4.1 API设计
+CLI模块采用严格的职责划分，确保各层次关注点分离：
+
+### 4.1 CLI适配器 (`CLIAdapter.ts`)
+
+-   **职责**: 完全封装底层命令行库 (Commander.js) 的所有实现细节。
+-   **功能**:
+    -   提供类型安全的命令注册接口 (`setupCommand`)。
+    -   处理底层库特有错误，如帮助显示 (`commander.helpDisplayed`) 和版本显示 (`commander.version`)，阻止它们向上层抛出。
+    -   提供解析命令行参数的功能 (`parse`)。
+    -   管理内部命令路径，检测重复命令。
+
+### 4.2 CLI服务 (`cliService.ts`)
+
+-   **职责**: 作为CLI功能的核心协调者和高级接口提供者。
+-   **功能**:
+    -   通过 `createCLI` 函数创建和配置CLI实例 (包括初始化 `CLIAdapter`)。
+    -   提供稳定的 `CLI` 接口 (`execute`, `showHelp`, `showVersion`, `registerCommands`)。
+    -   实现高级错误处理逻辑：在 `execute` 方法中捕获来自 `CLIAdapter.parse` 的错误，进行日志记录，并在非测试环境下退出进程。
+    -   组织和注册初始用户命令和后续的外部命令。
+    -   验证命令定义的有效性 (如重复命令)。
+
+### 4.3 应用入口 (`bin.ts`)
+
+-   **职责**: 仅作为应用的可执行入口点。
+-   **功能**:
+    -   初始化和配置CLI (调用 `createCLI`)。
+    -   获取并注册应用所需的所有命令 (如标准命令、领域命令)。
+    -   调用 `cli.execute()` 启动命令行处理。
+    -   **不处理** 底层库实现细节或特定错误代码 (这些已由 `CLIAdapter` 和 `cliService` 处理)。
+    -   只负责捕获 `main` 函数执行期间（如初始化阶段）可能发生的未预料错误。
+
+## 5. 核心组件设计 (原 4. 组件设计)
+
+### 5.1 API设计 (原 4.1)
 
 ```typescript
 // api/CLITypes.ts
@@ -63,7 +96,7 @@ export function createCLI(
 }
 ```
 
-### 4.2 类型定义
+### 5.2 类型定义 (原 4.2)
 
 ```typescript
 // types/CLITypes.ts
@@ -163,7 +196,7 @@ export class DuplicateCommandError extends Error {
 }
 ```
 
-### 4.3 Core层设计
+### 5.3 Core层设计 (原 4.3)
 
 ```typescript
 // core/cli/cliService.ts
@@ -266,7 +299,7 @@ function getCommandPath(command: CommandDefinition, parentPath?: string): string
 }
 ```
 
-### 4.4 适配器设计
+### 5.4 适配器设计
 
 ```typescript
 // core/cli/CLIAdapter.ts
@@ -379,319 +412,155 @@ export class CLIAdapter {
 }
 ```
 
-## 5. 组件关系图
+## 6. 错误处理
 
-```mermaid
-classDiagram
-    %% API层
-    class cli {
-        <<module>>
-        +createCLI(options: CLIOptions, commands: CommandDefinition[]): CLITypes "创建CLI实例，传入配置和命令"
-    }
-    note for cli "文件: api/CLITypes.ts\n作为API层的薄层接口，返回CLI执行器"
-    
-    %% Types层
-    class CLITypes {
-        <<interface>>
-        +execute(argv?: string[]): Promise<void> "执行CLI处理命令行参数"
-        +showHelp(): void "显示帮助信息"
-        +showVersion(): void "显示版本信息"
-        +registerCommands(commands: CommandDefinition[]): void "注册外部命令"
-    }
-    note for CLITypes "文件: types/CLITypes.ts\n执行器接口，只负责CLI执行"
-    
-    class CLIOptions {
-        <<interface>>
-        +name: string "CLI工具名称"
-        +version: string "CLI版本号"
-        +description: string "CLI描述"
-        +defaultDomain?: string "默认领域，默认为'core'"
-    }
-    note for CLIOptions "文件: types/CLITypes.ts\nCLI基本配置选项"
-    
-    class CommandDefinition {
-        <<interface>>
-        +name: string "命令名称"
-        +description: string "命令描述"
-        +arguments?: ArgumentDefinition[] "位置参数定义"
-        +options?: OptionDefinition[] "选项参数定义"
-        +action: CommandAction "命令执行函数"
-        +subcommands?: CommandDefinition[] "子命令定义"
-        +domain?: string "所属领域，用于组织命令层次结构"
-    }
-    note for CommandDefinition "文件: types/CLITypes.ts\n声明式定义命令的接口"
-    
-    %% Core层 - 模块服务层
-    class cliService {
-        <<module>>
-        +createCLI(options: CLIOptions, commands: CommandDefinition[]): CLITypes "创建CLI实例"
-        -setupGlobalOptions(adapter: CLIAdapter, options: Required<CLIOptions>): void "设置全局选项"
-        -setupUserCommands(adapter: CLIAdapter, commands: CommandDefinition[]): void "设置用户定义命令"
-        -registerExternalCommands(adapter: CLIAdapter, commands: CommandDefinition[]): void "注册外部命令"
-        -validateCommands(commands: CommandDefinition[]): void "验证命令是否有重复定义"
-        -getCommandPath(command: CommandDefinition, parentPath?: string): string "获取完整命令路径"
-    }
-    note for cliService "文件: core/cli/cliService.ts\n模块服务层，负责CLI功能并检测命令重复"
-    
-    %% Core层 - 工具函数
-    class commandUtils {
-        <<module>>
-        +mergeDefaultOptions(options: CLIOptions): Required<CLIOptions> "合并默认配置"
-        +validateCommands(commands: CommandDefinition[]): void "验证命令无重复定义"
-        +getCommandPath(command: CommandDefinition, parentPath?: string): string "获取命令完整路径"
-    }
-    note for commandUtils "文件: core/cli/commandUtils.ts\n提供CLI相关工具函数"
-    
-    %% Core层 - CLI组件
-    class CLIAdapter {
-        <<class>>
-        +setupCommand(command: CommandDefinition): void "设置单个命令"
-        +setupDomainCommands(domainName: string, commands: CommandDefinition[]): void "设置领域所有命令"
-        +parse(argv?: string[]): Promise<void> "解析命令行参数"
-        +showHelp(): void "显示帮助信息"
-        +showVersion(): void "显示版本信息"
-        -program: Commander "Commander实例(私有)"
-        -commandPaths: Set<string> "已注册的命令路径集合，用于检测重复"
-        -buildCommandPath(command: CommandDefinition, parentPath?: string): string "构建命令路径"
-    }
-    note for CLIAdapter "文件: core/cli/CLIAdapter.ts\n适配器类，实现命令重复检测"
-    
-    %% 错误类型
-    class DuplicateCommandError {
-        <<class>>
-        +commandPath: string "重复的命令路径"
-        +message: string "错误信息"
-        +constructor(commandPath: string) "创建错误实例"
-    }
-    note for DuplicateCommandError "文件: types/CLIErrors.ts\n命令重复定义错误"
-    
-    %% 定义关系
-    cli --> cliService : uses "API委托原则"
-    cliService --> CLIAdapter : creates "创建适配器"
-    cliService --> commandUtils : uses "使用工具函数"
-    cliService ..> CLITypes : returns "返回闭包接口"
-    cliService ..> DuplicateCommandError : throws "检测到重复命令时抛出"
-    CLIAdapter ..> DuplicateCommandError : throws "验证命令时检测到重复"
-    CommandDefinition *-- ArgumentDefinition : contains "位置参数定义"
-    CommandDefinition *-- OptionDefinition : contains "选项参数定义"
-```
+CLI模块采用分层错误处理策略，确保底层库的实现细节不会暴露给调用者，并提供一致的用户体验：
 
-## 6. 流程图
+### 6.1 适配器层 (`CLIAdapter.parse`)
 
-```mermaid
-sequenceDiagram
-    %% 参与者定义
-    participant User as 应用开发者
-    participant API as CLITypes.ts
-    participant Service as cliService.ts
-    participant Adapter as CLIAdapter
-    participant Commander as Commander.js
+`CLIAdapter.parse` 方法负责 **捕获并处理** 底层库 (Commander.js) 特有的、非致命的退出情况。这包括用户请求帮助 (`--help`) 或版本信息 (`--version`)。
 
-    %% 标题和描述
-    Note over User,Commander: DPML CLI模块创建和执行流程
-
-    %% 创建CLI实例
-    User->>+API: createCLI(options, commands) "创建CLI实例"
-    API->>+Service: createCLI(options, commands) "委托服务层"
-    
-    Service->>Service: validateCommands(commands) "验证命令无重复"
-    
-    Service->>+Adapter: new CLIAdapter(name, version, description) "创建适配器"
-    Adapter->>+Commander: new Command(name) "创建Commander实例"
-    Commander-->>-Adapter: program "返回Commander实例"
-    Adapter-->>-Service: adapter "返回适配器实例"
-    
-    Service->>+Service: setupGlobalOptions(adapter, options) "设置全局选项"
-    Service->>+Service: setupUserCommands(adapter, commands) "设置用户命令"
-    
-    Service-->>-API: cli "返回CLI接口"
-    API-->>-User: cli "返回CLI接口"
-    
-    %% 注册外部命令
-    User->>+API: cli.registerCommands(externalCommands) "注册外部命令"
-    API->>+Service: registerExternalCommands(adapter, commands) "注册命令"
-    Service->>+Service: validateCommands(commands) "验证命令无重复"
-    Service->>+Adapter: setupCommand() "递归设置命令"
-    Adapter-->>-Adapter: commandPaths.add() "记录命令路径"
-    Adapter-->>-Service: void "命令设置完成"
-    Service-->>-API: void "注册完成"
-    API-->>-User: void "操作完成"
-    
-    %% 执行CLI
-    User->>+API: cli.execute(process.argv) "执行CLI"
-    API->>+Adapter: parse(process.argv) "解析命令行参数"
-    Adapter->>+Commander: program.parseAsync(argv) "调用Commander解析"
-    
-    Commander->>Commander: 执行匹配的命令
-    Commander-->>-Adapter: result "执行结果"
-    Adapter-->>-API: void "解析完成"
-    API-->>-User: void "执行完成"
-```
-
-## 7. 用户使用方式
-
-以下是应用开发者如何使用DPML CLI模块的示例：
+-   当检测到 `commander.helpDisplayed` 或 `commander.version` 错误码时，`parse` 方法会 **直接返回**，因为 Commander.js 已经处理了相应的输出。这些情况不被视为程序错误。
+-   在 **测试环境** (`NODE_ENV === 'test'` 或 `VITEST`) 下，为了方便测试断言，`parse` 方法也会直接返回，即使遇到其他错误。
+-   对于其他 **真正的解析错误** 或来自命令 `action` 的错误 (在非测试环境)，`parse` 方法会将其 **重新抛出**，交由上层处理。
 
 ```typescript
-import { createCLI } from '@dpml/core';
-import type { CommandDefinition } from '@dpml/core';
-
-// 定义命令结构
-const commands: CommandDefinition[] = [
-  {
-    name: 'parse',
-    description: '解析DPML文档',
-    arguments: [
-      { 
-        name: 'file', 
-        description: 'DPML文件路径', 
-        required: true 
+// CLIAdapter.ts 简化示例
+public async parse(argv?: string[]): Promise<void> {
+  try {
+    await this.program.parseAsync(argv || process.argv);
+  } catch (err) {
+    // 处理Commander.js特有错误 (非错误退出)
+    if (err && typeof err === 'object' && 'code' in err) {
+      if (err.code === 'commander.helpDisplayed' || err.code === 'commander.version') {
+        return; // 不是错误，直接返回
       }
-    ],
-    options: [
-      { 
-        flags: '-o, --output <file>', 
-        description: '输出文件路径' 
-      },
-      { 
-        flags: '--format <format>', 
-        description: '输出格式 (json, xml, yaml)', 
-        defaultValue: 'json' 
-      }
-    ],
-    action: async (file, options) => {
-      
-      
-      
-      
-      // 实际解析逻辑
-      // const result = await parseFile(file, options);
-      // ...
     }
-  },
-  {
-    name: 'validate',
-    description: '验证DPML文档',
-    arguments: [
-      { 
-        name: 'file', 
-        description: 'DPML文件路径', 
-        required: true 
-      }
-    ],
-    options: [
-      { 
-        flags: '--strict', 
-        description: '使用严格模式验证' 
-      },
-      { 
-        flags: '--schema <file>', 
-        description: '使用指定模式验证' 
-      }
-    ],
-    action: (file, options) => {
-      
-      
-      if (options.schema) {
-        
-      }
-      
-      // 实际验证逻辑
-      // const result = validateFile(file, options);
-      // ...
+    
+    // 测试环境中特殊处理
+    if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
+      return; // 方便测试断言
     }
-  },
-  {
-    name: 'convert',
-    description: '转换DPML文档格式',
-    subcommands: [
-      {
-        name: 'to-json',
-        description: '转换为JSON格式',
-        arguments: [
-          { 
-            name: 'file', 
-            description: 'DPML文件路径', 
-            required: true 
-          }
-        ],
-        action: (file) => {
-          
-          // 实际转换逻辑
-        }
-      },
-      {
-        name: 'to-xml',
-        description: '转换为XML格式',
-        arguments: [
-          { 
-            name: 'file', 
-            description: 'DPML文件路径', 
-            required: true 
-          }
-        ],
-        action: (file) => {
-          
-          // 实际转换逻辑
-        }
-      }
-    ]
+    
+    // 其他真正的错误则向上抛出
+    throw err;
   }
-];
+}
 
-// 创建CLI实例
-const cli = createCLI(
-  {
-    name: 'dpml',
-    version: '1.0.0',
-    description: 'DPML命令行工具'
-  },
-  commands
-);
-
-// 执行CLI处理命令行参数
-cli.execute().catch(err => {
-  console.error('错误:', err.message);
-  process.exit(1);
+// CLIAdapter.ts action wrapper 简化示例
+cmd.action(async (...args) => {
+  try {
+    await command.action(...args);
+  } catch (err) {
+    this.handleError(err as Error, command); // 内部处理（如日志）
+    throw err; // 重新抛出给 Service 层
+  }
 });
 ```
 
-使用时的命令行示例：
+### 6.2 服务层 (`cliService.execute`)
 
-```bash
-# 基本命令使用
-dpml parse file.dpml --output=result.json --format=json
+`cliService` 返回的 `execute` 方法负责捕获从 `CLIAdapter.parse` 抛出的 **所有未处理错误**。
 
-# 子命令使用
-dpml convert to-json file.dpml
+-   使用 `try...catch` 包裹对 `adapter.parse()` 的调用。
+-   在 `catch` 块中：
+    -   使用 `console.error` **记录错误信息**，向用户提供反馈。
+    -   检查环境：如果 **不是测试环境**，则调用 `process.exit(1)` 退出程序，表示执行失败。
+    -   **重新抛出错误** (`throw error`)，允许 `execute` 的调用者（理论上，但在 `bin.ts` 中通常不需要）进一步处理。
 
-# 帮助信息
-dpml --help
-dpml parse --help
-
-# 版本信息
-dpml --version
+```typescript
+// cliService.ts 简化示例
+return {
+  execute: async (argv?: string[]) => {
+    try {
+      await adapter.parse(argv);
+    } catch (error) {
+      console.error('命令执行出错:', error);
+      
+      // 非测试环境时退出进程
+      if (process.env.NODE_ENV !== 'test' && !process.env.VITEST) {
+        process.exit(1);
+      }
+      
+      throw error; // 重新抛出
+    }
+  },
+  // ...其他方法
+};
 ```
 
-// 添加框架集成示例
-import { getCommandDefinitions } from '@dpml/core/api/framework';
+### 6.3 应用入口层 (`bin.ts`)
 
-// 注册来自其他模块的命令
-cli.registerCommands(getCommandDefinitions());
+应用入口脚本 (`bin.ts`) **不应** 包含针对 Commander.js 特定错误代码的检查。它的职责是调用 `cli.execute()` 并处理 **初始化阶段** 或 `cli.execute` 抛出的 **未捕获** 错误（理论上 `cli.execute` 会处理并退出，但这提供最终保障）。
 
-## 8. 总结
+```typescript
+// bin.ts 简化示例
+async function main() {
+  // ... 创建和注册 CLI ...
+  
+  // 直接执行CLI，无需 try-catch 处理 commander 特定错误
+  await cli.execute(); 
+}
 
-DPML CLI模块采用闭包设计模式，提供了统一的命令行界面用于访问DPML的各项功能。它严格遵循分层架构原则，将API层设计为薄层，而将实际实现委托给核心服务层。
-
-通过声明式命令定义API，CLI模块使开发者能够轻松地定义结构化命令，同时提供了命令重复检测机制，确保命令定义的一致性和唯一性。CLI模块通过registerCommands接口提供了扩展点，允许其他模块注册自己的命令，而无需CLI模块直接依赖这些模块的内部实现。
-
-CLI模块完全封装了Commander.js库，提供了简洁且类型安全的接口，不暴露任何底层实现细节。这种设计既保持了API的简洁性，又提高了系统的内聚性和可维护性。
-
-作为DPML核心功能的命令行入口，CLI模块提供了端到端的命令行交互能力，为用户提供了便捷的DPML功能访问方式，同时严格遵循关注点分离原则。
-
-业务流程概览：
-
+// 仅捕获 main 函数启动或执行期间的意外错误
+main().catch(error => {
+  console.error('CLI启动或执行过程中发生意外错误:', error);
+  process.exit(1); // 以错误码退出
+});
 ```
-创建CLI实例 → 验证命令定义 → 设置用户命令 → 
-返回CLI接口 → 注册外部命令 → 用户执行CLI → 解析命令行参数 → 执行匹配命令
-``` 
+
+这种分层处理确保了职责清晰，提高了代码的可维护性，并为用户提供了统一的错误反馈。
+
+## 7. bin.ts正确使用示例
+
+以下是 `bin.ts` 脚本的推荐实现方式，展示了如何利用 `cliService` 提供的抽象，而无需关心底层细节：
+
+```typescript
+#!/usr/bin/env node
+
+import { createCLI } from './api/cli'; // 从 API 层导入
+import {
+  getAllRegisteredCommands, 
+  // ... 其他需要的领域服务
+} from './core/framework/domainService';
+
+// 可以从 package.json 获取版本信息
+const VERSION = process.env.npm_package_version || 'unknown'; 
+
+async function main() {
+  // 1. 创建CLI实例
+  const cli = createCLI({
+    name: 'dpml', // 替换为你的CLI名称
+    version: VERSION,
+    description: 'DPML命令行工具' // 替换为你的CLI描述
+  }, []); // 初始命令可以为空，稍后注册
+
+  // 2. (可选) 初始化领域和注册命令
+  // const coreContext = initializeDomain(...);
+  // processDomainCommands(..., coreContext);
+  
+  // 3. 获取所有需要注册的命令
+  const commandsToRegister = getAllRegisteredCommands(); 
+  // 可能还需要合并其他来源的命令
+
+  // 4. 注册命令到CLI实例
+  cli.registerCommands(commandsToRegister);
+
+  // 5. 执行CLI - 无需 try-catch 处理 Commander 特有错误
+  // 错误处理已由 cliService.execute 内部完成
+  await cli.execute(); 
+}
+
+// 6. 捕获并处理 main 函数执行期间的意外错误
+main().catch(error => {
+  console.error('CLI启动或执行过程中发生意外错误:', error);
+  process.exit(1); // 以错误码退出
+});
+```
+
+**关键点**: `bin.ts` 的主要职责是组装和启动。它依赖 `createCLI` 来获取一个功能完备且包含错误处理逻辑的 `CLI` 实例，然后调用 `execute` 即可。
+
+## 8. 未来展望 (原 5. 未来展望)
+// ... existing code ...
+## 9. 附录 (原 6. 附录)
+// ... existing code ...

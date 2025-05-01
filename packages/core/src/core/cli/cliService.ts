@@ -37,7 +37,23 @@ export function createCLI(options: CLIOptions, commands: CommandDefinition[]): C
 
   // 返回CLI接口
   return {
-    execute: (argv?: string[]) => adapter.parse(argv),
+    execute: async (argv?: string[]) => {
+      try {
+        // 调用底层适配器解析参数
+        await adapter.parse(argv);
+      } catch (error) {
+        // 在CLI服务层捕获所有来自底层的错误
+        console.error('命令执行出错:', error);
+
+        // 仅在非测试环境下退出进程，避免中断测试执行
+        if (process.env.NODE_ENV !== 'test' && !process.env.VITEST) {
+          process.exit(1); // 使用非零退出码表示错误
+        }
+
+        // 重新抛出错误，允许上层调用者根据需要处理
+        throw error;
+      }
+    },
     showHelp: () => adapter.showHelp(),
     showVersion: () => adapter.showVersion(),
     registerCommands: (externalCommands: CommandDefinition[]) => {

@@ -11,7 +11,8 @@ import {
   createLogger as coreCreateLogger,
   setDefaultLogLevel as coreSetDefaultLogLevel
 } from '../core/logging/loggingService';
-import { LogLevel, Logger, LoggerConfig } from '../types/log';
+import { LogLevel } from '../types/log';
+import type { Logger, LoggerConfig } from '../types/log';
 
 /**
  * 获取默认日志器
