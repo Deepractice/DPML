@@ -86,6 +86,7 @@ describe('IT-DMCMD: 领域命令集成测试', () => {
 
     // 验证命令domain正确 - 只检查test-domain的命令
     const testDomainCommands = registeredCommands.filter(cmd => cmd.name.startsWith('test-domain:'));
+
     testDomainCommands.forEach(cmd => {
       expect(cmd.category).toBe('test-domain');
     });

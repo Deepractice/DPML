@@ -226,7 +226,7 @@ describe('UT-DOMSVC: domainService模块', () => {
       // 准备
       const content = createInvalidDPMLFixture();
       const context = createDomainContextFixture();
-      
+
       // 使用spyOn模式创建一个模拟
       vi.spyOn(console, 'error').mockImplementation(() => {}); // 屏蔽控制台错误
       mockParse.mockImplementation(() => {
