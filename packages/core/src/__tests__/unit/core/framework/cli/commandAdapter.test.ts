@@ -33,7 +33,7 @@ describe('Command Adapter', () => {
     description: 'Test command description',
     args: [{ name: 'arg1', description: 'Argument 1' }],
     options: [{ flags: '-o, --option', description: 'Option 1' }],
-    executor: vi.fn().mockResolvedValue('test-result')
+    action: vi.fn().mockResolvedValue('test-result')
   };
 
   // UT-CMDADP-01: 验证 adaptDomainAction 正确转换单个命令
@@ -60,7 +60,7 @@ describe('Command Adapter', () => {
     await result.action(...testArgs);
 
     // 验证执行器被调用，且上下文和参数正确传递
-    expect(testAction.executor).toHaveBeenCalledWith(testContext, ...testArgs);
+    expect(testAction.action).toHaveBeenCalledWith(testContext, ...testArgs);
   });
 
   // UT-CMDADP-03: 验证 adaptDomainActions 能正确批量转换命令
@@ -73,7 +73,7 @@ describe('Command Adapter', () => {
         description: 'Another command',
         args: [],
         options: [],
-        executor: vi.fn()
+        action: vi.fn()
       }
     ];
 
@@ -103,7 +103,7 @@ describe('Command Adapter', () => {
           description: 'Test action',
           args: [],
           options: [],
-          executor: vi.fn()
+          action: vi.fn()
         };
 
         const result = adaptDomainAction(action, domain, testContext);
@@ -121,7 +121,7 @@ describe('Command Adapter', () => {
       description: 'Test result passing',
       args: [],
       options: [],
-      executor: vi.fn().mockResolvedValue(expectedResult)
+      action: vi.fn().mockResolvedValue(expectedResult)
     };
 
     const result = adaptDomainAction(action, 'test-domain', testContext);

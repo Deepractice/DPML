@@ -68,7 +68,7 @@ describe('命令集成端到端测试', () => {
             description: '自定义命令',
             args: [{ name: 'input', description: '输入文件', required: true }],
             options: [{ flags: '--format <type>', description: '输出格式' }],
-            executor: async (context, input, options) => {
+            action: async (context, input, options) => {
               // 仅打印信息，不返回值以符合void类型要求
               console.log(`Executed with ${input} and ${options.format || 'default'}`);
             }
@@ -128,7 +128,7 @@ describe('命令集成端到端测试', () => {
           {
             name: 'special-command',
             description: '领域2特殊命令',
-            executor: async (context) => {
+            action: async (context) => {
               // 仅打印信息，不返回值以符合void类型要求
               console.log('domain2 special command executed');
             }
@@ -255,7 +255,7 @@ describe('命令集成端到端测试', () => {
             options: [
               { flags: '--format <type>', description: '输出格式', defaultValue: 'json' }
             ],
-            executor: async (context, file, options) => {
+            action: async (context, file, options) => {
               // 读取文件内容，确保文件存在
               const content = await fs.readFile(file, 'utf-8');
 

@@ -130,7 +130,7 @@ export function createDomainActionFixture(): DomainAction {
     options: [
       { flags: '-o, --option <value>', description: '选项' }
     ],
-    executor: async (context, arg1, options) => {
+    action: async (context, arg1, options) => {
       // 测试执行器
       return `Executed with ${arg1}`;
     }

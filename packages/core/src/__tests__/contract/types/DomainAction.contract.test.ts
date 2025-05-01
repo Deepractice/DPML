@@ -16,20 +16,20 @@ describe('DomainAction Interface Contract', () => {
     expectTypeOf<DomainAction>().toHaveProperty('description');
     expectTypeOf<DomainAction>().toHaveProperty('args');
     expectTypeOf<DomainAction>().toHaveProperty('options');
-    expectTypeOf<DomainAction>().toHaveProperty('executor');
+    expectTypeOf<DomainAction>().toHaveProperty('action');
 
     // 验证属性的类型
     expectTypeOf<DomainAction['name']>().toMatchTypeOf<string>();
     expectTypeOf<DomainAction['description']>().toMatchTypeOf<string>();
     expectTypeOf<DomainAction['args']>().toMatchTypeOf<Array<DomainArgumentDefinition> | undefined>();
     expectTypeOf<DomainAction['options']>().toMatchTypeOf<Array<DomainOptionDefinition> | undefined>();
-    expectTypeOf<DomainAction['executor']>().toMatchTypeOf<(context: DomainContext, ...args: any[]) => Promise<void> | void>();
+    expectTypeOf<DomainAction['action']>().toMatchTypeOf<(context: DomainContext, ...args: any[]) => Promise<void> | void>();
 
     // 验证实例类型兼容性
     const action: DomainAction = {
       name: 'test-action',
       description: 'Test Action',
-      executor: (context) => {
+      action: (context) => {
         console.log('Test action executed');
       }
     };
@@ -53,7 +53,7 @@ describe('DomainAction Interface Contract', () => {
           defaultValue: 'default'
         }
       ],
-      executor: async (context, arg1, options) => {
+      action: async (context, arg1, options) => {
         console.log(`Test action executed with arg1: ${arg1} and options: ${JSON.stringify(options)}`);
       }
     };
@@ -64,28 +64,28 @@ describe('DomainAction Interface Contract', () => {
   // CT-TYPE-DACT-02: DomainAction.executor应接收DomainContext
   test('CT-TYPE-DACT-02: DomainAction.executor应接收DomainContext', () => {
     // 验证executor函数第一个参数为DomainContext类型
-    expectTypeOf<DomainAction['executor']>().parameters.toMatchTypeOf<[DomainContext, ...any[]]>();
+    expectTypeOf<DomainAction['action']>().parameters.toMatchTypeOf<[DomainContext, ...any[]]>();
 
     // 验证executor函数可以是同步的
-    const syncExecutor: DomainAction['executor'] = (context) => {
+    const syncExecutor: DomainAction['action'] = (context) => {
       console.log('Sync executor');
     };
 
-    expectTypeOf(syncExecutor).toMatchTypeOf<DomainAction['executor']>();
+    expectTypeOf(syncExecutor).toMatchTypeOf<DomainAction['action']>();
 
     // 验证executor函数可以是异步的
-    const asyncExecutor: DomainAction['executor'] = async (context) => {
+    const asyncExecutor: DomainAction['action'] = async (context) => {
       console.log('Async executor');
     };
 
-    expectTypeOf(asyncExecutor).toMatchTypeOf<DomainAction['executor']>();
+    expectTypeOf(asyncExecutor).toMatchTypeOf<DomainAction['action']>();
 
     // 验证executor函数可以接收额外参数
-    const executorWithArgs: DomainAction['executor'] = (context, arg1, options) => {
+    const executorWithArgs: DomainAction['action'] = (context, arg1, options) => {
       console.log(`Executor with args: ${arg1} and options: ${JSON.stringify(options)}`);
     };
 
-    expectTypeOf(executorWithArgs).toMatchTypeOf<DomainAction['executor']>();
+    expectTypeOf(executorWithArgs).toMatchTypeOf<DomainAction['action']>();
   });
 
   // 验证DomainArgumentDefinition接口

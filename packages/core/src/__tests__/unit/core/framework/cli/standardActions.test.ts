@@ -100,7 +100,7 @@ describe('UT-STDACT: 标准命令测试', () => {
     expect(validateCommand?.options?.[0].flags).toBe('--strict');
 
     // 验证执行器函数
-    expect(validateCommand?.executor).toBeTypeOf('function');
+    expect(validateCommand?.action).toBeTypeOf('function');
   });
 
   it('UT-STDACT-02: standardActions应定义parse命令', () => {
@@ -122,7 +122,7 @@ describe('UT-STDACT: 标准命令测试', () => {
     expect(parseCommand?.options?.[1].defaultValue).toBe('json');
 
     // 验证执行器函数
-    expect(parseCommand?.executor).toBeTypeOf('function');
+    expect(parseCommand?.action).toBeTypeOf('function');
   });
 
   it('UT-STDACT-04: validate命令executor应正确执行验证', async () => {
@@ -134,7 +134,7 @@ describe('UT-STDACT: 标准命令测试', () => {
     if (!validateCommand) return; // TypeScript类型保护
 
     // 执行命令
-    const result = await validateCommand.executor(
+    const result = await validateCommand.action(
       fixture.context,
       testFilePath,
       { strict: true }
@@ -190,7 +190,7 @@ describe('UT-STDACT: 标准命令测试', () => {
     });
 
     // 执行命令 - 非严格模式
-    const result = await validateCommand.executor(
+    const result = await validateCommand.action(
       fixture.context,
       testFilePath,
       { strict: false }
@@ -215,7 +215,7 @@ describe('UT-STDACT: 标准命令测试', () => {
 
     // 使用try/catch来捕获错误
     try {
-      await validateCommand.executor(
+      await validateCommand.action(
         fixture.context,
         testFilePath,
         { strict: true }
@@ -239,7 +239,7 @@ describe('UT-STDACT: 标准命令测试', () => {
     if (!parseCommand) return; // TypeScript类型保护
 
     // 执行命令 - 输出到控制台
-    const result = await parseCommand.executor(
+    const result = await parseCommand.action(
       fixture.context,
       testFilePath,
       { format: 'json' }
@@ -269,7 +269,7 @@ describe('UT-STDACT: 标准命令测试', () => {
     vi.clearAllMocks();
 
     // 执行命令 - 输出到文件
-    await parseCommand.executor(
+    await parseCommand.action(
       fixture.context,
       testFilePath,
       { format: 'json', output: 'output.json' }
@@ -289,7 +289,7 @@ describe('UT-STDACT: 标准命令测试', () => {
     if (!parseCommand) return; // TypeScript类型保护
 
     // 执行命令 - 不支持的格式
-    await expect(parseCommand.executor(
+    await expect(parseCommand.action(
       fixture.context,
       testFilePath,
       { format: 'unsupported' }
@@ -308,7 +308,7 @@ describe('UT-STDACT: 标准命令测试', () => {
     mockReadFile.mockRejectedValue(new Error('文件不存在'));
 
     // 执行命令
-    await expect(validateCommand.executor(
+    await expect(validateCommand.action(
       fixture.context,
       testFilePath,
       { strict: true }

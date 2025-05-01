@@ -33,7 +33,7 @@ export interface DomainAction {
    * @param context 领域上下文
    * @param args 命令参数
    */
-  executor: (context: DomainContext, ...args: any[]) => Promise<void> | void;
+  action: (context: DomainContext, ...args: any[]) => Promise<void> | void;
 }
 
 /**

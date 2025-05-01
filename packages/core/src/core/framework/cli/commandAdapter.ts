@@ -21,7 +21,7 @@ export function adaptDomainAction(
     options: action.options,
     action: async (...args) => {
       // 执行器调用时注入领域上下文
-      return action.executor(context, ...args);
+      return action.action(context, ...args);
     },
     category: domain
   };

@@ -25,7 +25,7 @@ export const standardActions: DomainAction[] = [
     options: [
       { flags: '--strict', description: '启用严格验证模式' }
     ],
-    executor: async (context, file, options) => {
+    action: async (context, file, options) => {
       try {
         // 读取文件内容
         const content = await fs.readFile(file, 'utf-8');
@@ -98,7 +98,7 @@ export const standardActions: DomainAction[] = [
       { flags: '--output <file>', description: '输出文件路径' },
       { flags: '--format <format>', description: '输出格式 (json|xml)', defaultValue: 'json' }
     ],
-    executor: async (context, file, options) => {
+    action: async (context, file, options) => {
       try {
         // 读取文件内容
         const content = await fs.readFile(file, 'utf-8');
