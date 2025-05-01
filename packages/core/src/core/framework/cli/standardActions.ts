@@ -5,6 +5,8 @@
 
 import fs from 'fs/promises';
 
+import { formatDPMLDocument } from '@core/types/utils';
+
 import { parse } from '../../../api/parser';
 import { processDocument } from '../../../api/processing';
 import { processSchema } from '../../../api/schema';
@@ -106,9 +108,11 @@ export const standardActions: DomainAction[] = [
         console.log(`读取文件: ${file}`);
 
         // 解析DPML内容
-        const document = await parse(content);
+        const document = parse(content);
 
         console.log(`解析文件成功: ${file}`);
+
+        console.log(`解析结果：`, formatDPMLDocument(document));
 
         // 处理Schema
         const processedSchema = processSchema(context.schema);

@@ -4,10 +4,11 @@
  */
 
 // 导入核心解析函数
+import { formatDPMLDocument, formatDPMLNode } from '@core/types/utils';
+
 import { parse, parseAsync } from '../src';
 import type { DPMLDocument, ParseOptions, ParseResult, ParseError } from '../src/types';
 
-import { formatDPMLDocument, formatDPMLNode } from '@core/types/utils';
 
 // 一个简单的DPML示例内容
 const simpleDPML = `
