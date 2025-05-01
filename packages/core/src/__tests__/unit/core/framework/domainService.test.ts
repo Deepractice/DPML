@@ -12,8 +12,12 @@ import {
   processDomainCommands,
   registerCommands,
   getAllRegisteredCommands,
-  resetCommandRegistry
+  resetCommandRegistry,
+  ensureCoreInitialized,
+  getDefaultDomainName,
+  generateCommandsForDomain
 } from '../../../../core/framework/domainService';
+import type { DomainContext } from '../../../../core/framework/types';
 import { ConfigurationError, CompilationError } from '../../../../types';
 import type { CommandDefinition } from '../../../../types/CLI';
 import {
@@ -396,7 +400,7 @@ describe('UT-DOMSVC: domainService模块', () => {
           {
             name: 'custom-cmd',
             description: '自定义命令',
-            executor: vi.fn()
+            action: vi.fn()
           }
         ]
       };
@@ -452,7 +456,7 @@ describe('UT-DOMSVC: domainService模块', () => {
             {
               name: 'test-cmd',
               description: '测试命令',
-              executor: vi.fn()
+              action: vi.fn()
             }
           ]
         }
@@ -507,5 +511,105 @@ describe('UT-DOMSVC: domainService模块', () => {
       // 断言
       expect(getAllRegisteredCommands().length).toBe(0);
     });
+  });
+});
+
+// 添加新的测试分组
+describe('UT-DOMSVC-CLI: CLI领域功能测试', () => {
+  // 每个测试前重置注册表
+  beforeEach(() => {
+    resetCommandRegistry();
+  });
+
+  it('UT-DOMSVC-CLI-01: getDefaultDomainName应返回正确的默认领域名', () => {
+    // 执行
+    const defaultDomain = getDefaultDomainName();
+
+    // 断言
+    expect(defaultDomain).toBe('core');
+  });
+
+  it('UT-DOMSVC-CLI-02: ensureCoreInitialized应初始化核心领域', () => {
+    // 执行前
+    let commands = getAllRegisteredCommands();
+
+    expect(commands.filter(cmd => cmd.category === 'core').length).toBe(0);
+
+    // 执行
+    ensureCoreInitialized();
+
+    // 断言
+    commands = getAllRegisteredCommands();
+    const coreCommands = commands.filter(cmd => cmd.category === 'core');
+
+    // 至少应有核心命令如parse和validate
+    expect(coreCommands.length).toBeGreaterThan(0);
+    expect(coreCommands.some(cmd => cmd.name === 'core:parse')).toBe(true);
+    expect(coreCommands.some(cmd => cmd.name === 'core:validate')).toBe(true);
+  });
+
+  it('UT-DOMSVC-CLI-03: ensureCoreInitialized应是幂等的', () => {
+    // 第一次调用
+    ensureCoreInitialized();
+    const firstCallCommands = getAllRegisteredCommands();
+
+    // 第二次调用
+    ensureCoreInitialized();
+    const secondCallCommands = getAllRegisteredCommands();
+
+    // 断言两次调用后命令数量相同
+    expect(secondCallCommands.length).toBe(firstCallCommands.length);
+
+    // 断言没有命令被重复注册
+    const uniqueCommandNames = new Set(secondCallCommands.map(cmd => cmd.name));
+
+    expect(uniqueCommandNames.size).toBe(secondCallCommands.length);
+  });
+
+  it('UT-DOMSVC-CLI-04: generateCommandsForDomain应返回领域的命令', () => {
+    // 准备
+    const testConfig = createDomainConfigFixture();
+
+    testConfig.domain = 'test-domain';
+    testConfig.commands = {
+      includeStandard: true,
+      actions: [
+        {
+          name: 'custom-cmd',
+          description: '自定义命令',
+          action: async (context: DomainContext) => {
+            // 测试命令动作
+          }
+        }
+      ]
+    };
+
+    // 执行
+    const commands = generateCommandsForDomain(testConfig);
+
+    // 断言
+    expect(commands.length).toBeGreaterThan(0);
+    expect(commands.some(cmd => cmd.name === 'test-domain:custom-cmd')).toBe(true);
+    expect(commands.some(cmd => cmd.name === 'test-domain:parse')).toBe(true);
+    expect(commands.some(cmd => cmd.name === 'test-domain:validate')).toBe(true);
+
+    // 确保不影响全局命令注册表
+    const globalCommands = getAllRegisteredCommands();
+
+    expect(globalCommands.length).toBe(0);
+  });
+
+  it('UT-DOMSVC-CLI-05: generateCommandsForDomain应处理没有commands的配置', () => {
+    // 准备
+    const testConfig = createDomainConfigFixture();
+
+    testConfig.domain = 'test-domain';
+    delete testConfig.commands;
+
+    // 执行
+    const commands = generateCommandsForDomain(testConfig);
+
+    // 断言
+    expect(commands.length).toBe(0);
   });
 });

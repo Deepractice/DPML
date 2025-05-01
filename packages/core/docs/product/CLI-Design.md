@@ -45,9 +45,9 @@ CLI模块是DPML核心的命令行接口，负责提供一致、直观的命令�
 
 CLI模块严格遵循项目的分层架构：
 
-1. **API层**：`api/cli.ts` 模块，提供 `createCLI` 函数作为唯一入口。
+1. **API层**：`api/cli.ts` 模块，提供 `createCLI` 函数作为底层CLI创建入口，`api/framework.ts` 模块，提供 `createDPMLCLI` 函数作为应用级CLI统一入口。
 2. **Types层**：定义 `CLI` 接口、`CommandDefinition` 和相关类型，确保类型安全。
-3. **Core层**：`core/cli` 目录，包含 `cliService.ts` (服务逻辑) 和 `CLIAdapter.ts` (底层库适配器)。
+3. **Core层**：`core/cli` 目录，包含 `cliService.ts` (服务逻辑) 和 `CLIAdapter.ts` (底层库适配器)。此外，`core/framework/domainService.ts` 提供对CLI与领域命令集成的支持。
 
 ## 4. 模块职责
 
@@ -72,14 +72,21 @@ CLI模块采用严格的职责划分，确保各层次关注点分离：
     -   组织和注册初始用户命令和后续的外部命令。
     -   验证命令定义的有效性 (如重复命令)。
 
-### 4.3 应用入口 (`bin.ts`)
+### 4.3 Framework服务 (`domainService.ts`)
+
+-   **职责**: 管理领域相关的CLI命令注册和提供统一入口。
+-   **功能**:
+    -   确保核心领域命令初始化 (`ensureCoreInitialized`)。
+    -   收集所有已注册的领域命令 (`getAllRegisteredCommands`)。
+    -   提供默认领域名称 (`getDefaultDomainName`)。
+    -   为每个领域生成相应的命令 (`generateCommandsForDomain`)。
+
+### 4.4 应用入口 (`bin.ts`)
 
 -   **职责**: 仅作为应用的可执行入口点。
 -   **功能**:
-    -   初始化和配置CLI (调用 `createCLI`)。
-    -   获取并注册应用所需的所有命令 (如标准命令、领域命令)。
+    -   调用 `createDPMLCLI` 创建完整配置的CLI实例
     -   调用 `cli.execute()` 启动命令行处理。
-    -   **不处理** 底层库实现细节或特定错误代码 (这些已由 `CLIAdapter` 和 `cliService` 处理)。
     -   只负责捕获 `main` 函数执行期间（如初始化阶段）可能发生的未预料错误。
 
 ## 5. 核心组件设计 (原 4. 组件设计)
@@ -87,12 +94,31 @@ CLI模块采用严格的职责划分，确保各层次关注点分离：
 ### 5.1 API设计 (原 4.1)
 
 ```typescript
-// api/CLITypes.ts
+// api/cli.ts
 export function createCLI(
   options: CLIOptions, 
   commands: CommandDefinition[]
 ): CLITypes {
   return cliService.createCLI(options, commands);
+}
+
+// api/framework.ts
+/**
+ * 创建DPML命令行工具实例
+ * 
+ * 此函数作为DPML CLI的统一入口点，负责：
+ * 1. 初始化核心领域（如果尚未完成）
+ * 2. 从domainService获取所有已注册的领域命令
+ * 3. 创建基础CLI实例
+ * 4. 将所有领域命令注册到CLI实例中
+ * 5. 为默认领域（如'core'）的命令创建无前缀的别名
+ * 6. 返回一个完全配置好的、可执行的CLI实例
+ *
+ * @param options 可选的CLI配置选项，用于覆盖默认设置
+ * @returns 配置完成的CLI实例
+ */
+export function createDPMLCLI(options?: Partial<CLIOptions>): CLI {
+  // ...实现细节
 }
 ```
 

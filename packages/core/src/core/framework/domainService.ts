@@ -37,6 +37,20 @@ import type { DomainContext } from './types';
 // 全局命令注册表
 const commandRegistry: CommandDefinition[] = [];
 
+// 领域注册表，用于存储领域配置和命令
+interface DomainRegistration {
+  config: DomainConfig; // 领域配置
+  context: DomainContext; // 领域上下文
+  commands: CommandDefinition[]; // 该领域注册的命令
+}
+const domainRegistry = new Map<string, DomainRegistration>();
+
+// 默认领域名称
+const DEFAULT_DOMAIN = 'core';
+
+// 核心领域初始化标志
+let coreInitialized = false;
+
 /**
  * 命令管理相关日志记录器
  */
@@ -120,6 +134,16 @@ export function initializeDomain(config: DomainConfig): DomainContext {
     commandLogger.info(`处理领域 '${config.domain}' 的命令配置`);
     processDomainCommands(config.commands, context);
   }
+
+  // 存储领域信息到领域注册表
+  const registration: DomainRegistration = {
+    config,
+    context,
+    commands: commandRegistry.filter(cmd => cmd.category === config.domain)
+  };
+
+  domainRegistry.set(config.domain, registration);
+  commandLogger.info(`领域 '${config.domain}' 已添加到领域注册表`);
 
   return context;
 }
@@ -498,4 +522,89 @@ export function getAllRegisteredCommands(): CommandDefinition[] {
 export function resetCommandRegistry(): void {
   commandLogger.info(`重置命令注册表`);
   commandRegistry.length = 0;
+  domainRegistry.clear();
+  coreInitialized = false;
+}
+
+/**
+ * 确保核心领域及其命令已初始化并注册
+ * 此函数设计为幂等操作，多次调用不会重复初始化
+ */
+export function ensureCoreInitialized(): void {
+  if (coreInitialized) {
+    commandLogger.info('核心领域已初始化，跳过');
+
+    return;
+  }
+
+  // 检查core领域是否已注册
+  if (!domainRegistry.has(DEFAULT_DOMAIN)) {
+    commandLogger.info('初始化核心领域');
+
+    // 创建核心领域配置
+    const coreConfig: DomainConfig = {
+      domain: DEFAULT_DOMAIN,
+      description: 'DPML核心领域',
+      schema: { element: 'root' }, // 简单的schema
+      transformers: [{
+        name: 'default',
+        transform: data => data
+      }],
+      commands: {
+        includeStandard: true,
+        actions: []
+      }
+    };
+
+    // 初始化核心领域
+    initializeDomain(coreConfig);
+  }
+
+  coreInitialized = true;
+  commandLogger.info('核心领域初始化完成');
+}
+
+/**
+ * 获取默认领域的名称
+ * @returns 默认领域名称字符串
+ */
+export function getDefaultDomainName(): string {
+  return DEFAULT_DOMAIN;
+}
+
+/**
+ * 为特定领域生成命令
+ * @param config 领域配置
+ * @returns 该领域的命令定义数组
+ */
+export function generateCommandsForDomain(config: DomainConfig): CommandDefinition[] {
+  const tempContext = {
+    domain: config.domain,
+    description: config.description || '',
+    schema: config.schema,
+    transformers: config.transformers,
+    options: {
+      ...defaultOptions,
+      ...config.options
+    }
+  };
+
+  // 保存当前命令注册表状态
+  const originalCommands = [...commandRegistry];
+
+  commandRegistry.length = 0;
+
+  // 处理领域命令
+  if (config.commands) {
+    processDomainCommands(config.commands, tempContext);
+  }
+
+  // 获取新注册的命令
+  const domainCommands = [...commandRegistry];
+
+  // 恢复原始命令注册表
+  commandRegistry.length = 0;
+  commandRegistry.push(...originalCommands);
+
+  return domainCommands;
 }

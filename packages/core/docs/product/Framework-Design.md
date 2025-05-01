@@ -66,6 +66,24 @@ export function createDomainDPML<T>(config: DomainConfig): DomainCompiler<T> {
     getTransformers: () => domainService.getDomainTransformers(state)
   };
 }
+
+/**
+ * 创建DPML命令行工具实例
+ * 
+ * 此函数作为DPML CLI的统一入口点，负责：
+ * 1. 初始化核心领域（如果尚未完成）
+ * 2. 从domainService获取所有已注册的领域命令
+ * 3. 创建基础CLI实例
+ * 4. 将所有领域命令注册到CLI实例中
+ * 5. 为默认领域（如'core'）的命令创建无前缀的别名
+ * 6. 返回一个完全配置好的、可执行的CLI实例
+ *
+ * @param options 可选的CLI配置选项，用于覆盖默认设置
+ * @returns 配置完成的CLI实例
+ */
+export function createDPMLCLI(options?: Partial<CLIOptions>): CLI {
+  // ...实现细节
+}
 ```
 
 ### 4.2 类型定义
@@ -232,6 +250,7 @@ classDiagram
     class framework {
         <<module>>
         +createDomainDPML<T>(config: DomainConfig): DomainCompiler<T> "创建领域编译器，返回符合接口的闭包对象"
+        +createDPMLCLI(options?: Partial<CLIOptions>): CLI "创建完整配置的CLI实例，作为命令行工具的统一入口"
     }
     note for framework "文件: api/framework.ts\n作为API层入口点，提供领域编译器创建功能"
     
@@ -245,49 +264,18 @@ classDiagram
     }
     note for DomainCompiler "文件: types/DomainCompiler.ts\n定义闭包API的形状，保证类型安全"
     
-    class DomainConfig {
+    class CLI {
         <<interface>>
-        +schema: Schema "领域特定的架构定义"
-        +transformers: Array<Transformer<unknown, unknown>> "转换器实例数组"
-        +options?: CompileOptions "可选的编译选项"
+        +execute(argv?: string[]): Promise<void> "执行命令行解析"
+        +showHelp(): void "显示帮助信息"
+        +showVersion(): void "显示版本信息"
+        +registerCommands(commands: CommandDefinition[]): void "注册外部命令"
     }
-    note for DomainConfig "文件: types/DomainConfig.ts\n领域配置接口，定义创建领域编译器所需的配置"
+    note for CLI "文件: types/CLI.ts\n定义CLI接口，提供命令行交互功能"
     
-    class CompileOptions {
-        <<interface>>
-        +strictMode?: boolean "是否启用严格模式"
-        +errorHandling?: 'throw' | 'warn' | 'silent' "错误处理策略"
-        +transformOptions?: TransformOptions "转换选项"
-        +custom?: Record<string, any> "自定义选项"
-    }
-    note for CompileOptions "文件: types/CompileOptions.ts\n编译选项接口，控制编译行为"
-    
-    %% Core层 - 模块服务层
-    class domainService {
-        <<module>>
-        +initializeDomain(config: DomainConfig): DomainState "初始化领域状态"
-        +compileDPML<T>(content: string, state: DomainState): Promise<T> "编译DPML内容为领域对象"
-        +extendDomain(state: DomainState, config: Partial<DomainConfig>): void "扩展领域配置"
-        +getDomainSchema(state: DomainState): Schema "获取架构"
-        +getDomainTransformers(state: DomainState): Array<Transformer<unknown, unknown>> "获取转换器集合"
-    }
-    note for domainService "文件: core/framework/domainService.ts\n模块服务层，管理领域状态\n协调编译流程"
-    
-    class DomainState {
-        <<interface>>
-        +schema: Schema "领域架构"
-        +transformers: Array<Transformer<unknown, unknown>> "转换器数组"
-        +options: Required<CompileOptions> "编译选项"
-    }
-    note for DomainState "文件: core/framework/types.ts\n内部状态接口，管理领域配置"
-    
-    %% 关系定义
-    framework --> domainService : 委托 "API委托原则，薄层设计"
-    framework ..> DomainCompiler : 返回 "返回符合接口的闭包对象"
-    DomainConfig *-- Schema : 包含 "使用架构定义"
-    DomainConfig *-- Transformer : 包含多个 "包含转换器数组"
-    DomainConfig o-- CompileOptions : 可选包含 "可选编译选项"
-    domainService --> DomainState : 管理 "维护领域状态"
+    %% 关系
+    framework ..> DomainCompiler : creates
+    framework ..> CLI : creates
 ```
 
 ## 6. 流程图
