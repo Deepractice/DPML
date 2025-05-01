@@ -87,7 +87,7 @@ describe('IT-DMCMD: 领域命令集成测试', () => {
 
     // 验证命令domain正确
     registeredCommands.forEach(cmd => {
-      expect(cmd.domain).toBe('test-domain');
+      expect(cmd.category).toBe('test-domain');
     });
   });
 
@@ -126,8 +126,8 @@ describe('IT-DMCMD: 领域命令集成测试', () => {
     expect(registeredCommands.length).toBe(6);
 
     // 按领域分组命令
-    const domain1Commands = registeredCommands.filter(cmd => cmd.domain === 'domain1');
-    const domain2Commands = registeredCommands.filter(cmd => cmd.domain === 'domain2');
+    const domain1Commands = registeredCommands.filter(cmd => cmd.category === 'domain1');
+    const domain2Commands = registeredCommands.filter(cmd => cmd.category === 'domain2');
 
     // 验证领域1命令
     expect(domain1Commands.length).toBe(3);
@@ -153,7 +153,7 @@ describe('IT-DMCMD: 领域命令集成测试', () => {
     const validateCommand = commands.find(cmd => cmd.name === 'test-domain:validate');
 
     expect(validateCommand).toBeDefined();
-    expect(validateCommand?.domain).toBe('test-domain');
+    expect(validateCommand?.category).toBe('test-domain');
 
     // 重置命令注册表
     resetCommandRegistry();
@@ -165,19 +165,19 @@ describe('IT-DMCMD: 领域命令集成测试', () => {
       {
         name: 'domain1:cmd1',
         description: '领域1命令1',
-        domain: 'domain1',
+        category: 'domain1',
         action: async () => {}
       },
       {
         name: 'domain1:cmd2',
         description: '领域1命令2',
-        domain: 'domain1',
+        category: 'domain1',
         action: async () => {}
       },
       {
         name: 'domain2:cmd1',
         description: '领域2命令1',
-        domain: 'domain2',
+        category: 'domain2',
         action: async () => {}
       }
     ];
@@ -191,12 +191,12 @@ describe('IT-DMCMD: 领域命令集成测试', () => {
     expect(allCommands.length).toBe(3);
 
     // 按领域筛选
-    const domain1Commands = allCommands.filter(cmd => cmd.domain === 'domain1');
+    const domain1Commands = allCommands.filter(cmd => cmd.category === 'domain1');
 
     expect(domain1Commands.length).toBe(2);
     expect(domain1Commands.every(cmd => cmd.name.startsWith('domain1:'))).toBe(true);
 
-    const domain2Commands = allCommands.filter(cmd => cmd.domain === 'domain2');
+    const domain2Commands = allCommands.filter(cmd => cmd.category === 'domain2');
 
     expect(domain2Commands.length).toBe(1);
     expect(domain2Commands[0].name).toBe('domain2:cmd1');

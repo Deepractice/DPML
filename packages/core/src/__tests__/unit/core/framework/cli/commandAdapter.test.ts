@@ -46,7 +46,7 @@ describe('Command Adapter', () => {
     expect(result.description).toBe(testAction.description);
     expect(result.arguments).toBe(testAction.args);
     expect(result.options).toBe(testAction.options);
-    expect(result.domain).toBe(domain);
+    expect(result.category).toBe(domain);
   });
 
   // UT-CMDADP-02: 验证执行器能正确注入上下文并调用原始执行器

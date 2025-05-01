@@ -411,15 +411,15 @@ describe('UT-DOMSVC: domainService模块', () => {
       expect(commands.length).toBe(3);
       expect(commands).toContainEqual(expect.objectContaining({
         name: `${context.domain}:validate`,
-        domain: context.domain
+        category: context.domain
       }));
       expect(commands).toContainEqual(expect.objectContaining({
         name: `${context.domain}:parse`,
-        domain: context.domain
+        category: context.domain
       }));
       expect(commands).toContainEqual(expect.objectContaining({
         name: `${context.domain}:custom-cmd`,
-        domain: context.domain
+        category: context.domain
       }));
     });
 
@@ -467,7 +467,7 @@ describe('UT-DOMSVC: domainService模块', () => {
       expect(commands.length).toBe(3); // validate + parse + test-cmd
       expect(commands).toContainEqual(expect.objectContaining({
         name: `${config.domain}:test-cmd`,
-        domain: config.domain
+        category: config.domain
       }));
     });
 

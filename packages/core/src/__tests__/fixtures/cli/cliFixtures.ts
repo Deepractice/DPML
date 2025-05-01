@@ -181,13 +181,13 @@ export function createCrossDomainDuplicateCommandsFixture(): CommandDefinition[]
     {
       name: 'export',
       description: '导出功能',
-      domain: 'domain1',
+      category: 'domain1',
       action: vi.fn()
     },
     {
       name: 'export',  // 相同名称但不同领域
       description: '导出功能',
-      domain: 'domain2',
+      category: 'domain2',
       action: vi.fn()
     }
   ];

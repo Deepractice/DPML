@@ -214,11 +214,11 @@ describe('CLIAdapter', () => {
       expect(setupCommandSpy).toHaveBeenCalledTimes(2);
       expect(setupCommandSpy.mock.calls[0][0]).toEqual({
         ...domainCommands[0],
-        domain: 'test-domain'
+        category: 'test-domain'
       });
       expect(setupCommandSpy.mock.calls[1][0]).toEqual({
         ...domainCommands[1],
-        domain: 'test-domain'
+        category: 'test-domain'
       });
     });
   });

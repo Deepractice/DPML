@@ -4,7 +4,6 @@
  */
 
 import fs from 'fs/promises';
-import path from 'path';
 
 import { parse } from '../../../api/parser';
 import { processDocument } from '../../../api/processing';

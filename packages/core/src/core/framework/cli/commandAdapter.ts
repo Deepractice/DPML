@@ -23,7 +23,7 @@ export function adaptDomainAction(
       // 执行器调用时注入领域上下文
       return action.executor(context, ...args);
     },
-    domain: domain
+    category: domain
   };
 }
 

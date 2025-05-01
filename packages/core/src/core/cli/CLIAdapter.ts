@@ -151,7 +151,7 @@ export class CLIAdapter {
     for (const command of commands) {
       this.setupCommand({
         ...command,
-        domain
+        category: domain
       });
     }
   }

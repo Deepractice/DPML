@@ -28,7 +28,7 @@ export function mergeDefaultOptions(options: CLIOptions): Required<CLIOptions> {
  * @returns 完整命令路径
  */
 export function getCommandPath(command: CommandDefinition, parentPath?: string): string {
-  console.log(`生成命令路径, 命令: ${command.name}, 父路径: ${parentPath || '无'}, 领域: ${command.domain || '无'}`);
+  console.log(`生成命令路径, 命令: ${command.name}, 父路径: ${parentPath || '无'}, 领域: ${command.category || '无'}`);
 
   // 构建基本路径
   let path = command.name;
@@ -39,8 +39,8 @@ export function getCommandPath(command: CommandDefinition, parentPath?: string):
   }
 
   // 添加领域前缀（针对根命令）
-  if (command.domain && !parentPath) {
-    path = `${command.domain}:${path}`;
+  if (command.category && !parentPath) {
+    path = `${command.category}:${path}`;
   }
 
   console.log(`最终路径: ${path}`);
@@ -74,7 +74,7 @@ export function validateCommands(commands: CommandDefinition[]): void {
     // 不考虑子命令，只检测顶级命令
     if (!parentPath && command.name) {
       // 记录命令名到领域的映射
-      const domain = command.domain || 'default';
+      const domain = command.category || 'default';
       const registeredDomains = crossDomainMap.get(command.name) || [];
 
       // 检查此命令名是否已在其他领域注册

@@ -154,5 +154,5 @@ export interface CommandDefinition {
   /**
    * 所属领域，用于组织命令层次结构
    */
-  domain?: string;
+  category?: string;
 }

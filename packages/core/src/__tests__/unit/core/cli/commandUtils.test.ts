@@ -179,7 +179,7 @@ describe('Command Utils', () => {
       const command: CommandDefinition = {
         name: 'test',
         description: 'Test Command',
-        domain: 'custom',
+        category: 'custom',
         action: () => {}
       };
 
@@ -195,7 +195,7 @@ describe('Command Utils', () => {
       const command: CommandDefinition = {
         name: 'child',
         description: 'Child Command',
-        domain: 'custom',
+        category: 'custom',
         action: () => {}
       };
 

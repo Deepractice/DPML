@@ -30,7 +30,7 @@ describe('CommandDefinition接口契约测试', () => {
       ],
       action: () => console.log('测试'),
       subcommands: [],
-      domain: 'test'
+      category: 'test'
     };
 
     // 断言 - 验证接口定义包含所有规定属性
@@ -40,7 +40,7 @@ describe('CommandDefinition接口契约测试', () => {
     expect(commandDef).toHaveProperty('options');
     expect(commandDef).toHaveProperty('action');
     expect(commandDef).toHaveProperty('subcommands');
-    expect(commandDef).toHaveProperty('domain');
+    expect(commandDef).toHaveProperty('category');
 
     // 验证属性类型
     expect(commandDef.name).toBeTypeOf('string');
@@ -49,7 +49,7 @@ describe('CommandDefinition接口契约测试', () => {
     expect(Array.isArray(commandDef.options)).toBe(true);
     expect(commandDef.action).toBeTypeOf('function');
     expect(Array.isArray(commandDef.subcommands)).toBe(true);
-    expect(commandDef.domain).toBeTypeOf('string');
+    expect(commandDef.category).toBeTypeOf('string');
   });
 
   // CT-TYPE-CMDF-02: CommandDefinition.subcommands应支持递归结构

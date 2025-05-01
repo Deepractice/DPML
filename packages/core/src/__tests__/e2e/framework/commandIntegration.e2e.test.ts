@@ -89,7 +89,7 @@ describe('命令集成端到端测试', () => {
     // 验证命令包含正确的领域信息
     const customCommand = commands.find(cmd => cmd.name === `${config.domain}:custom-action`);
 
-    expect(customCommand?.domain).toBe(config.domain);
+    expect(customCommand?.category).toBe(config.domain);
     expect(customCommand?.description).toBe('自定义命令');
   });
 
@@ -148,8 +148,8 @@ describe('命令集成端到端测试', () => {
     expect(commands.length).toBe(5);
 
     // 每个领域应该有自己的命令
-    const domain1Commands = commands.filter(cmd => cmd.domain === 'domain1');
-    const domain2Commands = commands.filter(cmd => cmd.domain === 'domain2');
+    const domain1Commands = commands.filter(cmd => cmd.category === 'domain1');
+    const domain2Commands = commands.filter(cmd => cmd.category === 'domain2');
 
     expect(domain1Commands.length).toBe(2); // validate, parse
     expect(domain2Commands.length).toBe(3); // validate, parse, special-command
