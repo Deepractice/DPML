@@ -6,7 +6,7 @@ import { baseConfig } from '../../tsup.base.config';
 
 export default defineConfig({
   ...baseConfig,
-  entry: ['src/index.ts'],
+  entry: ['src/index.ts', 'src/bin.ts'],
   noExternal: ['fast-xml-parser'],
   dts: true,
   target: 'es2020',

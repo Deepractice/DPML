@@ -167,22 +167,67 @@ export class CLIAdapter {
     console.log(`用法: dpml [选项] [命令]`);
     console.log(`\n可用命令:`);
 
-    this.program.commands.forEach(cmd => {
-      // 命令名称和描述
-      console.log(`  ${cmd.name().padEnd(15)} ${cmd.description()}`);
+    // 组织命令树结构以更好地显示
+    const domainCommands = new Map<string, readonly Command[]>();
+    const standaloneCommands: Command[] = [];
 
-      // 如果命令有子命令，显示子命令
-      if (cmd.commands && cmd.commands.length > 0) {
-        cmd.commands.forEach(subcmd => {
-          console.log(`    ${subcmd.name().padEnd(13)} ${subcmd.description()}`);
-        });
+    this.program.commands.forEach(cmd => {
+      // 检查命令名称是否为领域名
+      const isDomainCommand = this.program.commands.some(
+        otherCmd => otherCmd.commands &&
+        otherCmd.commands.some(subCmd => subCmd.name() === cmd.name())
+      );
+
+      if (!isDomainCommand && cmd.commands && cmd.commands.length > 0) {
+        // 这是一个领域命令
+        domainCommands.set(cmd.name(), cmd.commands);
+      } else if (cmd.name() !== 'help') {
+        // 不是领域命令也不是help命令
+        standaloneCommands.push(cmd);
       }
     });
 
-    console.log(`\n获取命令帮助: dpml [命令] --help`);
+    // 首先显示所有领域
+    if (domainCommands.size > 0) {
+      console.log(`  领域命令:`);
 
-    // 调用原始的帮助输出
-    this.program.outputHelp();
+      for (const [domain, commands] of domainCommands.entries()) {
+        console.log(`    ${domain.padEnd(12)} ${domain}领域命令集合`);
+      }
+
+      console.log('');
+    }
+
+    // 显示所有领域命令
+    for (const [domain, commands] of domainCommands.entries()) {
+      console.log(`  ${domain}领域命令:`);
+
+      for (const cmd of commands) {
+        console.log(`    ${domain} ${cmd.name().padEnd(10)} ${cmd.description()}`);
+      }
+
+      console.log('');
+    }
+
+    // 显示独立命令
+    if (standaloneCommands.length > 0) {
+      console.log(`  通用命令:`);
+
+      for (const cmd of standaloneCommands) {
+        console.log(`    ${cmd.name().padEnd(15)} ${cmd.description()}`);
+      }
+
+      console.log('');
+    }
+
+    // 显示help命令
+    const helpCommand = this.program.commands.find(cmd => cmd.name() === 'help');
+
+    if (helpCommand) {
+      console.log(`  ${helpCommand.name().padEnd(15)} ${helpCommand.description()}`);
+    }
+
+    console.log(`\n获取命令帮助:\n  dpml <命令> --help\n  dpml <领域> <命令> --help`);
   }
 
   /**
@@ -205,17 +250,17 @@ export class CLIAdapter {
     try {
       await this.program.parseAsync(argv || process.argv);
     } catch (err) {
-      // 检查是否为 Commander.js 的已知非错误退出代码
+      // Commander.js的帮助和版本显示，视为正常流程
       if (err && typeof err === 'object' && 'code' in err) {
-        if (err.code === 'commander.helpDisplayed' || err.code === 'commander.version') {
-          // 这些是 Commander.js 处理的正常流程（如显示帮助或版本），不应视为错误抛出
-          return;
+        const code = err.code as string;
+
+        if (code === 'commander.helpDisplayed' || code === 'commander.version') {
+          return; // 完全正常返回，不抛出
         }
       }
 
-      // 在测试环境中捕获process.exit命令，防止测试被终止
+      // 测试环境特殊处理
       if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
-        // 测试环境下，即使是其他错误也直接返回，由测试用例断言
         return;
       }
 
@@ -232,52 +277,27 @@ export class CLIAdapter {
    * @private
    */
   private findParentCommand(parentPath: string): Command {
-    // 拆分父路径找到最后一个命令名
+    // 拆分父路径为各个部分（使用空格分隔）
     const parts = parentPath.split(' ');
-    const parentName = parts[parts.length - 1];
 
-    // 处理领域前缀
-    let nameToFind = parentName;
+    // 根命令开始
+    let currentCommand: Command = this.program;
 
-    if (nameToFind.includes(':')) {
-      nameToFind = nameToFind.split(':')[1];
-    }
+    // 逐层查找命令
+    for (const part of parts) {
+      // 跳过空字符串（可能由多个空格导致）
+      if (!part) continue;
 
+      const found = currentCommand.commands.find(cmd => cmd.name() === part);
 
-
-    // 在已注册命令中找到匹配名称的命令
-    const commands = this.program.commands;
-
-    // 递归查找命令
-    const findCommand = (cmds: readonly Command[], name: string): Command | undefined => {
-      // 在当前层级中查找
-      const command = cmds.find(cmd => cmd.name() === name);
-
-      if (command) {
-        return command;
+      if (!found) {
+        throw new Error(`找不到命令: ${part} (在路径 ${parentPath} 中)`);
       }
 
-      // 在子命令中递归查找
-      for (const cmd of cmds) {
-        if (cmd.commands && cmd.commands.length > 0) {
-          const found = findCommand(cmd.commands, name);
-
-          if (found) {
-            return found;
-          }
-        }
-      }
-
-      return undefined;
-    };
-
-    const parentCommand = findCommand(commands, nameToFind);
-
-    if (!parentCommand) {
-      throw new Error(`找不到父命令: ${parentPath}`);
+      currentCommand = found;
     }
 
-    return parentCommand;
+    return currentCommand;
   }
 
   /**

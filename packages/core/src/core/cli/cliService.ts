@@ -42,6 +42,16 @@ export function createCLI(options: CLIOptions, commands: CommandDefinition[]): C
         // 调用底层适配器解析参数
         await adapter.parse(argv);
       } catch (error) {
+        // 检查是否是Commander的帮助或版本显示错误
+        if (error && typeof error === 'object' && 'code' in error) {
+          const code = error.code as string;
+
+          if (code === 'commander.helpDisplayed' || code === 'commander.help' || code === 'commander.version') {
+            // 正常处理帮助和版本显示
+            return;
+          }
+        }
+
         // 在CLI服务层捕获所有来自底层的错误
         console.error('命令执行出错:', error);
 
@@ -84,7 +94,69 @@ function setupGlobalOptions(adapter: CLIAdapter, options: Required<CLIOptions>):
  * @param commands 命令定义数组
  */
 function setupUserCommands(adapter: CLIAdapter, commands: CommandDefinition[]): void {
-  commands.forEach(command => adapter.setupCommand(command));
+  // 按领域分组命令
+  const domainCommands = new Map<string, CommandDefinition[]>();
+
+  commands.forEach(command => {
+    const domain = command.category || 'default';
+
+    if (!domainCommands.has(domain)) {
+      domainCommands.set(domain, []);
+    }
+
+    domainCommands.get(domain)!.push(command);
+  });
+
+  // 为每个领域创建父命令
+  domainCommands.forEach((cmds, domain) => {
+    if (domain === 'default') {
+      // 无领域的命令直接注册
+      cmds.forEach(cmd => adapter.setupCommand(cmd));
+
+      return;
+    }
+
+    // 创建领域父命令
+    const domainCommand: CommandDefinition = {
+      name: domain,
+      description: `${domain}领域的命令集合`,
+      action: () => {
+        // 只显示该领域的帮助信息
+        console.log(`\n${domain}领域的可用命令:`);
+        cmds.forEach(cmd => {
+          console.log(`  ${domain} ${cmd.name.padEnd(10)} ${cmd.description}`);
+        });
+        console.log(`\n使用 'dpml ${domain} --help' 查看更多信息`);
+      }
+    };
+
+    // 注册领域命令
+    adapter.setupCommand(domainCommand);
+
+    // 注册该领域下的所有命令
+    cmds.forEach(cmd => {
+      // 移除领域标记，因为已经通过父命令表示
+      const { category, ...cmdWithoutCategory } = cmd;
+
+      // 注册为父命令的子命令
+      adapter.setupCommand(cmdWithoutCategory, domain);
+    });
+
+    // 为核心领域创建别名（向后兼容）
+    if (domain === 'core') {
+      cmds.forEach(cmd => {
+        // 提取不包含领域的命令名
+        const plainName = cmd.name;
+
+        // 创建与领域命令相同功能的别名
+        adapter.setupCommand({
+          ...cmd,
+          category: undefined, // 无需再次添加领域
+          description: `${cmd.description} (核心领域命令的别名)`
+        });
+      });
+    }
+  });
 }
 
 /**
@@ -94,5 +166,35 @@ function setupUserCommands(adapter: CLIAdapter, commands: CommandDefinition[]): 
  * @param commands 命令定义数组
  */
 export function registerExternalCommands(adapter: CLIAdapter, commands: CommandDefinition[]): void {
-  commands.forEach(command => adapter.setupCommand(command));
+  // 按领域分组命令
+  const domainCommands = new Map<string, CommandDefinition[]>();
+
+  commands.forEach(command => {
+    const domain = command.category || 'default';
+
+    if (!domainCommands.has(domain)) {
+      domainCommands.set(domain, []);
+    }
+
+    domainCommands.get(domain)!.push(command);
+  });
+
+  // 为每个领域注册命令
+  domainCommands.forEach((cmds, domain) => {
+    if (domain === 'default') {
+      // 无领域的命令直接注册
+      cmds.forEach(cmd => adapter.setupCommand(cmd));
+
+      return;
+    }
+
+    // 注册该领域下的所有命令
+    cmds.forEach(cmd => {
+      // 移除领域标记，因为已经通过父命令表示
+      const { category, ...cmdWithoutCategory } = cmd;
+
+      // 注册为父命令的子命令
+      adapter.setupCommand(cmdWithoutCategory, domain);
+    });
+  });
 }

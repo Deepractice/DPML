@@ -17,13 +17,14 @@
     }
   },
   "scripts": {
-    "prebuild": "pnpm lint",
+    "prebuild": "pnpm lint --fix",
     "build": "tsup",
+    "postbuild": "chmod +x dist/bin.js",
     "lint": "eslint src --ext .ts",
     "swc": "node -r @swc-node/register",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "clean": "rm -rf dist node_modules"
+    "clean": "rm -rf dist node_modules coverage .turbo"
   },
   "files": [
     "dist"

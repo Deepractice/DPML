@@ -38,9 +38,9 @@ export function getCommandPath(command: CommandDefinition, parentPath?: string):
     path = `${parentPath} ${path}`;
   }
 
-  // 添加领域前缀（针对根命令）
+  // 添加领域作为父命令（而非前缀）
   if (command.category && !parentPath) {
-    path = `${command.category}:${path}`;
+    path = `${command.category} ${path}`; // 使用空格替代冒号
   }
 
 

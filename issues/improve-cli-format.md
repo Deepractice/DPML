@@ -2,150 +2,64 @@
 
 ## 问题描述
 
-当前DPML命令行格式使用冒号分隔符表示领域和命令的关系，例如：
+当前DPML CLI命令使用 `domain:command` 格式表示领域命令，例如 `dpml core:validate file.dpml`。这种格式不符合现代CLI工具的常规做法，不够直观。
+
+## 改进目标
+
+将命令格式从当前的 `dpml domain:command` 改为更标准的层次化结构 `dpml domain command`，例如将 `dpml core:validate file.dpml` 改为 `dpml core validate file.dpml`。
+
+## 实现方案
+
+已完成实现，主要修改了以下几个关键部分：
+
+1. **修改 `getCommandPath` 函数**
+   - 在 `commandUtils.ts` 中，将领域前缀改为空格分隔的父命令格式
+   - 将 `${command.category}:${path}` 改为 `${command.category} ${path}`
+
+2. **修改 `findParentCommand` 方法**
+   - 在 `CLIAdapter.ts` 中，更新方法以处理空格分隔的命令路径
+   - 拆分路径时使用空格而不是冒号作为分隔符
+
+3. **修改命令注册逻辑**
+   - 在 `domainService.ts` 中，为每个领域创建父命令
+   - 将领域下的子命令注册为父命令的子命令，使用 `category` 属性标记父命令
+
+4. **完善其他相关代码**
+   - 确保帮助信息显示正确，适应新的层次化结构
+
+## 实现效果
+
+修改前的命令结构：
 ```
-dpml core:validate xxx.dpml
-dpml core:parse xxx.dpml
-```
-
-这种格式与主流命令行工具（如git、npm等）的使用习惯不一致。更符合用户习惯的格式应该是空格分隔的子命令，例如：
-```
-dpml core validate xxx.dpml
-dpml core parse xxx.dpml
-```
-
-## 解决方案
-
-### 1. 修改命令路径构建方式
-
-主要修改位置在`getCommandPath`函数中，将领域作为子命令而不是前缀：
-
-```typescript
-// packages/core/src/core/cli/commandUtils.ts
-export function getCommandPath(command: CommandDefinition, parentPath?: string): string {
-  // 构建基本路径
-  let path = command.name;
-
-  // 添加父路径前缀（使用空格分隔）
-  if (parentPath) {
-    path = `${parentPath} ${path}`;
-  }
-
-  // 添加领域作为父命令（而非前缀）
-  if (command.category && !parentPath) {
-    path = `${command.category} ${path}`;  // 使用空格替代冒号
-  }
-
-  return path;
-}
+dpml core:validate file.dpml
+dpml core:parse file.dpml
 ```
 
-### 2. 修改命令注册逻辑
-
-当前我们为每个命令直接注册，但新方式下需要先为每个领域创建顶级命令：
-
-```typescript
-export function setupDomainCommands(adapter: CLIAdapter, domain: string, commands: CommandDefinition[]): void {
-  // 先创建领域顶级命令
-  const domainCommand: CommandDefinition = {
-    name: domain,
-    description: `${domain}领域命令`,
-    action: () => {
-      // 显示帮助信息
-      
-      
-    }
-  };
-
-  // 注册领域顶级命令
-  adapter.setupCommand(domainCommand);
-
-  // 将所有命令作为子命令注册
-  for (const command of commands) {
-    // 创建子命令
-    adapter.setupCommand({
-      ...command,
-      name: command.name.replace(/^.*:/, '') // 移除可能已有的前缀
-    }, domain); // 指定父路径为领域名
-  }
-}
+修改后的命令结构：
+```
+dpml core validate file.dpml
+dpml core parse file.dpml
 ```
 
-### 3. 调整命令查找逻辑
-
-修改`findParentCommand`函数，适应新的命令结构：
-
-```typescript
-private findParentCommand(parentPath: string): Command {
-  // 拆分父路径，可能包含多层
-  const parts = parentPath.split(' ');
-  
-  // 在命令树中查找
-  let currentCommand = this.program;
-  
-  for (const part of parts) {
-    const subCmd = currentCommand.commands.find(cmd => cmd.name() === part);
-    if (!subCmd) {
-      throw new Error(`找不到命令: ${part} (在路径 ${parentPath} 中)`);
-    }
-    currentCommand = subCmd;
-  }
-  
-  return currentCommand;
-}
+新的命令结构保留了原来的别名功能，用户仍然可以使用：
 ```
-
-### 4. 处理默认领域的无前缀命令
-
-对于默认领域（core），我们仍然可以支持直接使用命令而不带领域的形式：
-
-```typescript
-// 注册core领域命令的快捷方式
-if (domain === 'core') {
-  for (const command of commands) {
-    // 直接在根级别注册，没有父命令
-    adapter.setupCommand({
-      ...command,
-      name: command.name.replace(/^.*:/, '') // 移除可能已有的前缀
-    });
-  }
-}
-```
-
-### 5. 修改测试用例
-
-更新相关测试用例以适应新的命令格式：
-
-```typescript
-// 应处理领域前缀
-it('应处理领域作为父命令', () => {
-  // 准备测试数据
-  const command: CommandDefinition = {
-    name: 'test',
-    description: 'Test Command',
-    category: 'custom',
-    action: () => {}
-  };
-
-  // 执行测试
-  const path = getCommandPath(command);
-
-  // 验证结果
-  expect(path).toBe('custom test');
-});
+dpml validate file.dpml  # 核心领域命令的别名
 ```
 
 ## 优势
 
-1. **命令格式更直观**：符合用户习惯，如`dpml core validate`而不是`dpml core:validate`
-2. **更好的层次结构**：清晰表示领域和命令的层次关系
-3. **符合行业标准**：与git、npm等流行工具的命令格式一致
-4. **更好的帮助信息**：在显示帮助时可以按领域进行分组
-5. **更易扩展**：可以方便地增加更深层次的子命令
+1. 更符合现代CLI工具的标准做法（如 git, npm, docker 等）
+2. 命令层次结构更清晰，便于拓展
+3. 帮助信息更有条理，更易于理解
+4. 为未来添加子命令提供了更自然的结构
 
-## 兼容性考虑
+## 已完成测试
 
-为了保持兼容性，可以在一段时间内同时支持两种格式：
-1. 新的空格分隔格式作为推荐用法
-2. 旧的冒号分隔格式作为别名保留一段时间，并在使用时给出警告
-3. 在文档中明确说明格式变更 
+已验证以下功能：
+- ✅ `dpml` 显示正确的帮助信息，包括领域列表
+- ✅ `dpml core --help` 显示该领域下可用的命令
+- ✅ 别名命令（无领域前缀）仍然可用
+
+## 注意事项
+
+该修改是向后兼容的API变更，不会破坏现有的用法。用户可以继续使用旧的命令格式，但在文档和示例中将推荐使用新格式。

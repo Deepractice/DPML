@@ -187,7 +187,7 @@ describe('Command Utils', () => {
       const path = getCommandPath(command);
 
       // 验证结果
-      expect(path).toBe('custom:test');
+      expect(path).toBe('custom test');
     });
 
     it('不应为子命令添加领域前缀', () => {
@@ -204,7 +204,7 @@ describe('Command Utils', () => {
 
       // 验证结果
       expect(path).toBe('parent child');
-      expect(path).not.toContain('custom:');
+      expect(path).not.toContain('custom');
     });
   });
 });

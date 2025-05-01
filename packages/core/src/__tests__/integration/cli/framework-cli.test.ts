@@ -51,8 +51,8 @@ describe('IT-FRM-CLI: Framework CLI集成测试', () => {
   });
 
   it('IT-FRM-CLI-02: 应能通过带前缀方式调用核心命令', async () => {
-    // 准备 - 使用core:validate命令（应该在核心命令中存在）
-    process.argv = ['node', 'dpml', 'core:validate', '--help'];
+    // 准备 - 使用core validate命令（应该在核心命令中存在）
+    process.argv = ['node', 'dpml', 'core', 'validate', '--help'];
     const cli = createDPMLCLI();
 
     // 执行
@@ -102,7 +102,7 @@ describe('IT-FRM-CLI: Framework CLI集成测试', () => {
     // 断言 - 验证同时包含带前缀和不带前缀的命令
     const output = consoleLogSpy.mock.calls.flat().join(' ');
 
-    expect(output).toContain('core:validate');  // 带前缀命令
+    expect(output).toContain('core validate');  // 带前缀命令
     expect(output).toContain('validate');       // 不带前缀命令
   });
 });

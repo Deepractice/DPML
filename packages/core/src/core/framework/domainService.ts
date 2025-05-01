@@ -645,10 +645,71 @@ export function createDPMLCLIService(options?: Partial<CLIOptions>): CLI {
   // 2. 获取所有已注册的领域命令
   const allCommands = getAllRegisteredCommands();
 
-  // 3. 注册所有原始命令 (带领域前缀，如 core:parse)
-  cli.registerCommands(allCommands);
+  // 3. 按领域分组
+  const domainCommands = new Map<string, CommandDefinition[]>();
 
-  // 4. 处理默认领域的无前缀命令
+  allCommands.forEach(cmd => {
+    const domain = cmd.category || 'default';
+
+    if (!domainCommands.has(domain)) {
+      domainCommands.set(domain, []);
+    }
+
+    domainCommands.get(domain)!.push(cmd);
+  });
+
+  // 4. 为每个领域创建父命令并注册子命令
+  for (const [domain, commands] of domainCommands.entries()) {
+    if (domain === 'default') {
+      // 无领域命令直接注册
+      cli.registerCommands(commands);
+      continue;
+    }
+
+    // 先注册领域父命令
+    const domainCommand: CommandDefinition = {
+      name: domain,
+      description: `${domain}领域的命令集合`,
+      action: () => {
+        console.log(`\n${domain}领域的可用命令:`);
+        commands.forEach(cmd => {
+          // 提取命令名（不含领域前缀）
+          const commandName = cmd.name.replace(`${domain}:`, '');
+
+          console.log(`  ${domain} ${commandName.padEnd(10)} ${cmd.description}`);
+        });
+        console.log(`\n使用 'dpml ${domain} --help' 查看更多信息`);
+      }
+    };
+
+    cli.registerCommands([domainCommand]);
+
+    // 然后注册该领域下的所有子命令
+    const subCommands = commands.map(cmd => {
+      // 创建子命令（不含领域标记）
+      const subCmd: CommandDefinition = {
+        ...cmd,
+        name: cmd.name.replace(`${domain}:`, ''), // 移除领域前缀
+        category: undefined // 不再需要领域标记
+      };
+
+      return subCmd;
+    });
+
+    // 这些作为父命令的子命令注册
+    subCommands.forEach(cmd => {
+      try {
+        cli.registerCommands([{
+          ...cmd,
+          category: domain // 使用category字段标记父命令，不使用parent
+        }]);
+      } catch (err) {
+        console.error(`注册命令 ${domain} ${cmd.name} 失败:`, err);
+      }
+    });
+  }
+
+  // 5. 为默认领域命令创建别名（直接调用方式）
   const defaultDomainName = getDefaultDomainName();
   const defaultDomainCommands = allCommands
     .filter(cmd => cmd.category === defaultDomainName)
@@ -667,11 +728,11 @@ export function createDPMLCLIService(options?: Partial<CLIOptions>): CLI {
       return unprefixedCmd;
     });
 
-  // 5. 注册无前缀的默认领域命令别名
+  // 注册无前缀的默认领域命令别名
   if (defaultDomainCommands.length > 0) {
     cli.registerCommands(defaultDomainCommands);
   }
 
-  // 6. 返回完全配置的CLI实例
+  // 返回完全配置的CLI实例
   return cli;
 }
