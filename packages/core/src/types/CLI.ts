@@ -41,7 +41,7 @@ export interface CLIOptions {
    */
   version: string;
 
-  /**
+  /**d
    * CLI描述
    */
   description: string;

@@ -15,7 +15,8 @@ import {
   resetCommandRegistry,
   ensureCoreInitialized,
   getDefaultDomainName,
-  generateCommandsForDomain
+  generateCommandsForDomain,
+  createDPMLCLIService
 } from '../../../../core/framework/domainService';
 import type { DomainContext } from '../../../../core/framework/types';
 import { ConfigurationError, CompilationError } from '../../../../types';
@@ -43,6 +44,16 @@ vi.mock('../../../../core/processing/processingService', () => ({
 vi.mock('../../../../api/transformer', () => ({
   transform: vi.fn(),
   registerTransformer: vi.fn()
+}));
+
+// 使用模拟 - 修改为只模拟createCLI，不再模拟domainService中的函数
+vi.mock('../../../../api/cli', () => ({
+  createCLI: vi.fn().mockImplementation(() => ({
+    execute: vi.fn(),
+    showHelp: vi.fn(),
+    showVersion: vi.fn(),
+    registerCommands: vi.fn()
+  }))
 }));
 
 describe('UT-DOMSVC: domainService模块', () => {
@@ -611,5 +622,104 @@ describe('UT-DOMSVC-CLI: CLI领域功能测试', () => {
 
     // 断言
     expect(commands.length).toBe(0);
+  });
+});
+
+// 新增对createDPMLCLIService函数测试
+describe('UT-DOMSVC-CLI-CREATE: createDPMLCLIService函数测试', () => {
+  // 获取真实命令的名称，用于断言
+  const actualCommandNames = ['validate', 'parse'];
+  // 创建模拟CLI实例
+  const mockCLI = {
+    execute: vi.fn(),
+    showHelp: vi.fn(),
+    showVersion: vi.fn(),
+    registerCommands: vi.fn()
+  };
+
+  // 每次测试前重置模拟
+  beforeEach(async () => {
+    // 重置命令注册表
+    resetCommandRegistry();
+
+    // 重置所有模拟
+    vi.clearAllMocks();
+
+    // 导入的createCLI返回模拟CLI实例
+    const { createCLI } = await import('../../../../api/cli');
+
+    vi.mocked(createCLI).mockReturnValue(mockCLI);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('UT-DOMSVC-CLI-CREATE-01: 应确保核心领域初始化', async () => {
+    // 直接使用真实的函数并验证结果
+    resetCommandRegistry();
+
+    // 验证初始状态 - 命令列表应为空
+    expect(getAllRegisteredCommands().length).toBe(0);
+
+    // 执行
+    createDPMLCLIService();
+
+    // 断言 - 核心领域应该被初始化（有命令注册）
+    expect(getAllRegisteredCommands().length).toBeGreaterThan(0);
+    expect(getAllRegisteredCommands().some(cmd => cmd.name.startsWith('core:'))).toBe(true);
+  });
+
+  it('UT-DOMSVC-CLI-CREATE-02: 应使用默认选项创建CLI', async () => {
+    // 获取模拟函数
+    const { createCLI } = await import('../../../../api/cli');
+
+    // 执行
+    createDPMLCLIService();
+
+    // 断言
+    expect(createCLI).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'dpml',
+        version: expect.any(String),
+        description: expect.stringContaining('DPML')
+      }),
+      []
+    );
+  });
+
+  it('UT-DOMSVC-CLI-CREATE-03: 应使用自定义选项创建CLI', async () => {
+    // 准备
+    const customOptions = {
+      name: 'custom-cli',
+      version: '2.0.0',
+      description: 'Custom CLI'
+    };
+
+    // 获取模拟函数
+    const { createCLI } = await import('../../../../api/cli');
+
+    // 执行
+    createDPMLCLIService(customOptions);
+
+    // 断言
+    expect(createCLI).toHaveBeenCalledWith(
+      expect.objectContaining(customOptions),
+      []
+    );
+  });
+
+  it('UT-DOMSVC-CLI-CREATE-06: 应返回CLI实例', () => {
+    // 执行
+    const result = createDPMLCLIService();
+
+    // 断言 - 确认返回了一个对象
+    expect(result).toBeDefined();
+    expect(typeof result).toBe('object');
+    // 确认返回对象具有CLI接口所需的方法
+    expect(result.execute).toBeDefined();
+    expect(result.showHelp).toBeDefined();
+    expect(result.showVersion).toBeDefined();
+    expect(result.registerCommands).toBeDefined();
   });
 });
