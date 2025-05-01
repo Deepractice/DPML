@@ -39,6 +39,9 @@ export * from './FrameworkError';
 
 export * from './TransformerDefiner';
 
+// 日志类型
+export * from './log';
+
 // CLI类型
 export type {
   CLI,

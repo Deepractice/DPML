@@ -8,6 +8,7 @@ export * from './processing';
 export * from './schema';
 export * from './transformer';
 export * from './framework';
+export * from './logger';
 
 // CLI模块
 export { createCLI } from './cli';

@@ -99,9 +99,8 @@
 - **执行任务**:
   - 验证文件:
     - 确认所有日志模块的文件已正确实现
-    - 确认所有文件遵循项目规范
+    - 确认所有文件遵循项目规范和设计文档
   - 补充功能:
-    - 添加日志处理工具方法（如工具函数和常量）
     - 优化导出接口，确保API一致性
     - 编写文档注释，补充使用示例
   - 质量检查:
@@ -118,11 +117,10 @@
 
 **环境(E)**:
 - **参考资源**:
-  - 前面八个任务的所有输出，包括:
+  - 前面七个任务的所有输出，包括:
     - 类型定义（task-01）
     - 核心组件实现（task-02到task-05）
     - 服务层和API层实现（task-06和task-07）
-    - 复合传输器实现（task-08）
   - `packages/core/docs/product/Logger-Design.md` - 日志模块设计文档
   - `packages/core/docs/develop/Logger-Testcase-Design.md` - 日志模块测试用例设计
   - 所有单元测试和集成测试文件
@@ -141,7 +139,7 @@
 
 - **注意事项**:
   - 所有必要的类型必须正确导出
-  - JSDoc文档必须完整，包括参数、返回值和使用示例
+  - JSDoc文档必须完整，包括参数、返回值和示例
   - 组件间依赖关系应当清晰且符合分层架构设计
   - 确保没有内存泄漏和资源泄漏
 
@@ -164,72 +162,7 @@
   - 使用TypeScript编译器检查类型完整性
   
 - **代码模式**:
-  - 添加工具方法示例:
-  ```typescript
-  // 在api/logging.ts中添加工具方法
-  
-  /**
-   * 创建按命名空间分隔的日志器
-   * @param namespace 命名空间
-   * @param config 可选的日志器配置
-   * @returns 创建的日志器实例
-   * @example
-   * ```typescript
-   * // 创建命名空间日志器
-   * const logger = createNamespacedLogger('app.database');
-   * logger.info('Database connected'); // 输出: [INFO] [app.database] Database connected
-   * ```
-   */
-  export function createNamespacedLogger(namespace: string, config?: Partial<LoggerConfig>): Logger {
-    const fullConfig: LoggerConfig = {
-      minLevel: LogLevel.INFO,
-      ...config,
-      formatter: config?.formatter || new DefaultFormatter(),
-      transports: config?.transports || [new ConsoleTransport()]
-    };
-    
-    // 装饰原始日志方法，添加命名空间前缀
-    const logger = createLogger(`ns:${namespace}`, fullConfig);
-    const decorated: Logger = {
-      debug(message: string, context?: Record<string, unknown>, error?: Error): void {
-        logger.debug(`[${namespace}] ${message}`, context, error);
-      },
-      info(message: string, context?: Record<string, unknown>, error?: Error): void {
-        logger.info(`[${namespace}] ${message}`, context, error);
-      },
-      warn(message: string, context?: Record<string, unknown>, error?: Error): void {
-        logger.warn(`[${namespace}] ${message}`, context, error);
-      },
-      error(message: string, context?: Record<string, unknown>, error?: Error): void {
-        logger.error(`[${namespace}] ${message}`, context, error);
-      },
-      fatal(message: string, context?: Record<string, unknown>, error?: Error): void {
-        logger.fatal(`[${namespace}] ${message}`, context, error);
-      }
-    };
-    
-    return decorated;
-  }
-  
-  /**
-   * 创建用于调试的日志器
-   * 将自动启用调用位置捕获
-   * @param name 可选的日志器名称
-   * @returns 创建的日志器实例
-   */
-  export function createDebugLogger(name?: string): Logger {
-    return createLogger(name || 'debug', {
-      minLevel: LogLevel.DEBUG,
-      callSiteCapture: {
-        enabled: true
-      },
-      formatter: createDefaultFormatter(),
-      transports: [createConsoleTransport()]
-    });
-  }
-  ```
-  
-  - 文档示例:
+  - 确保API文档示例符合设计规范:
   ```typescript
   /**
    * DPML日志模块
@@ -239,10 +172,10 @@
    * 
    * 基本用法:
    * ```typescript
-   * import { getLogger, LogLevel } from '@dpml/core';
+   * import { getDefaultLogger, getLogger, createLogger, setDefaultLogLevel, LogLevel } from '@dpml/core';
    * 
    * // 获取默认日志器
-   * const logger = getLogger();
+   * const logger = getDefaultLogger();
    * 
    * // 记录不同级别的日志
    * logger.debug('调试信息');
@@ -252,16 +185,11 @@
    * logger.fatal('严重错误');
    * 
    * // 设置全局日志级别
-   * setLogLevel(LogLevel.DEBUG);
+   * setDefaultLogLevel(LogLevel.DEBUG);
    * 
    * // 创建自定义日志器
    * const customLogger = createLogger('custom', {
    *   minLevel: LogLevel.INFO,
-   *   formatter: createJsonFormatter(),
-   *   transports: [
-   *     createConsoleTransport(),
-   *     createFileTransport('./logs/app.log')
-   *   ],
    *   callSiteCapture: {
    *     enabled: true,
    *     forLevels: [LogLevel.ERROR, LogLevel.FATAL]
@@ -283,7 +211,7 @@
 - **基础达标**:
   - 所有单元测试通过（types、core、api）
   - 所有集成测试通过（使用场景、组件协作）
-  - 所有端到端测试通过（全流程测试）
+  - 所有契约测试通过（API稳定性）
   - 所有lint检查通过，无error级别问题
   
 - **预期品质**:
@@ -293,7 +221,6 @@
   - 符合项目架构规范的组件结构
   
 - **卓越表现**:
-  - 提供高级实用工具方法，如createNamespacedLogger
-  - 提供使用教程和最佳实践指南
+  - 提供日志使用的最佳实践指南
   - 性能基准测试和优化
-  - 零警告的代码质量 
+  - 零警告的代码质量

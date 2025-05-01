@@ -98,14 +98,13 @@
   
 - **执行任务**:
   - 创建文件:
-    - `packages/core/src/api/logging.ts` - 实现日志模块的公共API
-    - `packages/core/src/api/interfaces.ts` - 在已有文件中添加日志接口导出
+    - `packages/core/src/api/logger.ts` - 实现日志模块的公共API
+    - `packages/core/src/api/index.ts` - 在已有文件中添加日志接口导出
   - 实现功能:
+    - 实现导出`getDefaultLogger`函数，获取默认日志器
     - 实现导出`getLogger`函数，支持命名日志器
     - 实现`createLogger`函数，创建自定义配置的日志器
-    - 实现`setLogLevel`函数，设置默认日志级别
-    - 实现`createDefaultFormatter`等工厂函数，创建格式化器
-    - 实现`createConsoleTransport`等工厂函数，创建传输器
+    - 实现`setDefaultLogLevel`函数，设置默认日志级别
     - 导出必要的类型和接口，如`LogLevel`、`Logger`等
 
 - **任务边界**:
@@ -121,7 +120,7 @@
   - `packages/core/src/core/logging/loggingService.ts` - 日志服务（第六个任务的输出）
   - `packages/core/docs/product/Logger-Design.md` - 日志模块设计文档
   - `packages/core/docs/develop/Logger-Testcase-Design.md` - 日志模块测试用例设计
-  - `packages/core/src/__tests__/unit/api/logging.test.ts` - API层单元测试
+  - `packages/core/src/__tests__/contract/api/logger.contract.test.ts` - API层契约测试
   - `packages/core/src/__tests__/integration/logging/index.test.ts` - 日志API集成测试
   
 - **上下文信息**:
@@ -139,7 +138,7 @@
   - API设计应遵循最小惊讶原则，接口行为应符合用户预期
   - 需要提供完整的JSDoc文档和类型定义
   - 公共API应当保持稳定性，支持向后兼容
-  - 工厂函数应当提供合理的默认参数
+  - API应严格遵循设计文档中的规范
 
 **实现指导(I)**:
 - **算法与流程**:
@@ -149,67 +148,71 @@
     3. 调用Core层相应功能
     4. 返回结果给用户
     
-  - 工厂函数流程:
-    1. 接收用户配置
-    2. 合并默认配置
-    3. 创建对应组件实例
-    4. 返回创建的实例
+  - 实现流程:
+    1. 导入Core层loggingService和类型定义
+    2. 实现公共API函数，委托给loggingService
+    3. 导出必要的类型和接口
+    4. 编写完整的JSDoc文档
 
 - **技术选型**:
   - 使用函数式API设计模式
   - 使用命名导出（named exports）
-  - 使用工厂函数模式创建组件实例
+  - 严格遵循设计文档中的API规范
   
 - **代码模式**:
   - 使用命名导出模式组织API函数
-  - 使用工厂函数模式创建组件实例
   - 使用委托模式将调用委托给Core层
+  - 遵循"薄API层"设计原则
   - 示例代码片段:
   ```typescript
   /**
-   * DPML日志模块API
-   * 提供简洁的日志功能接口
+   * DPML日志模块标准API
+   * 
+   * 该模块是DPML日志系统的标准公共API，严格遵循设计文档规范，
+   * 提供了获取日志器、创建自定义日志器和设置日志级别的功能。
    */
-  import { LogLevel, Logger, LoggerConfig, LogFormatter, LogTransport } from '../types/log';
+  import { LogLevel, Logger, LoggerConfig } from '../types/log';
   import * as loggingService from '../core/logging/loggingService';
-  import { DefaultFormatter } from '../core/logging/formatters/DefaultFormatter';
-  import { JsonFormatter } from '../core/logging/formatters/JsonFormatter';
-  import { SimpleFormatter } from '../core/logging/formatters/SimpleFormatter';
-  import { ConsoleTransport } from '../core/logging/transports/ConsoleTransport';
-  import { FileTransport } from '../core/logging/transports/FileTransport';
-  import { AsyncConsoleTransport } from '../core/logging/transports/AsyncConsoleTransport';
   
   /**
-   * 获取日志器
-   * @param name 可选的日志器名称，默认使用'default'
-   * @returns 日志器实例
+   * 获取默认日志器
+   * @returns 默认日志器实例
    * @example
    * ```typescript
    * // 获取默认日志器
-   * const logger = getLogger();
+   * const logger = getDefaultLogger();
    * logger.info('Hello DPML');
-   * 
+   * ```
+   */
+  export function getDefaultLogger(): Logger {
+    return loggingService.getDefaultLogger();
+  }
+  
+  /**
+   * 获取日志器
+   * @param name 日志器名称
+   * @returns 日志器实例
+   * @example
+   * ```typescript
    * // 获取命名日志器
    * const dbLogger = getLogger('database');
    * dbLogger.debug('DB connection established');
    * ```
    */
-  export function getLogger(name?: string): Logger {
-    return loggingService.getLogger(name || 'default');
+  export function getLogger(name: string): Logger {
+    return loggingService.getLogger(name);
   }
   
   /**
    * 创建自定义配置的日志器
    * @param name 日志器名称
    * @param config 日志器配置
-   * @returns 创建的日志器实例
+   * @returns 日志器实例
    * @example
    * ```typescript
    * // 创建自定义日志器
-   * const logger = createLogger('custom', {
-   *   minLevel: LogLevel.DEBUG,
-   *   formatter: createJsonFormatter(),
-   *   transports: [createConsoleTransport()]
+   * const logger = createLogger('api', {
+   *   minLevel: LogLevel.INFO
    * });
    * ```
    */
@@ -218,116 +221,50 @@
   }
   
   /**
-   * 设置全局默认日志级别
+   * 设置默认日志级别
    * @param level 日志级别
    * @example
    * ```typescript
    * // 设置默认日志级别为DEBUG
-   * setLogLevel(LogLevel.DEBUG);
+   * setDefaultLogLevel(LogLevel.DEBUG);
    * ```
    */
-  export function setLogLevel(level: LogLevel): void {
+  export function setDefaultLogLevel(level: LogLevel): void {
     loggingService.setDefaultLogLevel(level);
   }
   
-  /**
-   * 创建默认格式化器
-   * 格式: [时间] [级别] 消息 {上下文} (位置信息)
-   * @returns DefaultFormatter实例
-   */
-  export function createDefaultFormatter(): LogFormatter {
-    return new DefaultFormatter();
-  }
-  
-  /**
-   * 创建JSON格式化器
-   * 将日志条目转换为JSON格式，适用于结构化日志分析
-   * @returns JsonFormatter实例
-   */
-  export function createJsonFormatter(): LogFormatter {
-    return new JsonFormatter();
-  }
-  
-  /**
-   * 创建简单格式化器
-   * 格式: [级别] 消息
-   * @returns SimpleFormatter实例
-   */
-  export function createSimpleFormatter(): LogFormatter {
-    return new SimpleFormatter();
-  }
-  
-  /**
-   * 创建控制台传输器
-   * @param formatter 可选的格式化器，默认使用DefaultFormatter
-   * @returns ConsoleTransport实例
-   */
-  export function createConsoleTransport(formatter?: LogFormatter): LogTransport {
-    return new ConsoleTransport(formatter || createDefaultFormatter());
-  }
-  
-  /**
-   * 创建文件传输器
-   * @param filePath 日志文件路径
-   * @param formatter 可选的格式化器，默认使用DefaultFormatter
-   * @returns FileTransport实例
-   */
-  export function createFileTransport(filePath: string, formatter?: LogFormatter): LogTransport {
-    return new FileTransport(filePath, formatter || createDefaultFormatter());
-  }
-  
-  /**
-   * 创建异步控制台传输器
-   * @param flushIntervalMs 可选的刷新间隔（毫秒），默认为1000
-   * @param formatter 可选的格式化器，默认使用DefaultFormatter
-   * @returns AsyncConsoleTransport实例
-   */
-  export function createAsyncConsoleTransport(
-    flushIntervalMs?: number,
-    formatter?: LogFormatter
-  ): LogTransport & { flush: (sync?: boolean) => Promise<void> } {
-    return new AsyncConsoleTransport(
-      flushIntervalMs || 1000,
-      formatter || createDefaultFormatter()
-    );
-  }
-  
   // 导出类型和枚举
-  export { LogLevel, Logger, LoggerConfig, LogFormatter, LogTransport };
+  export { LogLevel, Logger, LoggerConfig };
   ```
   
   ```typescript
-  // 在interfaces.ts中添加
-  export { Logger, LogLevel, LoggerConfig, LogFormatter, LogTransport } from '../types/log';
+  // 在index.ts中添加
+  export * from './logger';
   ```
   
 - **实现策略**:
-  1. 先实现基本的委托函数（getLogger, createLogger, setLogLevel）
-  2. 实现格式化器的工厂函数
-  3. 实现传输器的工厂函数
-  4. 确保所有API函数有完整的JSDoc文档和示例
-  5. 导出必要的类型和接口
+  1. 先实现基本的委托函数（getDefaultLogger, getLogger, createLogger, setDefaultLogLevel）
+  2. 确保所有API函数有完整的JSDoc文档和示例
+  3. 导出必要的类型和接口
+  4. 更新index.ts文件，确保正确导出API
 
 **成功标准(S)**:
 - **基础达标**:
-  - 单元测试通过:
-    - UT-API-LOG-01: getLogger应委托给loggingService
-    - UT-API-LOG-02: createLogger应委托给loggingService
-    - UT-API-LOG-03: setLogLevel应委托给loggingService
-    - UT-API-LOG-04: 格式化器工厂函数应创建相应的格式化器
-    - UT-API-LOG-05: 传输器工厂函数应创建相应的传输器
+  - 契约测试通过:
+    - CT-API-LOG-01: getDefaultLogger应维持类型签名
+    - CT-API-LOG-02: getLogger应维持类型签名
+    - CT-API-LOG-03: createLogger应维持类型签名
+    - CT-API-LOG-04: setDefaultLogLevel应维持类型签名
+    - CT-API-LOG-05: getDefaultLogger应返回符合Logger接口的对象
+    - CT-API-LOG-06: getLogger应返回符合Logger接口的对象
+    - CT-API-LOG-07: createLogger应返回符合Logger接口的对象
   - 集成测试通过:
     - IT-LOG-API-01: 通过API创建的日志器应正常工作
     - IT-LOG-API-02: 通过API设置的日志级别应生效
-    - IT-LOG-API-03: 通过API创建的格式化器和传输器应协同工作
   
 - **预期品质**:
   - API设计符合最小惊讶原则
+  - API设计严格遵循设计文档规范
   - 所有API函数有完整的JSDoc文档和使用示例
   - 所有API函数有准确的类型定义
   - 导出所有必要的类型和接口
-  
-- **卓越表现**:
-  - 提供额外的便捷API，如特定级别日志器的快捷创建
-  - 支持链式调用的流畅API设计
-  - 实现更多高级功能的工厂函数 
