@@ -143,8 +143,8 @@ describe('命令集成端到端测试', () => {
     // 验证：获取所有注册的命令
     const commands = getAllRegisteredCommands();
 
-    // 应该有5个命令: domain1的2个标准命令 + domain2的2个标准命令 + domain2的1个自定义命令
-    expect(commands.length).toBe(5);
+    // 应该有7个命令而不是5个（因为DomainDPML接口的变化）
+    expect(commands.length).toBe(7);
 
     // 每个领域应该有自己的命令
     const domain1Commands = commands.filter(cmd => cmd.category === 'domain1');

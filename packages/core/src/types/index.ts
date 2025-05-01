@@ -34,6 +34,7 @@ export * from './SemanticExtractor';
 export * from './DomainCompiler';
 export * from './DomainConfig';
 export * from './DomainAction';
+export * from './DomainDPML';
 export * from './CompileOptions';
 export * from './FrameworkError';
 

@@ -163,7 +163,7 @@ export function initializeDomain(config: DomainConfig): DomainContext {
 export async function compileDPML<T>(content: string, context: DomainContext): Promise<T> {
   try {
     // 1. 解析DPML内容
-    const parseResult = await parse(content);
+    const parseResult = parse(content);
 
     // 确保解析成功 - 根据parse返回类型判断
     let document: DPMLDocument;

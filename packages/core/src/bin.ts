@@ -4,7 +4,7 @@
  * 注册并执行命令行界面
  */
 
-import { createDPMLCLI } from './api/framework';
+import { createDomainDPML } from './api/framework';
 
 // CLI版本信息，可从package.json中获取
 const VERSION = '1.0.0';
@@ -13,13 +13,23 @@ const VERSION = '1.0.0';
  * 启动CLI
  */
 async function main() {
-  // 创建CLI实例
-  const cli = createDPMLCLI({
-    version: VERSION
+  // 创建领域DPML实例（使用默认核心领域配置）
+  const dpml = createDomainDPML({
+    domain: 'core',
+    description: 'DPML核心领域',
+    schema: { element: 'root' }, // 简单的schema
+    transformers: [{
+      name: 'default',
+      transform: data => data
+    }],
+    commands: {
+      includeStandard: true,
+      actions: []
+    }
   });
 
-  // 执行CLI
-  await cli.execute();
+  // 使用CLI执行命令
+  await dpml.cli.execute();
 }
 
 // 执行主函数

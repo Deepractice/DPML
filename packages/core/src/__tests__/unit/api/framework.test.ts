@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { createDomainDPML, createTransformerDefiner, createDPMLCLI } from '../../../api/framework';
+import { createDomainDPML, createTransformerDefiner } from '../../../api/framework';
 import {
   createDomainCompiler,
   createTransformerDefiner as createTransformerDefinerImpl,
@@ -40,7 +40,28 @@ describe('UT-FRM-API: Framework API模块', () => {
 
   // createDomainDPML 函数测试
   describe('UT-FRM-API-01: createDomainDPML函数', () => {
-    it('应调用domainService.createDomainCompiler', () => {
+    // 准备模拟数据
+    const mockCompiler = {
+      compile: vi.fn(),
+      extend: vi.fn(),
+      getSchema: vi.fn(),
+      getTransformers: vi.fn()
+    };
+
+    const mockCLI = {
+      execute: vi.fn(),
+      showHelp: vi.fn(),
+      showVersion: vi.fn(),
+      registerCommands: vi.fn()
+    };
+
+    beforeEach(() => {
+      // 设置模拟返回值
+      (createDomainCompiler as any).mockReturnValue(mockCompiler);
+      (createDPMLCLIService as any).mockReturnValue(mockCLI);
+    });
+
+    it('UT-FRM-API-01-01: 应调用domainService.createDomainCompiler和createDPMLCLIService', () => {
       // 准备
       const mockSchema: Schema = { element: 'root' };
       const mockConfig = {
@@ -49,13 +70,37 @@ describe('UT-FRM-API: Framework API模块', () => {
         transformers: [{ name: 'test', transform: () => ({}) }]
       };
 
-      (createDomainCompiler as any).mockReturnValue({});
-
       // 执行
-      createDomainDPML(mockConfig);
+      const result = createDomainDPML(mockConfig);
 
       // 断言
       expect(createDomainCompiler).toHaveBeenCalledWith(mockConfig);
+      expect(createDPMLCLIService).toHaveBeenCalled();
+
+      // 验证返回的对象包含compiler和cli属性
+      expect(result).toHaveProperty('compiler');
+      expect(result).toHaveProperty('cli');
+      expect(result.compiler).toBe(mockCompiler);
+      expect(result.cli).toBe(mockCLI);
+    });
+
+    it('UT-FRM-API-01-02: 应返回正确结构的DomainDPML对象', () => {
+      // 准备
+      const mockSchema: Schema = { element: 'root' };
+      const mockConfig = {
+        domain: 'test',
+        schema: mockSchema,
+        transformers: [{ name: 'test', transform: () => ({}) }]
+      };
+
+      // 执行
+      const result = createDomainDPML(mockConfig);
+
+      // 断言
+      expect(result).toEqual({
+        compiler: mockCompiler,
+        cli: mockCLI
+      });
     });
   });
 
@@ -70,46 +115,6 @@ describe('UT-FRM-API: Framework API模块', () => {
 
       // 断言
       expect(createTransformerDefinerImpl).toHaveBeenCalled();
-    });
-  });
-
-  // createDPMLCLI 函数测试
-  describe('UT-FRM-API-03: createDPMLCLI函数', () => {
-    // 准备模拟数据
-    const mockCLI = {
-      execute: vi.fn(),
-      showHelp: vi.fn(),
-      showVersion: vi.fn(),
-      registerCommands: vi.fn()
-    };
-
-    beforeEach(() => {
-      // 设置模拟返回值
-      (createDPMLCLIService as any).mockReturnValue(mockCLI);
-    });
-
-    it('UT-FRM-API-03-01: 应调用domainService.createDPMLCLIService', () => {
-      // 准备
-      const customOptions = {
-        name: 'custom-cli',
-        version: '2.0.0',
-        description: 'Custom CLI'
-      };
-
-      // 执行
-      const result = createDPMLCLI(customOptions);
-
-      // 断言
-      expect(createDPMLCLIService).toHaveBeenCalledWith(customOptions);
-      expect(result).toBe(mockCLI);
-    });
-
-    it('UT-FRM-API-03-02: 应在无选项时正确调用', () => {
-      // 执行
-      createDPMLCLI();
-
-      // 断言
-      expect(createDPMLCLIService).toHaveBeenCalledWith(undefined);
     });
   });
 });

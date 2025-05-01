@@ -11,8 +11,8 @@ import type {
   ComplexModel } from '../../fixtures/framework/frameworkFixtures';
 import {
   simpleModelConfig,
-  simpleModelDPML,
   complexModelConfig,
+  simpleModelDPML,
   complexModelDPML,
   invalidDPMLContent,
   createInvalidConfig,
@@ -23,10 +23,10 @@ describe('Framework编译工作流集成测试', () => {
   // IT-FRMW-01: 应成功编译简单DPML内容
   test('IT-FRMW-01: 应成功编译简单DPML内容', async () => {
     // 创建领域编译器
-    const compiler = createDomainDPML<SimpleModel>(simpleModelConfig);
+    const dpml = createDomainDPML<SimpleModel>(simpleModelConfig);
 
     // 编译DPML内容
-    const result = await compiler.compile(simpleModelDPML);
+    const result = await dpml.compiler.compile(simpleModelDPML);
 
     // 验证编译结果
     expect(result).toBeDefined();
@@ -94,10 +94,10 @@ describe('Framework编译工作流集成测试', () => {
     };
 
     // 创建领域编译器
-    const compiler = createDomainDPML<ComplexModel>(customConfig);
+    const dpml = createDomainDPML<ComplexModel>(customConfig);
 
     // 编译DPML内容
-    const result = await compiler.compile(complexModelDPML);
+    const result = await dpml.compiler.compile(complexModelDPML);
 
     // 验证编译结果
     expect(result).toBeDefined();
@@ -113,10 +113,10 @@ describe('Framework编译工作流集成测试', () => {
   // IT-FRMW-03: 应正确处理无效DPML内容
   test('IT-FRMW-03: 应正确处理无效DPML内容', async () => {
     // 创建领域编译器
-    const compiler = createDomainDPML<SimpleModel>(simpleModelConfig);
+    const dpml = createDomainDPML<SimpleModel>(simpleModelConfig);
 
     // 尝试编译无效DPML内容
-    await expect(compiler.compile(invalidDPMLContent)).rejects.toThrow();
+    await expect(dpml.compiler.compile(invalidDPMLContent)).rejects.toThrow();
   });
 
   // IT-FRMW-04: 应拒绝无效配置
@@ -141,9 +141,9 @@ describe('Framework编译工作流集成测试', () => {
       ]
     };
 
-    const compiler = createDomainDPML(config);
+    const dpml = createDomainDPML(config);
 
     // 尝试编译，应该在转换过程中失败
-    await expect(compiler.compile(simpleModelDPML)).rejects.toThrow('转换器故意失败');
+    await expect(dpml.compiler.compile(simpleModelDPML)).rejects.toThrow('转换器故意失败');
   });
 });

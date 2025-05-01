@@ -12,8 +12,7 @@ import type {
   DomainCompiler,
   DomainConfig,
   TransformerDefiner,
-  CLI,
-  CLIOptions
+  DomainDPML
 } from '../types';
 
 
@@ -21,35 +20,49 @@ import type {
 const VERSION = '1.0.0';
 
 // 导出类型
-export type { DomainCompiler, DomainConfig, TransformerDefiner };
+export type { DomainCompiler, DomainConfig, TransformerDefiner, DomainDPML };
 
 /**
- * 创建领域DPML编译器
+ * 创建领域DPML
  *
  * @template T 编译后的领域对象类型
  * @param config 领域配置
- * @returns 领域编译器实例
+ * @returns 领域DPML实例，包含编译器和CLI
  *
  * @example
  * ```typescript
- * // 创建一个User模型的领域编译器
+ * // 创建一个User模型的领域DPML
  * interface User {
  *   id: string;
  *   name: string;
  *   email: string;
  * }
  *
- * const userCompiler = createDomainDPML<User>({
+ * const userDPML = createDomainDPML<User>({
+ *   domain: 'user',
  *   schema: userSchema,
  *   transformers: [userTransformer]
  * });
  *
- * // 编译DPML为User对象
- * const user = await userCompiler.compile('<user id="1" name="张三" email="zhangsan@example.com" />');
+ * // 使用编译器
+ * const user = await userDPML.compiler.compile('<user id="1" name="张三" email="zhangsan@example.com" />');
+ *
+ * // 使用CLI
+ * await userDPML.cli.execute();
  * ```
  */
-export function createDomainDPML<T>(config: DomainConfig): DomainCompiler<T> {
-  return createDomainCompiler<T>(config);
+export function createDomainDPML<T>(config: DomainConfig): DomainDPML<T> {
+  // 创建领域编译器
+  const compiler = createDomainCompiler<T>(config);
+
+  // 创建领域CLI
+  const cli = createDPMLCLIService();
+
+  // 返回复合对象
+  return {
+    compiler,
+    cli
+  };
 }
 
 /**
@@ -74,33 +87,5 @@ export function createDomainDPML<T>(config: DomainConfig): DomainCompiler<T> {
  */
 export function createTransformerDefiner(): TransformerDefiner {
   return createTransformerDefinerImpl();
-}
-
-/**
- * 创建DPML命令行工具实例
- *
- * 此函数作为DPML CLI的统一入口点，委托给domainService实现核心功能。
- *
- * @param options 可选的CLI配置选项，用于覆盖默认设置（如名称、版本、描述）
- * @returns 配置完成的CLI实例
- *
- * @example
- * ```typescript
- * // 在 bin.ts 或其他入口脚本中使用
- * import { createDPMLCLI } from '@dpml/core';
- *
- * async function main() {
- *   const cli = createDPMLCLI({ version: '1.2.3' });
- *   await cli.execute();
- * }
- *
- * main().catch(error => {
- *   console.error("CLI执行失败:", error);
- *   process.exit(1);
- * });
- * ```
- */
-export function createDPMLCLI(options?: Partial<CLIOptions>): CLI {
-  return createDPMLCLIService(options);
 }
 
