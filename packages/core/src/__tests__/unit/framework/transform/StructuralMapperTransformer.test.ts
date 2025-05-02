@@ -59,7 +59,7 @@ describe('StructuralMapperTransformer', () => {
       }
 
       // 带属性的选择器
-      if (selector.startsWith('agent[')) {
+      if (selector.startsWith('session[')) {
         return document.rootNode.children[0];
       }
 
@@ -90,11 +90,11 @@ describe('StructuralMapperTransformer', () => {
     const document = processingResult.document;
 
     document.querySelector = (selector: string) => {
-      if (selector === 'agent[temperature]') {
+      if (selector === 'session[temperature]') {
         return document.rootNode.children[0];
       }
 
-      if (selector === 'agent[max-tokens]') {
+      if (selector === 'session[max-tokens]') {
         return document.rootNode.children[0];
       }
 
@@ -104,12 +104,12 @@ describe('StructuralMapperTransformer', () => {
     // 创建测试嵌套路径的映射规则
     const nestedRules: Array<MappingRule<unknown, unknown>> = [
       {
-        selector: 'agent[temperature]',
+        selector: 'session[temperature]',
         targetPath: 'config.parameters.temperature',
         transform: (value: unknown) => parseFloat(value as string)
       },
       {
-        selector: 'agent[max-tokens]',
+        selector: 'session[max-tokens]',
         targetPath: 'config.parameters.maxTokens',
         transform: (value: unknown) => parseInt(value as string, 10)
       }
@@ -134,7 +134,7 @@ describe('StructuralMapperTransformer', () => {
     const document = processingResult.document;
 
     document.querySelector = (selector: string) => {
-      if (selector === 'agent[temperature]') {
+      if (selector === 'session[temperature]') {
         return document.rootNode.children[0];
       }
 
@@ -144,7 +144,7 @@ describe('StructuralMapperTransformer', () => {
     // 创建自定义转换函数的映射规则
     const transformRules: Array<MappingRule<unknown, unknown>> = [
       {
-        selector: 'agent[temperature]',
+        selector: 'session[temperature]',
         targetPath: 'customTransform',
         transform: (value: unknown) => `转换后: ${value as string}`
       }
@@ -219,7 +219,7 @@ describe('StructuralMapperTransformer', () => {
     const document = processingResult.document;
 
     document.querySelector = (selector: string) => {
-      if (selector === 'agent[temperature]') {
+      if (selector === 'session[temperature]') {
         return document.rootNode.children[0];
       }
 
@@ -229,7 +229,7 @@ describe('StructuralMapperTransformer', () => {
     // 创建会抛出异常的转换函数的映射规则
     const errorRules: Array<MappingRule<unknown, unknown>> = [
       {
-        selector: 'agent[temperature]',
+        selector: 'session[temperature]',
         targetPath: 'error',
         transform: () => { throw new Error('测试异常'); }
       }

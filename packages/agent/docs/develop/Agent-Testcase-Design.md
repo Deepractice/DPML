@@ -234,9 +234,9 @@ Agent模块严格遵循DPML项目的分层架构：
 ### 6.1 契约测试实现示例
 
 ```typescript
-// __tests__/contract/api/agent.contract.test.ts
+// __tests__/contract/api/session.contract.test.ts
 import { describe, test, expect } from 'vitest';
-import { createAgent } from '../../../api/agent';
+import { createAgent } from '../../../api/session';
 import { Agent, AgentConfig } from '../../../types';
 
 describe('CT-API-Agent', () => {
@@ -269,12 +269,12 @@ describe('CT-API-Agent', () => {
 ### 6.2 单元测试实现示例
 
 ```typescript
-// __tests__/unit/core/agent/agentService.test.ts
+// __tests__/unit/core/session/agentService.test.ts
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { createAgent, handleChat, normalizeChatInput } from '../../../../core/agent/agentService';
+import { createAgent, handleChat, normalizeChatInput } from '../../../../core/session/agentService';
 import { llmFactory } from '../../../../core/llm/llmFactory';
-import { AgentRunner } from '../../../../core/agent/AgentRunner';
-import { InMemoryAgentSession } from '../../../../core/agent/InMemoryAgentSession';
+import { AgentRunner } from '../../../../core/session/AgentRunner';
+import { InMemoryAgentSession } from '../../../../core/session/InMemoryAgentSession';
 import { AgentError, AgentErrorType } from '../../../../types/errors';
 
 // 模拟依赖
@@ -286,13 +286,13 @@ vi.mock('../../../../core/llm/llmFactory', () => ({
   }
 }));
 
-vi.mock('../../../../core/agent/AgentRunner', () => ({
+vi.mock('../../../../core/session/AgentRunner', () => ({
   AgentRunner: vi.fn().mockImplementation(() => ({
     sendMessage: vi.fn()
   }))
 }));
 
-vi.mock('../../../../core/agent/InMemoryAgentSession', () => ({
+vi.mock('../../../../core/session/InMemoryAgentSession', () => ({
   InMemoryAgentSession: vi.fn().mockImplementation(() => ({
     addMessage: vi.fn(),
     getMessages: vi.fn()
@@ -358,7 +358,7 @@ describe('UT-AgentSvc', () => {
 ```typescript
 // __tests__/integration/message-processing.integration.test.ts
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { createAgent } from '../../api/agent';
+import { createAgent } from '../../api/session';
 import { llmFactory } from '../../core/llm/llmFactory';
 import { AgentConfig } from '../../types';
 

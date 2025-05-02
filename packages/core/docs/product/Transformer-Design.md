@@ -1010,7 +1010,7 @@ const result = await Processing.process(dpmlContent);
 
 // 注册结构映射转换器（使用泛型指定输入和输出类型）
 Transformer.registerStructuralMapper<ProcessingResult, LLMConfig>([
-  { selector: 'agent', targetPath: 'parameters' },
+  { selector: 'session', targetPath: 'parameters' },
   { selector: 'input.key', targetPath: 'settings.key' }
 ]);
 
@@ -1057,7 +1057,7 @@ const result = await Processing.process(dpmlContent);
 
 // 注册多个转换器，使用适当的泛型
 Transformer.registerStructuralMapper<ProcessingResult, PromptTemplate['parameters']>([
-  { selector: 'agent', targetPath: 'parameters' },
+  { selector: 'session', targetPath: 'parameters' },
 ]);
 
 Transformer.registerAggregator<ProcessingResult, Record<string, string[]>>({

@@ -57,13 +57,13 @@ describe('Pipeline执行流程集成测试', () => {
         return rootNode.children.find((node: any) => node.tagName === 'agent');
       }
 
-      if (selector === 'agent[temperature]') {
+      if (selector === 'session[temperature]') {
         const agentNode = rootNode.children.find((node: any) => node.tagName === 'agent');
 
         return agentNode;
       }
 
-      if (selector === 'agent[max-tokens]') {
+      if (selector === 'session[max-tokens]') {
         const agentNode = rootNode.children.find((node: any) => node.tagName === 'agent');
 
         return agentNode;

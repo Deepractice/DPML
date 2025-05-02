@@ -1133,7 +1133,7 @@ import type { Agent } from './types/domain';
 
 // 创建Agent领域DPML实例
 const agentDPML = createDomainDPML<Agent>({
-  domain: 'agent',
+  domain: 'session',
   description: 'AI代理配置领域',
   schema,
   transformers,

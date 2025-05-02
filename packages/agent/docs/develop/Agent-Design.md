@@ -49,12 +49,37 @@ Agent模块严格遵循项目的分层架构：
 2. **Types层**：定义Agent接口和配置类型
 3. **Core层**：实现agentService和相关组件，管理交互流程
 
+模块结构:
+```
+agent/
+  ├── api/
+  │   └── agent.ts          # API入口，提供createAgent函数
+  ├── types/
+  │   ├── Agent.ts          # Agent接口定义
+  │   ├── AgentConfig.ts    # 配置相关类型
+  │   ├── Content.ts        # 内容表示相关类型
+  │   └── errors.ts         # 错误类型
+  └── core/
+      ├── agentService.ts   # 顶层模块服务，创建Agent和处理请求
+      ├── agentRunner.ts    # 顶层核心组件，处理消息发送和接收
+      ├── types.ts          # 内部消息类型定义
+      ├── session/          # 会话管理功能模块
+      │   └── session.ts    # 会话管理接口和实现
+      └── llm/              # LLM功能模块
+          ├── llmFactory.ts # LLM客户端工厂
+          ├── llmClient.ts  # LLM客户端接口
+          └── openAiClient.ts # OpenAI实现
+```
+
 ## 4. 组件设计
 
 ### 4.1 API设计
 
 ```typescript
 // api/agent.ts
+import { AgentConfig, Agent } from '../types';
+import * as agentService from '../core/agentService';
+
 /**
  * 创建Agent实例
  * 
@@ -279,7 +304,7 @@ export class AgentError extends Error {
 ### 4.3 Core层设计
 
 ```typescript
-// core/agent/types.ts
+// core/types.ts
 /**
  * 消息角色
  * 
@@ -304,7 +329,7 @@ export interface Message {
   readonly content: Content;
 }
 
-// core/agent/agentService.ts
+// core/agentService.ts
 
 /**
  * 创建符合Agent接口的实例
@@ -314,7 +339,7 @@ export interface Message {
  */
 export function createAgent(config: AgentConfig): Agent {
   // 创建LLM客户端
-  const llmClient = llmFactory.createClient(config.llm);
+  const llmClient = createLLMClient(config.llm);
   
   // 创建会话管理器
   const session = new InMemoryAgentSession();
@@ -327,6 +352,14 @@ export function createAgent(config: AgentConfig): Agent {
     chat: (input: string | ChatInput) => handleChat(runner, input),
     chatStream: (input: string | ChatInput) => handleChatStream(runner, input)
   };
+}
+
+/**
+ * 创建LLM客户端
+ */
+function createLLMClient(config: LLMConfig): LLMClient {
+  // 委托给llm模块的工厂函数
+  return llmFactory.createClient(config);
 }
 
 /**
@@ -409,7 +442,12 @@ function extractTextFromContent(content: Content): string {
   return '';
 }
 
-// core/agent/AgentRunner.ts
+// core/agentRunner.ts
+import { AgentConfig, ChatInput, ChatOutput, Content } from '../types';
+import { Message, Role } from './types';
+import { AgentSession } from './session/session';
+import { LLMClient } from './llm/llmClient';
+
 /**
  * Agent运行器
  * 
@@ -474,7 +512,9 @@ export class AgentRunner {
   }
 }
 
-// core/agent/AgentSession.ts
+// core/session/session.ts
+import { Message } from '../types';
+
 /**
  * 会话管理接口
  * 
@@ -492,7 +532,6 @@ export interface AgentSession {
   getMessages(): ReadonlyArray<Message>;
 }
 
-// core/agent/InMemoryAgentSession.ts
 /**
  * 内存会话实现
  */
@@ -519,13 +558,18 @@ export class InMemoryAgentSession implements AgentSession {
 }
 
 // core/llm/llmFactory.ts
+import { LLMConfig } from '../../types';
+import { LLMClient } from './llmClient';
+import { OpenAiClient } from './openAiClient';
+import { AnthropicClient } from './anthropicClient';
+
 /**
  * LLM客户端工厂
  */
 export function createClient(config: LLMConfig): LLMClient {
   switch (config.apiType) {
     case 'openai':
-      return new OpenAIClient(config);
+      return new OpenAiClient(config);
     case 'anthropic':
       return new AnthropicClient(config);
     default:
@@ -533,7 +577,10 @@ export function createClient(config: LLMConfig): LLMClient {
   }
 }
 
-// core/llm/LLMClient.ts
+// core/llm/llmClient.ts
+import { ChatOutput } from '../../types';
+import { Message } from '../types';
+
 /**
  * LLM客户端接口
  */
@@ -548,11 +595,15 @@ export interface LLMClient {
   sendMessages(messages: Message[], stream: boolean): Promise<ChatOutput> | AsyncIterable<ChatOutput>;
 }
 
-// core/llm/OpenAIClient.ts
+// core/llm/openAiClient.ts
+import { LLMConfig, ChatOutput, ContentItem, AgentError, AgentErrorType } from '../../types';
+import { LLMClient } from './llmClient';
+import { Message } from '../types';
+
 /**
  * OpenAI客户端实现
  */
-export class OpenAIClient implements LLMClient {
+export class OpenAiClient implements LLMClient {
   private apiKey: string;
   private apiUrl: string;
   private model: string;
@@ -706,10 +757,11 @@ classDiagram
     class agentService {
         <<module>>
         +createAgent(config: AgentConfig): Agent "创建Agent实例"
-        -chat(runner: AgentRunner, input: ChatInput): Promise<string> "处理同步聊天"
-        -chatStream(runner: AgentRunner, input: ChatInput): AsyncIterable<string> "处理流式聊天"
+        -createLLMClient(config: LLMConfig): LLMClient "创建LLM客户端"
+        -handleChat(runner: AgentRunner, input: ChatInput): Promise<string> "处理同步聊天"
+        -handleChatStream(runner: AgentRunner, input: ChatInput): AsyncIterable<string> "处理流式聊天"
     }
-    note for agentService "文件: core/agent/agentService.ts\n负责创建和协调Agent组件"
+    note for agentService "文件: core/agentService.ts\n顶层服务，负责创建和协调Agent组件"
     
     %% Core层 - 工厂
     class llmFactory {
@@ -729,14 +781,14 @@ classDiagram
         -processInput(input: ChatInput): ContentItem[] "处理输入"
         -prepareMessages(): Message[] "准备消息列表"
     }
-    note for AgentRunner "文件: core/agent/AgentRunner.ts\n核心业务类，处理消息发送和接收"
+    note for AgentRunner "文件: core/agentRunner.ts\n顶层核心类，处理消息发送和接收"
     
     class AgentSession {
         <<interface>>
         +addMessage(message: Message): void "添加消息"
         +getMessages(): ReadonlyArray<Message> "获取所有消息"
     }
-    note for AgentSession "文件: core/agent/AgentSession.ts\n会话管理接口"
+    note for AgentSession "文件: core/session/session.ts\n会话管理接口"
     
     class InMemoryAgentSession {
         <<class>>
@@ -746,15 +798,15 @@ classDiagram
         +addMessage(message: Message): void "添加消息"
         +getMessages(): ReadonlyArray<Message> "获取所有消息"
     }
-    note for InMemoryAgentSession "文件: core/agent/InMemoryAgentSession.ts\n内存会话实现"
+    note for InMemoryAgentSession "文件: core/session/session.ts\n内存会话实现"
     
     class LLMClient {
         <<interface>>
         +sendMessages(messages: Message[], stream: boolean): Promise<ChatOutput> | AsyncIterable<ChatOutput> "发送消息"
     }
-    note for LLMClient "文件: core/llm/LLMClient.ts\nLLM客户端接口"
+    note for LLMClient "文件: core/llm/llmClient.ts\nLLM客户端接口"
     
-    class OpenAIClient {
+    class OpenAiClient {
         <<class>>
         -apiKey: string "API密钥"
         -apiUrl: string "API端点"
@@ -762,7 +814,7 @@ classDiagram
         +constructor(config: LLMConfig)
         +sendMessages(messages: Message[], stream: boolean): Promise<ChatOutput> | AsyncIterable<ChatOutput> "发送消息"
     }
-    note for OpenAIClient "文件: core/llm/OpenAIClient.ts\nOpenAI客户端实现"
+    note for OpenAiClient "文件: core/llm/openAiClient.ts\nOpenAI客户端实现"
     
     %% Core层 - 内部类型
     class Message {
@@ -770,7 +822,7 @@ classDiagram
         +readonly role: Role "消息角色"
         +readonly content: Content "消息内容"
     }
-    note for Message "文件: core/agent/types.ts\n定义内部对话消息格式"
+    note for Message "文件: core/types.ts\n定义内部对话消息格式"
     
     %% 关系定义
     agent --> agentService : uses "API委托原则"
@@ -783,9 +835,9 @@ classDiagram
     
     AgentSession <|.. InMemoryAgentSession : implements "实现接口"
     
-    LLMClient <|.. OpenAIClient : implements "实现接口"
+    LLMClient <|.. OpenAiClient : implements "实现接口"
     llmFactory ..> LLMClient : returns "返回接口"
-    llmFactory ..> OpenAIClient : creates "创建实现"
+    llmFactory ..> OpenAiClient : creates "创建实现"
     
     ChatInput --> ContentItem : contains "组合关系"
     ChatOutput --> ContentItem : contains "组合关系"
@@ -828,9 +880,9 @@ sequenceDiagram
     participant User as 应用开发者
     participant API as agent.ts
     participant Service as agentService.ts
-    participant Factory as llmFactory.ts
-    participant Session as InMemoryAgentSession
-    participant Runner as AgentRunner
+    participant Factory as llm/llmFactory.ts
+    participant Session as session/session.ts
+    participant Runner as agentRunner.ts
 
     User->>+API: createAgent(config) "创建Agent实例"
     API->>+Service: createAgent(config) "委托服务层"
@@ -854,9 +906,9 @@ sequenceDiagram
     participant User as 应用开发者
     participant Agent as Agent接口
     participant Service as agentService.ts
-    participant Runner as AgentRunner
-    participant Session as AgentSession
-    participant LLMClient as LLMClient
+    participant Runner as agentRunner.ts
+    participant Session as session/session.ts
+    participant LLMClient as llm/llmClient.ts
     participant LLMProvider as LLM服务(如OpenAI)
 
     User->>Agent: chat(input) "发送消息"
@@ -901,9 +953,9 @@ sequenceDiagram
     participant User as 应用开发者
     participant Agent as Agent接口
     participant Service as agentService.ts
-    participant Runner as AgentRunner
-    participant Session as AgentSession
-    participant LLMClient as LLMClient
+    participant Runner as agentRunner.ts
+    participant Session as session/session.ts
+    participant LLMClient as llm/llmClient.ts
     participant LLMProvider as LLM服务(如OpenAI)
 
     User->>Agent: chatStream(input) "请求流式响应"

@@ -1,8 +1,7 @@
-import type { AgentConfig } from '../../types/AgentConfig';
-import type { ChatInput, ChatOutput } from '../../types/Chat';
-import type { LLMClient } from '../llm/LLMClient';
+import type { AgentConfig, ChatInput, ChatOutput } from '../types';
 
-import type { AgentSession } from './AgentSession';
+import type { LLMClient } from './llm/LLMClient';
+import type { AgentSession } from './session/AgentSession';
 import type { Message } from './types';
 
 /**

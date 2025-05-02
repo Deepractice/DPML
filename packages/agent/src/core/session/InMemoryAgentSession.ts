@@ -1,5 +1,6 @@
+import type { Message } from '../types';
+
 import type { AgentSession } from './AgentSession';
-import type { Message } from './types';
 
 /**
  * 内存会话实现

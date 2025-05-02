@@ -79,7 +79,7 @@ const directoryRules = {
           camelCase: true,
         },
         // 允许包含专有词汇(DPML, XML等)全大写的文件名
-        ignore: ['^index\\.ts$', '^DPML.*\\.ts$',  '^LLM.*\\.ts$', '.*DPML.*\\.ts$', '^XML.*\\.ts$', '.*XML.*\\.ts$', '^CLITypes.*\\.ts$', '.*CLITypes.*\\.ts$'],
+        ignore: ['^index\\.ts$', '^DPML.*\\.ts$',  '^LLM.*\\.ts$',  '^OpenAI.*\\.ts$', '.*DPML.*\\.ts$', '^XML.*\\.ts$', '.*XML.*\\.ts$', '^CLITypes.*\\.ts$', '.*CLITypes.*\\.ts$'],
       },
     ],
   },
@@ -197,11 +197,11 @@ const variableUsageRules = {
     'unused-imports/no-unused-imports': 'error',
     'unused-imports/no-unused-vars': [
       'warn',
-      { 
-        vars: 'all', 
-        varsIgnorePattern: '^_', 
-        args: 'after-used', 
-        argsIgnorePattern: '^_' 
+      {
+        vars: 'all',
+        varsIgnorePattern: '^_',
+        args: 'after-used',
+        argsIgnorePattern: '^_'
       }
     ],
   }

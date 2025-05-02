@@ -5,7 +5,7 @@ DPML Agent包提供了使用DPML构建和运行智能体的工具和API。
 ## 安装
 
 ```bash
-npm install @dpml/agent
+npm install @dpml/session
 ```
 
 ## 使用方法
@@ -13,10 +13,10 @@ npm install @dpml/agent
 ### 通过API使用
 
 ```typescript
-import { AgentRunner } from '@dpml/agent';
+import { AgentRunner } from '@dpml/session';
 
 // 加载DPML文档
-const dpmlContent = fs.readFileSync('my-agent.xml', 'utf-8');
+const dpmlContent = fs.readFileSync('my-session.xml', 'utf-8');
 const agent = await AgentRunner.fromDPML(dpmlContent);
 
 // 发送消息并获取响应
@@ -29,13 +29,13 @@ console.log(response);
 验证Agent配置:
 
 ```bash
-dpml agent validate my-agent.xml
+dpml session validate my-session.xml
 ```
 
 与Agent交互:
 
 ```bash
-dpml agent chat my-agent.xml --env OPENAI_API_KEY=sk-xxx
+dpml session chat my-session.xml --env OPENAI_API_KEY=sk-xxx
 ```
 
 ## 设计原则

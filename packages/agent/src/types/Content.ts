@@ -17,7 +17,7 @@ export interface ContentItem {
   /**
    * 内容值，根据类型有不同的表示
    */
-  readonly value: string | Uint8Array | Record<string, any>;
+  readonly value: string | Uint8Array | Record<string, never>;
 
   /**
    * MIME类型，可选

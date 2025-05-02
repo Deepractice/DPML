@@ -54,7 +54,7 @@ core/
 ## 2. 模块服务设计规则
 
 1. **定义规则**: 模块服务是core内部实现的核心组成部分，负责提供特定模块的业务功能，直接连接API层与模块实现
-2. **目录位置规则**: 模块服务文件必须放置在对应业务模块目录下，而非直接放在core目录下
+2. **目录位置规则**: 模块服务文件必须放置在core目录顶层，以便统一协调各功能模块
 3. **命名规则**: 文件名必须使用小驼峰命名法，以`Service`结尾，如`parsingService.ts`, `documentService.ts`
 4. **功能完整性规则**: 模块服务应提供完整的模块功能，包括业务逻辑实现、组件协调和流程编排
 5. **访问层次规则**: 所有核心功能必须统一通过模块服务暴露，API层不得直接访问执行组件或状态管理组件
@@ -63,9 +63,8 @@ core/
 core/
   parsing/                 
     parser.ts              # 执行组件
-    parsingService.ts      # 模块服务(放在模块目录下)
-  document/
-    documentService.ts     # 模块服务(放在模块目录下)
+  parsingService.ts        # 模块服务(放在core目录顶层)
+  documentService.ts       # 模块服务(放在core目录顶层)
 ```
 
 ### 2.1 模块服务的职责
@@ -154,19 +153,24 @@ export function parseDocument(content: string): DPMLDocument {
 2. **与执行组件关系规则**: 直接使用执行组件，负责创建、配置和协调执行组件
 3. **与状态管理组件关系规则**: 直接使用状态管理组件，管理其生命周期
 4. **与创建组件关系规则**: 使用创建组件创建执行组件和状态管理组件实例
-5. **跨模块调用规则**: 可以调用其他模块的模块服务，以实现跨模块协作
+5. **跨模块调用规则**: 
+   - 模块服务应置于core目录顶层，而非模块子目录内，以便统一协调各模块功能
+   - 模块功能实现组件保留在对应领域子目录中
+   - 禁止平行模块目录间的相互引用，模块间协作必须通过顶层模块服务实现
 
 ```typescript
 // API层 - api/document.ts
-export * from '../core/document/documentService';
+export * from '../core/documentService';
 
-// 跨模块调用示例 - core/document/documentService.ts
-import { validateDocument } from '../validation/validationService';
+// 跨模块调用示例 - core/documentService.ts
+import { DPMLDocument } from '../types';
+import { processDocument } from './document/documentProcessor';
+import { validateDocument } from './validation/validator';
 
-export function processAndValidateDocument(doc) {
+export function processAndValidateDocument(doc: DPMLDocument): DPMLDocument {
   // 处理文档
   const processed = processDocument(doc);
-  // 调用其他模块的模块服务
+  // 调用其他模块的组件
   return validateDocument(processed);
 }
 ```

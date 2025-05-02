@@ -1,4 +1,4 @@
-import { createAgent as createAgentCore } from '../core/agent/agentService';
+import { createAgent as createAgentCore } from '../core/agentService';
 import type { Agent, AgentConfig } from '../types';
 
 /**

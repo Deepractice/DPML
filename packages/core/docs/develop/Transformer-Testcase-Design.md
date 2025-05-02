@@ -236,7 +236,7 @@ export function createProcessingResultFixture() {
         attributes: new Map([['id', 'test-model']]),
         children: [
           {
-            tagName: 'agent',
+            tagName: 'session',
             attributes: new Map([
               ['name', 'gpt-4'],
               ['temperature', '0.7'],
@@ -274,10 +274,10 @@ export function createProcessingResultFixture() {
 // 创建结构映射规则夹具
 export function createMappingRulesFixture() {
   return [
-    { selector: 'agent', targetPath: 'parameters' },
-    { selector: 'agent[temperature]', targetPath: 'parameters.temperature', 
+    { selector: 'session', targetPath: 'parameters' },
+    { selector: 'session[temperature]', targetPath: 'parameters.temperature', 
       transform: (value: string) => parseFloat(value) },
-    { selector: 'agent[max-tokens]', targetPath: 'parameters.maxTokens', 
+    { selector: 'session[max-tokens]', targetPath: 'parameters.maxTokens', 
       transform: (value: string) => parseInt(value, 10) },
     { selector: 'prompt[type="system"]', targetPath: 'systemPrompt',
       transform: (node: any) => node.content }

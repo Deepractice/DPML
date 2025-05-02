@@ -23,7 +23,7 @@ function querySelector(document: DPMLDocument, selector: string): DPMLNode | und
     return docWithSelector.querySelector(selector);
   }
 
-  // 特殊情况：属性选择器，例如 agent[temperature]
+  // 特殊情况：属性选择器，例如 session[temperature]
   const attributeMatch = selector.match(/^([a-zA-Z0-9-_]+)\[([a-zA-Z0-9-_]+)\]$/);
 
   if (attributeMatch) {
@@ -88,7 +88,7 @@ function querySelectorAll(document: DPMLDocument, selector: string): DPMLNode[] 
     return docWithSelector.querySelectorAll(selector);
   }
 
-  // 特殊情况：属性选择器，例如 agent[temperature]
+  // 特殊情况：属性选择器，例如 session[temperature]
   const attributeMatch = selector.match(/^([a-zA-Z0-9-_]+)\[([a-zA-Z0-9-_]+)\]$/);
 
   if (attributeMatch) {

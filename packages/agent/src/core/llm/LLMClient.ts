@@ -1,5 +1,5 @@
-import type { ChatOutput } from '../../types/Chat';
-import type { Message } from '../agent/types';
+import type { ChatOutput } from '../../types';
+import type { Message } from '../types';
 
 /**
  * LLM客户端接口

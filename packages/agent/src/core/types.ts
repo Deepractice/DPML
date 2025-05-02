@@ -1,4 +1,4 @@
-import type { Content } from '../../types/Content';
+import type { Content } from '../types';
 
 /**
  * 消息角色

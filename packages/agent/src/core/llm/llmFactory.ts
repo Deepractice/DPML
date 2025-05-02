@@ -1,5 +1,5 @@
-import { AgentError, AgentErrorType } from '../../types/errors';
-import type { LLMConfig } from '../../types/LLMConfig';
+import { AgentError, AgentErrorType } from '../../types';
+import type { LLMConfig } from '../../types';
 
 import type { LLMClient } from './LLMClient';
 import { OpenAIClient } from './OpenAIClient';

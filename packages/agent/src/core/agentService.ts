@@ -1,11 +1,9 @@
-import type { Agent, AgentConfig } from '../../types';
-import type { ChatInput, ChatOutput } from '../../types/Chat';
-import type { Content } from '../../types/Content';
-import { AgentError, AgentErrorType } from '../../types/errors';
-import { createClient } from '../llm/llmFactory';
+import type { Agent, AgentConfig, ChatInput, ChatOutput, Content } from '../types';
+import { AgentError, AgentErrorType } from '../types';
 
 import { AgentRunner } from './AgentRunner';
-import { InMemoryAgentSession } from './InMemoryAgentSession';
+import { createClient } from './llm/llmFactory';
+import { InMemoryAgentSession } from './session/InMemoryAgentSession';
 
 /**
  * 创建符合Agent接口的实例

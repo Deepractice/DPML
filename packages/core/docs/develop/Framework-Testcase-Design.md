@@ -136,7 +136,7 @@ export function createDomainConfigFixture() {
       children: {
         elements: [
           { 
-            element: "agent",
+            element: "session",
             attributes: [
               { name: "name", required: true },
               { name: "temperature", required: false },
@@ -160,11 +160,11 @@ export function createDomainConfigFixture() {
           id: result.document.rootNode.attributes.get("id"),
           agent: {
             name: result.document.rootNode.children
-              .find(child => child.tagName === "agent")?.attributes.get("name"),
+              .find(child => child.tagName === "session")?.attributes.get("name"),
             temperature: parseFloat(result.document.rootNode.children
-              .find(child => child.tagName === "agent")?.attributes.get("temperature") || "0.7"),
+              .find(child => child.tagName === "session")?.attributes.get("temperature") || "0.7"),
             maxTokens: parseInt(result.document.rootNode.children
-              .find(child => child.tagName === "agent")?.attributes.get("max-tokens") || "2048", 10)
+              .find(child => child.tagName === "session")?.attributes.get("max-tokens") || "2048", 10)
           },
           prompts: result.document.rootNode.children
             .filter(child => child.tagName === "prompt")

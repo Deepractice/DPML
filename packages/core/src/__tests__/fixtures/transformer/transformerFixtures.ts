@@ -76,12 +76,12 @@ export function createMappingRulesFixture(): Array<MappingRule<unknown, unknown>
   return [
     { selector: 'agent', targetPath: 'parameters' },
     {
-      selector: 'agent[temperature]',
+      selector: 'session[temperature]',
       targetPath: 'parameters.temperature',
       transform: (value: string) => parseFloat(value)
     },
     {
-      selector: 'agent[max-tokens]',
+      selector: 'session[max-tokens]',
       targetPath: 'parameters.maxTokens',
       transform: (value: string) => parseInt(value, 10)
     },

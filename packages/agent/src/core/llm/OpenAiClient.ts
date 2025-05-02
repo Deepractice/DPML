@@ -2,7 +2,7 @@ import type { ChatOutput } from '../../types/Chat';
 import type { ContentItem } from '../../types/Content';
 import { AgentError, AgentErrorType } from '../../types/errors';
 import type { LLMConfig } from '../../types/LLMConfig';
-import type { Message } from '../agent/types';
+import type { Message } from '../types';
 
 import type { LLMClient } from './LLMClient';
 
