@@ -29,11 +29,41 @@ export interface DomainAction {
 
   /**
    * 命令执行函数
-   * 第一个参数为领域上下文，后续参数为命令参数
-   * @param context 领域上下文
+   * 第一个参数为领域命令上下文，后续参数为命令参数
+   * @param actionContext 领域命令上下文
    * @param args 命令参数
    */
-  action: (context: DomainContext, ...args: any[]) => Promise<void> | void;
+  action: (actionContext: DomainActionContext, ...args: any[]) => Promise<void> | void;
+}
+
+/**
+ * 领域命令执行上下文接口
+ * 专为命令执行设计的上下文环境
+ */
+export interface DomainActionContext {
+  /**
+   * 获取领域编译器
+   * @returns 领域编译器实例
+   */
+  getCompiler<T = unknown>(): DomainCompiler<T>;
+
+  /**
+   * 获取领域标识符
+   * @returns 领域标识符
+   */
+  getDomain(): string;
+
+  /**
+   * 获取领域描述
+   * @returns 领域描述
+   */
+  getDescription(): string;
+
+  /**
+   * 获取编译选项
+   * @returns 编译选项
+   */
+  getOptions(): Required<CompileOptions>;
 }
 
 /**
@@ -99,4 +129,5 @@ export interface DomainOptionDefinition {
 }
 
 // 导入相关类型
-import type { DomainContext } from '../core/framework/types';
+import type { CompileOptions } from './CompileOptions';
+import type { DomainCompiler } from './DomainCompiler';

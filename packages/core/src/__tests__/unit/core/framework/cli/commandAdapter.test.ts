@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 
 import { adaptDomainAction, adaptDomainActions } from '../../../../../core/framework/cli/commandAdapter';
 import type { DomainContext } from '../../../../../core/framework/types';
-import type { DomainAction } from '../../../../../types/DomainAction';
+import type { DomainAction, DomainActionContext } from '../../../../../types/DomainAction';
 import type { Schema } from '../../../../../types/Schema';
 
 describe('Command Adapter', () => {
@@ -24,6 +24,12 @@ describe('Command Adapter', () => {
       errorHandling: 'throw',
       transformOptions: { resultMode: 'merged' },
       custom: {}
+    },
+    compiler: {
+      compile: async (content: string) => ({ result: 'compiled' }),
+      extend: () => {},
+      getSchema: () => ({} as Schema),
+      getTransformers: () => []
     }
   };
 
@@ -49,8 +55,8 @@ describe('Command Adapter', () => {
     expect(result.category).toBe(domain);
   });
 
-  // UT-CMDADP-02: 验证执行器能正确注入上下文并调用原始执行器
-  it('UT-CMDADP-02: command executor should correctly inject context and call original executor', async () => {
+  // UT-CMDADP-02: 验证执行器能正确注入DomainActionContext并调用原始执行器
+  it('UT-CMDADP-02: command executor should correctly inject DomainActionContext and call original executor', async () => {
     const domain = 'test-domain';
     const result = adaptDomainAction(testAction, domain, testContext);
 
@@ -59,8 +65,21 @@ describe('Command Adapter', () => {
 
     await result.action(...testArgs);
 
-    // 验证执行器被调用，且上下文和参数正确传递
-    expect(testAction.action).toHaveBeenCalledWith(testContext, ...testArgs);
+    // 验证执行器被调用
+    expect(testAction.action).toHaveBeenCalled();
+
+    // 简化测试方式，不再直接访问mock属性
+    // 验证第一个参数应该是DomainActionContext对象
+    expect(testAction.action).toHaveBeenCalledWith(
+      expect.objectContaining({
+        getCompiler: expect.any(Function),
+        getDomain: expect.any(Function),
+        getDescription: expect.any(Function),
+        getOptions: expect.any(Function)
+      }),
+      testArgs[0],
+      testArgs[1]
+    );
   });
 
   // UT-CMDADP-03: 验证 adaptDomainActions 能正确批量转换命令
@@ -128,5 +147,31 @@ describe('Command Adapter', () => {
     const executorResult = await result.action();
 
     expect(executorResult).toBe(expectedResult);
+  });
+
+  // UT-CMDADP-06: 验证DomainActionContext实现了必要的方法
+  it('UT-CMDADP-06: DomainActionContext should implement all required methods', async () => {
+    const domain = 'test-domain';
+    const result = adaptDomainAction(testAction, domain, testContext);
+
+    // 创建一个监视DomainActionContext方法的测试命令
+    const spyAction: DomainAction = {
+      name: 'spy-action',
+      description: 'Action with spies on context methods',
+      action: vi.fn(async (actionContext: DomainActionContext) => {
+        // 调用所有方法以验证它们的实现
+        actionContext.getCompiler();
+        actionContext.getDomain();
+        actionContext.getDescription();
+        actionContext.getOptions();
+      })
+    };
+
+    const spyResult = adaptDomainAction(spyAction, domain, testContext);
+
+    await spyResult.action();
+
+    expect(spyAction.action).toHaveBeenCalled();
+    // 验证调用没有抛出错误
   });
 });

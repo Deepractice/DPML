@@ -11,6 +11,30 @@ import { processDocument } from '../../../api/processing';
 import { processSchema } from '../../../api/schema';
 import { CompilationError } from '../../../types';
 import type { DomainAction } from '../../../types/DomainAction';
+import type { DPMLDocument } from '../../../types/DPMLDocument';
+
+/**
+ * 从解析结果中提取DPML文档
+ * @param parseResult 解析结果
+ * @returns DPML文档
+ */
+function extractDPMLDocument(parseResult: unknown): DPMLDocument {
+  if (typeof parseResult !== 'object' || parseResult === null) {
+    throw new Error('解析结果不是有效对象');
+  }
+
+  // 检查是否是ParseResult
+  if ('document' in parseResult && parseResult.document) {
+    return parseResult.document as DPMLDocument;
+  }
+
+  // 检查是否直接是DPMLDocument
+  if ('rootNode' in parseResult && parseResult.rootNode) {
+    return parseResult as DPMLDocument;
+  }
+
+  throw new Error('无法获取有效的DPML文档');
+}
 
 /**
  * 标准命令集合
@@ -26,15 +50,20 @@ export const standardActions: DomainAction[] = [
     options: [
       { flags: '--strict', description: '启用严格验证模式' }
     ],
-    action: async (context, file, options) => {
+    action: async (actionContext, filePath, options) => {
       try {
-        // 读取文件内容
-        const content = await fs.readFile(file, 'utf-8');
+        // 读取文件内容 - 确保filePath是字符串
+        const content = await fs.readFile(filePath, 'utf-8');
 
-        console.log(`验证文件: ${file}`);
+        console.log(`验证文件: ${filePath}`);
 
-        // 处理Schema
-        const processedSchema = processSchema(context.schema);
+        // 获取编译器和选项
+        const compiler = actionContext.getCompiler();
+        const domainOptions = actionContext.getOptions();
+
+        // 获取并处理Schema
+        const schema = compiler.getSchema();
+        const processedSchema = processSchema(schema);
 
         // 确保Schema处理成功
         if (!processedSchema.isValid) {
@@ -42,20 +71,21 @@ export const standardActions: DomainAction[] = [
         }
 
         // 解析DPML内容
-        const document = await parse(content);
+        const parseResult = await parse(content);
+
+        // 安全地提取文档
+        const dpmlDocument = extractDPMLDocument(parseResult);
 
         // 安全地访问文档信息
-        const rootTag = 'document' in document && document.document ?
-          document.document.rootNode?.tagName :
-          (document.rootNode?.tagName || '未知');
+        const rootTag = dpmlDocument.rootNode?.tagName || '未知';
 
         console.log(`成功解析文档，根节点: ${rootTag}`);
 
-        // 使用领域上下文中的schema进行验证
-        const strictMode = options?.strict !== undefined ? options.strict : context.options.strictMode;
+        // 使用领域选项中的严格模式设置
+        const strictMode = options?.strict !== undefined ? options.strict : domainOptions.strictMode;
 
         // 处理并验证文档
-        const processingResult = processDocument(document, processedSchema);
+        const processingResult = processDocument(dpmlDocument, processedSchema);
 
         // 输出验证结果
         if (processingResult.isValid) {
@@ -78,14 +108,12 @@ export const standardActions: DomainAction[] = [
           // 非严格模式下只输出错误信息，不抛出异常
         }
 
-        // 返回验证结果
-        return {
-          isValid: processingResult.isValid,
-          errors: processingResult.validation?.errors || [],
-          warnings: processingResult.validation?.warnings || []
-        };
+        // 输出验证结果信息（不返回值，以符合void返回类型）
+        console.log(`验证状态: ${processingResult.isValid ? '通过' : '失败'}`);
+        console.log(`错误数量: ${processingResult.validation?.errors?.length || 0}`);
+        console.log(`警告数量: ${processingResult.validation?.warnings?.length || 0}`);
       } catch (error) {
-        console.error(`验证文档时出错: ${error.message}`);
+        console.error(`验证文档时出错: ${error instanceof Error ? error.message : String(error)}`);
         throw error;
       }
     }
@@ -100,26 +128,31 @@ export const standardActions: DomainAction[] = [
       { flags: '--output <file>', description: '输出文件路径' },
       { flags: '--format <format>', description: '输出格式 (json|xml)', defaultValue: 'json' }
     ],
-    action: async (context, file, options) => {
+    action: async (actionContext, filePath, options) => {
       try {
-        // 读取文件内容
-        const content = await fs.readFile(file, 'utf-8');
+        // 读取文件内容 - 确保filePath是字符串
+        const content = await fs.readFile(filePath, 'utf-8');
 
-        console.log(`解析文件: ${file}`);
+        console.log(`解析文件: ${filePath}`);
+
+        // 获取编译器
+        const compiler = actionContext.getCompiler();
 
         // 解析DPML内容
-        const document = parse(content);
+        const parseResult = await parse(content);
+
+        // 安全地提取文档
+        const dpmlDocument = extractDPMLDocument(parseResult);
 
         // 安全地访问文档信息
-        const rootTag = 'document' in document && document.document ?
-          document.document.rootNode?.tagName :
-          (document.rootNode?.tagName || '未知');
+        const rootTag = dpmlDocument.rootNode?.tagName || '未知';
 
         console.log(`成功解析文档，根节点: ${rootTag}`);
         console.log(`输出格式: ${options?.format || 'json'}`);
 
-        // 处理Schema
-        const processedSchema = processSchema(context.schema);
+        // 获取并处理Schema
+        const schema = compiler.getSchema();
+        const processedSchema = processSchema(schema);
 
         // 确保Schema处理成功
         if (!processedSchema.isValid) {
@@ -127,7 +160,7 @@ export const standardActions: DomainAction[] = [
         }
 
         // 处理文档
-        const processingResult = processDocument(document, processedSchema);
+        const processingResult = processDocument(dpmlDocument, processedSchema);
 
         // 准备输出结果
         const result = {
@@ -170,10 +203,9 @@ export const standardActions: DomainAction[] = [
           console.log(outputContent);
         }
 
-        // 返回处理结果
-        return result;
+        // 不返回具体值，符合void返回类型
       } catch (error) {
-        console.error(`解析文档时出错: ${error.message}`);
+        console.error(`解析文档时出错: ${error instanceof Error ? error.message : String(error)}`);
         throw error;
       }
     }

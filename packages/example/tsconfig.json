@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "paths": {
+      "@dpml/core": ["../core/src"]
+    }
+  },
+  "include": ["src/**/*"],
+  "references": [
+    { "path": "../core" }
+  ]
+} 

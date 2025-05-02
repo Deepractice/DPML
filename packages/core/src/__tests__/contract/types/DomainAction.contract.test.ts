@@ -5,8 +5,7 @@
 
 import { describe, test, expectTypeOf } from 'vitest';
 
-import type { DomainContext } from '../../../core/framework/types';
-import type { DomainAction, DomainArgumentDefinition, DomainOptionDefinition } from '../../../types/DomainAction';
+import type { DomainAction, DomainActionContext, DomainArgumentDefinition, DomainOptionDefinition } from '../../../types/DomainAction';
 
 describe('DomainAction Interface Contract', () => {
   // CT-TYPE-DACT-01: DomainAction接口应维持结构稳定性
@@ -23,14 +22,16 @@ describe('DomainAction Interface Contract', () => {
     expectTypeOf<DomainAction['description']>().toMatchTypeOf<string>();
     expectTypeOf<DomainAction['args']>().toMatchTypeOf<Array<DomainArgumentDefinition> | undefined>();
     expectTypeOf<DomainAction['options']>().toMatchTypeOf<Array<DomainOptionDefinition> | undefined>();
-    expectTypeOf<DomainAction['action']>().toMatchTypeOf<(context: DomainContext, ...args: any[]) => Promise<void> | void>();
+    expectTypeOf<DomainAction['action']>().toMatchTypeOf<(actionContext: DomainActionContext, ...args: any[]) => Promise<void> | void>();
 
     // 验证实例类型兼容性
     const action: DomainAction = {
       name: 'test-action',
       description: 'Test Action',
-      action: (context) => {
-
+      action: (actionContext) => {
+        // 使用上下文方法
+        const compiler = actionContext.getCompiler();
+        const domain = actionContext.getDomain();
       }
     };
 
@@ -53,36 +54,42 @@ describe('DomainAction Interface Contract', () => {
           defaultValue: 'default'
         }
       ],
-      action: async (context, arg1, options) => {
-
+      action: async (actionContext, arg1, optionParams) => {
+        // 使用上下文方法
+        const compileOptions = actionContext.getOptions();
+        const description = actionContext.getDescription();
       }
     };
 
     expectTypeOf(actionWithArgsAndOptions).toMatchTypeOf<DomainAction>();
   });
 
-  // CT-TYPE-DACT-02: DomainAction.executor应接收DomainContext
-  test('CT-TYPE-DACT-02: DomainAction.executor应接收DomainContext', () => {
-    // 验证executor函数第一个参数为DomainContext类型
-    expectTypeOf<DomainAction['action']>().parameters.toMatchTypeOf<[DomainContext, ...any[]]>();
+  // CT-TYPE-DACT-02: DomainAction.action应接收DomainActionContext
+  test('CT-TYPE-DACT-02: DomainAction.action应接收DomainActionContext', () => {
+    // 验证action函数第一个参数为DomainActionContext类型
+    expectTypeOf<DomainAction['action']>().parameters.toMatchTypeOf<[DomainActionContext, ...any[]]>();
 
-    // 验证executor函数可以是同步的
-    const syncExecutor: DomainAction['action'] = (context) => {
-
+    // 验证action函数可以是同步的
+    const syncExecutor: DomainAction['action'] = (actionContext) => {
+      // 使用上下文方法
+      const compiler = actionContext.getCompiler();
     };
 
     expectTypeOf(syncExecutor).toMatchTypeOf<DomainAction['action']>();
 
-    // 验证executor函数可以是异步的
-    const asyncExecutor: DomainAction['action'] = async (context) => {
-
+    // 验证action函数可以是异步的
+    const asyncExecutor: DomainAction['action'] = async (actionContext) => {
+      // 使用上下文方法
+      const domain = actionContext.getDomain();
     };
 
     expectTypeOf(asyncExecutor).toMatchTypeOf<DomainAction['action']>();
 
-    // 验证executor函数可以接收额外参数
-    const executorWithArgs: DomainAction['action'] = (context, arg1, options) => {
-
+    // 验证action函数可以接收额外参数
+    const executorWithArgs: DomainAction['action'] = (actionContext, arg1, optParams) => {
+      // 使用上下文方法
+      const compiler = actionContext.getCompiler();
+      const result = compiler.getSchema();
     };
 
     expectTypeOf(executorWithArgs).toMatchTypeOf<DomainAction['action']>();

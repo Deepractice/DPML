@@ -4,7 +4,9 @@
  */
 
 import type { DomainContext } from '../../../core/framework/types';
-import type { DomainAction } from '../../../types/DomainAction';
+import type { DomainAction, DomainActionContext } from '../../../types/DomainAction';
+import type { DomainCompiler } from '../../../types/DomainCompiler';
+import type { Schema } from '../../../types/Schema';
 
 /**
  * 创建基本领域配置夹具（包含CLI命令）
@@ -40,12 +42,54 @@ export function createDomainConfigWithCommandsFixture() {
           options: [
             { flags: '--format <type>', description: '输出格式' }
           ],
-          executor: async (context, input, options) => {
-            // 测试执行器逻辑
-            return `Executed with ${input} and ${options?.format || 'default'}`;
+          action: async (actionContext: DomainActionContext, input: string, options: any): Promise<void> => {
+            // 测试执行器逻辑 - 只打印不返回值
+            console.log(`Executed with ${input} and ${options?.format || 'default'}`);
           }
         }
       ]
+    }
+  };
+}
+
+/**
+ * 创建 DomainActionContext 测试夹具
+ * 与 DomainContext 对应，提供命令所需的方法
+ */
+export function createDomainActionContextFixture(): DomainActionContext {
+  const compiler: DomainCompiler<unknown> = {
+    compile: async (content: string) => ({ result: 'compiled' }),
+    extend: () => {},
+    getSchema: () => ({
+      root: {
+        element: 'test',
+        children: { elements: [] }
+      }
+    } as Schema),
+    getTransformers: () => []
+  };
+
+  return {
+    getCompiler<T>() {
+      return compiler as DomainCompiler<T>;
+    },
+    getDomain() {
+      return 'test';
+    },
+    getDescription() {
+      return '测试领域';
+    },
+    getOptions() {
+      return {
+        strictMode: true,
+        validateOnCompile: true,
+        errorHandling: 'throw',
+        transformOptions: {
+          resultMode: 'merged',
+          keepOriginalData: false
+        },
+        custom: {}
+      };
     }
   };
 }
@@ -55,35 +99,44 @@ export function createDomainConfigWithCommandsFixture() {
  */
 export function createStandardActionTestFixture() {
   // 提供测试标准命令需要的上下文和参数
-  return {
-    context: {
-      domain: 'test',
-      description: '测试领域',
-      schema: {
+  const actionContext = createDomainActionContextFixture();
+  const context: DomainContext = {
+    domain: 'test',
+    description: '测试领域',
+    schema: {
+      root: {
+        element: 'test',
+        attributes: [
+          { name: 'id', type: 'string', required: true }
+        ],
+        children: {
+          elements: []
+        }
+      }
+    },
+    transformers: [],
+    options: {
+      strictMode: true,
+      errorHandling: 'throw',
+      transformOptions: { resultMode: 'merged' },
+      custom: {}
+    },
+    compiler: {
+      compile: async (content: string) => ({ result: 'compiled' }),
+      extend: () => {},
+      getSchema: () => ({
         root: {
           element: 'test',
-          attributes: [
-            { name: 'id', type: 'string', required: true }
-          ],
-          children: {
-            elements: []
-          }
+          children: { elements: [] }
         }
-      },
-      transformers: [],
-      options: {
-        strictMode: true,
-        errorHandling: 'throw',
-        transformOptions: { resultMode: 'merged' },
-        custom: {}
-      },
-      compiler: {
-        compile: async (content: string) => ({ result: 'compiled' }),
-        extend: () => {},
-        getSchema: () => ({}),
-        getTransformers: () => []
-      }
-    } as DomainContext,
+      } as Schema),
+      getTransformers: () => []
+    }
+  };
+
+  return {
+    actionContext,
+    context,
     args: {
       file: 'test.dpml',
       options: {
@@ -129,9 +182,9 @@ export function createDomainActionFixture(): DomainAction {
     options: [
       { flags: '-o, --option <value>', description: '选项' }
     ],
-    action: async (context, arg1, options) => {
-      // 测试执行器
-      return `Executed with ${arg1}`;
+    action: async (actionContext: DomainActionContext, arg1: string, options: any): Promise<void> => {
+      // 测试执行器 - 只打印不返回值
+      console.log(`Executed with ${arg1}`);
     }
   };
 }

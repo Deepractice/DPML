@@ -496,7 +496,7 @@ const workflowDPML = createDomainDPML<Workflow>({
         ],
         
         // 命令处理函数
-        action: async (context, filePath, options) => {
+        action: async (actionContext, filePath, options) => {
           // 读取文件
           const content = await readFile(filePath, 'utf-8');
           
@@ -519,7 +519,7 @@ const workflowDPML = createDomainDPML<Workflow>({
             required: true
           }
         ],
-        action: async (context, filePath) => {
+        action: async (actionContext, filePath) => {
           // 可视化工作流逻辑...
           console.log(`可视化工作流: ${filePath}`);
         }
@@ -555,7 +555,7 @@ CLI命令定义参数：
 | `description` | 命令描述，用于帮助信息 | `'执行工作流'` |
 | `args` | 位置参数定义数组 | `[{ name: 'filePath', description: '...', required: true }]` |
 | `options` | 选项参数定义数组 | `[{ flags: '-d, --debug', description: '...' }]` |
-| `action` | 命令处理函数 | `(context, ...args) => { ... }` |
+| `action` | 命令处理函数 | `(actionContext, ...args) => { ... }` |
 
 位置参数定义：
 
@@ -783,7 +783,7 @@ const workflowDPML = createDomainDPML<Workflow>({
             defaultValue: 'json'
           }
         ],
-        action: async (context, filePath, options) => {
+        action: async (actionContext, filePath, options) => {
           // 读取文件
           const content = await readFile(filePath, 'utf-8');
           

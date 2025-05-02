@@ -146,6 +146,25 @@ importers:
         specifier: ^1.4.0
         version: 1.6.1(@types/node@22.15.3)
 
+  packages/example:
+    dependencies:
+      '@dpml/core':
+        specifier: workspace:*
+        version: link:../core
+      commander:
+        specifier: ^13.1.0
+        version: 13.1.0
+    devDependencies:
+      '@types/node':
+        specifier: ^22.14.0
+        version: 22.15.3
+      typescript:
+        specifier: 5.8.2
+        version: 5.8.2
+      vitest:
+        specifier: ^1.4.0
+        version: 1.6.1(@types/node@22.15.3)
+
 packages:
 
   '@ampproject/remapping@2.3.0':

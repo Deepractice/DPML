@@ -10,8 +10,10 @@ import { describe, test, expect, beforeAll, afterAll, beforeEach, afterEach } fr
 
 import { createDomainDPML } from '../../../api/framework';
 import { getAllRegisteredCommands, resetCommandRegistry } from '../../../core/framework/domainService';
+import type { DomainActionContext } from '../../../types/DomainAction';
 import type { DomainConfig } from '../../../types/DomainConfig';
 import type { Transformer } from '../../../types/Transformer';
+import { createDomainActionContextFixture } from '../../fixtures/framework/cliFixtures';
 
 // 创建通用转换器夹具
 const createDummyTransformer = (): Transformer<unknown, unknown> => ({
@@ -22,6 +24,8 @@ const createDummyTransformer = (): Transformer<unknown, unknown> => ({
 describe('命令集成端到端测试', () => {
   // 创建临时文件目录
   let tempDir: string;
+  // 创建一个命令上下文模拟对象，用于测试命令执行
+  const testActionContext = createDomainActionContextFixture();
 
   beforeAll(async () => {
     // 设置测试环境
@@ -67,9 +71,9 @@ describe('命令集成端到端测试', () => {
             description: '自定义命令',
             args: [{ name: 'input', description: '输入文件', required: true }],
             options: [{ flags: '--format <type>', description: '输出格式' }],
-            action: async (context, input, options) => {
+            action: async (actionContext: DomainActionContext, input, options) => {
               // 仅打印信息，不返回值以符合void类型要求
-
+              console.log(`处理输入: ${input} 格式: ${options?.format || 'default'}`);
             }
           }
         ]
@@ -127,9 +131,9 @@ describe('命令集成端到端测试', () => {
           {
             name: 'special-command',
             description: '领域2特殊命令',
-            action: async (context) => {
+            action: async (actionContext: DomainActionContext) => {
               // 仅打印信息，不返回值以符合void类型要求
-
+              console.log(`执行领域特殊命令: ${actionContext.getDomain()}`);
             }
           }
         ]
@@ -201,16 +205,9 @@ describe('命令集成端到端测试', () => {
 
     // 执行命令并验证结果
     if (validateCmd) {
-      const result = await validateCmd.action(testFilePath, { strict: true });
-
-      expect(result).toBeDefined();
-
-      // 从输出日志可以看到，验证命令的结果包含'isValid'和'错误数量'字段
-      // 这里我们直接验证结果本身存在即可，不需要详细检查其结构
-      expect(result).not.toBeNull();
-
-      // 由于是正确的测试文件，日志中显示验证成功，所以结果应该为真值
-      expect(result).toBeTruthy();
+      // 传递测试上下文和参数
+      await validateCmd.action(testActionContext, testFilePath, { strict: true });
+      // 由于现在标准命令不返回结果，我们只验证命令执行成功（不抛出错误）
     }
   });
 
@@ -254,7 +251,7 @@ describe('命令集成端到端测试', () => {
             options: [
               { flags: '--format <type>', description: '输出格式', defaultValue: 'json' }
             ],
-            action: async (context, file, options) => {
+            action: async (actionContext: DomainActionContext, file, options) => {
               // 读取文件内容，确保文件存在
               const content = await fs.readFile(file, 'utf-8');
 
@@ -279,7 +276,8 @@ describe('命令集成端到端测试', () => {
 
     // 执行命令并验证结果
     if (processCmd) {
-      await processCmd.action(testFilePath, { format: 'json' });
+      // 传递测试上下文和参数
+      await processCmd.action(testActionContext, testFilePath, { format: 'json' });
       const expectedOutput = `Processed file: ${testFilePath} with format: json`;
 
       expect(processResult).toBe(expectedOutput);
