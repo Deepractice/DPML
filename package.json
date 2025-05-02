@@ -10,7 +10,7 @@
     "lint": "eslint . --config eslint.config.js --fix",
     "test": "turbo run test",
     "clean": "turbo run clean && rm -rf node_modules",
-    "docs": "npx typedoc --out docs/api",
+    "docs": "npx typedoc --out docs/api"
   },
   "keywords": [
     "dpml",
