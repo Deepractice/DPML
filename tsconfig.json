@@ -30,7 +30,8 @@
   "files": [],
   "references": [
     { "path": "./packages/core" },
-    { "path": "./packages/example" }
+    { "path": "./packages/example" },
+    { "path": "./packages/agent" }
   ],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
 }

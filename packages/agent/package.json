@@ -1,17 +1,12 @@
 {
-  "name": "@dpml/example",
+  "name": "@dpml/agent",
   "version": "0.1.0",
-  "description": "DPML示例领域包：实现一个简单的工作流描述语言",
-  "type": "module",
-  "main": "dist/index.cjs",
-  "module": "dist/index.js",
+  "description": "Agent implementation for DPML",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    }
+  "bin": {
+    "dpml-agent": "dist/bin.js"
   },
   "scripts": {
     "prebuild": "pnpm lint --fix",
@@ -37,4 +32,4 @@
   "dependencies": {
     "@dpml/core": "workspace:*"
   }
-} 
+}
