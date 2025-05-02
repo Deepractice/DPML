@@ -1,7 +1,0 @@
----
-description: 
-globs: 
-alwaysApply: true
----
-
-你需要遵守 [index.md](mdc:rules/architecture/index.md) 的架构规则，按需调整你的注意力
