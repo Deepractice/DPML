@@ -895,36 +895,103 @@ async function processLargeWorkflow(filePath: string): Promise<Workflow> {
 
 ### 6. 示例项目
 
-完整的领域包项目结构示例：
+完整的领域包项目结构示例，符合DPML分层架构规则：
 
 ```
 my-dpml-domain/
   ├── src/
-  │   ├── schema/             # Schema定义
-  │   │   └── index.ts
-  │   ├── transformers/       # 转换器实现
-  │   │   ├── mappers.ts
-  │   │   └── index.ts
-  │   ├── types/              # 类型定义
-  │   │   └── index.ts
-  │   ├── cli/                # 命令行工具
-  │   │   └── index.ts
-  │   └── index.ts            # 主入口
-  ├── examples/               # 使用示例
-  ├── tests/                  # 测试文件
+  │   ├── api/                 # API层 - 对外接口
+  │   │   ├── index.ts         # 公共API导出
+  │   │   └── domain.ts        # 领域特定API
+  │   │
+  │   ├── core/                # Core层 - 核心业务逻辑
+  │   │
+  │   ├── types/               # Types层 - 类型定义
+  │   │
+  │   ├── config/              # 配置目录
+  │   │   ├── schema.ts        # Schema配置
+  │   │   ├── cli.ts           # CLI配置
+  │   │   ├── transformer.ts   # 转换器配置
+  │   │   └── index.ts         # 配置导出
+  │   │
+  │   ├── __tests__/           # 测试文件
+  │   │   ├── unit/            # 单元测试
+  │   │   │   ├── api/         # API层单元测试
+  │   │   │   ├── core/        # Core层单元测试
+  │   │   │   └── types/       # Types层契约测试
+  │   │   │
+  │   │   ├── integration/     # 集成测试
+  │   │   │   ├── api-core/    # API与Core层集成测试
+  │   │   │   └── module/      # 跨模块集成测试
+  │   │   │
+  │   │   ├── e2e/             # 端到端测试
+  │   │   │   ├── cli/         # CLI功能测试
+  │   │   │   └── workflow/    # 完整工作流测试
+  │   │   │
+  │   │   ├── contract/        # 契约测试
+  │   │   │   ├── api/         # API契约测试
+  │   │   │   └── types/       # 类型系统契约测试
+  │   │   │
+  │   │   └── fixtures/        # 测试夹具
+  │   │       ├── schemas/     # Schema测试数据
+  │   │       ├── documents/   # DPML文档测试数据
+  │   │       └── mocks/       # 模拟对象和数据
+  │   │
+  │   ├── bin.ts               # CLI入口
+  │   └── agentDPML.ts         # 领域合成入口
+  │
+  ├── examples/                # 使用示例
+  │   ├── basic.ts
+  │   └── agent-examples/
+  │
   ├── package.json
   ├── tsconfig.json
   └── README.md
 ```
 
-### 7. API参考
+在这个结构中：
 
-更详细的API文档请参考[官方文档](https://dpml.org/docs/api)。
+1. **分层架构**：
+   - **API层**：提供对外接口，是用户与系统交互的唯一入口
+   - **Core层**：核心业务逻辑
+   - **Types层**：类型和接口定义
 
-## 贡献指南
+2. **Config目录**：包含各种配置文件
+   - **schema.ts**：定义领域的Schema配置
+   - **cli.ts**：定义CLI命令配置
+   - **transformer.ts**：配置转换器规则和映射
 
-欢迎为DPML Core贡献代码和文档改进！请参阅[贡献指南](CONTRIBUTING.md)了解详情。
+3. **领域合成**：
+   - **agentDPML.ts**：将Schema、转换器和CLI集成为完整的DPML领域
 
-## 许可证
+典型的领域合成文件`agentDPML.ts`示例：
 
-MIT 
+```typescript
+import { createDomainDPML } from '@dpml/core';
+import { schema } from './config/schema';
+import { transformers } from './config/transformer';
+import { commandsConfig } from './config/cli';
+import type { Agent } from './types/domain';
+
+// 创建Agent领域DPML实例
+const agentDPML = createDomainDPML<Agent>({
+  domain: 'agent',
+  description: 'AI代理配置领域',
+  schema,
+  transformers,
+  commands: commandsConfig,
+  options: {
+    strictMode: true,
+    errorHandling: 'throw'
+  }
+});
+
+// 导出完整的领域DPML对象
+export default agentDPML;
+
+// 为方便使用，也可以单独导出编译器
+export const agentCompiler = agentDPML.compiler;
+
+// 导出CLI实例
+export const agentCLI = agentDPML.cli;
+```
