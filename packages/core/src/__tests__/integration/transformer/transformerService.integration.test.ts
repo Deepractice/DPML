@@ -19,6 +19,8 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
+  // 在这里重置单例注册表，每个测试用例之间不应该共享转换器注册状态
+  vi.resetModules(); // 这会重置模块的状态，包括单例
 });
 
 describe('transformerService集成测试', () => {
@@ -64,18 +66,18 @@ describe('transformerService集成测试', () => {
 
     // 创建两个测试转换器
     const transformer1: Transformer<unknown, unknown> = {
-      name: 'transformer1',
+      name: 'full_transformer1',
       transform: vi.fn().mockImplementation((input, context) => {
-        context.set('transformer1', { value1: 'one' });
+        context.set('full_transformer1', { value1: 'one' });
 
         return { value1: 'one' };
       })
     };
 
     const transformer2: Transformer<unknown, unknown> = {
-      name: 'transformer2',
+      name: 'full_transformer2',
       transform: vi.fn().mockImplementation((input, context) => {
-        context.set('transformer2', { value2: 'two' });
+        context.set('full_transformer2', { value2: 'two' });
 
         return { value2: 'two' };
       })
@@ -91,8 +93,8 @@ describe('transformerService集成测试', () => {
     // 断言
     expect(result).toBeDefined();
     expect(result).toHaveProperty('transformers');
-    expect(result.transformers).toHaveProperty('transformer1');
-    expect(result.transformers).toHaveProperty('transformer2');
+    expect(result.transformers).toHaveProperty('full_transformer1');
+    expect(result.transformers).toHaveProperty('full_transformer2');
     expect(result).toHaveProperty('merged');
     expect(result.merged).toHaveProperty('value1', 'one');
     expect(result.merged).toHaveProperty('value2', 'two');
@@ -110,18 +112,18 @@ describe('transformerService集成测试', () => {
 
     // 创建两个测试转换器
     const transformer1: Transformer<unknown, unknown> = {
-      name: 'transformer1',
+      name: 'merged_transformer1',
       transform: vi.fn().mockImplementation((input, context) => {
-        context.set('transformer1', { value1: 'one' });
+        context.set('merged_transformer1', { value1: 'one' });
 
         return { value1: 'one' };
       })
     };
 
     const transformer2: Transformer<unknown, unknown> = {
-      name: 'transformer2',
+      name: 'merged_transformer2',
       transform: vi.fn().mockImplementation((input, context) => {
-        context.set('transformer2', { value2: 'two' });
+        context.set('merged_transformer2', { value2: 'two' });
 
         return { value2: 'two' };
       })
@@ -181,27 +183,27 @@ describe('transformerService集成测试', () => {
 
     // 创建三个测试转换器
     const transformer1: Transformer<unknown, unknown> = {
-      name: 'transformer1',
+      name: 'include_transformer1',
       transform: vi.fn().mockImplementation((input, context) => {
-        context.set('transformer1', { value1: 'one' });
+        context.set('include_transformer1', { value1: 'one' });
 
         return { value1: 'one' };
       })
     };
 
     const transformer2: Transformer<unknown, unknown> = {
-      name: 'transformer2',
+      name: 'include_transformer2',
       transform: vi.fn().mockImplementation((input, context) => {
-        context.set('transformer2', { value2: 'two' });
+        context.set('include_transformer2', { value2: 'two' });
 
         return { value2: 'two' };
       })
     };
 
     const transformer3: Transformer<unknown, unknown> = {
-      name: 'transformer3',
+      name: 'include_transformer3',
       transform: vi.fn().mockImplementation((input, context) => {
-        context.set('transformer3', { value3: 'three' });
+        context.set('include_transformer3', { value3: 'three' });
 
         return { value3: 'three' };
       })
@@ -214,7 +216,7 @@ describe('transformerService集成测试', () => {
 
     // 执行，只包含transformer1和transformer3
     const result = transform(processingResult, {
-      include: ['transformer1', 'transformer3'],
+      include: ['include_transformer1', 'include_transformer3'],
       resultMode: 'full'
     });
 
@@ -223,9 +225,9 @@ describe('transformerService集成测试', () => {
     expect(transformer3.transform).toHaveBeenCalled();
     expect(transformer2.transform).not.toHaveBeenCalled();
 
-    expect(result.transformers).toHaveProperty('transformer1');
-    expect(result.transformers).toHaveProperty('transformer3');
-    expect(result.transformers).not.toHaveProperty('transformer2');
+    expect(result.transformers).toHaveProperty('include_transformer1');
+    expect(result.transformers).toHaveProperty('include_transformer3');
+    expect(result.transformers).not.toHaveProperty('include_transformer2');
 
     expect(result.merged).toHaveProperty('value1', 'one');
     expect(result.merged).toHaveProperty('value3', 'three');
@@ -242,27 +244,27 @@ describe('transformerService集成测试', () => {
 
     // 创建三个测试转换器
     const transformer1: Transformer<unknown, unknown> = {
-      name: 'transformer1',
+      name: 'exclude_transformer1',
       transform: vi.fn().mockImplementation((input, context) => {
-        context.set('transformer1', { value1: 'one' });
+        context.set('exclude_transformer1', { value1: 'one' });
 
         return { value1: 'one' };
       })
     };
 
     const transformer2: Transformer<unknown, unknown> = {
-      name: 'transformer2',
+      name: 'exclude_transformer2',
       transform: vi.fn().mockImplementation((input, context) => {
-        context.set('transformer2', { value2: 'two' });
+        context.set('exclude_transformer2', { value2: 'two' });
 
         return { value2: 'two' };
       })
     };
 
     const transformer3: Transformer<unknown, unknown> = {
-      name: 'transformer3',
+      name: 'exclude_transformer3',
       transform: vi.fn().mockImplementation((input, context) => {
-        context.set('transformer3', { value3: 'three' });
+        context.set('exclude_transformer3', { value3: 'three' });
 
         return { value3: 'three' };
       })
@@ -275,7 +277,7 @@ describe('transformerService集成测试', () => {
 
     // 执行，排除transformer2
     const result = transform(processingResult, {
-      exclude: ['transformer2'],
+      exclude: ['exclude_transformer2'],
       resultMode: 'full'
     });
 
@@ -284,9 +286,9 @@ describe('transformerService集成测试', () => {
     expect(transformer3.transform).toHaveBeenCalled();
     expect(transformer2.transform).not.toHaveBeenCalled();
 
-    expect(result.transformers).toHaveProperty('transformer1');
-    expect(result.transformers).toHaveProperty('transformer3');
-    expect(result.transformers).not.toHaveProperty('transformer2');
+    expect(result.transformers).toHaveProperty('exclude_transformer1');
+    expect(result.transformers).toHaveProperty('exclude_transformer3');
+    expect(result.transformers).not.toHaveProperty('exclude_transformer2');
 
     expect(result.merged).toHaveProperty('value1', 'one');
     expect(result.merged).toHaveProperty('value3', 'three');

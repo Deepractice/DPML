@@ -4,6 +4,7 @@
  * 注册并执行命令行界面
  */
 
+// 直接从原始模块导入，避免可能的循环引用
 import { createDomainDPML } from './api/framework';
 
 // CLI版本信息，可从package.json中获取

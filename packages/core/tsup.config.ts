@@ -9,6 +9,7 @@ export default defineConfig({
   entry: ['src/index.ts', 'src/bin.ts'],
   noExternal: ['fast-xml-parser'],
   dts: true,
+  tsconfig: 'tsconfig.build.json',
   target: 'es2020',
   outDir: 'dist',
   clean: true,

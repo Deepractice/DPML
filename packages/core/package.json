@@ -24,7 +24,7 @@
     "swc": "node -r @swc-node/register",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "clean": "rm -rf dist node_modules coverage .turbo"
+    "clean": "rm -rf dist node_modules cover"
   },
   "files": [
     "dist"

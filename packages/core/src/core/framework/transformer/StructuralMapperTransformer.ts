@@ -322,7 +322,14 @@ export class StructuralMapperTransformer<TInput, TOutput> implements Transformer
    * @param mappingRules 映射规则数组
    */
   constructor(mappingRules: Array<MappingRule<unknown, unknown>>) {
-    this.mappingRules = mappingRules;
+    // 安全检查：如果传入的不是数组（可能是接口变更导致错误使用），使用空数组并记录警告
+    if (!Array.isArray(mappingRules)) {
+      console.warn(`StructuralMapperTransformer构造函数接收到非数组参数: ${typeof mappingRules}. 这可能是由于使用了旧版本的API。请确保使用新的API: defineStructuralMapper(name, rules)`);
+
+      this.mappingRules = [];
+    } else {
+      this.mappingRules = mappingRules;
+    }
   }
 
   /**
