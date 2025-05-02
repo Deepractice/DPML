@@ -30,6 +30,7 @@ DPML框架基于以下核心概念：
 - **处理器** - 验证文档是否符合Schema并处理引用
 - **转换器** - 将DPML文档转换为特定目标格式或数据结构
 - **领域编译器** - 封装上述组件的统一入口点
+- **日志系统** - 提供结构化日志功能，便于调试和错误追踪
 
 ### 2. 创建领域包的步骤
 
@@ -223,6 +224,7 @@ const workflowDPML = createDomainDPML<Workflow>({
   schema: workflowSchema,
   transformers: [
     // 此处列出所有需要的转换器
+    // 转换器的注册顺序很重要，会影响执行顺序
     workflowTransformer,
     variablesTransformer
   ],
@@ -262,27 +264,30 @@ interface Workflow {
   }>;
 }
 
-// 创建结构映射转换器
-const workflowTransformer = definer.defineStructuralMapper<unknown, Workflow>([
-  {
-    selector: "workflow",
-    targetPath: "",
-    transform: (node) => ({
-      name: node.attributes.get("name") || "",
-      version: node.attributes.get("version"),
-      steps: []
-    })
-  },
-  {
-    selector: "workflow > step",
-    targetPath: "steps[]",
-    transform: (node) => ({
-      id: node.attributes.get("id") || "",
-      type: node.attributes.get("type") || "process",
-      description: node.content || ""
-    })
-  }
-]);
+// 创建结构映射转换器（带有名称标识）
+const workflowTransformer = definer.defineStructuralMapper<unknown, Workflow>(
+  'workflowTransformer', // 转换器名称，用于调试和日志
+  [
+    {
+      selector: "workflow",
+      targetPath: "",
+      transform: (node) => ({
+        name: node.attributes.get("name") || "",
+        version: node.attributes.get("version"),
+        steps: []
+      })
+    },
+    {
+      selector: "workflow > step",
+      targetPath: "steps[]",
+      transform: (node) => ({
+        id: node.attributes.get("id") || "",
+        type: node.attributes.get("type") || "process",
+        description: node.content || ""
+      })
+    }
+  ]
+);
 ```
 
 TransformerDefiner支持多种内置转换器类型：
@@ -299,8 +304,9 @@ TransformerDefiner支持多种内置转换器类型：
 **模板转换器示例**：
 
 ```typescript
-// 创建模板转换器
+// 创建模板转换器（带有名称标识）
 const promptTemplateTransformer = definer.defineTemplateTransformer<{userName: string}>(
+  'promptTemplateTransformer', // 转换器名称
   "你好，{{userName}}！欢迎使用DPML。",
   // 可选的预处理函数
   (input) => ({
@@ -312,12 +318,15 @@ const promptTemplateTransformer = definer.defineTemplateTransformer<{userName: s
 **聚合转换器示例**：
 
 ```typescript
-// 创建聚合转换器
-const stepsCollectorTransformer = definer.defineAggregator<unknown, {steps: any[]}>({
-  selector: "workflow > step",
-  groupBy: "type",  // 可选，按类型分组
-  sortBy: "id"      // 可选，按ID排序
-});
+// 创建聚合转换器（带有名称标识）
+const stepsCollectorTransformer = definer.defineAggregator<unknown, {steps: any[]}>( 
+  'stepsCollectorTransformer', // 转换器名称
+  {
+    selector: "workflow > step",
+    groupBy: "type",  // 可选，按类型分组
+    sortBy: "id"      // 可选，按ID排序
+  }
+);
 ```
 
 ##### 2.2.3 创建自定义转换器
@@ -369,21 +378,6 @@ class CustomWorkflowTransformer implements Transformer<unknown, Workflow> {
 // 创建转换器实例
 const customTransformer = new CustomWorkflowTransformer();
 ```
-
-自定义转换器使你能够：
-- 实现任意复杂的转换逻辑
-- 访问完整的文档结构和上下文
-- 存储中间结果供其他转换器使用
-- 与内置转换器无缝协作
-
-TransformContext提供了多种工具方法：
-- `getDocument()`: 获取原始文档对象
-- `getReferences()`: 获取ID引用映射
-- `set<T>(key, value)`: 存储类型安全的数据
-- `get<T>(key)`: 获取类型安全的数据
-- `has(key)`: 检查键是否存在
-- `isDocumentValid()`: 检查文档是否有效
-- `getAllResults()`: 获取所有存储的结果
 
 ##### 2.2.4 选择器(Selector)规则
 
@@ -439,7 +433,43 @@ const stepsTransformer = definer.defineStructuralMapper([
 3. **验证选择器**: 确保选择器能匹配到预期的节点
 4. **处理选择器失败**: 在转换器中添加逻辑处理选择器未匹配到节点的情况
 
-##### 2.2.5 领域CLI命令注册
+##### 2.2.5 转换器执行顺序
+
+转换器的执行顺序对于正确构建目标对象至关重要。DPML Core按照注册顺序依次执行转换器，因此需要仔细规划转换器的执行序列：
+
+```typescript
+// 定义转换器序列，顺序很重要
+export const transformers = [
+  // 1. 基础转换器：创建核心结构（必须首先执行）
+  workflowBaseTransformer,
+  
+  // 2. 内容填充转换器：添加详细信息
+  variablesTransformer,
+  stepsTransformer,
+  
+  // 3. 关系处理转换器：处理元素间引用
+  transitionsTransformer,
+  
+  // 4. 后处理转换器：验证和最终调整
+  validationTransformer
+];
+```
+
+**转换器顺序的最佳实践**：
+
+1. **基础结构转换器优先**：首先创建目标对象的基本结构和属性
+2. **内容填充转换器其次**：填充集合和子属性
+3. **关系处理转换器再次**：处理引用关系和依赖
+4. **后处理转换器最后**：执行验证、规范化和最终调整
+
+**转换器执行顺序影响的场景**：
+
+- **属性覆盖**：后执行的转换器生成的同名属性会覆盖先前的值
+- **结构依赖**：某些转换器可能依赖其他转换器创建的结构
+- **集合填充**：向集合添加元素的转换器需要在集合创建后执行
+- **引用解析**：处理引用的转换器需要在所有引用目标都创建完成后执行
+
+##### 2.2.6 领域CLI命令注册
 
 DPML Core 支持为领域包定义特定的命令行工具，让用户能够通过命令行与你的领域包交互。这些命令可以在创建领域编译器时配置：
 
@@ -884,6 +914,54 @@ async function processLargeWorkflow(filePath: string): Promise<Workflow> {
 }
 ```
 
+#### 4.4 日志系统
+
+DPML Core 提供了强大的日志系统，用于调试、监控和错误追踪。日志系统支持多个日志级别、结构化数据和分类记录：
+
+```typescript
+import { createLogger, LogLevel, setDefaultLogLevel } from '@dpml/core';
+
+// 设置全局日志级别
+setDefaultLogLevel(LogLevel.DEBUG);
+
+// 创建带分类和配置的日志记录器
+const logger = createLogger('domain.component', {
+  minLevel: LogLevel.DEBUG  // 覆盖此记录器的最低日志级别
+});
+
+// 使用不同级别记录日志
+logger.trace('极其详细的跟踪信息'); // 最详细级别
+logger.debug('调试信息', { key: 'value' }); // 可附加结构化数据
+logger.info('一般信息');
+logger.warn('警告信息');
+logger.error('错误信息', {}, new Error('错误详情')); // 可包含错误对象
+```
+
+**日志系统特性**：
+
+| 特性 | 描述 | 示例 |
+|------|------|------|
+| 日志级别 | 五个级别：TRACE, DEBUG, INFO, WARN, ERROR | `logger.debug('调试信息')` |
+| 结构化数据 | 支持JSON格式的元数据 | `logger.info('消息', { user: 'admin' })` |
+| 错误对象 | 支持传入异常对象 | `logger.error('失败', {}, error)` |
+| 分类记录 | 支持层次化分类 | `createLogger('api.transformer')` |
+| 级别控制 | 全局和局部日志级别设置 | `setDefaultLogLevel(LogLevel.INFO)` |
+
+**日志使用最佳实践**：
+
+1. **合理分类**：使用有意义的分类名称，反映组件结构
+2. **适当的日志级别**：
+   - TRACE: 非常详细的调试信息，如函数进出和变量值
+   - DEBUG: 调试信息，如中间计算结果
+   - INFO: 重要的状态变化或操作
+   - WARN: 不影响主流程但需注意的问题
+   - ERROR: 错误和异常情况
+3. **结构化数据**：优先使用结构化数据而非字符串拼接
+4. **变量值记录**：关键对象和变量的状态应记录在调试级别
+5. **错误上下文**：记录错误时包含足够的上下文信息
+
+在开发环境中，可以设置较低的日志级别（如DEBUG）获取详细信息，而在生产环境中使用较高级别（如INFO或WARN）以减少日志量并提高性能。
+
 ### 5. 最佳实践
 
 - **模块化设计**: 将Schema定义、转换器和领域逻辑分开，便于维护和测试
@@ -892,6 +970,10 @@ async function processLargeWorkflow(filePath: string): Promise<Workflow> {
 - **文档化**: 详细记录Schema结构和使用示例
 - **测试覆盖**: 为Schema、转换器和编译器编写全面的测试
 - **版本控制**: 为API变更提供明确的版本策略
+- **转换器命名**: 为所有转换器提供明确的名称，便于调试和日志
+- **执行顺序**: 仔细规划转换器执行顺序，确保正确构建目标对象
+- **日志使用**: 充分利用日志系统进行调试和监控
+- **接口设计**: 提供简洁直观的公共API，隐藏实现细节
 
 ### 6. 示例项目
 
