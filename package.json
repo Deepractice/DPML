@@ -7,19 +7,10 @@
   "scripts": {
     "prebuild": "pnpm lint ",
     "build": "turbo run build",
-    "dev": "turbo run dev",
     "lint": "eslint . --config eslint.config.js --fix",
-    "lint:fix": "eslint . --fix --config eslint.config.js",
-    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
-    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "test": "turbo run test",
     "clean": "turbo run clean && rm -rf node_modules",
-    "check-configs": "node scripts/check-package-configs.js",
-    "swc": "node -r @swc-node/register",
-    "barrels": "node scripts/generate-barrels.js",
-    "barrels:watch": "chokidar \"packages/*/src/**/*.{ts,tsx}\" -c \"pnpm barrels\"",
     "docs": "npx typedoc --out docs/api",
-    "docs:serve": "npx serve docs/api"
   },
   "keywords": [
     "dpml",
