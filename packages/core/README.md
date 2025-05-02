@@ -392,6 +392,16 @@ const customTransformer = new CustomWorkflowTransformer();
 | 属性值选择器 | `tagName[attr="value"]` | 选择属性等于特定值的元素 | `step[type="process"]` |
 | 直接子元素选择器 | `parent > child` | 选择作为直接子元素的元素 | `workflow > step` |
 
+**选择器限制**:
+
+当前实现的选择器语法有一些限制，开发者应当了解：
+
+1. 不支持复合选择器（如 `workflow step` 选择所有工作流下的步骤，不限于直接子元素）
+2. 不支持多属性选择器（如 `step[type="process"][id="step1"]`）
+3. 不支持兄弟选择器（如 `+` 或 `~`）
+4. 不支持伪类选择器（如 `:first-child`）
+5. 选择器不支持深度嵌套（如 `workflow > steps > step`），只能一级一级查询
+
 **选择器示例**:
 
 ```typescript
@@ -406,6 +416,17 @@ const customTransformer = new CustomWorkflowTransformer();
 
 // 子元素选择器 - 选择工作流直接子元素中的步骤
 "workflow > step"
+
+// 选择器组合 - 首先选择父元素，然后查找其子元素
+// 注意：对于复杂嵌套可以创建多个选择器规则
+{
+  selector: "workflow",
+  targetPath: "workflow"
+},
+{
+  selector: "workflow > step",
+  targetPath: "workflow.steps[]"
+}
 ```
 
 **数组路径标记**:
@@ -432,6 +453,7 @@ const stepsTransformer = definer.defineStructuralMapper([
 2. **考虑文档结构**: 选择器应该反映文档的层次结构
 3. **验证选择器**: 确保选择器能匹配到预期的节点
 4. **处理选择器失败**: 在转换器中添加逻辑处理选择器未匹配到节点的情况
+5. **为复杂嵌套创建多个规则**: 由于不支持复杂嵌套选择器，可以创建多个映射规则逐层处理
 
 ##### 2.2.5 转换器执行顺序
 
@@ -455,12 +477,30 @@ export const transformers = [
 ];
 ```
 
-**转换器顺序的最佳实践**：
+**执行顺序工作机制**:
 
-1. **基础结构转换器优先**：首先创建目标对象的基本结构和属性
-2. **内容填充转换器其次**：填充集合和子属性
-3. **关系处理转换器再次**：处理引用关系和依赖
-4. **后处理转换器最后**：执行验证、规范化和最终调整
+1. **转换器管道**: 所有转换器被添加到执行管道中，按照添加顺序执行
+2. **数据传递**: 每个转换器的输出作为下一个转换器的输入
+3. **上下文共享**: 每个转换器的结果会存储在上下文中，供后续转换器访问
+4. **结果合并**: 当所有转换器执行完毕后，结果会合并成最终对象
+   - 对于对象类型结果，会进行深度合并
+   - 对于相同属性名，后执行的转换器结果会覆盖先前的值
+   - 对于数组路径(使用[]标记)，多个转换器的结果会合并到同一数组
+
+**依赖关系处理**:
+
+DPML Core没有显式的依赖关系解析机制，依赖关系的管理完全取决于转换器的注册顺序。开发者需要确保：
+
+1. 创建基本结构的转换器先执行
+2. 依赖其他转换器结果的转换器后执行
+3. 如需访问其他转换器的结果，可通过上下文获取：
+   ```typescript
+   transform(input: TInput, context: TransformContext): TOutput {
+     // 获取先前转换器的结果
+     const previousResult = context.get('previousTransformerName');
+     // ...处理逻辑
+   }
+   ```
 
 **转换器执行顺序影响的场景**：
 
@@ -468,6 +508,13 @@ export const transformers = [
 - **结构依赖**：某些转换器可能依赖其他转换器创建的结构
 - **集合填充**：向集合添加元素的转换器需要在集合创建后执行
 - **引用解析**：处理引用的转换器需要在所有引用目标都创建完成后执行
+
+**执行顺序最佳实践**：
+
+1. **绘制依赖图**: 在设计转换器前，先绘制依赖关系图
+2. **按功能分组**: 将转换器按功能分组并按依赖顺序排列
+3. **测试序列**: 为转换器序列创建测试，确保正确的执行顺序
+4. **记录依赖**: 在转换器文档中明确说明其依赖和执行顺序要求
 
 ##### 2.2.6 领域CLI命令注册
 
@@ -697,6 +744,35 @@ async function processWorkflow(dpmlContent: string): Promise<void> {
 |------|------|------|
 | `compiler` | `DomainCompiler<T>` | 领域编译器实例，提供编译及相关功能 |
 | `cli` | `CLI` | 命令行接口实例，提供命令行功能 |
+
+**错误处理策略**:
+
+使用 `errorHandling` 选项可以控制编译过程中的错误处理行为：
+
+1. **'throw'**（默认）：遇到验证错误时立即抛出异常，中断执行流程
+   - 适用于：需要立即停止处理的场景，如开发环境或严格校验
+   - 错误会包装为 `CompilationError` 类型，包含详细错误信息
+
+2. **'warn'**：记录警告但继续执行，不会抛出异常
+   - 适用于：允许某些错误但仍需要完成处理的场景
+   - 所有警告会收集到结果的 `warnings` 数组中
+   - 开发者可以在处理完成后检查警告并决定如何处理
+
+3. **'silent'**：完全忽略错误并继续执行，不记录任何警告信息
+   - 适用于：只关心能处理的部分，忽略所有错误的场景
+   - 不推荐在生产环境使用，因为可能掩盖重要问题
+
+```typescript
+// 设置错误处理策略
+const workflowDPML = createDomainDPML<Workflow>({
+  schema: workflowSchema,
+  transformers: [workflowTransformer],
+  options: {
+    strictMode: true,
+    errorHandling: 'warn'  // 'throw' | 'warn' | 'silent'
+  }
+});
+```
 
 示例：获取当前 Schema 和转换器
 
@@ -930,20 +1006,20 @@ const logger = createLogger('domain.component', {
 });
 
 // 使用不同级别记录日志
-logger.trace('极其详细的跟踪信息'); // 最详细级别
-logger.debug('调试信息', { key: 'value' }); // 可附加结构化数据
-logger.info('一般信息');
-logger.warn('警告信息');
-logger.error('错误信息', {}, new Error('错误详情')); // 可包含错误对象
+logger.trace('Extremely detailed trace information'); // 最详细级别
+logger.debug('Debug information', { key: 'value' }); // 可附加结构化数据
+logger.info('General information');
+logger.warn('Warning message');
+logger.error('Error occurred', {}, new Error('Error details')); // 可包含错误对象
 ```
 
 **日志系统特性**：
 
 | 特性 | 描述 | 示例 |
 |------|------|------|
-| 日志级别 | 五个级别：TRACE, DEBUG, INFO, WARN, ERROR | `logger.debug('调试信息')` |
-| 结构化数据 | 支持JSON格式的元数据 | `logger.info('消息', { user: 'admin' })` |
-| 错误对象 | 支持传入异常对象 | `logger.error('失败', {}, error)` |
+| 日志级别 | 五个级别：TRACE, DEBUG, INFO, WARN, ERROR | `logger.debug('Debug information')` |
+| 结构化数据 | 支持JSON格式的元数据 | `logger.info('Message', { user: 'admin' })` |
+| 错误对象 | 支持传入异常对象 | `logger.error('Failed', {}, error)` |
 | 分类记录 | 支持层次化分类 | `createLogger('api.transformer')` |
 | 级别控制 | 全局和局部日志级别设置 | `setDefaultLogLevel(LogLevel.INFO)` |
 
