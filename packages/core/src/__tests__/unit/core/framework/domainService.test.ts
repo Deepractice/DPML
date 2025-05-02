@@ -5,22 +5,22 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import {
   initializeDomain,
-  compileDPML,
   extendDomain,
   getDomainSchema,
+  compileDPML,
   getDomainTransformers,
-  processDomainCommands,
+  getDefaultDomainName,
   registerCommands,
   getAllRegisteredCommands,
   resetCommandRegistry,
-  ensureCoreInitialized,
-  getDefaultDomainName,
+  processDomainCommands,
   generateCommandsForDomain,
+  ensureCoreInitialized,
   createDPMLCLIService
 } from '../../../../core/framework/domainService';
-import type { DomainContext } from '../../../../core/framework/types';
 import { ConfigurationError, CompilationError } from '../../../../types';
 import type { CommandDefinition } from '../../../../types/CLI';
+import type { DomainActionContext } from '../../../../types/DomainAction';
 import {
   createDomainConfigFixture,
   createDomainContextFixture,
@@ -606,7 +606,7 @@ describe('UT-DOMSVC-CLI: CLI领域功能测试', () => {
         {
           name: 'custom-cmd',
           description: '自定义命令',
-          action: async (context: DomainContext) => {
+          action: (actionContext: DomainActionContext) => {
             // 测试命令动作
           }
         }
@@ -706,28 +706,59 @@ describe('UT-DOMSVC-CLI-CREATE: createDPMLCLIService函数测试', () => {
     );
   });
 
-  it('UT-DOMSVC-CLI-CREATE-03: 应使用自定义选项创建CLI', async () => {
+  it('UT-DOMSVC-CLI-CREATE-03: 应使用领域配置创建CLI', async () => {
     // 准备
-    const customOptions = {
-      name: 'custom-cli',
-      version: '2.0.0',
-      description: 'Custom CLI'
-    };
+    const testConfig = createDomainConfigFixture();
+
+    testConfig.domain = 'test-domain';
+    testConfig.description = '测试领域描述';
 
     // 获取模拟函数
     const { createCLI } = await import('../../../../api/cli');
 
     // 执行
-    createDPMLCLIService(customOptions);
+    createDPMLCLIService(testConfig);
 
     // 断言
     expect(createCLI).toHaveBeenCalledWith(
-      expect.objectContaining(customOptions),
+      expect.objectContaining({
+        name: 'test-domain',
+        version: expect.any(String),
+        description: '测试领域描述',
+        defaultDomain: 'test-domain'
+      }),
       []
     );
   });
 
-  it('UT-DOMSVC-CLI-CREATE-06: 应返回CLI实例', () => {
+  it('UT-DOMSVC-CLI-CREATE-04: 应处理领域命令', async () => {
+    // 准备
+    const testConfig = createDomainConfigFixture();
+
+    testConfig.domain = 'test-domain';
+    testConfig.commands = {
+      includeStandard: true,
+      actions: [
+        {
+          name: 'custom-cmd',
+          description: '自定义命令',
+          action: (actionContext: DomainActionContext) => {
+            // 测试命令动作
+          }
+        }
+      ]
+    };
+
+    // 执行
+    createDPMLCLIService(testConfig);
+
+    // 断言 - 确认领域命令被注册
+    const commands = getAllRegisteredCommands();
+
+    expect(commands.some(cmd => cmd.name === 'test-domain:custom-cmd')).toBe(true);
+  });
+
+  it('UT-DOMSVC-CLI-CREATE-05: 应返回CLI实例', () => {
     // 执行
     const result = createDPMLCLIService();
 

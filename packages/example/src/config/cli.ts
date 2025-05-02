@@ -42,30 +42,110 @@ export const commandsConfig: DomainCommandsConfig = {
       ],
 
       // 命令处理函数
-      action: async (context, filePath, options) => {
+      action: async (actionContext, filePath, options) => {
         try {
+          console.log('开始执行...');
+          console.log(`文件路径: ${filePath}`);
+
           // 读取文件
           const content = await readFile(filePath, 'utf-8');
 
+          console.log(`文件内容长度: ${content.length}字符`);
+
+          // 导入日志库
+          const { getLogger, LogLevel, createLogger, setDefaultLogLevel } = await import('@dpml/core');
+
+          // 设置全局日志级别为DEBUG
+          setDefaultLogLevel(LogLevel.DEBUG);
+
+          // 创建一个带配置的日志器
+          const logger = createLogger('example.cli', {
+            minLevel: LogLevel.DEBUG
+          });
+
           // 直接使用导入的编译器
           // 在CLI环境中，context可能没有getCompiler方法
+          console.log('导入exampleDPML...');
           const { exampleDPML } = await import('../index');
-          const workflow = await exampleDPML.compiler.compile(content);
 
-          console.log(`执行工作流: ${workflow.name}`);
-          console.log(`步骤数量: ${workflow.steps.length}`);
-          console.log(`变量数量: ${workflow.variables.length}`);
-          console.log(`转换数量: ${workflow.transitions.length}`);
+          logger.debug('开始解析DPML文档', { contentLength: content.length });
 
-          if (options.debug) {
-            console.log('调试信息:');
+          console.log('开始编译工作流...');
+
+          // 解析前记录一下
+          logger.debug('解析前的文档内容示例', { contentPreview: content.substring(0, 100) });
+
+          try {
+            const workflow = await exampleDPML.compiler.compile(content);
+
+            // 添加额外调试日志
+            logger.debug('编译结果对象详细信息', {
+              constructor: workflow?.constructor?.name,
+              prototype: Object.getPrototypeOf(workflow),
+              keys: Object.keys(workflow || {}),
+              descriptors: Object.getOwnPropertyDescriptors(workflow || {}),
+              hasVariables: Array.isArray(workflow?.variables),
+              variablesLength: workflow?.variables?.length,
+              hasSteps: Array.isArray(workflow?.steps),
+              stepsLength: workflow?.steps?.length
+            });
+
+            logger.debug('编译完成', {
+              workflowName: workflow.name,
+              hasSteps: !!workflow.steps,
+              stepsLength: workflow.steps?.length,
+              hasVariables: !!workflow.variables,
+              variablesLength: workflow.variables?.length,
+              hasTransitions: !!workflow.transitions,
+              transitionsLength: workflow.transitions?.length
+            });
+
+            // 添加更多调试信息
+            logger.debug('编译详细信息', {
+              workflowObject: workflow,
+              workflowString: JSON.stringify(workflow),
+              workflowType: typeof workflow,
+              workflowConstructor: workflow.constructor?.name,
+              workflowPrototype: Object.getPrototypeOf(workflow),
+              transitions: workflow.transitions,
+              transitionsType: typeof workflow.transitions
+            });
+
+            console.log('编译结果:');
             console.log(JSON.stringify(workflow, null, 2));
-          }
 
-          console.log(`输出格式: ${options.output}`);
-          // TODO: 实际执行逻辑
+            console.log(`执行工作流: ${workflow.name}`);
+
+            // 详细检查工作流结构
+            logger.debug('工作流结构', {
+              workflowKeys: Object.keys(workflow),
+              workflowType: typeof workflow,
+              isArray: Array.isArray(workflow)
+            });
+
+            // 检查属性是否存在
+            console.log('检查steps属性:', workflow.steps ? '存在' : '不存在');
+            console.log('检查variables属性:', workflow.variables ? '存在' : '不存在');
+            console.log('检查transitions属性:', workflow.transitions ? '存在' : '不存在');
+
+            console.log(`步骤数量: ${workflow.steps ? workflow.steps.length : 'undefined'}`);
+            console.log(`变量数量: ${workflow.variables ? workflow.variables.length : 'undefined'}`);
+            console.log(`转换数量: ${workflow.transitions ? workflow.transitions.length : 'undefined'}`);
+
+            if (options.debug) {
+              console.log('调试信息:');
+              console.log(JSON.stringify(workflow, null, 2));
+            }
+
+            console.log(`输出格式: ${options.output}`);
+            // TODO: 实际执行逻辑
+          } catch (error) {
+            logger.error('编译过程中发生错误', {}, error instanceof Error ? error : new Error(String(error)));
+            throw error;
+          }
         } catch (error) {
           console.error('执行失败:', error instanceof Error ? error.message : String(error));
+          console.error('错误详情:', error);
           process.exit(1);
         }
       }
@@ -80,7 +160,7 @@ export const commandsConfig: DomainCommandsConfig = {
           required: true
         }
       ],
-      action: async (context, filePath) => {
+      action: async (actionContext, filePath) => {
         try {
           // 读取文件
           const content = await readFile(filePath, 'utf-8');

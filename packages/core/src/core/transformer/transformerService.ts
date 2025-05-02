@@ -13,6 +13,7 @@ import type {
 } from '../../types';
 import { TransformContext } from '../../types/TransformContext';
 import { createResultCollector } from '../framework/transformer/transformerFactory';
+import { getLogger } from '../logging/loggingService';
 
 import { Pipeline } from './Pipeline';
 import { transformerRegistryFactory } from './TransformerRegistry';
@@ -72,7 +73,7 @@ export function transform<T>(
   // 添加结果收集器（如果使用full或merged模式）
   if (mergedOptions.resultMode !== 'raw') {
     // 添加ResultCollectorTransformer以收集所有转换器结果
-    pipeline.add(createResultCollector());
+    pipeline.add(createResultCollector('resultCollector'));
 
   }
 
@@ -99,11 +100,9 @@ export function transform<T>(
   // 检查是否存在由ResultCollectorTransformer设置的结果集
   if (context.has('transformerResults')) {
     transformerResults = context.get<Record<string, unknown>>('transformerResults') || {};
-
   } else {
     // 如果没有，则回退到直接从上下文获取所有结果
     transformerResults = context.getAllResults();
-
   }
 
 
@@ -168,6 +167,9 @@ function mergeResults(results: Record<string, unknown>): unknown {
   // 创建一个存储最终合并结果的对象
   const merged: Record<string, unknown> = {};
 
+  // 获取日志器
+  const logger = getLogger('transformer.service.merge');
+
   // 遍历所有转换器名称
   Object.keys(results).forEach(transformerName => {
     // 跳过非转换器结果
@@ -176,49 +178,78 @@ function mergeResults(results: Record<string, unknown>): unknown {
     // 获取当前转换器的结果
     const transformerResult = results[transformerName];
 
-    // 如果结果是对象，则合并其属性
+    logger.debug(`处理转换器结果: ${transformerName}`, {
+      resultType: typeof transformerResult,
+      isObject: transformerResult && typeof transformerResult === 'object',
+      isArray: Array.isArray(transformerResult)
+    });
+
+    // 如果结果是对象，则进行深度合并
     if (transformerResult && typeof transformerResult === 'object') {
-      Object.assign(merged, transformerResult);
+      deepMerge(merged, transformerResult);
     }
+  });
+
+  // 记录合并后的结果状态
+  logger.debug('合并后的结果', {
+    keys: Object.keys(merged),
+    hasVariables: 'variables' in merged,
+    hasSteps: 'steps' in merged,
+    hasTransitions: 'transitions' in merged
   });
 
   return merged;
 }
 
 /**
- * 深度合并转换器结果
- * 注意：此函数有问题，现在使用新的mergeResults函数代替
- * @param results 转换器结果对象
- * @returns 合并后的结果对象
+ * 实现深度合并，特别处理数组情况
+ * @param target 目标对象
+ * @param source 源对象
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars,unused-imports/no-unused-vars
-function deepMergeResults(results: Record<string, unknown>): unknown {
-  // 合并所有转换器的结果到一个对象
-  const merged: Record<string, unknown> = {};
+function deepMerge(target: Record<string, unknown>, source: unknown): void {
+  if (!source || typeof source !== 'object') return;
 
-  // 遍历所有转换器结果
-  for (const [key, value] of Object.entries(results)) {
-    // 跳过警告和其他元数据
-    if (key === 'warnings') continue;
+  const sourceObj = source as Record<string, unknown>;
 
-    // 处理对象类型的值，进行深度合并
-    if (value && typeof value === 'object' && !Array.isArray(value)) {
-      if (!merged[key] || typeof merged[key] !== 'object') {
-        merged[key] = {};
-      }
+  // 遍历源对象的所有属性
+  Object.keys(sourceObj).forEach(key => {
+    const sourceValue = sourceObj[key];
 
-      // 递归合并子对象
-      merged[key] = deepMergeResults({
-        ...(merged[key] as Record<string, unknown>),
-        ...(value as Record<string, unknown>),
-      });
-    } else {
-      // 非对象类型直接覆盖
-      merged[key] = value;
+    // 如果目标对象没有此属性，直接赋值
+    if (!(key in target)) {
+      target[key] = sourceValue;
+
+      return;
     }
-  }
 
-  return merged;
+    const targetValue = target[key];
+
+    // 如果两者都是数组，则合并数组
+    if (Array.isArray(sourceValue)) {
+      // 确保目标也是数组
+      if (!Array.isArray(targetValue)) {
+        target[key] = Array.isArray(sourceValue) ? [...sourceValue] : [sourceValue];
+      } else {
+        // 合并数组
+        if (sourceValue.length > 0) {
+          (target[key] as unknown[]).push(...sourceValue);
+        }
+      }
+    } else if (
+      sourceValue &&
+      typeof sourceValue === 'object' &&
+      !Array.isArray(sourceValue) &&
+      targetValue &&
+      typeof targetValue === 'object' &&
+      !Array.isArray(targetValue)
+    ) {
+      // 如果两者都是对象且非数组，递归合并
+      deepMerge(targetValue as Record<string, unknown>, sourceValue);
+    } else {
+      // 其他情况，源对象的值覆盖目标对象
+      target[key] = sourceValue;
+    }
+  });
 }
 
 /**

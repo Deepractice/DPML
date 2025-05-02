@@ -3,6 +3,8 @@
  * 执行组件，实现结构映射逻辑
  */
 
+import { getLogger } from '../../../core/logging/loggingService';
+
 import type { Transformer, TransformContext, MappingRule, DPMLNode, DPMLDocument } from './types';
 
 /**
@@ -153,8 +155,41 @@ function querySelectorAllHelper(rootNode: DPMLNode, tagName: string): DPMLNode[]
  * @param value 要设置的值
  */
 function setByPath(obj: Record<string, any>, path: string, value: unknown): void {
+  // 导入日志器
+  const logger = getLogger('transformer.structuralMapper.utils');
+
+  logger.debug('开始设置路径', { path, valueType: typeof value, isArray: Array.isArray(value) });
+
+  // 处理空路径特殊情况
+  if (path === '') {
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      // 如果value是对象，将其属性复制到obj
+      Object.assign(obj, value);
+
+      logger.debug('空路径：将对象属性复制到目标对象', {
+        valueType: typeof value,
+        valueKeys: Object.keys(value as Record<string, any>).length
+      });
+    } else {
+      // 非对象类型或数组，给予警告
+      logger.warn('尝试将非对象值设置到空路径', {
+        valueType: typeof value,
+        isArray: Array.isArray(value)
+      });
+      // 仍然尝试设置，以保持一致性
+      obj[''] = value;
+    }
+
+    return;
+  }
+
   const parts = path.split('.');
   let current = obj;
+
+  // 检查最后一部分是否是数组路径（以[]结尾）
+  const lastPart = parts[parts.length - 1];
+  const isArrayPath = lastPart.endsWith('[]');
+  const actualLastPart = isArrayPath ? lastPart.slice(0, -2) : lastPart;
 
   // 遍历路径的每一部分，直到最后一个
   for (let i = 0; i < parts.length - 1; i++) {
@@ -169,10 +204,50 @@ function setByPath(obj: Record<string, any>, path: string, value: unknown): void
     current = current[part];
   }
 
-  // 设置最后一个属性的值
-  const lastPart = parts[parts.length - 1];
+  logger.debug('设置最终属性', {
+    lastPart: actualLastPart,
+    isArrayPath,
+    currentType: typeof current,
+    currentIsArray: Array.isArray(current),
+    valueType: typeof value,
+    valueIsArray: Array.isArray(value)
+  });
 
-  current[lastPart] = value;
+  // 处理数组路径
+  if (isArrayPath) {
+    // 确保目标是数组
+    if (!Array.isArray(current[actualLastPart])) {
+      current[actualLastPart] = [];
+    }
+
+    if (Array.isArray(value)) {
+      // 如果value已经是数组，将其元素添加到目标数组
+      current[actualLastPart].push(...value);
+
+      logger.debug('数组路径：添加多个元素', {
+        count: value.length,
+        targetPath: actualLastPart,
+        resultLength: current[actualLastPart].length
+      });
+    } else {
+      // 如果value不是数组，将其作为单个元素添加
+      current[actualLastPart].push(value);
+
+      logger.debug('数组路径：添加单个元素', {
+        targetPath: actualLastPart,
+        resultLength: current[actualLastPart].length
+      });
+    }
+  } else {
+    // 普通路径，直接设置值
+    current[actualLastPart] = value;
+
+    logger.debug('设置完成', {
+      targetPath: actualLastPart,
+      resultType: typeof current[actualLastPart],
+      resultIsArray: Array.isArray(current[actualLastPart])
+    });
+  }
 }
 
 /**
@@ -375,23 +450,50 @@ export class StructuralMapperTransformer<TInput, TOutput> implements Transformer
           // 检查是否需要返回多个元素
           const isArrayPath = rule.targetPath.endsWith('[]');
           const targetPath = isArrayPath ? rule.targetPath.slice(0, -2) : rule.targetPath;
+          const logger = getLogger('transformer.structuralMapper');
 
-
+          logger.debug('处理路径', {
+            selector: rule.selector,
+            targetPath: rule.targetPath,
+            isArrayPath,
+            processedPath: targetPath
+          });
 
           if (isArrayPath) {
             // 返回所有匹配元素的数组
             const elements = querySelectorAll(document, rule.selector);
 
+            logger.debug('数组路径处理', {
+              selector: rule.selector,
+              elementsFound: elements.length,
+              elementsType: typeof elements
+            });
 
             if (elements && elements.length > 0) {
-              let value: unknown = elements;
+              // 确保目标路径存在一个数组
+              if (!Array.isArray(result[targetPath])) {
+                setByPath(result, targetPath, []);
+              }
 
               if (rule.transform) {
                 try {
-                  value = rule.transform(elements as any);
+                  logger.debug('数组转换开始', {
+                    elementsCount: elements.length
+                  });
 
+                  // 对每个元素单独应用转换，将结果添加到数组中
+                  for (const element of elements) {
+                    const transformedValue = rule.transform(element as any);
+
+                    // 使用数组路径语法将结果添加到数组
+                    setByPath(result, targetPath + '[]', transformedValue);
+                  }
+
+                  logger.debug('数组转换完成', {
+                    targetPath,
+                    resultArrayLength: Array.isArray(result[targetPath]) ? result[targetPath].length : 0
+                  });
                 } catch (error) {
-
                   this.addWarning(
                     context,
                     'transform_error',
@@ -399,12 +501,13 @@ export class StructuralMapperTransformer<TInput, TOutput> implements Transformer
                   );
                   continue;
                 }
+              } else {
+                // 没有转换函数，直接添加原始元素
+                for (const element of elements) {
+                  setByPath(result, targetPath + '[]', element);
+                }
               }
-
-              setByPath(result, targetPath, value);
-
             } else {
-
               this.addWarning(
                 context,
                 'selector_no_match',

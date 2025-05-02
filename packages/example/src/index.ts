@@ -1,12 +1,23 @@
 /**
  * @dpml/example 包主入口
  */
-import { createDomainDPML } from '@dpml/core';
+import { createDomainDPML, createLogger, LogLevel } from '@dpml/core';
 
 import { commandsConfig } from './config/cli';
 import { workflowSchema } from './config/schema';
 import { transformers } from './config/transformers';
 import type { Workflow } from './types/workflow';
+
+// 获取日志记录器
+const logger = createLogger('example.initializer', {
+  minLevel: LogLevel.DEBUG
+});
+
+// 记录转换器信息
+logger.debug('初始化转换器', {
+  transformersCount: transformers.length,
+  transformerNames: transformers.map(t => t.name)
+});
 
 /**
  * 创建工作流领域DPML实例

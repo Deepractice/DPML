@@ -55,8 +55,9 @@ export function createDomainDPML<T>(config: DomainConfig): DomainDPML<T> {
   // 创建领域编译器
   const compiler = createDomainCompiler<T>(config);
 
-  // 创建领域CLI
-  const cli = createDPMLCLIService();
+  // 创建领域CLI并传递配置
+  // 注意：createDomainCompiler已经处理了命令注册，此处只需传递配置参数
+  const cli = createDPMLCLIService(config);
 
   // 返回复合对象
   return {

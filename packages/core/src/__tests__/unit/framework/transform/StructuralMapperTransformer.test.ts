@@ -11,6 +11,17 @@ import {
   createMappingRulesFixture
 } from '../../../fixtures/transformer/transformerFixtures';
 
+// 模拟日志服务
+vi.mock('../../../../core/logging/loggingService', () => ({
+  getLogger: () => ({
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    fatal: vi.fn()
+  })
+}));
+
 describe('StructuralMapperTransformer', () => {
   let mockContext: TransformContext;
   let mockWarnings: any[];
@@ -262,5 +273,99 @@ describe('StructuralMapperTransformer', () => {
         transformer: 'structuralMapper'
       })
     ]));
+  });
+
+  // UT-STRUCTMAP-ARR-01: 测试数组路径处理功能
+  test('应正确处理数组路径并将多个元素添加到数组中', () => {
+    // 添加直接查询方法到document
+    const document = processingResult.document;
+
+    // 添加一些测试元素
+    const promptNodes = document.rootNode.children.filter(node => node.tagName === 'prompt');
+
+    document.querySelectorAll = (selector: string) => {
+      if (selector === 'prompt') {
+        return promptNodes;
+      }
+
+      return [];
+    };
+
+    // 创建使用数组路径的映射规则
+    const arrayPathRules: Array<MappingRule<unknown, unknown>> = [
+      {
+        selector: 'prompt',
+        targetPath: 'prompts[]',
+        transform: (node: any) => {
+          return {
+            type: node.attributes.get('type'),
+            content: node.content
+          };
+        }
+      }
+    ];
+
+    // 创建转换器
+    const arrayTransformer = new StructuralMapperTransformer(arrayPathRules);
+
+    // 执行转换
+    const result = arrayTransformer.transform(processingResult, mockContext) as Record<string, any>;
+
+    // 验证结果
+    expect(result).toHaveProperty('prompts');
+    expect(Array.isArray(result.prompts)).toBe(true);
+    expect(result.prompts.length).toBe(2); // 因为有2个prompt节点
+
+    // 验证数组内容
+    expect(result.prompts[0]).toHaveProperty('type', 'system');
+    expect(result.prompts[0]).toHaveProperty('content', '你是一个有用的助手');
+    expect(result.prompts[1]).toHaveProperty('type', 'user');
+    expect(result.prompts[1]).toHaveProperty('content', '告诉我关于人工智能的信息');
+  });
+
+  // UT-STRUCTMAP-EMPTY-01: 测试空路径处理功能
+  test('应正确处理空路径并将属性设置到根级别', () => {
+    // 添加直接查询方法到document
+    const document = processingResult.document;
+
+    document.querySelector = (selector: string) => {
+      if (selector === 'model') {
+        return document.rootNode;
+      }
+
+      return undefined;
+    };
+
+    // 创建使用空路径的映射规则
+    const emptyPathRules: Array<MappingRule<unknown, unknown>> = [
+      {
+        selector: 'model',
+        targetPath: '',
+        transform: (node: any) => {
+          return {
+            modelId: node.attributes.get('id'),
+            modelType: 'root-level',
+            metadata: {
+              version: '1.0'
+            }
+          };
+        }
+      }
+    ];
+
+    // 创建转换器
+    const emptyPathTransformer = new StructuralMapperTransformer(emptyPathRules);
+
+    // 执行转换
+    const result = emptyPathTransformer.transform(processingResult, mockContext) as Record<string, any>;
+
+    // 验证结果已直接设置到根级别，而不是嵌套在 "" 属性下
+    expect(result).toHaveProperty('modelId', 'test-model');
+    expect(result).toHaveProperty('modelType', 'root-level');
+    expect(result).toHaveProperty('metadata');
+    expect(result.metadata).toHaveProperty('version', '1.0');
+
+    // 确保没有创建一个空键
+    expect(Object.prototype.hasOwnProperty.call(result, '')).toBe(false);
   });
 });

@@ -325,7 +325,7 @@ describe('transformerService集成测试', () => {
     const mappingRules = createMappingRulesFixture();
 
     // 创建转换器
-    const structuralMapper = createStructuralMapper(mappingRules);
+    const structuralMapper = createStructuralMapper('structuralMapper', mappingRules);
 
     // 注册转换器
     registerTransformer(structuralMapper);
@@ -350,7 +350,7 @@ describe('transformerService集成测试', () => {
     };
 
     // 创建转换器
-    const aggregator = createAggregator(config);
+    const aggregator = createAggregator('aggregator', config);
 
     // 注册转换器
     registerTransformer(aggregator);
@@ -361,5 +361,120 @@ describe('transformerService集成测试', () => {
     // 断言
     expect(result.transformers).toHaveProperty('aggregator');
     expect(result.merged).toBeDefined();
+  });
+
+  /**
+   * ID: IT-TRANSVC-09
+   * 描述: 测试深度合并和数组属性处理
+   */
+  test('应正确深度合并转换器结果，特别是数组属性', () => {
+    // 准备
+    const processingResult = createProcessingResultFixture();
+
+    // 创建模拟工作流处理的转换器
+    const baseTransformer: Transformer<unknown, unknown> = {
+      name: 'baseTransformer',
+      transform: vi.fn().mockImplementation((input, context) => {
+        const result = {
+          name: "测试工作流",
+          version: "1.0.0",
+          variables: [],
+          steps: [],
+          transitions: []
+        };
+
+        context.set('baseTransformer', result);
+
+        return result;
+      })
+    };
+
+    const variablesTransformer: Transformer<unknown, unknown> = {
+      name: 'variablesTransformer',
+      transform: vi.fn().mockImplementation((input, context) => {
+        const result = {
+          variables: [
+            { name: "var1", type: "string", value: "test1" },
+            { name: "var2", type: "number", value: "123" }
+          ]
+        };
+
+        context.set('variablesTransformer', result);
+
+        return result;
+      })
+    };
+
+    const stepsTransformer: Transformer<unknown, unknown> = {
+      name: 'stepsTransformer',
+      transform: vi.fn().mockImplementation((input, context) => {
+        const result = {
+          steps: [
+            { id: "step1", type: "start", description: "开始" },
+            { id: "step2", type: "process", description: "处理" }
+          ]
+        };
+
+        context.set('stepsTransformer', result);
+
+        return result;
+      })
+    };
+
+    const transitionsTransformer: Transformer<unknown, unknown> = {
+      name: 'transitionsTransformer',
+      transform: vi.fn().mockImplementation((input, context) => {
+        const result = {
+          transitions: [
+            { from: "step1", to: "step2" }
+          ]
+        };
+
+        context.set('transitionsTransformer', result);
+
+        return result;
+      })
+    };
+
+    // 注册所有转换器
+    registerTransformer(baseTransformer);
+    registerTransformer(variablesTransformer);
+    registerTransformer(stepsTransformer);
+    registerTransformer(transitionsTransformer);
+
+    // 执行转换
+    const result = transform(processingResult);
+
+    // 断言 - 类型断言确保类型安全
+    const merged = result.merged as Record<string, any>;
+
+    // 验证基本属性
+    expect(merged).toHaveProperty('name', '测试工作流');
+    expect(merged).toHaveProperty('version', '1.0.0');
+
+    // 验证数组属性被正确合并
+    expect(merged).toHaveProperty('variables');
+    expect(Array.isArray(merged.variables)).toBe(true);
+    expect(merged.variables).toHaveLength(2);
+    expect(merged.variables[0]).toHaveProperty('name', 'var1');
+    expect(merged.variables[1]).toHaveProperty('name', 'var2');
+
+    expect(merged).toHaveProperty('steps');
+    expect(Array.isArray(merged.steps)).toBe(true);
+    expect(merged.steps).toHaveLength(2);
+    expect(merged.steps[0]).toHaveProperty('id', 'step1');
+    expect(merged.steps[1]).toHaveProperty('id', 'step2');
+
+    expect(merged).toHaveProperty('transitions');
+    expect(Array.isArray(merged.transitions)).toBe(true);
+    expect(merged.transitions).toHaveLength(1);
+    expect(merged.transitions[0]).toHaveProperty('from', 'step1');
+    expect(merged.transitions[0]).toHaveProperty('to', 'step2');
+
+    // 验证结果中包含所有转换器的结果
+    expect(result.transformers).toHaveProperty('baseTransformer');
+    expect(result.transformers).toHaveProperty('variablesTransformer');
+    expect(result.transformers).toHaveProperty('stepsTransformer');
+    expect(result.transformers).toHaveProperty('transitionsTransformer');
   });
 });

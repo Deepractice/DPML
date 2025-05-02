@@ -34,6 +34,6 @@
   <transition from="step2" to="step3" />
   <transition from="step3" to="step4" condition="isDataValid == true" />
   <transition from="step3" to="step5" condition="isDataValid == false" />
-  <transition from="step4" to="step6" />
+  <transition from="step4" to="step6" condition="isValid == false" />
   <transition from="step5" to="step6" />
 </workflow> 

@@ -323,7 +323,7 @@ export function getDomainTransformers(state: DomainContext): Array<Transformer<u
  */
 export function createDomainCompiler<T>(config: DomainConfig): DomainCompiler<T> {
   // 初始化领域状态，使用闭包模式保持状态隔离
-  const state = initializeDomain(config);
+  const state = initializeDomainCompiler(config);
 
   // 返回领域编译器实现
   return {
@@ -363,80 +363,92 @@ export function createDomainCompiler<T>(config: DomainConfig): DomainCompiler<T>
 }
 
 /**
- * 创建转换器定义器
- * @returns 转换器定义器实例
+ * 创建转换器定义器实例
+ * @returns 符合TransformerDefiner接口的实例
  */
 export function createTransformerDefiner(): TransformerDefiner {
   // 使用闭包模式返回TransformerDefiner接口实现
   return {
     /**
      * 定义结构映射转换器
+     * @param name 转换器名称
      * @param rules 映射规则数组
      * @returns 结构映射转换器实例
      */
     defineStructuralMapper<TInput, TOutput>(
+      name: string,
       rules: Array<MappingRule<unknown, unknown>>
     ): Transformer<TInput, TOutput> {
-      return createStructuralMapper<TInput, TOutput>(rules);
+      return createStructuralMapper<TInput, TOutput>(name, rules);
     },
 
     /**
      * 定义聚合转换器
+     * @param name 转换器名称
      * @param config 收集配置
      * @returns 聚合转换器实例
      */
     defineAggregator<TInput, TOutput>(
+      name: string,
       config: CollectorConfig
     ): Transformer<TInput, TOutput> {
-      return createAggregator<TInput, TOutput>(config);
+      return createAggregator<TInput, TOutput>(name, config);
     },
 
     /**
      * 定义模板转换器
+     * @param name 转换器名称
      * @param template 模板字符串或函数
      * @param preprocessor 可选的数据预处理函数
      * @returns 模板转换器实例
      */
     defineTemplateTransformer<TInput>(
+      name: string,
       template: string | ((data: unknown) => string),
       preprocessor?: (input: TInput) => unknown
     ): Transformer<TInput, string> {
-      return createTemplateTransformer<TInput>(template, preprocessor);
+      return createTemplateTransformer<TInput>(name, template, preprocessor);
     },
 
     /**
      * 定义关系处理转换器
+     * @param name 转换器名称
      * @param nodeSelector 节点选择器
      * @param config 关系配置
      * @returns 关系处理转换器实例
      */
     defineRelationProcessor<TInput, TOutput>(
+      name: string,
       nodeSelector: string,
       config: RelationConfig
     ): Transformer<TInput, TOutput> {
-      return createRelationProcessor<TInput, TOutput>(nodeSelector, config);
+      return createRelationProcessor<TInput, TOutput>(name, nodeSelector, config);
     },
 
     /**
      * 定义语义提取转换器
+     * @param name 转换器名称
      * @param extractors 提取器数组
      * @returns 语义提取转换器实例
      */
     defineSemanticExtractor<TInput, TOutput>(
+      name: string,
       extractors: Array<SemanticExtractor<unknown, unknown>>
     ): Transformer<TInput, TOutput> {
-      return createSemanticExtractor<TInput, TOutput>(extractors);
+      return createSemanticExtractor<TInput, TOutput>(name, extractors);
     },
 
     /**
      * 定义结果收集转换器
+     * @param name 转换器名称
      * @param transformerNames 可选的转换器名称数组，用于选择性收集
      * @returns 结果收集转换器实例
      */
     defineResultCollector<TOutput>(
+      name: string,
       transformerNames?: string[]
     ): Transformer<unknown, TOutput> {
-      return createResultCollector<TOutput>(transformerNames);
+      return createResultCollector<TOutput>(name, transformerNames);
     }
   };
 }
@@ -561,8 +573,8 @@ export function ensureCoreInitialized(): void {
       }
     };
 
-    // 初始化核心领域
-    initializeDomain(coreConfig);
+    // 初始化核心领域，仅处理命令
+    initializeDomainCLI(coreConfig);
   }
 
   coreInitialized = true;
@@ -624,20 +636,25 @@ export function generateCommandsForDomain(config: DomainConfig): CommandDefiniti
  * 4. 将所有领域命令注册到CLI实例中
  * 5. 为默认领域的命令创建无前缀的别名
  *
- * @param options 可选的CLI配置选项，用于覆盖默认设置
+ * @param config 领域配置，用于配置CLI和处理领域相关命令
  * @returns 配置完成的CLI实例
  */
-export function createDPMLCLIService(options?: Partial<CLIOptions>): CLI {
+export function createDPMLCLIService(config?: DomainConfig): CLI {
   // 确保核心命令已注册
   ensureCoreInitialized();
 
   // 准备CLI选项
   const cliOptions: CLIOptions = {
-    name: options?.name || 'dpml',
-    version: options?.version || VERSION,
-    description: options?.description || 'DPML命令行工具 - 数据处理标记语言',
-    defaultDomain: options?.defaultDomain
+    name: config?.domain || 'dpml',
+    version: VERSION,
+    description: config?.description || 'DPML命令行工具 - 数据处理标记语言',
+    defaultDomain: config?.domain
   };
+
+  // 如果提供了领域配置，处理其命令
+  if (config) {
+    initializeDomainCLI(config);
+  }
 
   // 1. 创建基础CLI实例 (不包含命令)
   const cli = createCLI(cliOptions, []);
@@ -735,4 +752,110 @@ export function createDPMLCLIService(options?: Partial<CLIOptions>): CLI {
 
   // 返回完全配置的CLI实例
   return cli;
+}
+
+/**
+ * 初始化领域编译器上下文
+ * @param config 领域配置
+ * @returns 初始化的领域上下文
+ * @throws {ConfigurationError} 当配置无效时抛出
+ */
+export function initializeDomainCompiler(config: DomainConfig): DomainContext {
+  // 验证配置
+  validateConfig(config);
+
+  // 创建内部上下文，合并默认选项
+  const context: DomainContext = {
+    domain: config.domain,
+    description: config.description,
+    schema: config.schema,
+    transformers: [...config.transformers],
+    options: {
+      ...defaultOptions,
+      ...config.options,
+      // 确保custom始终存在
+      custom: {
+        ...defaultOptions.custom,
+        ...(config.options?.custom || {})
+      }
+    }
+  };
+
+  // 存储领域信息到领域注册表，但不处理命令
+  const registration: DomainRegistration = {
+    config,
+    context,
+    commands: []
+  };
+
+  // 仅当领域尚未注册时才添加
+  if (!domainRegistry.has(config.domain)) {
+    domainRegistry.set(config.domain, registration);
+    commandLogger.info(`领域 '${config.domain}' 已添加到领域注册表(编译器)`);
+  }
+
+  return context;
+}
+
+/**
+ * 初始化领域CLI上下文
+ * @param config 领域配置
+ * @returns 初始化的领域上下文
+ */
+export function initializeDomainCLI(config: DomainConfig): DomainContext {
+  // 如果领域已经注册，则获取现有上下文
+  if (domainRegistry.has(config.domain)) {
+    const registration = domainRegistry.get(config.domain)!;
+    const context = registration.context;
+
+    // 处理命令配置
+    if (config.commands) {
+      commandLogger.info(`处理领域 '${config.domain}' 的命令配置`);
+      processDomainCommands(config.commands, context);
+    }
+
+    // 更新注册表中的命令
+    registration.commands = commandRegistry.filter(cmd => cmd.category === config.domain);
+
+    return context;
+  }
+
+  // 如果领域尚未注册，则创建新的上下文
+  // 验证配置
+  validateConfig(config);
+
+  // 创建内部上下文，合并默认选项
+  const context: DomainContext = {
+    domain: config.domain,
+    description: config.description,
+    schema: config.schema,
+    transformers: [...config.transformers],
+    options: {
+      ...defaultOptions,
+      ...config.options,
+      // 确保custom始终存在
+      custom: {
+        ...defaultOptions.custom,
+        ...(config.options?.custom || {})
+      }
+    }
+  };
+
+  // 处理命令配置
+  if (config.commands) {
+    commandLogger.info(`处理领域 '${config.domain}' 的命令配置`);
+    processDomainCommands(config.commands, context);
+  }
+
+  // 存储领域信息到领域注册表
+  const registration: DomainRegistration = {
+    config,
+    context,
+    commands: commandRegistry.filter(cmd => cmd.category === config.domain)
+  };
+
+  domainRegistry.set(config.domain, registration);
+  commandLogger.info(`领域 '${config.domain}' 已添加到领域注册表(CLI)`);
+
+  return context;
 }

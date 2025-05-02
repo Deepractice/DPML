@@ -17,10 +17,10 @@
     }
   },
   "scripts": {
-    "prebuild": "pnpm lint --fix",
+    "prebuild": "pnpm lint ",
     "build": "tsup",
     "postbuild": "chmod +x dist/bin.js",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint src --ext .ts --fix",
     "swc": "node -r @swc-node/register",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
