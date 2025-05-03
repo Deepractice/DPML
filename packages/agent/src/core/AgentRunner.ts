@@ -46,12 +46,12 @@ export class AgentRunner {
 
   /**
    * 准备发送给LLM的消息列表
-   * 
+   *
    * @returns 按照正确顺序排列的消息列表
    */
   private prepareMessages(): Message[] {
     const messages: Message[] = [];
-    
+
     // 添加系统提示（总是在第一位）
     if (this.config.prompt) {
       messages.push({
@@ -66,6 +66,7 @@ export class AgentRunner {
     // 添加所有历史消息
     // 在测试中历史消息包括当前用户消息，所以不需要专门分离处理
     const historyMessages = this.session.getMessages();
+
     if (historyMessages.length > 0) {
       messages.push(...historyMessages);
     }

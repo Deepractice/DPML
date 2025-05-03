@@ -1,9 +1,9 @@
 import { AgentError, AgentErrorType } from '../../types';
 import type { LLMConfig } from '../../types';
 
+import { AnthropicClient } from './AnthropicClient';
 import type { LLMClient } from './LLMClient';
 import { OpenAIClient } from './OpenAIClient';
-import { AnthropicClient } from './AnthropicClient';
 
 /**
  * 验证LLM配置的基本有效性
@@ -27,7 +27,7 @@ function validateConfig(config: LLMConfig): void {
       'MISSING_API_KEY'
     );
   }
-  
+
   // 验证Anthropic配置
   if (config.apiType.toLowerCase() === 'anthropic' && !config.apiKey) {
     throw new AgentError(
@@ -47,7 +47,7 @@ function validateConfig(config: LLMConfig): void {
 export function createClient(config: LLMConfig): LLMClient {
   // 首先验证配置的基本有效性
   validateConfig(config);
-  
+
   switch (config.apiType.toLowerCase()) {
     case 'openai':
       return new OpenAIClient(config);

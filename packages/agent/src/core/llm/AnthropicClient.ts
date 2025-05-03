@@ -73,6 +73,7 @@ export class AnthropicClient implements LLMClient {
     // 检查响应状态
     if (!response.ok) {
       const errorData = await response.text();
+
       throw new Error(`Anthropic API请求失败: ${response.status} ${response.statusText} - ${errorData}`);
     }
 
@@ -116,6 +117,7 @@ export class AnthropicClient implements LLMClient {
     // 检查响应状态
     if (!response.ok) {
       const errorData = await response.text();
+
       throw new Error(`Anthropic API流式请求失败: ${response.status} ${response.statusText} - ${errorData}`);
     }
 
@@ -131,6 +133,7 @@ export class AnthropicClient implements LLMClient {
     try {
       while (true) {
         const { done, value } = await reader.read();
+
         if (done) break;
 
         // 解码新接收的数据
@@ -138,14 +141,16 @@ export class AnthropicClient implements LLMClient {
 
         // 处理接收到的事件
         const lines = buffer.split('\n');
+
         buffer = lines.pop() || '';
 
         for (const line of lines) {
           if (line.startsWith('data: ') && line !== 'data: [DONE]') {
             const jsonData = line.substring(6); // 去掉 'data: ' 前缀
+
             try {
               const data = JSON.parse(jsonData);
-              
+
               if (data.type === 'content_block_delta' && data.delta?.text) {
                 yield {
                   content: {
@@ -168,7 +173,7 @@ export class AnthropicClient implements LLMClient {
   private convertToAnthropicMessages(messages: Message[]): Record<string, unknown> {
     // Anthropic格式要求系统提示和用户消息分开处理
     const systemMessage = messages.find(msg => msg.role === 'system');
-    
+
     // 过滤掉系统消息，只保留用户和助手消息
     const userAssistantMessages = messages
       .filter(msg => msg.role !== 'system')
@@ -195,7 +200,7 @@ export class AnthropicClient implements LLMClient {
     } else if (content.type === 'text') {
       return content.value;
     }
-    
+
     // 不支持的内容类型
     return `[不支持的内容类型: ${Array.isArray(content) ? '多模态内容' : content.type}]`;
   }
@@ -209,7 +214,7 @@ export class AnthropicClient implements LLMClient {
     } else if (content.type === 'text') {
       return content.value as string;
     }
-    
+
     return '';
   }
-} 
+}

@@ -45,7 +45,7 @@ export class OpenAIClient implements LLMClient {
       if (error instanceof AgentError) {
         throw error;
       }
-      
+
       throw new AgentError(
         `LLM服务调用失败: ${error instanceof Error ? error.message : String(error)}`,
         AgentErrorType.LLM_SERVICE,
@@ -77,6 +77,7 @@ export class OpenAIClient implements LLMClient {
       // 检查响应状态
       if (!response.ok) {
         const errorData = await response.text();
+
         throw new AgentError(
           `OpenAI API请求失败: ${response.status} ${response.statusText} - ${errorData}`,
           AgentErrorType.LLM_SERVICE,
@@ -108,7 +109,7 @@ export class OpenAIClient implements LLMClient {
       if (error instanceof AgentError) {
         throw error;
       }
-      
+
       throw new AgentError(
         `LLM服务调用失败: ${error instanceof Error ? error.message : String(error)}`,
         AgentErrorType.LLM_SERVICE,
@@ -140,6 +141,7 @@ export class OpenAIClient implements LLMClient {
       // 检查响应状态
       if (!response.ok) {
         const errorData = await response.text();
+
         throw new AgentError(
           `OpenAI API流式请求失败: ${response.status} ${response.statusText} - ${errorData}`,
           AgentErrorType.LLM_SERVICE,
@@ -163,6 +165,7 @@ export class OpenAIClient implements LLMClient {
       try {
         while (true) {
           const { done, value } = await reader.read();
+
           if (done) break;
 
           // 解码新接收的数据
@@ -170,15 +173,17 @@ export class OpenAIClient implements LLMClient {
 
           // 处理接收到的事件
           const lines = buffer.split('\n');
+
           buffer = lines.pop() || '';
 
           for (const line of lines) {
             if (line.startsWith('data: ') && line !== 'data: [DONE]') {
               const jsonData = line.substring(6); // 去掉 'data: ' 前缀
+
               try {
                 const data = JSON.parse(jsonData);
                 const content = data.choices[0]?.delta?.content;
-                
+
                 if (content) {
                   yield {
                     content: {
@@ -207,7 +212,7 @@ export class OpenAIClient implements LLMClient {
       if (error instanceof AgentError) {
         throw error;
       }
-      
+
       throw new AgentError(
         `LLM服务调用失败: ${error instanceof Error ? error.message : String(error)}`,
         AgentErrorType.LLM_SERVICE,
@@ -233,7 +238,7 @@ export class OpenAIClient implements LLMClient {
       // OpenAI格式支持内容数组
       return content.map(item => this.convertContentItem(item));
     }
-    
+
     return this.convertContentItem(content);
   }
 
@@ -243,11 +248,11 @@ export class OpenAIClient implements LLMClient {
         return item.value as string;
       case 'image':
         // 处理图像类型，转换为OpenAI的图像URL格式
-        return { 
-          type: 'image_url', 
-          image_url: { 
-            url: `data:${item.mimeType || 'image/jpeg'};base64,${this.arrayBufferToBase64(item.value as Uint8Array)}` 
-          } 
+        return {
+          type: 'image_url',
+          image_url: {
+            url: `data:${item.mimeType || 'image/jpeg'};base64,${this.arrayBufferToBase64(item.value as Uint8Array)}`
+          }
         };
       case 'audio':
       case 'video':
@@ -267,9 +272,11 @@ export class OpenAIClient implements LLMClient {
       // 浏览器环境
       let binary = '';
       const len = buffer.byteLength;
+
       for (let i = 0; i < len; i++) {
         binary += String.fromCharCode(buffer[i]);
       }
+
       // 使用btoa函数(浏览器内置)进行Base64编码
       return btoa(binary);
     }
