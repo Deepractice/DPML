@@ -3,10 +3,10 @@
  */
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-import { OpenAIClient } from '../../../../src/core/llm/OpenAIClient';
-import type { Message } from '../../../../src/core/types';
-import { AgentError, AgentErrorType } from '../../../../src/types';
-import type { LLMConfig } from '../../../../src/types';
+import { OpenAIClient } from '../../../../core/llm/OpenAIClient';
+import type { Message } from '../../../../core/types';
+import { AgentError, AgentErrorType } from '../../../../types';
+import type { LLMConfig } from '../../../../types';
 
 describe('UT-OpenAI', () => {
   // 有效的配置

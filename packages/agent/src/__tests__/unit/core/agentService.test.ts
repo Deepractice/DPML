@@ -3,11 +3,11 @@
  */
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-import type { ChatInput } from '../../../src/types';
-import { AgentError, AgentErrorType } from '../../../src/types';
+import type { ChatInput } from '../../../types';
+import { AgentError, AgentErrorType } from '../../../types';
 
 // 模拟依赖
-vi.mock('../../../src/core/llm/llmFactory', () => {
+vi.mock('../../../core/llm/llmFactory', () => {
   const mockLLMClient = { sendMessages: vi.fn() };
 
   return {
@@ -15,7 +15,7 @@ vi.mock('../../../src/core/llm/llmFactory', () => {
   };
 });
 
-vi.mock('../../../src/core/AgentRunner', () => {
+vi.mock('../../../core/AgentRunner', () => {
   const mockSendMessage = vi.fn();
 
   mockSendMessage.mockImplementation((input, stream) => {
@@ -38,7 +38,7 @@ vi.mock('../../../src/core/AgentRunner', () => {
   };
 });
 
-vi.mock('../../../src/core/session/InMemoryAgentSession', () => {
+vi.mock('../../../core/session/InMemoryAgentSession', () => {
   const mockGetMessages = vi.fn().mockReturnValue([]);
   const mockAddMessage = vi.fn();
 
@@ -51,10 +51,10 @@ vi.mock('../../../src/core/session/InMemoryAgentSession', () => {
 });
 
 // 导入被模拟的模块和被测试的模块
-import { AgentRunner } from '../../../src/core/AgentRunner';
-import { createAgent } from '../../../src/core/agentService';
-import { createClient } from '../../../src/core/llm/llmFactory';
-import { InMemoryAgentSession } from '../../../src/core/session/InMemoryAgentSession';
+import { AgentRunner } from '../../../core/AgentRunner';
+import { createAgent } from '../../../core/agentService';
+import { createClient } from '../../../core/llm/llmFactory';
+import { InMemoryAgentSession } from '../../../core/session/InMemoryAgentSession';
 
 describe('UT-AgentSvc', () => {
   beforeEach(() => {

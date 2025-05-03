@@ -5,8 +5,8 @@
  */
 import { describe, test, expect } from 'vitest';
 
-import type { Agent, AgentConfig, ChatInput, Content } from '../../../src/types';
-import { AgentError, AgentErrorType } from '../../../src/types';
+import type { Agent, AgentConfig, ChatInput, Content } from '../../../types';
+import { AgentError, AgentErrorType } from '../../../types';
 
 describe('CT-Type-Agent', () => {
   test('CT-Type-Agent-01: Agent接口应符合公开契约', () => {

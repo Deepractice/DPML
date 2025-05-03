@@ -3,7 +3,7 @@
  */
 import { describe, test, expect } from 'vitest';
 
-import { AgentError, AgentErrorType } from '../../../src/types';
+import { AgentError, AgentErrorType } from '../../../types';
 
 describe('UT-Error', () => {
   test('UT-Error-01: AgentError构造函数应设置所有属性', () => {

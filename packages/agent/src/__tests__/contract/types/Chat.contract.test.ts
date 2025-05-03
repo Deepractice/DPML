@@ -5,7 +5,7 @@
  */
 import { describe, test, expect } from 'vitest';
 
-import type { ChatInput, ChatOutput, Content } from '../../../src/types';
+import type { ChatInput, ChatOutput, Content } from '../../../types';
 
 describe('CT-Type-Chat', () => {
   test('CT-Type-Chat-01: ChatInput类型应符合公开契约', () => {

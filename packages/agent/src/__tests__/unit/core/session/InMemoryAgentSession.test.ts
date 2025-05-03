@@ -3,8 +3,8 @@
  */
 import { describe, test, expect } from 'vitest';
 
-import { InMemoryAgentSession } from '../../../../src/core/session/InMemoryAgentSession';
-import type { Message } from '../../../../src/core/types';
+import { InMemoryAgentSession } from '../../../../core/session/InMemoryAgentSession';
+import type { Message } from '../../../../core/types';
 
 describe('UT-Session', () => {
   test('UT-Session-01: addMessage应将消息添加到历史', () => {

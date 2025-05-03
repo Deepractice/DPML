@@ -6,9 +6,9 @@
  *
  * @example
  * ```typescript
- * import { createAgent } from '@dpml/session';
+ * import { createAgent } from '@dpml/agent';
  *
- * const session = createAgent({
+ * const agent = createAgent({
  *   llm: {
  *     apiType: 'openai',
  *     apiKey: process.env.OPENAI_API_KEY,
@@ -17,7 +17,7 @@
  *   prompt: '你是一个专业的JavaScript和TypeScript助手。'
  * });
  *
- * const response = await session.chat('如何在TypeScript中实现单例模式？');
+ * const response = await agent.chat('如何在TypeScript中实现单例模式？');
  * console.log(response);
  * ```
  */

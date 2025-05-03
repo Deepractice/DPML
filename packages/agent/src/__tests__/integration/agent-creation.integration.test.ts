@@ -3,13 +3,13 @@
  */
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-import { createAgent } from '../../src/api/agent';
-import { createClient } from '../../src/core/llm/llmFactory';
-import { InMemoryAgentSession } from '../../src/core/session/InMemoryAgentSession';
-import type { AgentConfig } from '../../src/types';
+import { createAgent } from '../../api/agent';
+import { createClient } from '../../core/llm/llmFactory';
+import { InMemoryAgentSession } from '../../core/session/InMemoryAgentSession';
+import type { AgentConfig } from '../../types';
 
 // 模拟依赖
-vi.mock('../../src/core/llm/llmFactory', () => ({
+vi.mock('../../core/llm/llmFactory', () => ({
   createClient: vi.fn().mockReturnValue({
     sendMessages: vi.fn().mockResolvedValue({
       content: { type: 'text', value: '模拟响应' }
@@ -17,7 +17,7 @@ vi.mock('../../src/core/llm/llmFactory', () => ({
   })
 }));
 
-vi.mock('../../src/core/session/InMemoryAgentSession', () => ({
+vi.mock('../../core/session/InMemoryAgentSession', () => ({
   InMemoryAgentSession: vi.fn().mockImplementation(() => ({
     addMessage: vi.fn(),
     getMessages: vi.fn().mockReturnValue([])

@@ -3,14 +3,14 @@
  */
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-import type { AgentConfig, ChatOutput } from '../../src/types';
-import type { Message } from '../../src/core/types';
+import type { AgentConfig, ChatOutput } from '../../types';
+import type { Message } from '../../core/types';
 
 // 存储消息历史
 const messageHistory: Message[] = [];
 
 // 模拟依赖
-vi.mock('../../src/core/llm/llmFactory', () => {
+vi.mock('../../core/llm/llmFactory', () => {
   const mockSendMessages = vi.fn();
 
   return {
@@ -21,7 +21,7 @@ vi.mock('../../src/core/llm/llmFactory', () => {
 });
 
 // 模拟会话
-vi.mock('../../src/core/session/InMemoryAgentSession', () => ({
+vi.mock('../../core/session/InMemoryAgentSession', () => ({
   InMemoryAgentSession: vi.fn().mockImplementation(() => ({
     addMessage: vi.fn((message) => {
       messageHistory.push(message);
@@ -31,8 +31,8 @@ vi.mock('../../src/core/session/InMemoryAgentSession', () => ({
 }));
 
 // 导入被测试的模块
-import { createAgent } from '../../src/api/agent';
-import { createClient } from '../../src/core/llm/llmFactory';
+import { createAgent } from '../../api/agent';
+import { createClient } from '../../core/llm/llmFactory';
 
 describe('IT-Msg', () => {
   let testConfig: AgentConfig;
@@ -44,7 +44,11 @@ describe('IT-Msg', () => {
     messageHistory.length = 0;
 
     // 设置默认响应
-    const mockLLMClient = createClient({} as any);
+    const mockLLMClient = createClient({
+      apiType: 'openai',
+      model: 'gpt-4',
+      apiKey: 'sk-test123'
+    });
 
     vi.mocked(mockLLMClient.sendMessages).mockResolvedValue({
       content: { type: 'text', value: '模拟响应' }
@@ -69,7 +73,11 @@ describe('IT-Msg', () => {
     await agent.chat(input);
 
     // 获取模拟的LLM客户端
-    const mockLLMClient = createClient({} as any);
+    const mockLLMClient = createClient({
+      apiType: 'openai',
+      model: 'gpt-4',
+      apiKey: 'sk-test123'
+    });
 
     // 验证消息流
     expect(mockLLMClient.sendMessages).toHaveBeenCalled();
@@ -97,7 +105,11 @@ describe('IT-Msg', () => {
     await agent.chat(input);
 
     // 获取模拟的LLM客户端
-    const mockLLMClient = createClient({} as any);
+    const mockLLMClient = createClient({
+      apiType: 'openai',
+      model: 'gpt-4',
+      apiKey: 'sk-test123'
+    });
 
     // 验证标准化
     expect(mockLLMClient.sendMessages).toHaveBeenCalled();
@@ -136,7 +148,11 @@ describe('IT-Msg', () => {
     expect(messageHistory.length).toBe(3);
 
     // 获取模拟的LLM客户端
-    const mockLLMClient = createClient({} as any);
+    const mockLLMClient = createClient({
+      apiType: 'openai',
+      model: 'gpt-4',
+      apiKey: 'sk-test123'
+    });
 
     // 第二次调用sendMessages应该包含了历史消息
     const secondCallMessages = vi.mocked(mockLLMClient.sendMessages).mock.calls[1][0];
@@ -164,7 +180,11 @@ describe('IT-Msg', () => {
     const agent = createAgent(testConfig);
 
     // 获取模拟的LLM客户端
-    const mockLLMClient = createClient({} as any);
+    const mockLLMClient = createClient({
+      apiType: 'openai',
+      model: 'gpt-4',
+      apiKey: 'sk-test123'
+    });
 
     // 设置LLM响应
     vi.mocked(mockLLMClient.sendMessages).mockResolvedValue({
@@ -183,7 +203,11 @@ describe('IT-Msg', () => {
     const agent = createAgent(testConfig);
 
     // 获取模拟的LLM客户端
-    const mockLLMClient = createClient({} as any);
+    const mockLLMClient = createClient({
+      apiType: 'openai',
+      model: 'gpt-4',
+      apiKey: 'sk-test123'
+    });
 
     // 模拟流式响应
     const streamResponse = {
@@ -217,7 +241,11 @@ describe('IT-Msg', () => {
     const agent = createAgent(testConfig);
 
     // 获取模拟的LLM客户端
-    const mockLLMClient = createClient({} as any);
+    const mockLLMClient = createClient({
+      apiType: 'openai',
+      model: 'gpt-4',
+      apiKey: 'sk-test123'
+    });
 
     // 模拟LLM错误
     const errorMessage = 'LLM服务错误';

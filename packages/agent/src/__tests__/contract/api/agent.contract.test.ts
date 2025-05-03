@@ -5,26 +5,24 @@
  */
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-import type { AgentConfig } from '../../../src/types';
-import { AgentError, AgentErrorType } from '../../../src/types';
+import type { AgentConfig } from '../../../types';
+import { AgentError, AgentErrorType } from '../../../types';
 
 // 使用vi.mock的工厂函数模式进行模拟
-vi.mock('../../../src/core/agentService', () => {
-  const mockCreateAgent = vi.fn().mockReturnValue({
-    chat: async () => '模拟响应',
-    chatStream: async function* () {
-      yield '模拟流式响应';
-    }
-  });
-
+vi.mock('../../../core/agentService', () => {
   return {
-    createAgent: mockCreateAgent
+    createAgent: vi.fn().mockReturnValue({
+      chat: async () => '模拟响应',
+      chatStream: async function* () {
+        yield '模拟流式响应';
+      }
+    })
   };
 });
 
 // 导入被测试的模块和被模拟的模块
-import { createAgent } from '../../../src/api/agent';
-import { createAgent } from '../../../src/core/agentService';
+import { createAgent as apiCreateAgent } from '../../../api/agent';
+import { createAgent } from '../../../core/agentService';
 
 describe('CT-API-Agent', () => {
   beforeEach(() => {
@@ -33,7 +31,7 @@ describe('CT-API-Agent', () => {
 
   test('CT-API-Agent-01: createAgent函数应符合公开契约', () => {
     // 验证函数存在且为函数类型
-    expect(typeof createAgent).toBe('function');
+    expect(typeof apiCreateAgent).toBe('function');
   });
 
   test('CT-API-Agent-02: createAgent函数应接受AgentConfig并返回Agent', () => {
@@ -47,7 +45,7 @@ describe('CT-API-Agent', () => {
     };
 
     // 执行测试
-    const agent = createAgent(config);
+    const agent = apiCreateAgent(config);
 
     // 验证返回对象实现了Agent接口
     expect(agent).toBeDefined();
@@ -67,7 +65,7 @@ describe('CT-API-Agent', () => {
       },
       prompt: '你是一个AI助手'
     };
-    const agent = createAgent(config);
+    const agent = apiCreateAgent(config);
 
     // 执行
     const response = await agent.chat('测试输入');
@@ -85,7 +83,7 @@ describe('CT-API-Agent', () => {
       },
       prompt: '你是一个AI助手'
     };
-    const agent = createAgent(config);
+    const agent = apiCreateAgent(config);
 
     // 执行
     const stream = agent.chatStream('测试输入');
@@ -118,6 +116,6 @@ describe('CT-API-Agent', () => {
     } as AgentConfig;
 
     // 验证抛出预期的错误
-    expect(() => createAgent(invalidConfig)).toThrow(AgentError);
+    expect(() => apiCreateAgent(invalidConfig)).toThrow(AgentError);
   });
 });

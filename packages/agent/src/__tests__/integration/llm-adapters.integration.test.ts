@@ -3,20 +3,22 @@
  */
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-import { createClient } from '../../src/core/llm/llmFactory';
-import { OpenAIClient } from '../../src/core/llm/OpenAIClient';
-import type { Message } from '../../src/core/types';
-import type { LLMConfig } from '../../src/types';
-import { AgentError, AgentErrorType } from '../../src/types';
+import { createClient } from '../../core/llm/llmFactory';
+import { OpenAIClient } from '../../core/llm/OpenAIClient';
+import type { Message } from '../../core/types';
+import type { LLMConfig } from '../../types';
+import { AgentError, AgentErrorType } from '../../types';
 
 // 模拟OpenAI客户端
-vi.mock('../../src/core/llm/OpenAIClient', () => ({
-  OpenAIClient: vi.fn().mockImplementation(() => ({
-    sendMessages: vi.fn().mockResolvedValue({
-      content: { type: 'text', value: 'OpenAI响应' }
-    })
-  }))
-}));
+vi.mock('../../core/llm/OpenAIClient', () => {
+  return {
+    OpenAIClient: vi.fn().mockImplementation(() => ({
+      sendMessages: vi.fn().mockResolvedValue({
+        content: { type: 'text', value: 'OpenAI响应' }
+      })
+    }))
+  };
+});
 
 describe('IT-LLM', () => {
   beforeEach(() => {

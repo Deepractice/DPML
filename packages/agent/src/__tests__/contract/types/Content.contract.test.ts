@@ -5,7 +5,7 @@
  */
 import { describe, test, expect } from 'vitest';
 
-import type { Content, ContentItem } from '../../../src/types';
+import type { Content, ContentItem } from '../../../types';
 
 describe('CT-Type-Content', () => {
   test('CT-Type-Content-01: ContentItem类型应符合公开契约', () => {

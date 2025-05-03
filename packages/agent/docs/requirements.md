@@ -83,10 +83,10 @@ Agent 包将提供以下核心标签结构：
 2. **加载并使用Agent**：
 
 ```typescript
-import { AgentRunner } from '@dpml/session';
+import { AgentRunner } from '@dpml/agent';
 
 // 加载DPML文档
-const dpmlContent = fs.readFileSync('my-session.xml', 'utf-8');
+const dpmlContent = fs.readFileSync('my-agent.xml', 'utf-8');
 const agent = await AgentRunner.fromDPML(dpmlContent);
 
 // 发送消息并获取响应
@@ -103,7 +103,7 @@ DPML Agent包提供了简洁的命令行界面，方便用户快速验证和使�
 使用`validate`命令验证DPML配置文件的正确性：
 
 ```bash
-dpml session validate <file-path>
+dpml agent validate <file-path>
 ```
 
 **参数说明**：
@@ -116,7 +116,7 @@ dpml session validate <file-path>
 
 **使用示例**：
 ```bash
-$ dpml session validate my-assistant.xml
+$ dpml agent validate my-assistant.xml
 ✓ XML语法有效
 ✓ 必要标签和属性存在
 ✓ 配置有效
@@ -127,7 +127,7 @@ $ dpml session validate my-assistant.xml
 使用`chat`命令启动与Agent的交互式对话：
 
 ```bash
-dpml session chat <file-path> [--env <KEY=VALUE>...] [--env-file <path>]
+dpml agent chat <file-path> [--env <KEY=VALUE>...] [--env-file <path>]
 ```
 
 **参数说明**：
@@ -143,7 +143,7 @@ dpml session chat <file-path> [--env <KEY=VALUE>...] [--env-file <path>]
 
 **使用示例**：
 ```bash
-$ dpml session chat my-assistant.xml --env OPENAI_API_KEY=sk-xxx
+$ dpml agent chat my-assistant.xml --env OPENAI_API_KEY=sk-xxx
 
 DPML Agent Chat
 加载Agent配置: my-assistant.xml
@@ -165,7 +165,7 @@ $ cat .env
 OPENAI_API_KEY=sk-xxx
 ANTHROPIC_API_KEY=sk-xxx
 
-$ dpml session chat my-assistant.xml --env-file .env
+$ dpml agent chat my-assistant.xml --env-file .env
 ```
 
 ### 使用场景示例

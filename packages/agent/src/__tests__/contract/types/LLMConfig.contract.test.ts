@@ -5,7 +5,7 @@
  */
 import { describe, test, expect } from 'vitest';
 
-import type { LLMConfig } from '../../../src/types';
+import type { LLMConfig } from '../../../types';
 
 describe('CT-Type-LLMConfig', () => {
   test('CT-Type-LLMConfig-01: LLMConfig类型应符合公开契约', () => {

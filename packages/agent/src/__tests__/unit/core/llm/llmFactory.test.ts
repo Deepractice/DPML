@@ -3,12 +3,12 @@
  */
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-import { createClient } from '../../../../src/core/llm/llmFactory';
-import { OpenAIClient } from '../../../../src/core/llm/OpenAIClient';
-import { AgentError, AgentErrorType } from '../../../../src/types';
+import { createClient } from '../../../../core/llm/llmFactory';
+import { OpenAIClient } from '../../../../core/llm/OpenAIClient';
+import { AgentError, AgentErrorType } from '../../../../types';
 
 // 模拟OpenAIClient
-vi.mock('../../../../src/core/llm/OpenAIClient', () => ({
+vi.mock('../../../../core/llm/OpenAIClient', () => ({
   OpenAIClient: vi.fn().mockImplementation(() => ({
     sendMessages: vi.fn()
   }))

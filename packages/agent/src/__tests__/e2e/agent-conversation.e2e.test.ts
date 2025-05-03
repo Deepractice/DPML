@@ -3,9 +3,9 @@
  */
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-import { createAgent } from '../../src/api/agent';
-import { OpenAIClient } from '../../src/core/llm/OpenAIClient';
-import type { AgentConfig } from '../../src/types';
+import { createAgent } from '../../api/agent';
+import { OpenAIClient } from '../../core/llm/OpenAIClient';
+import type { AgentConfig } from '../../types';
 
 // 保存模拟的sendMessages函数引用
 const mockSendMessages = vi.fn().mockImplementation((messages, stream) => {

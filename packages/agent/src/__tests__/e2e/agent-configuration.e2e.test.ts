@@ -3,9 +3,9 @@
  */
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-import { createAgent } from '../../src/api/agent';
-import type { AgentConfig } from '../../src/types';
-import { AgentError, AgentErrorType } from '../../src/types';
+import { createAgent } from '../../api/agent';
+import type { AgentConfig } from '../../types';
+import { AgentError, AgentErrorType } from '../../types';
 
 // 模拟依赖
 vi.mock('../../src/core/llm/OpenAIClient', () => {

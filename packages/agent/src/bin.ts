@@ -8,7 +8,7 @@
  * import { createDomainDPML } from '@dpml/core';
  *
  * const agentDPML = createDomainDPML({
- *   domain: 'session',
+ *   domain: 'agent',
  *   commands: {
  *     actions: [
  *       {

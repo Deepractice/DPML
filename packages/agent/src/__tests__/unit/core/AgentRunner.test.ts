@@ -3,12 +3,12 @@
  */
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-import { AgentRunner } from '../../../src/core/AgentRunner';
-import type { LLMClient } from '../../../src/core/llm/LLMClient';
-import type { AgentSession } from '../../../src/core/session/AgentSession';
-import type { Message } from '../../../src/core/types';
-import { AgentError, AgentErrorType } from '../../../src/types';
-import type { ChatInput } from '../../../src/types';
+import { AgentRunner } from '../../../core/AgentRunner';
+import type { LLMClient } from '../../../core/llm/LLMClient';
+import type { AgentSession } from '../../../core/session/AgentSession';
+import type { Message } from '../../../core/types';
+import { AgentError, AgentErrorType } from '../../../types';
+import type { ChatInput } from '../../../types';
 
 describe('UT-Runner', () => {
   // 模拟依赖
