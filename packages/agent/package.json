@@ -28,6 +28,8 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "execa": "^9.5.2",
+    "strip-ansi": "^7.1.0"
   },
   "dependencies": {
     "@dpml/core": "workspace:*"

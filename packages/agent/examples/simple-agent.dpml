@@ -1,0 +1,10 @@
+<agent>
+  <llm api-type="openai" 
+  api-key="@agentenv:OPENAI_API_KEY" 
+  api-url="@agentenv:OPENAI_API_URL" 
+  model="@agentenv:OPENAI_MODEL"></llm>
+  
+  <prompt>你是一个测试助手，当被问到问题时请回答"这是测试模式下的回复"。</prompt>
+
+  
+</agent> 
