@@ -43,7 +43,7 @@
 `agentenv`模块遵循DPML的分层架构，分为API层和Core层：
 
 ```
-agent/
+packages/agent/src/
   ├── api/
   │   └── agentenv.ts       # API层入口，提供公共接口
   └── core/
@@ -58,7 +58,7 @@ agent/
 ### 4.1 API设计
 
 ```typescript
-// api/agentenv.ts
+// packages/agent/src/api/agentenv.ts
 import * as agentenvCore from '../core/agentenv/agentenvCore';
 
 /**
@@ -87,7 +87,7 @@ export function replaceEnvVars<T>(value: T): T {
 ### 4.2 Core实现
 
 ```typescript
-// core/agentenv/agentenvCore.ts
+// packages/agent/src/core/agentenv/agentenvCore.ts
 import { ENV_VAR_PATTERN } from './constants';
 
 /**
@@ -138,7 +138,7 @@ function replaceInString(value: string): string {
 ```
 
 ```typescript
-// core/agentenv/constants.ts
+// packages/agent/src/core/agentenv/constants.ts
 /**
  * 环境变量引用的正则表达式模式
  * 匹配 @agentenv:ENV_NAME 格式
@@ -160,7 +160,7 @@ classDiagram
         <<module>>
         +replaceEnvVars<T>(value: T): T "统一替换函数，支持字符串、数组和对象"
     }
-    note for agentenv "文件: api/agentenv.ts\n提供单一入口点替换任意结构中的环境变量引用"
+    note for agentenv "文件: packages/agent/src/api/agentenv.ts\n提供单一入口点替换任意结构中的环境变量引用"
     
     %% Core层 - 主模块
     class agentenvCore {
@@ -169,7 +169,7 @@ classDiagram
         -replaceInString(str: string): string "处理单个字符串中的环境变量引用"
         -getEnvValue(envName: string): string|undefined "获取环境变量值"
     }
-    note for agentenvCore "文件: core/agentenv/agentenvCore.ts\n实现环境变量替换的核心逻辑"
+    note for agentenvCore "文件: packages/agent/src/core/agentenv/agentenvCore.ts\n实现环境变量替换的核心逻辑"
     
     %% Types层 - 常量定义
     class constants {
@@ -177,7 +177,7 @@ classDiagram
         +ENV_VAR_PATTERN: RegExp "环境变量引用的正则表达式模式"
         +ENV_VAR_PREFIX: string "@agentenv:"
     }
-    note for constants "文件: core/agentenv/constants.ts\n定义环境变量替换相关的常量"
+    note for constants "文件: packages/agent/src/core/agentenv/constants.ts\n定义环境变量替换相关的常量"
     
     %% 关系定义
     agentenv --> agentenvCore : uses "API委托原则"
@@ -220,7 +220,7 @@ flowchart TD
 ### 7.1 处理字符串
 
 ```typescript
-import { replaceEnvVars } from '@dpml/agent/api/agentenv';
+import { replaceEnvVars } from '@dpml/agent/src/api/agentenv';
 
 // 设置环境变量
 process.env.API_KEY = 'sk-1234567890';

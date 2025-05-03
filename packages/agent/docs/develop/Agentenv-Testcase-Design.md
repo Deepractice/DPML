@@ -26,10 +26,10 @@ agentenv模块遵循DPML项目的分层架构：
 
 | 测试类型 | 目录 | 测试重点 | 文件命名模式 |
 |--------|------|---------|------------|
-| 契约测试 | `/packages/agent/__tests__/contract/` | API稳定性 | `*.contract.test.ts` |
-| 单元测试 | `/packages/agent/__tests__/unit/` | 组件内部逻辑 | `*.test.ts` |
-| 集成测试 | `/packages/agent/__tests__/integration/` | 组件间协作 | `*.integration.test.ts` |
-| 端到端测试 | `/packages/agent/__tests__/e2e/` | 完整功能流程 | `*.e2e.test.ts` |
+| 契约测试 | `packages/agent/src/__tests__/contract/` | API稳定性 | `*.contract.test.ts` |
+| 单元测试 | `packages/agent/src/__tests__/unit/` | 组件内部逻辑 | `*.test.ts` |
+| 集成测试 | `packages/agent/src/__tests__/integration/` | 组件间协作 | `*.integration.test.ts` |
+| 端到端测试 | `packages/agent/src/__tests__/e2e/` | 完整功能流程 | `*.e2e.test.ts` |
 
 ## 3. 测试用例设计
 
@@ -39,7 +39,7 @@ agentenv模块遵循DPML项目的分层架构：
 
 #### 3.1.1 API契约测试
 
-**文件路径**: `/packages/agent/__tests__/contract/api/agentenv.contract.test.ts`
+**文件路径**: `packages/agent/src/__tests__/contract/api/agentenv.contract.test.ts`
 
 | ID | 测试用例名称 | 测试目的 | 测试输入 | 期望结果 | Mock情况 |
 |----|------------|---------|---------|---------|---------|
@@ -49,7 +49,7 @@ agentenv模块遵循DPML项目的分层架构：
 
 #### 3.1.2 类型契约测试
 
-**文件路径**: `/packages/agent/__tests__/contract/types/agentenvConstants.contract.test.ts`
+**文件路径**: `packages/agent/src/__tests__/contract/types/agentenvConstants.contract.test.ts`
 
 | ID | 测试用例名称 | 测试目的 | 测试输入 | 期望结果 | Mock情况 |
 |----|------------|---------|---------|---------|---------|
@@ -62,7 +62,7 @@ agentenv模块遵循DPML项目的分层架构：
 
 #### 3.2.1 Core层replaceEnvVars函数单元测试
 
-**文件路径**: `/packages/agent/__tests__/unit/core/agentenv/agentenvCore.test.ts`
+**文件路径**: `packages/agent/src/__tests__/unit/core/agentenv/agentenvCore.test.ts`
 
 | ID | 测试用例名称 | 测试目的 | 测试输入 | 期望结果 | Mock情况 |
 |----|------------|---------|---------|---------|---------|
@@ -79,7 +79,7 @@ agentenv模块遵循DPML项目的分层架构：
 
 #### 3.2.2 Core层replaceInString函数单元测试
 
-**文件路径**: `/packages/agent/__tests__/unit/core/agentenv/replaceInString.test.ts`
+**文件路径**: `packages/agent/src/__tests__/unit/core/agentenv/replaceInString.test.ts`
 
 | ID | 测试用例名称 | 测试目的 | 测试输入 | 期望结果 | Mock情况 |
 |----|------------|---------|---------|---------|---------|
@@ -95,7 +95,7 @@ agentenv模块遵循DPML项目的分层架构：
 
 #### 3.3.1 agentenv模块集成测试
 
-**文件路径**: `/packages/agent/__tests__/integration/agentenv.integration.test.ts`
+**文件路径**: `packages/agent/src/__tests__/integration/agentenv.integration.test.ts`
 
 | ID | 测试用例名称 | 测试目的 | 测试输入 | 期望结果 | Mock情况 |
 |----|------------|---------|---------|---------|---------|
@@ -110,7 +110,7 @@ agentenv模块遵循DPML项目的分层架构：
 
 #### 3.4.1 环境变量替换端到端测试
 
-**文件路径**: `/packages/agent/__tests__/e2e/agentenv-replacement.e2e.test.ts`
+**文件路径**: `packages/agent/src/__tests__/e2e/agentenv-replacement.e2e.test.ts`
 
 | ID | 测试用例名称 | 测试目的 | 测试输入 | 期望结果 | Mock情况 |
 |----|------------|---------|---------|---------|---------|
@@ -164,7 +164,7 @@ afterEach(() => {
 ### 6.1 API契约测试实现示例
 
 ```typescript
-// /packages/agent/__tests__/contract/api/agentenv.contract.test.ts
+// packages/agent/src/__tests__/contract/api/agentenv.contract.test.ts
 import { describe, test, expect, vi } from 'vitest';
 import { replaceEnvVars } from '../../../api/agentenv';
 import * as agentenvCore from '../../../core/agentenv/agentenvCore';
@@ -208,7 +208,7 @@ describe('CT-API-Env', () => {
 ### 6.2 Core层单元测试实现示例
 
 ```typescript
-// /packages/agent/__tests__/unit/core/agentenv/agentenvCore.test.ts
+// packages/agent/src/__tests__/unit/core/agentenv/agentenvCore.test.ts
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { replaceEnvVars } from '../../../../core/agentenv/agentenvCore';
 
@@ -327,7 +327,7 @@ describe('UT-Env-Core', () => {
 ### 6.3 集成测试实现示例
 
 ```typescript
-// /packages/agent/__tests__/integration/agentenv.integration.test.ts
+// packages/agent/src/__tests__/integration/agentenv.integration.test.ts
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { replaceEnvVars as apiReplaceEnvVars } from '../../api/agentenv';
 import * as agentenvCore from '../../core/agentenv/agentenvCore';
@@ -380,7 +380,7 @@ describe('IT-Env', () => {
 
 ### 7.1 环境变量测试夹具
 
-**文件路径**: `/packages/agent/__tests__/fixtures/env.fixture.ts`
+**文件路径**: `packages/agent/src/__tests__/fixtures/env.fixture.ts`
 
 ```typescript
 /**
@@ -457,7 +457,7 @@ export function createTestEnv(): EnvFixture {
 
 ### 7.2 测试工具函数夹具
 
-**文件路径**: `/packages/agent/__tests__/fixtures/testUtils.fixture.ts`
+**文件路径**: `packages/agent/src/__tests__/fixtures/testUtils.fixture.ts`
 
 ```typescript
 /**
