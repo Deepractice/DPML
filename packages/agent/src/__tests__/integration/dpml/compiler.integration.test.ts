@@ -1,12 +1,14 @@
-import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { compiler, agentDPML } from '../../../index';
 import * as DPMLCore from '@dpml/core';
+import { describe, test, expect, vi, beforeEach } from 'vitest';
+
 import { schema, transformers } from '../../../config';
+import { compiler, agentDPML } from '../../../index';
 import type { AgentConfig } from '../../../types';
 
 // 模拟DPMLCore的核心功能
 vi.mock('@dpml/core', async () => {
   const actual = await vi.importActual<typeof DPMLCore>('@dpml/core');
+
   return {
     ...actual,
     createDomainDPML: vi.fn().mockImplementation(() => ({
@@ -38,7 +40,7 @@ describe('IT-Comp', () => {
 
     // 设置模拟返回值
     const mockCompile = vi.fn().mockResolvedValue(mockCompileResult);
-    
+
     // 创建新的DPML实例，使用模拟的创建函数
     const mockDPML = {
       compiler: {
@@ -48,7 +50,7 @@ describe('IT-Comp', () => {
       schema,
       transformers
     };
-    
+
     (DPMLCore.createDomainDPML as any).mockReturnValue(mockDPML);
 
     // 测试XML内容
@@ -70,7 +72,7 @@ describe('IT-Comp', () => {
   test('IT-Comp-02: agentDPML实例应具有正确的domain标识符', () => {
     // 检查是否有domain属性
     expect(agentDPML).toBeDefined();
-    
+
     // 不能直接访问的话，我们可以检查其他可见的属性
     expect(agentDPML.compiler).toBeDefined();
     expect(agentDPML.cli).toBeDefined();
@@ -97,4 +99,4 @@ describe('IT-Comp', () => {
     // 验证导出的compiler是agentDPML.compiler的直接引用
     expect(compiler).toBe(agentDPML.compiler);
   });
-}); 
+});

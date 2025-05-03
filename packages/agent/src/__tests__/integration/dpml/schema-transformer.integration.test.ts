@@ -1,13 +1,16 @@
+import * as DPMLCore from '@dpml/core';
+import type { TransformContext } from '@dpml/core';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
+
 import { schema } from '../../../config/schema';
 import { agentTransformer } from '../../../config/transformers';
-import * as DPMLCore from '@dpml/core';
 import type { AgentConfig, LLMConfig } from '../../../types';
-import type { TransformContext } from '@dpml/core';
+
 
 // 模拟DPMLCore的解析和处理函数
 vi.mock('@dpml/core', async () => {
   const actual = await vi.importActual<typeof DPMLCore>('@dpml/core');
+
   return {
     ...actual,
     parseDocument: vi.fn(),
@@ -19,6 +22,7 @@ vi.mock('@dpml/core', async () => {
 // 模拟agentTransformer的transform方法
 vi.mock('../../../config/transformers', async () => {
   const actual = await vi.importActual('../../../config/transformers');
+
   return {
     ...actual,
     agentTransformer: {
@@ -28,7 +32,7 @@ vi.mock('../../../config/transformers', async () => {
           // 根据子元素构建配置
           const llmNode = node.children.find((child: any) => child.tagName === 'llm');
           const promptNode = node.children.find((child: any) => child.tagName === 'prompt');
-          
+
           const result: AgentConfig = {
             llm: {
               apiType: '',
@@ -36,7 +40,7 @@ vi.mock('../../../config/transformers', async () => {
             },
             prompt: ''
           };
-          
+
           if (llmNode) {
             result.llm = {
               apiType: llmNode.attributes.get('api-type') || '',
@@ -45,13 +49,14 @@ vi.mock('../../../config/transformers', async () => {
               model: llmNode.attributes.get('model') || ''
             };
           }
-          
+
           if (promptNode) {
             result.prompt = promptNode.content || '';
           }
-          
+
           return result;
         }
+
         return {};
       })
     }
@@ -138,6 +143,7 @@ describe('IT-ST', () => {
 
     // 验证LLM配置
     const llmConfig = result.llm as LLMConfig;
+
     expect(llmConfig.apiType).toBe('openai');
     expect(llmConfig.apiKey).toBe('sk-test');
     expect(llmConfig.model).toBe('gpt-4');
@@ -166,7 +172,7 @@ describe('IT-ST', () => {
 
     // 由于这里我们无法直接访问transformer内部的选择器转换函数
     // 我们需要构建一个较小的测试环境或直接验证关键属性
-    
+
     // 创建一个模拟的agent节点，仅包含llm子节点
     const mockAgentNode = {
       tagName: 'agent',
@@ -256,14 +262,15 @@ describe('IT-ST', () => {
   test('IT-ST-05: Schema验证应拒绝无效的XML文档', async () => {
     // 模拟验证失败的结果
     const validationError = new Error('模拟的验证错误');
+
     (DPMLCore.processDocument as any).mockRejectedValue(validationError);
 
     // 准备模拟文档
-    const mockInvalidDocument = { 
+    const mockInvalidDocument = {
       rootNode: {},
       metadata: {}
     };
-    
+
     (DPMLCore.parseDocument as any).mockResolvedValue(mockInvalidDocument);
 
     // 执行验证 - 使用schema转换为AgentConfig
@@ -278,4 +285,4 @@ describe('IT-ST', () => {
       schema
     );
   });
-}); 
+});

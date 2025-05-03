@@ -1,13 +1,14 @@
+import { createDomainDPML, createTransformerDefiner } from '@dpml/core';
 import { describe, test, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest';
-import { createDomainDPML } from '@dpml/core';
-import { schema } from '../../config/schema';
+
 import { createAgent } from '../../api/agent';
 import { replaceEnvVars } from '../../api/agentenv';
+import { schema } from '../../config/schema';
 import * as llmFactory from '../../core/llm/llmFactory';
 import { OpenAIClient } from '../../core/llm/OpenAIClient';
-import { createTestDPML, createExpectedConfig } from '../fixtures/dpml.fixture';
 import type { AgentConfig, LLMConfig } from '../../types';
-import { createTransformerDefiner } from '@dpml/core';
+import { createTestDPML } from '../fixtures/dpml.fixture';
+
 import { isLLMConfigValid, getLLMConfig, showMockWarning } from './env-helper';
 
 // 检查是否使用真实API
@@ -17,7 +18,7 @@ const useAnthropicRealAPI = isLLMConfigValid('anthropic');
 // 创建测试专用的转换器，避免冲突
 function createUniqueTransformers(prefix: string) {
   const definer = createTransformerDefiner();
-  
+
   const testTransformer = definer.defineStructuralMapper<unknown, AgentConfig>(
     `${prefix}AgentTransformer`,
     [
@@ -32,6 +33,7 @@ function createUniqueTransformers(prefix: string) {
             apiKey: node.attributes.get('api-key'),
             model: node.attributes.get('model') || ''
           };
+
           return llmConfig;
         }
       },
@@ -40,12 +42,13 @@ function createUniqueTransformers(prefix: string) {
         targetPath: "prompt",
         transform: (value: unknown) => {
           const node = value as any;
+
           return node.content || '';
         }
       }
     ]
   );
-  
+
   return [testTransformer];
 }
 
@@ -61,7 +64,7 @@ function createTestDPMLCompiler(testId: string) {
       errorHandling: 'throw'
     }
   });
-  
+
   return testDPML.compiler;
 }
 
@@ -69,33 +72,34 @@ function createTestDPMLCompiler(testId: string) {
 if (!useOpenAIRealAPI && !useAnthropicRealAPI) {
   showMockWarning('LLM');
 
-// 模拟LLM客户端
-vi.mock('../../core/llm/llmFactory', () => ({
-  createClient: vi.fn().mockImplementation((config) => {
-    return {
-      sendMessages: vi.fn().mockImplementation((messages) => {
+  // 模拟LLM客户端
+  vi.mock('../../core/llm/llmFactory', () => ({
+    createClient: vi.fn().mockImplementation((config) => {
+      return {
+        sendMessages: vi.fn().mockImplementation((messages) => {
         // 查找系统提示
-        const systemMessage = messages.find(msg => msg.role === 'system');
-        const systemPrompt = systemMessage?.content && !Array.isArray(systemMessage.content)
-          ? systemMessage.content.type === 'text' ? systemMessage.content.value : ''
-          : '';
+          const systemMessage = messages.find(msg => msg.role === 'system');
+          const systemPrompt = systemMessage?.content && !Array.isArray(systemMessage.content)
+            ? systemMessage.content.type === 'text' ? systemMessage.content.value : ''
+            : '';
 
-        // 返回反映配置的响应
-        return Promise.resolve({
-          content: {
-            type: 'text',
-            value: `使用API类型: ${config.apiType}, 模型: ${config.model}, 提示词: ${systemPrompt}`
-          }
-        });
-      })
-    };
-  })
-}));
+          // 返回反映配置的响应
+          return Promise.resolve({
+            content: {
+              type: 'text',
+              value: `使用API类型: ${config.apiType}, 模型: ${config.model}, 提示词: ${systemPrompt}`
+            }
+          });
+        })
+      };
+    })
+  }));
 } else {
   // 不完全模拟工厂，而是根据API类型选择真实或模拟客户端
   vi.spyOn(llmFactory, 'createClient').mockImplementation((config) => {
     if (config.apiType === 'openai' && useOpenAIRealAPI) {
       console.info('使用真实OpenAI客户端');
+
       // 使用真实OpenAI客户端
       return new OpenAIClient({
         ...config,
@@ -108,9 +112,10 @@ vi.mock('../../core/llm/llmFactory', () => ({
       // 这里可以实现Anthropic客户端的真实调用
       // 目前示例中暂时使用模拟
     }
-    
+
     // 其他情况使用模拟
     console.info(`使用模拟${config.apiType}客户端`);
+
     return {
       sendMessages: vi.fn().mockImplementation((messages) => {
         // 查找系统提示
@@ -148,22 +153,23 @@ beforeAll(() => {
   } else {
     console.info('ℹ️ Anthropic测试使用模拟模式');
   }
+
   console.info('=========================');
 });
 
 describe('E2E-DPML', () => {
   // 备份和恢复环境变量
   const originalEnv = { ...process.env };
-  
+
   beforeEach(() => {
     vi.clearAllMocks();
     process.env = { ...originalEnv };
   });
-  
+
   afterEach(() => {
     process.env = { ...originalEnv };
   });
-  
+
   test('E2E-DPML-01: 从DPML创建的Agent应使用配置的LLM', async () => {
     // 准备
     const compiler = createTestDPMLCompiler('01');
@@ -172,13 +178,13 @@ describe('E2E-DPML', () => {
       model: useOpenAIRealAPI ? getLLMConfig('openai').model : 'gpt-4-turbo',
       apiKey: useOpenAIRealAPI ? getLLMConfig('openai').apiKey : 'sk-test123'
     });
-    
+
     // 执行
     const config = await compiler.compile(dpmlContent);
     const processedConfig = replaceEnvVars(config);
     const agent = createAgent(processedConfig);
     const response = await agent.chat('测试消息');
-    
+
     // 根据运行模式验证
     if (useOpenAIRealAPI) {
       // 真实API只能验证响应存在
@@ -186,14 +192,14 @@ describe('E2E-DPML', () => {
       console.info('使用真实API的响应:', response);
     } else {
       // 模拟环境中验证
-    expect(llmFactory.createClient).toHaveBeenCalledWith(expect.objectContaining({
-      apiType: 'openai',
+      expect(llmFactory.createClient).toHaveBeenCalledWith(expect.objectContaining({
+        apiType: 'openai',
         model: expect.any(String)
-    }));
-    expect(response).toContain('API类型: openai');
+      }));
+      expect(response).toContain('API类型: openai');
     }
   });
-  
+
   test('E2E-DPML-02: 从DPML创建的Agent应使用配置的提示词', async () => {
     // 准备
     const compiler = createTestDPMLCompiler('02');
@@ -204,13 +210,13 @@ describe('E2E-DPML', () => {
       model: useOpenAIRealAPI ? getLLMConfig('openai').model : 'gpt-4-turbo',
       apiKey: useOpenAIRealAPI ? getLLMConfig('openai').apiKey : 'sk-test123'
     });
-    
+
     // 执行
     const config = await compiler.compile(dpmlContent);
     const processedConfig = replaceEnvVars(config);
     const agent = createAgent(processedConfig);
     const response = await agent.chat('测试提示词');
-    
+
     // 根据运行模式验证
     if (useOpenAIRealAPI) {
       // 真实API只能验证响应存在
@@ -218,10 +224,10 @@ describe('E2E-DPML', () => {
       console.info('使用真实API的响应:', response);
     } else {
       // 模拟环境中验证提示词包含
-    expect(response).toContain(customPrompt);
+      expect(response).toContain(customPrompt);
     }
   });
-  
+
   test('E2E-DPML-03: 从DPML创建的Agent应响应聊天请求', async () => {
     // 准备
     const compiler = createTestDPMLCompiler('03');
@@ -230,20 +236,20 @@ describe('E2E-DPML', () => {
       model: useOpenAIRealAPI ? getLLMConfig('openai').model : 'gpt-4-turbo',
       apiKey: useOpenAIRealAPI ? getLLMConfig('openai').apiKey : 'sk-test123'
     });
-    
+
     // 执行
     const config = await compiler.compile(dpmlContent);
     const processedConfig = replaceEnvVars(config);
     const agent = createAgent(processedConfig);
     const response = await agent.chat('你好');
-    
+
     // 验证响应存在（适用于模拟和真实API）
     expect(response).toBeTruthy();
     if (useOpenAIRealAPI) {
       console.info('真实API响应:', response);
     }
   });
-  
+
   test('E2E-DPML-04: 无效DPML应产生适当的错误', async () => {
     // 准备
     const compiler = createTestDPMLCompiler('04');
@@ -252,29 +258,29 @@ describe('E2E-DPML', () => {
         <not-agent></not-agent>
       </invalid>
     `;
-    
+
     // 执行和验证
     await expect(compiler.compile(invalidDpml)).rejects.toThrow();
   });
-  
+
   test('E2E-DPML-05: 环境变量应在DPML中被正确处理', async () => {
     // 设置环境变量
     process.env.TEST_API_KEY = 'sk-test123';
     process.env.TEST_MODEL = 'gpt-4';
-    
+
     // 准备
     const compiler = createTestDPMLCompiler('05');
     const dpmlContent = createTestDPML({
       apiKey: '@agentenv:TEST_API_KEY',
       model: '@agentenv:TEST_MODEL'
     });
-    
+
     // 执行
     const config = await compiler.compile(dpmlContent);
     const processedConfig = replaceEnvVars(config);
-    
+
     // 验证
     expect(processedConfig.llm.apiKey).toBe('sk-test123');
     expect(processedConfig.llm.model).toBe('gpt-4');
   });
-}); 
+});

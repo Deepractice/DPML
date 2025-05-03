@@ -1,9 +1,12 @@
-import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import { replaceEnvVars } from '../../../api/agentenv';
-import type { DomainActionContext } from '@dpml/core';
-import dotenv from 'dotenv';
 import fs from 'fs/promises';
 import path from 'path';
+
+import type { DomainActionContext } from '@dpml/core';
+import dotenv from 'dotenv';
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+
+import { replaceEnvVars } from '../../../api/agentenv';
+
 
 // 测试文件路径
 const TEST_DPML_PATH = path.join(__dirname, '../../fixtures/test.dpml');
@@ -51,6 +54,7 @@ const mockActionContext: Partial<DomainActionContext> = {
 
 // 模拟process.exit，避免终止测试
 const originalExit = process.exit;
+
 beforeEach(() => {
   process.exit = vi.fn() as any;
 });
@@ -65,41 +69,43 @@ const mockChatAction = async (actionContext: DomainActionContext, filePath: stri
   if (options.env) {
     for (const envVar of options.env) {
       const [key, value] = envVar.split('=');
+
       if (key && value) {
         process.env[key] = value;
       }
     }
   }
-  
+
   if (options.envFile) {
     dotenv.config({ path: options.envFile });
   }
-  
+
   try {
     // 2. 使用真实文件而不是模拟
     // 注意：我们忽略传入的filePath参数，始终使用TEST_DPML_PATH
     const fileContent = await fs.readFile(TEST_DPML_PATH, 'utf-8');
     const rawConfig = await actionContext.getCompiler().compile(fileContent);
-    
+
     // 3. 处理环境变量
     const processedConfig = replaceEnvVars(rawConfig);
-    
+
     // 4. 创建Agent
     mockAgent.chat("测试输入");
-    
+
     // 5. 交互式聊天
     const readlineModule = await vi.importActual<typeof import('readline')>('readline');
     const rl = readlineModule.createInterface({
       input: process.stdin,
       output: process.stdout
     });
-    
+
     // 模拟关闭
     rl.close();
-    
+
     return processedConfig;
   } catch (error) {
     console.error("错误：", error);
+
     // 不要调用process.exit，而是返回错误
     return { error: true, message: error instanceof Error ? error.message : String(error) };
   }
@@ -153,6 +159,7 @@ describe('IT-Env', () => {
   test('IT-Env-01: CLI环境变量设置应被agentenv正确读取', async () => {
     // 准备
     const chatCommand = mockCommandsConfig.actions?.find(action => action.name === 'chat');
+
     expect(chatCommand).toBeDefined();
     expect(chatCommand?.action).toBeDefined();
 
@@ -163,15 +170,15 @@ describe('IT-Env', () => {
 
     // 找到chat命令的action函数
     const chatAction = chatCommand?.action;
-    
+
     // 执行命令
     if (chatAction) {
       const processedConfig = await chatAction(mockActionContext as DomainActionContext, TEST_DPML_PATH, options) as ActionResult;
-      
+
       // 验证环境变量被设置
       expect(process.env.OPENAI_API_KEY).toBe('sk-test123');
       expect(process.env.OPENAI_MODEL).toBe('gpt-4');
-      
+
       // 验证环境变量在配置中被替换
       if (processedConfig && 'llm' in processedConfig) {
         expect(processedConfig.llm.apiKey).toBe('sk-test123');
@@ -188,6 +195,7 @@ describe('IT-Env', () => {
 
     // 找到chat命令的action函数
     const chatCommand = mockCommandsConfig.actions?.find(a => a.name === 'chat');
+
     expect(chatCommand).toBeDefined();
 
     // 执行
@@ -204,24 +212,25 @@ describe('IT-Env', () => {
     // 创建临时环境变量文件
     const tempEnvFile = path.join(process.cwd(), '.env.test');
     const envContent = 'ENV_FILE_KEY=value-from-env-file\n';
-    
+
     try {
       // 写入测试环境变量文件
       await fs.writeFile(tempEnvFile, envContent, 'utf-8');
 
-    // 准备选项
-    const options = {
-      envFile: '.env.test'
-    };
+      // 准备选项
+      const options = {
+        envFile: '.env.test'
+      };
 
-    // 找到chat命令的action函数
-    const chatCommand = mockCommandsConfig.actions?.find(a => a.name === 'chat');
-    expect(chatCommand).toBeDefined();
+      // 找到chat命令的action函数
+      const chatCommand = mockCommandsConfig.actions?.find(a => a.name === 'chat');
 
-    // 执行
-    if (chatCommand?.action) {
+      expect(chatCommand).toBeDefined();
+
+      // 执行
+      if (chatCommand?.action) {
         await chatCommand.action(mockActionContext as DomainActionContext, TEST_DPML_PATH, options);
-    }
+      }
 
       // 验证环境变量是否被加载
       // 这里我们需要依赖dotenv实际加载了.env.test文件
@@ -281,4 +290,4 @@ describe('IT-Env', () => {
     // 验证结果 - 缺失的环境变量应保留原始引用
     expect(processed.llm.apiKey).toBe('@agentenv:MISSING_KEY');
   });
-}); 
+});

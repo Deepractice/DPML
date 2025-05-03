@@ -20,13 +20,14 @@ export function createTestDPML(options: {
     prompt = 'You are a helpful assistant',
     includeExperimental = false
   } = options;
-  
+
   // 构建llm元素
   let llmElement = `<llm api-type="${apiType}" model="${model}"`;
+
   if (apiKey) llmElement += ` api-key="${apiKey}"`;
   if (apiUrl) llmElement += ` api-url="${apiUrl}"`;
   llmElement += '></llm>';
-  
+
   // 构建实验性功能元素
   const experimentalElement = includeExperimental ? `
     <experimental>
@@ -34,7 +35,7 @@ export function createTestDPML(options: {
         <tool name="search" description="Search the web for information" />
       </tools>
     </experimental>` : '';
-  
+
   // 返回完整DPML
   return `
     <agent>
@@ -64,7 +65,7 @@ export function createExpectedConfig(options: {
     model = 'gpt-4',
     prompt = 'You are a helpful assistant'
   } = options;
-  
+
   // 返回预期的配置对象
   return {
     llm: {
@@ -104,4 +105,4 @@ export function createInvalidDPML(type: 'missing-llm' | 'missing-required-attr' 
         </agent>
       `;
   }
-} 
+}

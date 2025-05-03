@@ -1,5 +1,6 @@
-import { vi } from 'vitest';
 import type { DomainActionContext } from '@dpml/core';
+import { vi } from 'vitest';
+
 import type { AgentConfig } from '../../types';
 
 /**
@@ -22,20 +23,21 @@ export function createMockActionContext(compilerResult: AgentConfig): DomainActi
 export function createMockReadline() {
   const mockQuestion = vi.fn();
   const mockClose = vi.fn();
-  
+
   // 模拟用户输入序列
   const userInputs = [
     'Hello, AI assistant',
     'What can you do?',
     'exit'
   ];
-  
+
   // 为每次调用提供不同的输入
   mockQuestion.mockImplementation((prompt, callback) => {
     const input = userInputs.shift() || 'exit';
+
     callback(input);
   });
-  
+
   // 返回模拟对象
   return {
     createInterface: vi.fn().mockReturnValue({
@@ -45,4 +47,4 @@ export function createMockReadline() {
     mockQuestion,
     mockClose
   };
-} 
+}

@@ -1,14 +1,18 @@
-import { describe, test, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest';
 import fs from 'fs/promises';
 import path from 'path';
 import readline from 'readline';
-import dotenv from 'dotenv';
-import { createMockActionContext } from '../fixtures/cli.fixture';
-import { createTestDPML, createExpectedConfig } from '../fixtures/dpml.fixture';
+
 import type { DomainCommandsConfig } from '@dpml/core';
-import { isLLMConfigValid, getLLMConfig, showMockWarning } from './env-helper';
+import dotenv from 'dotenv';
+import { describe, test, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest';
+
 import { createAgent } from '../../api/agent';
 import * as agentModule from '../../api/agent';
+import { createMockActionContext } from '../fixtures/cli.fixture';
+import { createExpectedConfig } from '../fixtures/dpml.fixture';
+
+import { isLLMConfigValid, getLLMConfig } from './env-helper';
+
 
 // 检查是否使用真实API
 const useOpenAIRealAPI = isLLMConfigValid('openai');
@@ -43,25 +47,27 @@ vi.mock('readline', () => {
 
 // 模拟createAgent函数，根据测试模式返回真实或模拟Agent
 vi.spyOn(agentModule, 'createAgent').mockImplementation((config) => {
-  if ((config.llm.apiType === 'openai' && useOpenAIRealAPI) || 
+  if ((config.llm.apiType === 'openai' && useOpenAIRealAPI) ||
       (config.llm.apiType === 'anthropic' && useAnthropicRealAPI)) {
     // 在使用真实API时，创建真实的Agent
     console.info(`使用真实${config.llm.apiType}客户端创建Agent`);
+
     return createAgent({
       ...config,
       llm: {
         ...config.llm,
         apiKey: getLLMConfig(config.llm.apiType).apiKey,
         model: getLLMConfig(config.llm.apiType).model || config.llm.model,
-        apiUrl: config.llm.apiType === 'openai' 
+        apiUrl: config.llm.apiType === 'openai'
           ? getLLMConfig('openai').apiUrl || config.llm.apiUrl
           : config.llm.apiUrl
       }
     });
   }
-  
+
   // 模拟模式下返回模拟Agent
   console.info(`使用模拟${config.llm.apiType}客户端创建Agent`);
+
   return mockAgent;
 });
 
@@ -105,12 +111,12 @@ const mockCommandsConfig: DomainCommandsConfig = {
         try {
           // 读取文件内容
           const content = await fs.readFile(filePath, 'utf-8');
-          
+
           console.log(`验证文件: ${filePath}`);
-          
+
           // 使用上下文的编译器编译
           const config = await context.getCompiler().compile(content);
-          
+
           // 如果没有抛出错误，表示验证通过
           console.log('验证成功: 文档符合领域规范');
         } catch (error) {
@@ -128,31 +134,32 @@ const mockExecuteChat = async (context: any, filePath: string, options: any) => 
   if (options.env) {
     for (const envVar of options.env) {
       const [key, value] = envVar.split('=');
+
       if (key && value) {
         process.env[key] = value;
       }
     }
   }
-  
+
   if (options.envFile) {
     dotenv.config({ path: options.envFile });
   }
-  
+
   try {
     // 读取文件内容
     const content = await fs.readFile(filePath, 'utf-8');
-    
+
     // 使用上下文的编译器编译
     const config = await context.getCompiler().compile(content);
-    
+
     // 创建Agent实例并发送消息
     const agent = agentModule.createAgent(config);
     const response = await agent.chat('测试消息');
-    
+
     if (useOpenAIRealAPI || useAnthropicRealAPI) {
       console.info(`真实API响应: ${response}`);
     }
-    
+
     // 在模拟模式下创建交互界面
     // 真实API模式下可能由于不同的API调用路径，readline可能不会被调用
     if (!useOpenAIRealAPI && !useAnthropicRealAPI) {
@@ -160,7 +167,7 @@ const mockExecuteChat = async (context: any, filePath: string, options: any) => 
         input: process.stdin,
         output: process.stdout
       });
-      
+
       // 关闭readline接口
       rl.close();
     }
@@ -204,6 +211,7 @@ beforeAll(() => {
   } else {
     console.info('ℹ️ Anthropic测试使用模拟模式');
   }
+
   console.info('======================');
 });
 
@@ -213,7 +221,7 @@ describe('E2E-CLI', () => {
   const originalConsole = { ...console };
   const originalEnv = { ...process.env };
   const originalExit = process.exit;
-  
+
   beforeEach(() => {
     vi.clearAllMocks();
     // 设置模拟
@@ -221,7 +229,7 @@ describe('E2E-CLI', () => {
     console.error = vi.fn();
     process.env = { ...originalEnv };
     process.exit = vi.fn() as any;
-    
+
     // 重置mockAgent
     mockAgent = {
       chat: vi.fn().mockResolvedValue('模拟响应'),
@@ -229,16 +237,17 @@ describe('E2E-CLI', () => {
         yield '模拟流式响应';
       })
     };
-    
+
     // 设置chat命令动作
     if (mockCommandsConfig.actions) {
       const chatCommand = mockCommandsConfig.actions.find(a => a.name === 'chat');
+
       if (chatCommand) {
         chatCommand.action = mockExecuteChat;
       }
     }
   });
-  
+
   afterEach(() => {
     // 恢复
     console.log = originalConsole.log;
@@ -246,41 +255,44 @@ describe('E2E-CLI', () => {
     process.env = { ...originalEnv };
     process.exit = originalExit;
   });
-  
+
   test('E2E-CLI-01: validate命令应验证DPML文件', async () => {
     // 直接调用validate命令的action
     if (mockCommandsConfig.actions) {
       const validateCommand = mockCommandsConfig.actions.find(a => a.name === 'validate');
+
       if (validateCommand?.action) {
         // 模拟验证通过
         const mockContext = createMockActionContext(createExpectedConfig());
+
         await validateCommand.action(mockContext, TEST_DPML_PATH, {});
-        
+
         // 验证验证成功日志
         expect(console.log).toHaveBeenCalled();
       }
     }
   });
-  
+
   test('E2E-CLI-02: chat命令应启动交互式聊天', async () => {
     // 找到chat命令的action函数
     const chatCommand = mockCommandsConfig.actions?.find(action => action.name === 'chat');
+
     expect(chatCommand).toBeDefined();
-    
+
     // 创建模拟上下文
     const mockConfig = createExpectedConfig();
     const mockContext = createMockActionContext(mockConfig);
-    
+
     // 执行chat命令
     if (chatCommand?.action) {
       await chatCommand.action(mockContext, TEST_DPML_PATH, {});
     }
-    
+
     // 只在模拟模式下验证readline.createInterface调用
     if (!useOpenAIRealAPI && !useAnthropicRealAPI) {
       // 验证交互界面创建
       expect(readline.createInterface).toHaveBeenCalled();
-      
+
       // 模拟模式下验证Agent创建和调用
       expect(mockAgent.chat).toHaveBeenCalled();
     } else {
@@ -289,60 +301,62 @@ describe('E2E-CLI', () => {
     }
     // 真实API模式下不需要验证模拟调用
   });
-  
+
   test('E2E-CLI-03: chat命令应支持环境变量参数', async () => {
     // 找到chat命令的action函数
     const chatCommand = mockCommandsConfig.actions?.find(action => action.name === 'chat');
+
     expect(chatCommand).toBeDefined();
-    
+
     // 创建模拟上下文
     const mockConfig = createExpectedConfig();
     const mockContext = createMockActionContext(mockConfig);
-    
+
     // 执行chat命令，带环境变量参数
     if (chatCommand?.action) {
       await chatCommand.action(mockContext, TEST_DPML_PATH, {
         env: ['TEST_KEY=test-value', 'OPENAI_API_KEY=sk-test']
       });
     }
-    
+
     // 验证环境变量设置
     expect(process.env.TEST_KEY).toBe('test-value');
     expect(process.env.OPENAI_API_KEY).toBe('sk-test');
-    
+
     // 只在模拟模式下验证Agent调用
     if (!useOpenAIRealAPI && !useAnthropicRealAPI) {
       expect(mockAgent.chat).toHaveBeenCalled();
     }
   });
-  
+
   test('E2E-CLI-04: chat命令应支持环境变量文件', async () => {
     // 创建临时环境变量文件
     const tempEnvFile = path.join(process.cwd(), '.env.test');
     const envContent = 'ENV_FILE_VAR=value-from-file\n';
-    
+
     try {
       // 写入测试环境变量文件
       await fs.writeFile(tempEnvFile, envContent, 'utf-8');
-    
+
       // 找到chat命令的action函数
       const chatCommand = mockCommandsConfig.actions?.find(action => action.name === 'chat');
+
       expect(chatCommand).toBeDefined();
-      
+
       // 创建模拟上下文
       const mockConfig = createExpectedConfig();
       const mockContext = createMockActionContext(mockConfig);
-      
+
       // 执行chat命令，带环境变量文件参数
       if (chatCommand?.action) {
         await chatCommand.action(mockContext, TEST_DPML_PATH, {
           envFile: '.env.test'
         });
       }
-      
+
       // 检查环境变量是否被正确加载
       expect(process.env.ENV_FILE_VAR).toBe('value-from-file');
-      
+
       // 只在模拟模式下验证Agent调用
       if (!useOpenAIRealAPI && !useAnthropicRealAPI) {
         expect(mockAgent.chat).toHaveBeenCalled();
@@ -356,22 +370,23 @@ describe('E2E-CLI', () => {
       }
     }
   });
-  
+
   test('E2E-CLI-05: CLI应正确处理错误情况', async () => {
     // 找到chat命令的action函数
     const chatCommand = mockCommandsConfig.actions?.find(action => action.name === 'chat');
+
     expect(chatCommand).toBeDefined();
-    
+
     // 创建模拟上下文
     const mockContext = createMockActionContext(createExpectedConfig());
-    
+
     // 执行chat命令，使用不存在的文件
     if (chatCommand?.action) {
       await chatCommand.action(mockContext, 'nonexistent.xml', {});
-      
+
       // 验证错误处理 - 不管是否使用真实API，都应该有错误处理
       expect(console.error).toHaveBeenCalled();
       expect(process.exit).toHaveBeenCalledWith(1);
     }
   });
-}); 
+});
