@@ -1,10 +1,10 @@
 import { describe, expect, test, beforeAll, afterAll, beforeEach } from 'vitest';
-import path from 'path';
+
 import { runCLICommand, createTestConfigFile, cleanupTestFile } from '../../helpers/cli-process-runner';
 
 /**
  * 真实CLI环境测试套件
- * 
+ *
  * 这些测试在实际CLI环境中运行命令，能够检测出仅在真实环境中出现的集成问题
  * 注意：当"领域编译器尚未初始化"的bug被修复后，这些测试才会通过
  */
@@ -57,17 +57,17 @@ describe('真实CLI环境测试', () => {
 
   test('agent chat命令不应出现"领域编译器尚未初始化"错误', async () => {
     const { stdout, stderr, exitCode } = await runCLICommand('agent chat', [
-      simpleAgentConfig, 
+      simpleAgentConfig,
       '--env', 'API_TYPE=test-api-type',
       '--env', 'API_URL=https://test-api-url.example.com',
       '--env', 'API_KEY=test-api-key-for-e2e-tests',
       '--env', 'MODEL=test-model'
     ]);
-    
+
     // 明确检查"领域编译器尚未初始化"错误
     // 注意：当问题修复前，这个测试会失败
     expect(stderr).not.toContain('领域编译器尚未初始化');
-    
+
     // 如果没有编译器初始化问题，命令应该能成功执行
     if (!stderr.includes('领域编译器尚未初始化')) {
       expect(exitCode).toBe(0);
@@ -76,17 +76,17 @@ describe('真实CLI环境测试', () => {
 
   test('validate命令不应出现"领域编译器尚未初始化"错误', async () => {
     const { stdout, stderr, exitCode } = await runCLICommand('validate', [
-      simpleAgentConfig, 
+      simpleAgentConfig,
       '--env', 'API_TYPE=test-api-type',
       '--env', 'API_URL=https://test-api-url.example.com',
       '--env', 'API_KEY=test-api-key-for-e2e-tests',
       '--env', 'MODEL=test-model'
     ]);
-    
+
     // 明确检查"领域编译器尚未初始化"错误
     // 注意：当问题修复前，这个测试会失败
     expect(stderr).not.toContain('领域编译器尚未初始化');
-    
+
     // 如果没有编译器初始化问题，命令应该能成功执行
     if (!stderr.includes('领域编译器尚未初始化')) {
       expect(exitCode).toBe(0);
@@ -96,20 +96,20 @@ describe('真实CLI环境测试', () => {
   test('检查并验证是否能正确捕获"领域编译器尚未初始化"错误', async () => {
     // 这个测试专门用来确认我们的测试框架能够正确捕获stderr中的错误信息
     // 当已知bug存在时，这个测试应该失败；当bug修复后，会被上面的测试覆盖
-    
+
     // 使用debug模式运行，增加更多输出
     const { stdout, stderr, exitCode } = await runCLICommand('agent chat', [
-      simpleAgentConfig, 
+      simpleAgentConfig,
       '--env', 'API_TYPE=test-api-type',
       '--env', 'API_URL=https://test-api-url.example.com',
       '--env', 'API_KEY=test-api-key-for-e2e-tests',
       '--env', 'MODEL=test-model',
       '--debug'
     ]);
-    
+
     // 输出调试信息，帮助排查是否正确捕获了错误
     console.log('DEBUG - stderr output:', stderr);
-    
+
     // 如果存在领域编译器初始化问题，这个测试会直接失败
     if (stderr.includes('领域编译器尚未初始化')) {
       throw new Error('存在已知问题："领域编译器尚未初始化"错误');
@@ -140,7 +140,7 @@ describe('真实CLI环境测试', () => {
       // 检查是否有环境变量处理错误
       expect(stderr).not.toContain('环境变量');
       expect(stderr).not.toContain('未定义');
-      
+
       // 检查是否有编译器初始化问题
       expect(stderr).not.toContain('领域编译器尚未初始化');
     } finally {
@@ -150,14 +150,14 @@ describe('真实CLI环境测试', () => {
 
   test('不存在的命令应返回错误', async () => {
     const { stderr, exitCode } = await runCLICommand('nonexistent-command');
-    
+
     // 验证命令应失败执行（非零退出码）
     expect(exitCode).not.toBe(0);
   });
 
   test('缺少必要参数应返回错误', async () => {
     const { stderr, exitCode } = await runCLICommand('validate');
-    
+
     // 验证命令应失败执行
     expect(exitCode).not.toBe(0);
   });
@@ -165,10 +165,10 @@ describe('真实CLI环境测试', () => {
   test('无效的配置文件应返回特定错误', async () => {
     // 创建一个无效的配置文件
     const invalidConfig = await createTestConfigFile('<invalid>xml</invalid>', 'invalid-config.dpml');
-    
+
     try {
       const { stderr, exitCode } = await runCLICommand('validate', [invalidConfig]);
-      
+
       // 验证命令应失败执行
       expect(exitCode).not.toBe(0);
     } finally {
@@ -176,4 +176,4 @@ describe('真实CLI环境测试', () => {
       await cleanupTestFile(invalidConfig);
     }
   });
-}); 
+});

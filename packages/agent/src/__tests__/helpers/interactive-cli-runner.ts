@@ -1,7 +1,8 @@
-import { spawn, ChildProcess } from 'child_process';
-import path from 'path';
-import { Writable } from 'stream';
+import type { ChildProcess } from 'child_process';
+import { spawn } from 'child_process';
 import { once } from 'events';
+import path from 'path';
+import type { Writable } from 'stream';
 
 /**
  * 交互式CLI会话
@@ -15,30 +16,30 @@ export class InteractiveCLISession {
 
   /**
    * 创建新的交互式CLI会话
-   * 
+   *
    * @param command 要执行的命令（如 'agent chat'）
    * @param args 命令参数
    */
   constructor(command: string, args: string[] = []) {
     const binPath = path.resolve(process.cwd(), 'packages/agent/dist/bin.js');
     const cmdParts = command.split(' ');
-    
+
     this.process = spawn('node', [binPath, ...cmdParts, ...args], {
       env: { ...process.env, NODE_ENV: 'test' },
       stdio: ['pipe', 'pipe', 'pipe']
     });
-    
+
     this.isRunning = true;
-    
+
     // 收集输出
     this.process.stdout?.on('data', (data) => {
       this.outputBuffer += data.toString();
     });
-    
+
     this.process.stderr?.on('data', (data) => {
       this.errorBuffer += data.toString();
     });
-    
+
     // 处理进程结束
     this.process.on('exit', () => {
       this.isRunning = false;
@@ -47,17 +48,17 @@ export class InteractiveCLISession {
 
   /**
    * 发送输入到CLI进程
-   * 
+   *
    * @param input 要发送的输入文本
    */
   async sendInput(input: string): Promise<void> {
     if (!this.isRunning || !this.process.stdin) {
       throw new Error('CLI进程已不在运行中或标准输入不可用');
     }
-    
+
     return new Promise<void>((resolve, reject) => {
       const stdin = this.process.stdin as Writable;
-      
+
       // 写入输入并添加换行符
       stdin.write(`${input}\n`, (err) => {
         if (err) {
@@ -71,22 +72,22 @@ export class InteractiveCLISession {
 
   /**
    * 等待输出中出现特定文本
-   * 
+   *
    * @param text 要等待的文本
    * @param timeout 超时时间（毫秒）
    */
   async waitForOutput(text: string, timeout = 5000): Promise<boolean> {
     const startTime = Date.now();
-    
+
     while (this.isRunning && Date.now() - startTime < timeout) {
       if (this.outputBuffer.includes(text)) {
         return true;
       }
-      
+
       // 等待一小段时间再检查
       await new Promise(resolve => setTimeout(resolve, 100));
     }
-    
+
     return false;
   }
 
@@ -111,13 +112,13 @@ export class InteractiveCLISession {
     if (!this.isRunning) {
       return;
     }
-    
+
     this.process.kill();
     this.isRunning = false;
-    
+
     // 等待进程真正结束
     if (this.process.exitCode === null) {
       await once(this.process, 'exit');
     }
   }
-} 
+}
