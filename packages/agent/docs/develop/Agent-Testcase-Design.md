@@ -27,10 +27,10 @@ Agent模块严格遵循DPML项目的分层架构：
 
 | 测试类型 | 目录 | 测试重点 | 文件命名模式 |
 |--------|------|---------|------------|
-| 契约测试 | `__tests__/contract/` | API和类型稳定性 | `*.contract.test.ts` |
-| 单元测试 | `__tests__/unit/` | 组件内部逻辑 | `*.test.ts` |
-| 集成测试 | `__tests__/integration/` | 组件间协作 | `*.integration.test.ts` |
-| 端到端测试 | `__tests__/e2e/` | 完整功能流程 | `*.e2e.test.ts` |
+| 契约测试 | `/packages/agent/__tests__/contract/` | API和类型稳定性 | `*.contract.test.ts` |
+| 单元测试 | `/packages/agent/__tests__/unit/` | 组件内部逻辑 | `*.test.ts` |
+| 集成测试 | `/packages/agent/__tests__/integration/` | 组件间协作 | `*.integration.test.ts` |
+| 端到端测试 | `/packages/agent/__tests__/e2e/` | 完整功能流程 | `*.e2e.test.ts` |
 
 ## 3. 测试用例设计
 
@@ -40,7 +40,7 @@ Agent模块严格遵循DPML项目的分层架构：
 
 #### 3.1.1 API契约测试
 
-**文件路径**: `__tests__/contract/api/agent.contract.test.ts`
+**文件路径**: `/packages/agent/__tests__/contract/api/agent.contract.test.ts`
 
 | ID | 测试用例名称 | 测试目的 | 测试输入 | 期望结果 | Mock情况 |
 |----|------------|---------|---------|---------|---------|
@@ -52,7 +52,7 @@ Agent模块严格遵循DPML项目的分层架构：
 
 #### 3.1.2 Types契约测试
 
-**文件路径**: `__tests__/contract/types/Agent.contract.test.ts`
+**文件路径**: `/packages/agent/__tests__/contract/types/Agent.contract.test.ts`
 
 | ID | 测试用例名称 | 测试目的 | 测试输入 | 期望结果 | Mock情况 |
 |----|------------|---------|---------|---------|---------|
@@ -68,7 +68,7 @@ Agent模块严格遵循DPML项目的分层架构：
 
 #### 3.2.1 agentService单元测试
 
-**文件路径**: `__tests__/unit/core/agent/agentService.test.ts`
+**文件路径**: `/packages/agent/__tests__/unit/core/agentService.test.ts`
 
 | ID | 测试用例名称 | 测试目的 | 测试输入 | 期望结果 | Mock情况 |
 |----|------------|---------|---------|---------|---------|
@@ -83,7 +83,7 @@ Agent模块严格遵循DPML项目的分层架构：
 
 #### 3.2.2 AgentRunner单元测试
 
-**文件路径**: `__tests__/unit/core/agent/AgentRunner.test.ts`
+**文件路径**: `/packages/agent/__tests__/unit/core/agentRunner.test.ts`
 
 | ID | 测试用例名称 | 测试目的 | 测试输入 | 期望结果 | Mock情况 |
 |----|------------|---------|---------|---------|---------|
@@ -94,9 +94,9 @@ Agent模块严格遵循DPML项目的分层架构：
 | UT-Runner-05 | prepareMessages应包含历史消息 | 验证历史消息整合 | 会话中有历史消息 | 生成的消息列表包含历史消息 | 模拟AgentSession |
 | UT-Runner-06 | sendMessage应处理LLMClient错误 | 验证错误处理逻辑 | LLMClient抛出错误 | 抛出AgentError | 模拟LLMClient抛出错误 |
 
-#### 3.2.3 InMemoryAgentSession单元测试
+#### 3.2.3 AgentSession单元测试
 
-**文件路径**: `__tests__/unit/core/agent/InMemoryAgentSession.test.ts`
+**文件路径**: `/packages/agent/__tests__/unit/core/session/session.test.ts`
 
 | ID | 测试用例名称 | 测试目的 | 测试输入 | 期望结果 | Mock情况 |
 |----|------------|---------|---------|---------|---------|
@@ -108,7 +108,7 @@ Agent模块严格遵循DPML项目的分层架构：
 
 #### 3.2.4 LLM客户端单元测试
 
-**文件路径**: `__tests__/unit/core/llm/OpenAIClient.test.ts`
+**文件路径**: `/packages/agent/__tests__/unit/core/llm/OpenAIClient.test.ts`
 
 | ID | 测试用例名称 | 测试目的 | 测试输入 | 期望结果 | Mock情况 |
 |----|------------|---------|---------|---------|---------|
@@ -122,7 +122,7 @@ Agent模块严格遵循DPML项目的分层架构：
 
 #### 3.2.5 llmFactory单元测试
 
-**文件路径**: `__tests__/unit/core/llm/llmFactory.test.ts`
+**文件路径**: `/packages/agent/__tests__/unit/core/llm/llmFactory.test.ts`
 
 | ID | 测试用例名称 | 测试目的 | 测试输入 | 期望结果 | Mock情况 |
 |----|------------|---------|---------|---------|---------|
@@ -132,7 +132,7 @@ Agent模块严格遵循DPML项目的分层架构：
 
 #### 3.2.6 错误处理单元测试
 
-**文件路径**: `__tests__/unit/types/errors.test.ts`
+**文件路径**: `/packages/agent/__tests__/unit/types/errors.test.ts`
 
 | ID | 测试用例名称 | 测试目的 | 测试输入 | 期望结果 | Mock情况 |
 |----|------------|---------|---------|---------|---------|
@@ -147,7 +147,7 @@ Agent模块严格遵循DPML项目的分层架构：
 
 #### 3.3.1 Agent创建流程集成测试
 
-**文件路径**: `__tests__/integration/agent-creation.integration.test.ts`
+**文件路径**: `/packages/agent/__tests__/integration/agent-creation.integration.test.ts`
 
 | ID | 测试用例名称 | 测试目的 | 测试输入 | 期望结果 | Mock情况 |
 |----|------------|---------|---------|---------|---------|
@@ -158,7 +158,7 @@ Agent模块严格遵循DPML项目的分层架构：
 
 #### 3.3.2 消息处理流程集成测试
 
-**文件路径**: `__tests__/integration/message-processing.integration.test.ts`
+**文件路径**: `/packages/agent/__tests__/integration/message-processing.integration.test.ts`
 
 | ID | 测试用例名称 | 测试目的 | 测试输入 | 期望结果 | Mock情况 |
 |----|------------|---------|---------|---------|---------|
@@ -171,7 +171,7 @@ Agent模块严格遵循DPML项目的分层架构：
 
 #### 3.3.3 LLM适配器集成测试
 
-**文件路径**: `__tests__/integration/llm-adapters.integration.test.ts`
+**文件路径**: `/packages/agent/__tests__/integration/llm-adapters.integration.test.ts`
 
 | ID | 测试用例名称 | 测试目的 | 测试输入 | 期望结果 | Mock情况 |
 |----|------------|---------|---------|---------|---------|
@@ -185,7 +185,7 @@ Agent模块严格遵循DPML项目的分层架构：
 
 #### 3.4.1 Agent对话端到端测试
 
-**文件路径**: `__tests__/e2e/agent-conversation.e2e.test.ts`
+**文件路径**: `/packages/agent/__tests__/e2e/agent-conversation.e2e.test.ts`
 
 | ID | 测试用例名称 | 测试目的 | 测试输入 | 期望结果 | Mock情况 |
 |----|------------|---------|---------|---------|---------|
@@ -197,7 +197,7 @@ Agent模块严格遵循DPML项目的分层架构：
 
 #### 3.4.2 Agent配置端到端测试
 
-**文件路径**: `__tests__/e2e/agent-configuration.e2e.test.ts`
+**文件路径**: `/packages/agent/__tests__/e2e/agent-configuration.e2e.test.ts`
 
 | ID | 测试用例名称 | 测试目的 | 测试输入 | 期望结果 | Mock情况 |
 |----|------------|---------|---------|---------|---------|
@@ -234,7 +234,7 @@ Agent模块严格遵循DPML项目的分层架构：
 ### 6.1 契约测试实现示例
 
 ```typescript
-// __tests__/contract/api/session.contract.test.ts
+// /packages/agent/__tests__/contract/api/session.contract.test.ts
 import { describe, test, expect } from 'vitest';
 import { createAgent } from '../../../api/session';
 import { Agent, AgentConfig } from '../../../types';
@@ -269,12 +269,12 @@ describe('CT-API-Agent', () => {
 ### 6.2 单元测试实现示例
 
 ```typescript
-// __tests__/unit/core/session/agentService.test.ts
+// /packages/agent/__tests__/unit/core/session/agentService.test.ts
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { createAgent, handleChat, normalizeChatInput } from '../../../../core/session/agentService';
+import { createAgent, handleChat, normalizeChatInput } from '../../../../core/agentService';
 import { llmFactory } from '../../../../core/llm/llmFactory';
-import { AgentRunner } from '../../../../core/session/AgentRunner';
-import { InMemoryAgentSession } from '../../../../core/session/InMemoryAgentSession';
+import { AgentRunner } from '../../../../core/agentRunner';
+import { InMemoryAgentSession } from '../../../../core/session/session';
 import { AgentError, AgentErrorType } from '../../../../types/errors';
 
 // 模拟依赖
@@ -286,13 +286,13 @@ vi.mock('../../../../core/llm/llmFactory', () => ({
   }
 }));
 
-vi.mock('../../../../core/session/AgentRunner', () => ({
+vi.mock('../../../../core/agentRunner', () => ({
   AgentRunner: vi.fn().mockImplementation(() => ({
     sendMessage: vi.fn()
   }))
 }));
 
-vi.mock('../../../../core/session/InMemoryAgentSession', () => ({
+vi.mock('../../../../core/session/session', () => ({
   InMemoryAgentSession: vi.fn().mockImplementation(() => ({
     addMessage: vi.fn(),
     getMessages: vi.fn()
@@ -356,7 +356,7 @@ describe('UT-AgentSvc', () => {
 ### 6.3 集成测试实现示例
 
 ```typescript
-// __tests__/integration/message-processing.integration.test.ts
+// /packages/agent/__tests__/integration/message-processing.integration.test.ts
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { createAgent } from '../../api/session';
 import { llmFactory } from '../../core/llm/llmFactory';
@@ -431,10 +431,11 @@ describe('IT-Msg', () => {
 
 ### 7.1 通用测试夹具
 
-**文件路径**: `__tests__/fixtures/agent.fixture.ts`
+**文件路径**: `/packages/agent/__tests__/fixtures/agent.fixture.ts`
 
 ```typescript
-import { AgentConfig, ChatInput, ChatOutput, Content, ContentItem, Message } from '../../types';
+import { AgentConfig, ChatInput, ChatOutput, Content, ContentItem } from '../../types';
+import { Message } from '../../core/types';
 
 /**
  * 创建测试用AgentConfig
@@ -493,7 +494,7 @@ export function createMockLLMResponse(text: string): ChatOutput {
 
 ### 7.2 LLM模拟夹具
 
-**文件路径**: `__tests__/fixtures/llm.fixture.ts`
+**文件路径**: `/packages/agent/__tests__/fixtures/llm.fixture.ts`
 
 ```typescript
 import { AsyncIterableSimulator } from './utils';
