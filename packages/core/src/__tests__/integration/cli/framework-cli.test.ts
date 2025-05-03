@@ -18,7 +18,7 @@ describe('IT-FRM-CLI: Framework CLI集成测试', () => {
   // 创建测试用的领域配置
   const createTestConfig = () => ({
     domain: 'core',
-    description: 'DPML核心领域',
+    description: 'DPML Core Domain',
     schema: { element: 'root' }, // 简单的schema
     transformers: [{
       name: 'default',

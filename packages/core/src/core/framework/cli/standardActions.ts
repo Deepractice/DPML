@@ -20,7 +20,7 @@ import type { DPMLDocument } from '../../../types/DPMLDocument';
  */
 function extractDPMLDocument(parseResult: unknown): DPMLDocument {
   if (typeof parseResult !== 'object' || parseResult === null) {
-    throw new Error('解析结果不是有效对象');
+    throw new Error('Parse result is not a valid object');
   }
 
   // 检查是否是ParseResult
@@ -33,7 +33,7 @@ function extractDPMLDocument(parseResult: unknown): DPMLDocument {
     return parseResult as DPMLDocument;
   }
 
-  throw new Error('无法获取有效的DPML文档');
+  throw new Error('Unable to get a valid DPML document');
 }
 
 /**
@@ -43,19 +43,19 @@ function extractDPMLDocument(parseResult: unknown): DPMLDocument {
 export const standardActions: DomainAction[] = [
   {
     name: 'validate',
-    description: '验证DPML文档是否符合领域规范',
+    description: 'Validate DPML document against domain schema',
     args: [
-      { name: 'file', description: 'DPML文件路径', required: true }
+      { name: 'file', description: 'DPML file path', required: true }
     ],
     options: [
-      { flags: '--strict', description: '启用严格验证模式' }
+      { flags: '--strict', description: 'Enable strict validation mode' }
     ],
     action: async (actionContext, filePath, options) => {
       try {
         // 读取文件内容 - 确保filePath是字符串
         const content = await fs.readFile(filePath, 'utf-8');
 
-        console.log(`验证文件: ${filePath}`);
+        console.log(`Validating file: ${filePath}`);
 
         // 获取编译器和选项
         const compiler = actionContext.getCompiler();
@@ -67,7 +67,7 @@ export const standardActions: DomainAction[] = [
 
         // 确保Schema处理成功
         if (!processedSchema.isValid) {
-          throw new CompilationError(`Schema定义无效: ${processedSchema.errors?.map(e => e.message).join('; ')}`);
+          throw new CompilationError(`Invalid schema definition: ${processedSchema.errors?.map(e => e.message).join('; ')}`);
         }
 
         // 解析DPML内容
@@ -77,9 +77,9 @@ export const standardActions: DomainAction[] = [
         const dpmlDocument = extractDPMLDocument(parseResult);
 
         // 安全地访问文档信息
-        const rootTag = dpmlDocument.rootNode?.tagName || '未知';
+        const rootTag = dpmlDocument.rootNode?.tagName || 'unknown';
 
-        console.log(`成功解析文档，根节点: ${rootTag}`);
+        console.log(`Successfully parsed document, root node: ${rootTag}`);
 
         // 使用领域选项中的严格模式设置
         const strictMode = options?.strict !== undefined ? options.strict : domainOptions.strictMode;
@@ -89,9 +89,9 @@ export const standardActions: DomainAction[] = [
 
         // 输出验证结果
         if (processingResult.isValid) {
-          console.log(`验证成功: 文档符合领域规范`);
+          console.log(`Validation successful: document conforms to domain schema`);
         } else {
-          console.error('验证失败: 文档不符合领域规范');
+          console.error('Validation failed: document does not conform to domain schema');
 
           if (processingResult.validation && processingResult.validation.errors) {
             processingResult.validation.errors.forEach(error => {
@@ -101,39 +101,39 @@ export const standardActions: DomainAction[] = [
 
           // 如果是严格模式，验证失败时抛出错误
           if (strictMode) {
-            console.error(`严格模式验证失败，终止处理`);
-            throw new Error('文档验证失败');
+            console.error(`Strict mode validation failed, terminating process`);
+            throw new Error('Document validation failed');
           }
 
           // 非严格模式下只输出错误信息，不抛出异常
         }
 
         // 输出验证结果信息（不返回值，以符合void返回类型）
-        console.log(`验证状态: ${processingResult.isValid ? '通过' : '失败'}`);
-        console.log(`错误数量: ${processingResult.validation?.errors?.length || 0}`);
-        console.log(`警告数量: ${processingResult.validation?.warnings?.length || 0}`);
+        console.log(`Validation status: ${processingResult.isValid ? 'passed' : 'failed'}`);
+        console.log(`Error count: ${processingResult.validation?.errors?.length || 0}`);
+        console.log(`Warning count: ${processingResult.validation?.warnings?.length || 0}`);
       } catch (error) {
-        console.error(`验证文档时出错: ${error instanceof Error ? error.message : String(error)}`);
+        console.error(`Error validating document: ${error instanceof Error ? error.message : String(error)}`);
         throw error;
       }
     }
   },
   {
     name: 'parse',
-    description: '解析DPML文档并输出解析结果',
+    description: 'Parse DPML document and display parsed result',
     args: [
-      { name: 'file', description: 'DPML文件路径', required: true }
+      { name: 'file', description: 'DPML file path', required: true }
     ],
     options: [
-      { flags: '--output <file>', description: '输出文件路径' },
-      { flags: '--format <format>', description: '输出格式 (json|xml)', defaultValue: 'json' }
+      { flags: '--output <file>', description: 'Output file path' },
+      { flags: '--format <format>', description: 'Output format (json|xml)', defaultValue: 'json' }
     ],
     action: async (actionContext, filePath, options) => {
       try {
         // 读取文件内容 - 确保filePath是字符串
         const content = await fs.readFile(filePath, 'utf-8');
 
-        console.log(`解析文件: ${filePath}`);
+        console.log(`Parsing file: ${filePath}`);
 
         // 获取编译器
         const compiler = actionContext.getCompiler();
@@ -145,10 +145,10 @@ export const standardActions: DomainAction[] = [
         const dpmlDocument = extractDPMLDocument(parseResult);
 
         // 安全地访问文档信息
-        const rootTag = dpmlDocument.rootNode?.tagName || '未知';
+        const rootTag = dpmlDocument.rootNode?.tagName || 'unknown';
 
-        console.log(`成功解析文档，根节点: ${rootTag}`);
-        console.log(`输出格式: ${options?.format || 'json'}`);
+        console.log(`Successfully parsed document, root node: ${rootTag}`);
+        console.log(`Output format: ${options?.format || 'json'}`);
 
         // 获取并处理Schema
         const schema = compiler.getSchema();
@@ -156,7 +156,7 @@ export const standardActions: DomainAction[] = [
 
         // 确保Schema处理成功
         if (!processedSchema.isValid) {
-          throw new CompilationError(`Schema定义无效: ${processedSchema.errors?.map(e => e.message).join('; ')}`);
+          throw new CompilationError(`Invalid schema definition: ${processedSchema.errors?.map(e => e.message).join('; ')}`);
         }
 
         // 处理文档
@@ -191,21 +191,21 @@ export const standardActions: DomainAction[] = [
   </document>
 </parseResult>`;
         } else {
-          throw new Error(`不支持的输出格式: ${format}`);
+          throw new Error(`Unsupported output format: ${format}`);
         }
 
         // 输出结果
         if (options?.output) {
           await fs.writeFile(options.output, outputContent, 'utf-8');
-          console.log(`结果已保存到: ${options.output}`);
+          console.log(`Results saved to: ${options.output}`);
         } else {
-          console.log(`解析结果:`);
+          console.log(`Parsed result:`);
           console.log(outputContent);
         }
 
         // 不返回具体值，符合void返回类型
       } catch (error) {
-        console.error(`解析文档时出错: ${error instanceof Error ? error.message : String(error)}`);
+        console.error(`Error parsing document: ${error instanceof Error ? error.message : String(error)}`);
         throw error;
       }
     }

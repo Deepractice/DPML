@@ -561,7 +561,7 @@ export function ensureCoreInitialized(): void {
     // 创建核心领域配置
     const coreConfig: DomainConfig = {
       domain: DEFAULT_DOMAIN,
-      description: 'DPML核心领域',
+      description: 'DPML Core Domain',
       schema: { element: 'root' }, // 简单的schema
       transformers: [{
         name: 'default',
@@ -647,7 +647,7 @@ export function createDPMLCLIService(config?: DomainConfig): CLI {
   const cliOptions: CLIOptions = {
     name: config?.domain || 'dpml',
     version: VERSION,
-    description: config?.description || 'DPML命令行工具 - 数据处理标记语言',
+    description: config?.description || 'DPML Command Line Tool - Deepractice Prompt Markup Language',
     defaultDomain: config?.domain
   };
 
@@ -686,16 +686,16 @@ export function createDPMLCLIService(config?: DomainConfig): CLI {
     // 先注册领域父命令
     const domainCommand: CommandDefinition = {
       name: domain,
-      description: `${domain}领域的命令集合`,
+      description: `Commands for ${domain} domain`,
       action: () => {
-        console.log(`\n${domain}领域的可用命令:`);
+        console.log(`\nAvailable commands for ${domain} domain:`);
         commands.forEach(cmd => {
           // 提取命令名（不含领域前缀）
           const commandName = cmd.name.replace(`${domain}:`, '');
 
           console.log(`  ${domain} ${commandName.padEnd(10)} ${cmd.description}`);
         });
-        console.log(`\n使用 'dpml ${domain} --help' 查看更多信息`);
+        console.log(`\nUse 'dpml ${domain} --help' for more information`);
       }
     };
 
@@ -721,7 +721,7 @@ export function createDPMLCLIService(config?: DomainConfig): CLI {
           category: domain // 使用category字段标记父命令，不使用parent
         }]);
       } catch (err) {
-        console.error(`注册命令 ${domain} ${cmd.name} 失败:`, err);
+        console.error(`Failed to register command ${domain} ${cmd.name}:`, err);
       }
     });
   }
@@ -739,7 +739,7 @@ export function createDPMLCLIService(config?: DomainConfig): CLI {
         // 移除category属性，确保不会添加前缀
         category: undefined,
         // 调整描述说明这是别名
-        description: `${cmd.description} (核心领域命令的别名)`
+        description: `${cmd.description} (Alias for core domain command)`
       };
 
       return unprefixedCmd;
@@ -791,7 +791,7 @@ export function initializeDomainCompiler(config: DomainConfig): DomainContext {
   // 仅当领域尚未注册时才添加
   if (!domainRegistry.has(config.domain)) {
     domainRegistry.set(config.domain, registration);
-    commandLogger.info(`领域 '${config.domain}' 已添加到领域注册表(编译器)`);
+    commandLogger.info(`Domain '${config.domain}' has been added to the domain registry (compiler)`);
   }
 
   return context;
@@ -810,7 +810,7 @@ export function initializeDomainCLI(config: DomainConfig): DomainContext {
 
     // 处理命令配置
     if (config.commands) {
-      commandLogger.info(`处理领域 '${config.domain}' 的命令配置`);
+      commandLogger.info(`Processing command configuration for domain '${config.domain}'`);
       processDomainCommands(config.commands, context);
     }
 

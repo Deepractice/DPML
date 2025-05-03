@@ -91,7 +91,7 @@ export function createDPMLCLI(options?: Partial<CLIOptions>): CLITypes {
   const cliOptions: CLIOptions = {
     name: options?.name || 'dpml',
     version: options?.version || VERSION, // 使用导入或计算得出的版本
-    description: options?.description || 'DPML Command Line Tool - Data Processing Markup Language',
+    description: options?.description || 'DPML Command Line Tool - Deepractice Prompt Markup Language',
     // defaultDomain 可以在这里或在domainService内部处理
   };
 

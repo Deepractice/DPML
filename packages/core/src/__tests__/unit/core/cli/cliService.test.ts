@@ -100,8 +100,8 @@ describe('CLITypes Service', () => {
       createCLI(options, []);
 
       // 验证结果：应记录初始化信息
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('CLI初始化'));
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('默认领域'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('CLI initialized'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Default domain'));
 
       // 恢复模拟
       consoleLogSpy.mockRestore();
@@ -219,7 +219,7 @@ describe('CLITypes Service', () => {
       await expect(cli.execute()).rejects.toThrow(errorMock);
 
       // 验证错误被记录
-      expect(consoleSpy).toHaveBeenCalledWith('命令执行出错:', errorMock);
+      expect(consoleSpy).toHaveBeenCalledWith('Command execution error:', errorMock);
 
       // 在测试环境中不应该调用process.exit
       expect(processExitSpy).not.toHaveBeenCalled();

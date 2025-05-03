@@ -17,7 +17,7 @@ async function main() {
   // 创建领域DPML实例（使用默认核心领域配置）
   const dpml = createDomainDPML({
     domain: 'core',
-    description: 'DPML核心领域',
+    description: 'DPML Core Domain',
     schema: { element: 'root' }, // 简单的schema
     transformers: [{
       name: 'default',

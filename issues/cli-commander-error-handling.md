@@ -10,7 +10,7 @@ CLI初始化: dpml v1.0.0
 默认领域: undefined
 Usage: dpml [options] [command]
 
-DPML命令行工具 - 数据处理标记语言
+DPML命令行工具 - Deepractice提示词标记语言
 
 Options:
   -V, --version                   output the version number
@@ -109,7 +109,7 @@ CLI初始化: dpml v1.0.0
 默认领域: undefined
 Usage: dpml [options] [command]
 
-DPML命令行工具 - 数据处理标记语言
+DPML命令行工具 - Deepractice提示词标记语言
 
 Options:
   -V, --version                   output the version number

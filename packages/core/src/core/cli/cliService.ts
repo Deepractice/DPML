@@ -53,7 +53,7 @@ export function createCLI(options: CLIOptions, commands: CommandDefinition[]): C
         }
 
         // 在CLI服务层捕获所有来自底层的错误
-        console.error('命令执行出错:', error);
+        console.error('Command execution error:', error);
 
         // 仅在非测试环境下退出进程，避免中断测试执行
         if (process.env.NODE_ENV !== 'test' && !process.env.VITEST) {
@@ -83,8 +83,8 @@ function setupGlobalOptions(adapter: CLIAdapter, options: Required<CLIOptions>):
   // 全局选项实现
   // 这里可以根据需要添加全局选项，如--verbose等
 
-  console.log(`CLI初始化: ${options.name} v${options.version}`);
-  console.log(`默认领域: ${options.defaultDomain}`);
+  console.log(`CLI initialized: ${options.name} v${options.version}`);
+  console.log(`Default domain: ${options.defaultDomain}`);
 }
 
 /**
@@ -119,14 +119,14 @@ function setupUserCommands(adapter: CLIAdapter, commands: CommandDefinition[]): 
     // 创建领域父命令
     const domainCommand: CommandDefinition = {
       name: domain,
-      description: `${domain}领域的命令集合`,
+      description: `Commands for ${domain} domain`,
       action: () => {
         // 只显示该领域的帮助信息
-        console.log(`\n${domain}领域的可用命令:`);
+        console.log(`\nAvailable commands for ${domain} domain:`);
         cmds.forEach(cmd => {
           console.log(`  ${domain} ${cmd.name.padEnd(10)} ${cmd.description}`);
         });
-        console.log(`\n使用 'dpml ${domain} --help' 查看更多信息`);
+        console.log(`\nUse 'dpml ${domain} --help' for more information`);
       }
     };
 
@@ -152,7 +152,7 @@ function setupUserCommands(adapter: CLIAdapter, commands: CommandDefinition[]): 
         adapter.setupCommand({
           ...cmd,
           category: undefined, // 无需再次添加领域
-          description: `${cmd.description} (核心领域命令的别名)`
+          description: `${cmd.description} (Alias for core domain command)`
         });
       });
     }

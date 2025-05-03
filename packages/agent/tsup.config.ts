@@ -8,8 +8,10 @@ export default defineConfig({
   splitting: false,
   sourcemap: true,
   clean: true,
-  banner: {
-    js: "#!/usr/bin/env node",
+  esbuildOptions(options) {
+    options.banner = {
+      js: options.entryNames?.includes('bin') ? "#!/usr/bin/env node" : "",
+    };
   },
   shims: true
 });

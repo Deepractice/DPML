@@ -60,7 +60,7 @@ export * from './types';
  */
 export const agentDPML = createDomainDPML<AgentConfig>({
   domain: 'agent',
-  description: 'Agent配置领域',
+  description: 'AI Agent Domain',
   schema,
   transformers,
   commands: commandsConfig,

@@ -162,7 +162,7 @@ export class CLIAdapter {
    * 显示CLI帮助信息
    */
   public showHelp(): void {
-    console.log(`dpml - 数据处理标记语言`);
+    console.log(`dpml - Deepractice提示词标记语言`);
     console.log(`版本: ${this.program.version()}`);
     console.log(`用法: dpml [选项] [命令]`);
     console.log(`\n可用命令:`);

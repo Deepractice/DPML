@@ -101,7 +101,7 @@ describe('UT-STDACT: 标准命令测试', () => {
     const validateCommand = standardActions.find(cmd => cmd.name === 'validate');
 
     expect(validateCommand).toBeDefined();
-    expect(validateCommand?.description).toContain('验证DPML文档');
+    expect(validateCommand?.description).toContain('Validate DPML document');
 
     // 验证参数定义
     expect(validateCommand?.args).toHaveLength(1);
@@ -121,7 +121,7 @@ describe('UT-STDACT: 标准命令测试', () => {
     const parseCommand = standardActions.find(cmd => cmd.name === 'parse');
 
     expect(parseCommand).toBeDefined();
-    expect(parseCommand?.description).toContain('解析DPML文档');
+    expect(parseCommand?.description).toContain('Parse DPML document');
 
     // 验证参数定义
     expect(parseCommand?.args).toHaveLength(1);
@@ -166,7 +166,7 @@ describe('UT-STDACT: 标准命令测试', () => {
     expect(mockProcessDocument).toHaveBeenCalled();
 
     // 验证日志输出
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('验证状态'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Validation status'));
   });
 
   it('validate命令应处理验证失败的情况', async () => {
@@ -209,7 +209,7 @@ describe('UT-STDACT: 标准命令测试', () => {
     );
 
     // 验证错误日志
-    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('验证失败'));
+    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Validation failed'));
 
     // 重置模拟
     vi.clearAllMocks();
@@ -226,7 +226,7 @@ describe('UT-STDACT: 标准命令测试', () => {
       assert.fail('应该抛出错误，但没有');
     } catch (error) {
       // 验证错误消息
-      expect(error.message).toBe('文档验证失败');
+      expect(error.message).toBe('Document validation failed');
     }
   });
 
@@ -295,7 +295,7 @@ describe('UT-STDACT: 标准命令测试', () => {
     expect(mockProcessDocument).toHaveBeenCalled();
 
     // 验证日志输出
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('解析结果'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Parsed result'));
 
     // 重置模拟
     vi.clearAllMocks();
@@ -329,7 +329,7 @@ describe('UT-STDACT: 标准命令测试', () => {
 
     // 验证文件写入
     expect(mockWriteFile).toHaveBeenCalledWith('output.json', expect.any(String), 'utf-8');
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('结果已保存到'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Results saved to'));
   });
 
   it('parse命令应处理不支持的格式', async () => {
@@ -369,7 +369,7 @@ describe('UT-STDACT: 标准命令测试', () => {
       fixture.actionContext,
       testFilePath,
       { format: 'unsupported' }
-    )).rejects.toThrow('不支持的输出格式');
+    )).rejects.toThrow('Unsupported output format');
   });
 
   it('命令应处理文件读取错误', async () => {
@@ -391,6 +391,6 @@ describe('UT-STDACT: 标准命令测试', () => {
     )).rejects.toThrow('文件不存在');
 
     // 验证错误日志
-    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('验证文档时出错'));
+    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Error validating document'));
   });
 });
