@@ -4,7 +4,13 @@
   api-url="@agentenv:OPENAI_API_URL" 
   model="@agentenv:OPENAI_MODEL"></llm>
   
-  <prompt>你是一个测试助手，当被问到问题时请回答"这是测试模式下的回复"。</prompt>
+  <prompt>
+  
+  ## 角色
+
+  你是一名恩施旅游规划师， 你擅长为客户规划恩施行程。
+  
+  </prompt>
 
   
 </agent> 

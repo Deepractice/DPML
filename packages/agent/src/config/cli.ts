@@ -32,6 +32,37 @@ function loadEnvironmentVariables(options: any): void {
 }
 
 /**
+ * 处理常规聊天（非流式）
+ */
+export async function handleRegularChat(agent: any, input: string): Promise<void> {
+  try {
+    // 发送消息并获取响应
+    const response = await agent.chat(input);
+
+    console.log('\n' + response + '\n');
+  } catch (error) {
+    console.error('错误:', error instanceof Error ? error.message : String(error));
+  }
+}
+
+/**
+ * 处理流式聊天
+ */
+export async function handleStreamChat(agent: any, input: string): Promise<void> {
+  try {
+    process.stdout.write('\n'); // 输出开始新行
+
+    for await (const chunk of agent.chatStream(input)) {
+      process.stdout.write(chunk);
+    }
+
+    process.stdout.write('\n\n'); // 输出结束添加空行
+  } catch (error) {
+    console.error('\n错误:', error instanceof Error ? error.message : String(error));
+  }
+}
+
+/**
  * 执行交互式聊天
  */
 async function executeChat(actionContext: any, filePath: string, options: any): Promise<void> {
@@ -62,6 +93,9 @@ async function executeChat(actionContext: any, filePath: string, options: any): 
 
     console.log('你好，我是AI助手。有什么我可以帮你的？');
 
+    // 确定是否使用流式输出（默认启用）
+    const useStream = options.stream !== false;
+
     // 交互式聊天循环
     const askQuestion = () => {
       rl.question('> ', async (input) => {
@@ -72,13 +106,11 @@ async function executeChat(actionContext: any, filePath: string, options: any): 
           return;
         }
 
-        try {
-          // 发送消息并获取响应
-          const response = await agent.chat(input);
-
-          console.log('\n' + response + '\n');
-        } catch (error) {
-          console.error('错误:', error instanceof Error ? error.message : String(error));
+        // 根据选项选择处理方式
+        if (useStream) {
+          await handleStreamChat(agent, input);
+        } else {
+          await handleRegularChat(agent, input);
         }
 
         // 继续等待输入
@@ -125,6 +157,11 @@ export const commandsConfig: DomainCommandsConfig = {
         {
           flags: '-d, --debug',
           description: '启用调试模式'
+        },
+        {
+          flags: '-s, --stream',
+          description: '启用流式输出模式（默认开启）',
+          defaultValue: true
         }
       ],
       action: executeChat
