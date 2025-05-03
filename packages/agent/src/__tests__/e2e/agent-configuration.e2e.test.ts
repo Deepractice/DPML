@@ -4,13 +4,14 @@
 import { describe, test, expect, vi, beforeEach, beforeAll } from 'vitest';
 
 import { createAgent } from '../../api/agent';
+import * as llmFactory from '../../core/llm/llmFactory';
+import { OpenAIClient } from '../../core/llm/OpenAIClient';
 import type { AgentConfig } from '../../types';
 import { AgentError, AgentErrorType } from '../../types';
-import { isLLMConfigValid, getLLMConfig, showMockWarning } from './env-helper';
+
+import { isLLMConfigValid, getLLMConfig } from './env-helper';
 
 // 导入OpenAIClient和llmFactory以便模拟
-import { OpenAIClient } from '../../core/llm/OpenAIClient';
-import * as llmFactory from '../../core/llm/llmFactory';
 
 // 检查是否使用真实API
 const useOpenAIRealAPI = isLLMConfigValid('openai');
@@ -19,7 +20,7 @@ const useAnthropicRealAPI = isLLMConfigValid('anthropic');
 // 只有在需要模拟时才进行模拟
 if (!useOpenAIRealAPI) {
   console.info('ℹ️ OpenAI测试使用模拟模式');
-  
+
   // 模拟OpenAI客户端
   vi.spyOn(OpenAIClient.prototype, 'sendMessages').mockImplementation((messages, stream) => {
     // 模拟实现应该返回Promise
@@ -50,12 +51,14 @@ vi.spyOn(llmFactory, 'createClient').mockImplementation((config) => {
   // 如果是OpenAI且有真实API，使用真实客户端
   if (config.apiType === 'openai' && useOpenAIRealAPI) {
     console.info('使用真实OpenAI客户端');
+
     // 直接创建OpenAIClient实例
     return new OpenAIClient(config);
   }
 
   // 其他情况使用模拟
   console.info(`使用模拟${config.apiType}客户端`);
+
   return {
     sendMessages: vi.fn().mockImplementation((messages, stream) => {
       // 查找系统提示
@@ -85,13 +88,14 @@ beforeAll(() => {
   } else {
     console.info('ℹ️ OpenAI测试使用模拟模式');
   }
-  
+
   if (useAnthropicRealAPI) {
     console.info('ℹ️ Anthropic测试使用真实API');
     console.info(`Anthropic模型: ${getLLMConfig('anthropic').model}`);
   } else {
     console.info('ℹ️ Anthropic测试使用模拟模式');
   }
+
   console.info('=========================');
 });
 

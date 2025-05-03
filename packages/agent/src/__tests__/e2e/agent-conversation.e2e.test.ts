@@ -4,12 +4,13 @@
 import { describe, test, expect, vi, beforeEach, beforeAll } from 'vitest';
 
 import { createAgent } from '../../api/agent';
+import * as llmFactory from '../../core/llm/llmFactory';
+import { OpenAIClient } from '../../core/llm/OpenAIClient';
 import type { AgentConfig } from '../../types';
-import { isLLMConfigValid, getLLMConfig, showMockWarning } from './env-helper';
+
+import { isLLMConfigValid, getLLMConfig } from './env-helper';
 
 // 导入OpenAIClient和llmFactory作为备用
-import { OpenAIClient } from '../../core/llm/OpenAIClient';
-import * as llmFactory from '../../core/llm/llmFactory';
 
 // 检查是否使用真实API
 const useRealAPI = isLLMConfigValid('openai');
@@ -53,10 +54,10 @@ class MockOpenAIClient {
 // 根据环境变量决定是否模拟
 if (!useRealAPI) {
   console.info('ℹ️ 对话测试使用模拟模式');
-  
+
   // 模拟OpenAI客户端，这种方式更可靠
   vi.spyOn(OpenAIClient.prototype, 'sendMessages').mockImplementation(mockSendMessages);
-  
+
   // 模拟llmFactory的createClient方法
   vi.spyOn(llmFactory, 'createClient').mockImplementation(() => {
     return new MockOpenAIClient();
@@ -76,6 +77,7 @@ beforeAll(() => {
   } else {
     console.info('使用模拟客户端');
   }
+
   console.info('========================');
 });
 
@@ -118,31 +120,35 @@ describe('E2E-Conv', () => {
     // 如果使用真实API，可能无法准确验证多轮对话
     if (useRealAPI) {
       console.info('跳过使用真实API的多轮对话详细验证');
-      
+
       // 准备
       const agent = createAgent(testConfig);
 
       // 第一轮对话
       const response1 = await agent.chat('第一轮问题');
+
       expect(response1).toBeTruthy();
 
       // 第二轮对话
       const response2 = await agent.chat('第二轮问题');
+
       expect(response2).toBeTruthy();
-      
+
       return;
     }
-    
+
     // 下面是模拟模式的测试
     // 准备
     const agent = createAgent(testConfig);
 
     // 第一轮对话
     const response1 = await agent.chat('第一轮问题');
+
     expect(response1).toBe('回复: 第一轮问题');
 
     // 第二轮对话
     const response2 = await agent.chat('第二轮问题');
+
     expect(response2).toBe('回复: 第二轮问题');
 
     // 验证历史消息在第二次调用时被包含
@@ -168,9 +174,10 @@ describe('E2E-Conv', () => {
     // 多模态测试目前仅在模拟模式下进行
     if (useRealAPI) {
       console.info('使用真实API时跳过多模态测试');
+
       return;
     }
-    
+
     // 准备
     const agent = createAgent(testConfig);
 
@@ -213,14 +220,14 @@ describe('E2E-Conv', () => {
       // 真实API流式响应测试
       let responseCount = 0;
       let responseText = '';
-      
+
       for await (const chunk of stream) {
         responseCount++;
         responseText += chunk;
         // 只收集前几个块，避免测试时间过长
         if (responseCount > 5) break;
       }
-      
+
       console.info(`收到${responseCount}个流式响应块，内容样例: ${responseText.substring(0, 50)}...`);
       expect(responseCount).toBeGreaterThan(0);
     } else {
@@ -241,9 +248,10 @@ describe('E2E-Conv', () => {
     // 错误处理测试目前仅在模拟模式下进行
     if (useRealAPI) {
       console.info('使用真实API时跳过错误处理测试');
+
       return;
     }
-    
+
     // 准备
     const agent = createAgent(testConfig);
 
