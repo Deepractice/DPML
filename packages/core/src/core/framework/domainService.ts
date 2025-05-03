@@ -325,8 +325,8 @@ export function createDomainCompiler<T>(config: DomainConfig): DomainCompiler<T>
   // 初始化领域状态，使用闭包模式保持状态隔离
   const state = initializeDomainCompiler(config);
 
-  // 返回领域编译器实现
-  return {
+  // 创建编译器实例
+  const compiler: DomainCompiler<T> = {
     /**
      * 编译DPML内容为领域对象
      * @param content DPML内容字符串
@@ -360,6 +360,18 @@ export function createDomainCompiler<T>(config: DomainConfig): DomainCompiler<T>
       return getDomainTransformers(state);
     }
   };
+
+  // 设置编译器引用到state对象中
+  state.compiler = compiler;
+
+  // 确保领域注册表中的context也更新了compiler引用
+  if (domainRegistry.has(config.domain)) {
+    const registration = domainRegistry.get(config.domain)!;
+
+    registration.context.compiler = compiler;
+  }
+
+  return compiler;
 }
 
 /**
@@ -802,6 +814,19 @@ export function initializeDomainCompiler(config: DomainConfig): DomainContext {
  * @param config 领域配置
  * @returns 初始化的领域上下文
  */
+/**
+ * 获取领域注册表 - 仅用于测试
+ * @internal
+ * @returns 领域注册表的只读副本
+ */
+export function _getDomainRegistryForTesting(): ReadonlyMap<string, {
+  context: DomainContext;
+  config: DomainConfig;
+  commands: CommandDefinition[];
+}> {
+  return domainRegistry;
+}
+
 export function initializeDomainCLI(config: DomainConfig): DomainContext {
   // 如果领域已经注册，则获取现有上下文
   if (domainRegistry.has(config.domain)) {

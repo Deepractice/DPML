@@ -16,7 +16,9 @@ import {
   processDomainCommands,
   generateCommandsForDomain,
   ensureCoreInitialized,
-  createDPMLCLIService
+  createDPMLCLIService,
+  createDomainCompiler,
+  _getDomainRegistryForTesting
 } from '../../../../core/framework/domainService';
 import { ConfigurationError, CompilationError } from '../../../../types';
 import type { CommandDefinition } from '../../../../types/CLI';
@@ -411,6 +413,43 @@ describe('UT-DOMSVC: domainService模块', () => {
       expect(context.domain).not.toBe(originalDomain);
       expect(context.description).toBe(newDescription);
       expect(context.description).not.toBe(originalDescription);
+    });
+  });
+
+  describe('UT-DOMSVC-CLI-01: createDomainCompiler函数', () => {
+    it('应将compiler设置到DomainContext中', () => {
+      // 准备
+      const config = createDomainConfigFixture();
+
+      // 执行
+      const compiler = createDomainCompiler(config);
+
+      // 获取state
+      const registry = _getDomainRegistryForTesting();
+      const state = registry.get(config.domain)?.context;
+
+      // 断言
+      expect(state).toBeDefined();
+      expect(state?.compiler).toBeDefined();
+      expect(state?.compiler).toBe(compiler);
+    });
+
+    it('应确保领域注册表中的context.compiler被更新', () => {
+      // 准备
+      const config = createDomainConfigFixture();
+
+      // 执行
+      const compiler = createDomainCompiler(config);
+
+      // 断言
+      const registry = _getDomainRegistryForTesting();
+
+      expect(registry.has(config.domain)).toBe(true);
+
+      const registration = registry.get(config.domain);
+
+      expect(registration?.context.compiler).toBeDefined();
+      expect(registration?.context.compiler).toBe(compiler);
     });
   });
 

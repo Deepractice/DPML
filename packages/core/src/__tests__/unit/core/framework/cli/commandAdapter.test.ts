@@ -174,4 +174,68 @@ describe('Command Adapter', () => {
     expect(spyAction.action).toHaveBeenCalled();
     // 验证调用没有抛出错误
   });
+
+  // UT-CMDADP-07: 验证DomainContext.compiler为空时，getCompiler应抛出错误
+  it('UT-CMDADP-07: DomainActionContext.getCompiler应在context.compiler为空时抛出错误', () => {
+    const domain = 'test-domain';
+
+    // 创建一个不含compiler的context
+    const contextWithoutCompiler: DomainContext = {
+      ...testContext,
+      compiler: undefined
+    };
+
+    // 创建一个调用getCompiler的命令
+    const action: DomainAction = {
+      name: 'compiler-test',
+      description: 'Test compiler access',
+      action: (context: DomainActionContext) => {
+        // 测试是否抛出错误
+        expect(() => context.getCompiler()).toThrow('领域编译器尚未初始化');
+      }
+    };
+
+    const testResult = adaptDomainAction(action, domain, contextWithoutCompiler);
+
+    // 执行action，里面的断言会验证getCompiler是否抛出错误
+    testResult.action(contextWithoutCompiler);
+  });
+
+  // UT-CMDADP-08: 验证DomainContext.compiler存在时，getCompiler应正常返回
+  it('UT-CMDADP-08: DomainActionContext.getCompiler应在context.compiler存在时正常返回', () => {
+    const domain = 'test-domain';
+    const mockCompiler = {
+      compile: async () => ({}),
+      extend: () => {},
+      getSchema: () => ({} as Schema),
+      getTransformers: () => []
+    };
+
+    // 创建一个含compiler的context
+    const contextWithCompiler: DomainContext = {
+      ...testContext,
+      compiler: mockCompiler
+    };
+
+    // 让我们验证action中能获取到compiler
+    let retrievedCompiler: any = null;
+
+    const action: DomainAction = {
+      name: 'compiler-test',
+      description: 'Test compiler access',
+      action: (context: DomainActionContext) => {
+        // 不应抛出错误
+        retrievedCompiler = context.getCompiler();
+        expect(retrievedCompiler).toBe(mockCompiler);
+      }
+    };
+
+    const testResult = adaptDomainAction(action, domain, contextWithCompiler);
+
+    // 执行命令action
+    testResult.action(contextWithCompiler);
+
+    // 确认能获取到编译器
+    expect(retrievedCompiler).toBe(mockCompiler);
+  });
 });

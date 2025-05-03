@@ -65,6 +65,9 @@ importers:
       eslint-plugin-unused-imports:
         specifier: ^4.1.4
         version: 4.1.4(@typescript-eslint/eslint-plugin@8.29.0(@typescript-eslint/parser@8.29.0(eslint@9.23.0)(typescript@5.8.2))(eslint@9.23.0)(typescript@5.8.2))(eslint@9.23.0)
+      execa:
+        specifier: ^9.5.2
+        version: 9.5.2
       prettier:
         specifier: 3.5.3
         version: 3.5.3

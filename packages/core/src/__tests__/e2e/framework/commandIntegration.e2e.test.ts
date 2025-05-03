@@ -211,6 +211,72 @@ describe('命令集成端到端测试', () => {
     }
   });
 
+  test('E2E-CMDINT-CMP-01: 验证自定义命令中可以访问编译器', async () => {
+    // 准备：定义一个需要访问编译器的命令
+    let compilerAccessed = false;
+    let compilerCompileMethod = false;
+
+    const config: DomainConfig = {
+      domain: 'compiler-test',
+      description: '编译器测试领域',
+      schema: {
+        root: {
+          element: 'test',
+          attributes: [{ name: 'id', type: 'string', required: true }],
+          children: { elements: [] }
+        }
+      },
+      transformers: [createDummyTransformer()],
+      commands: {
+        includeStandard: false,
+        actions: [
+          {
+            name: 'access-compiler',
+            description: '验证编译器访问',
+            action: async (actionContext: DomainActionContext) => {
+              // 尝试访问编译器
+              try {
+                const compiler = actionContext.getCompiler();
+
+                compilerAccessed = true;
+
+                // 验证编译器上的方法
+                if (typeof compiler.compile === 'function') {
+                  compilerCompileMethod = true;
+                }
+
+                // 尝试编译一个简单的DPML字符串
+                await compiler.compile('<test id="compiler-check" />');
+              } catch (error) {
+                // 如果编译器未初始化，这里会捕获错误
+                console.error('访问编译器失败:', error);
+                throw error; // 重新抛出错误让测试失败
+              }
+            }
+          }
+        ]
+      }
+    };
+
+    // 创建领域DPML实例
+    const dpml = createDomainDPML(config);
+    const commands = getAllRegisteredCommands();
+
+    // 查找访问编译器的命令
+    const compilerCmd = commands.find(cmd => cmd.name === `${config.domain}:access-compiler`);
+
+    expect(compilerCmd).toBeDefined();
+
+    // 执行命令
+    if (compilerCmd) {
+      await compilerCmd.action(testActionContext);
+
+      // 验证编译器被正确访问
+      expect(compilerAccessed).toBe(true);
+      expect(compilerCompileMethod).toBe(true);
+    }
+  });
+
   test('E2E-CMDINT-04: 自定义领域命令应能正确执行', async () => {
     // 准备：创建测试文件
     const testFilePath = path.join(tempDir, 'custom.dpml');

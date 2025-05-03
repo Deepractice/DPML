@@ -15,7 +15,7 @@ export async function runCLICommand(command: string, args: string[] = []): Promi
   exitCode: number;
 }> {
   // 在项目根目录找到CLI入口脚本
-  const binPath = path.resolve(process.cwd(), 'packages/agent/dist/bin.js');
+  const binPath = path.resolve(process.cwd(), 'dist/bin.js');
 
   // 检查是否为debug模式
   const isDebug = args.includes('--debug');
