@@ -3,7 +3,7 @@
  */
 import { describe, test, expect, vi, beforeEach, beforeAll } from 'vitest';
 
-import { createAgent } from '../../api/agent';
+import { createAgent } from '../../api';
 import * as llmFactory from '../../core/llm/llmFactory';
 import { OpenAIClient } from '../../core/llm/OpenAIClient';
 import type { AgentConfig } from '../../types';
@@ -23,15 +23,17 @@ if (!useOpenAIRealAPI) {
 
   // 模拟OpenAI客户端
   vi.spyOn(OpenAIClient.prototype, 'sendMessages').mockImplementation((messages, stream) => {
+    // 查找系统提示
+    const systemMessage = messages.find(msg => msg.role === 'system');
+    const systemPrompt = systemMessage?.content && !Array.isArray(systemMessage.content)
+      ? systemMessage.content.type === 'text' ? systemMessage.content.value : ''
+      : '';
+
     // 模拟实现应该返回Promise
     return Promise.resolve({
       content: {
         type: 'text',
-        value: `使用提示词: ${
-          messages.find(msg => msg.role === 'system')?.content?.type === 'text'
-            ? messages.find(msg => msg.role === 'system')?.content.value
-            : ''
-        }`
+        value: `使用提示词: ${systemPrompt}`
       }
     });
   });
@@ -63,8 +65,8 @@ vi.spyOn(llmFactory, 'createClient').mockImplementation((config) => {
     sendMessages: vi.fn().mockImplementation((messages, stream) => {
       // 查找系统提示
       const systemMessage = messages.find(msg => msg.role === 'system');
-      const systemPrompt = systemMessage?.content?.type === 'text'
-        ? systemMessage.content.value
+      const systemPrompt = systemMessage?.content && !Array.isArray(systemMessage.content)
+        ? systemMessage.content.type === 'text' ? systemMessage.content.value : ''
         : '';
 
       // 返回反映配置的响应

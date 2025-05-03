@@ -3,7 +3,7 @@
  */
 import { describe, test, expect, vi, beforeEach, beforeAll } from 'vitest';
 
-import { createAgent } from '../../api/agent';
+import { createAgent } from '../../api';
 import * as llmFactory from '../../core/llm/llmFactory';
 import { OpenAIClient } from '../../core/llm/OpenAIClient';
 import type { AgentConfig } from '../../types';
