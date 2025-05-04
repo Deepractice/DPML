@@ -341,7 +341,8 @@
 │   │   │   ├── @dpml
 │   │   │   │   └── agent -> ../../../agent
 │   │   │   ├── commander -> ../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander
-│   │   │   └── execa -> ../../../node_modules/.pnpm/execa@9.5.2/node_modules/execa
+│   │   │   ├── execa -> ../../../node_modules/.pnpm/execa@9.5.2/node_modules/execa
+│   │   │   └── read-package-up -> ../../../node_modules/.pnpm/read-package-up@11.0.0/node_modules/read-package-up
 │   │   ├── package.json
 │   │   ├── src
 │   │   │   ├── __tests__
@@ -830,4 +831,4 @@
 ├── typedoc.json
 └── vitest.config.ts
 
-241 directories, 590 files
+242 directories, 590 files
