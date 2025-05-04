@@ -8,11 +8,39 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
-// Get all workspace packages
+// 动态查找所有包
 const getPackages = () => {
-  const output = execSync('pnpm ls --json', { encoding: 'utf-8' });
-  const packages = JSON.parse(output).filter(pkg => !pkg.private);
-  return packages.map(pkg => pkg.name);
+  try {
+    // 获取packages目录下的所有子目录
+    const packagesDir = path.join(process.cwd(), 'packages');
+    const packageDirs = fs.readdirSync(packagesDir, { withFileTypes: true })
+      .filter(dirent => dirent.isDirectory())
+      .map(dirent => dirent.name);
+    
+    // 读取每个子目录中的package.json获取包名
+    const packages = [];
+    for (const dir of packageDirs) {
+      const pkgJsonPath = path.join(packagesDir, dir, 'package.json');
+      if (fs.existsSync(pkgJsonPath)) {
+        const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8'));
+        if (pkgJson.name && !pkgJson.private) {
+          packages.push(pkgJson.name);
+        }
+      }
+    }
+    
+    console.log(`找到了 ${packages.length} 个包: ${packages.join(', ')}`);
+    return packages;
+  } catch (error) {
+    console.error('读取包时出错:', error);
+    // 如果动态发现失败，返回已知包作为备份方案
+    return [
+      '@dpml/agent',
+      '@dpml/cli', 
+      '@dpml/core',
+      'dpml'
+    ];
+  }
 };
 
 // Create empty changeset
