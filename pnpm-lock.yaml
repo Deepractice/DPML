@@ -143,6 +143,9 @@ importers:
       execa:
         specifier: ^9.5.2
         version: 9.5.2
+      read-package-up:
+        specifier: ^11.0.0
+        version: 11.0.0
 
   packages/core:
     dependencies:

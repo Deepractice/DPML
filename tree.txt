@@ -94,13 +94,17 @@
 │   ├── @type-challenges
 │   │   └── utils -> ../.pnpm/@type-challenges+utils@0.1.1/node_modules/@type-challenges/utils
 │   ├── @types
-│   │   └── node -> ../.pnpm/@types+node@22.15.3/node_modules/@types/node
+│   │   ├── chai -> ../.pnpm/@types+chai@5.2.1/node_modules/@types/chai
+│   │   ├── lodash -> ../.pnpm/@types+lodash@4.17.16/node_modules/@types/lodash
+│   │   ├── node -> ../.pnpm/@types+node@22.15.3/node_modules/@types/node
+│   │   └── xml2js -> ../.pnpm/@types+xml2js@0.4.14/node_modules/@types/xml2js
 │   ├── @typescript-eslint
 │   │   ├── eslint-plugin -> ../.pnpm/@typescript-eslint+eslint-plugin@8.29.0_@typescript-eslint+parser@8.29.0_eslint@9.23.0__ebfda20076aa8484c144a10ff66fa1bf/node_modules/@typescript-eslint/eslint-plugin
 │   │   └── parser -> ../.pnpm/@typescript-eslint+parser@8.29.0_eslint@9.23.0_typescript@5.8.2/node_modules/@typescript-eslint/parser
 │   ├── @vitest
 │   │   └── coverage-v8 -> ../.pnpm/@vitest+coverage-v8@3.1.2_vitest@3.1.2_@types+node@22.15.3_yaml@2.7.1_/node_modules/@vitest/coverage-v8
 │   ├── barrelsby -> .pnpm/barrelsby@2.8.1/node_modules/barrelsby
+│   ├── chai -> .pnpm/chai@5.2.0/node_modules/chai
 │   ├── chokidar-cli -> .pnpm/chokidar-cli@3.0.0/node_modules/chokidar-cli
 │   ├── dotenv -> .pnpm/dotenv@16.5.0/node_modules/dotenv
 │   ├── eslint -> .pnpm/eslint@9.23.0/node_modules/eslint
@@ -113,9 +117,10 @@
 │   ├── eslint-plugin-unused-imports -> .pnpm/eslint-plugin-unused-imports@4.1.4_@typescript-eslint+eslint-plugin@8.29.0_@typescript-_956c226257af3fed6aae6ff68ee20085/node_modules/eslint-plugin-unused-imports
 │   ├── execa -> .pnpm/execa@9.5.2/node_modules/execa
 │   ├── prettier -> .pnpm/prettier@3.5.3/node_modules/prettier
-│   ├── read-pkg-up -> .pnpm/read-pkg-up@11.0.0/node_modules/read-pkg-up
+│   ├── read-package-up -> .pnpm/read-package-up@11.0.0/node_modules/read-package-up
 │   ├── reflect-metadata -> .pnpm/reflect-metadata@0.2.2/node_modules/reflect-metadata
 │   ├── serve -> .pnpm/serve@14.2.4/node_modules/serve
+│   ├── strip-ansi -> .pnpm/strip-ansi@7.1.0/node_modules/strip-ansi
 │   ├── ts-auto-mock -> .pnpm/ts-auto-mock@3.7.4_typescript@5.8.2/node_modules/ts-auto-mock
 │   ├── tsup -> .pnpm/tsup@8.4.0_@swc+core@1.11.24_postcss@8.5.3_typescript@5.8.2_yaml@2.7.1/node_modules/tsup
 │   ├── ttypescript -> .pnpm/ttypescript@1.5.15_ts-node@10.9.2_@swc+core@1.11.24_@types+node@22.15.3_typescript@5.8.2__typescript@5.8.2/node_modules/ttypescript
@@ -210,7 +215,6 @@
 │   │   ├── node_modules
 │   │   │   ├── @dpml
 │   │   │   │   └── core -> ../../../core
-│   │   │   ├── execa -> ../../../node_modules/.pnpm/execa@9.5.2/node_modules/execa
 │   │   │   ├── rimraf -> ../../../node_modules/.pnpm/rimraf@5.0.10/node_modules/rimraf
 │   │   │   └── strip-ansi -> ../../../node_modules/.pnpm/strip-ansi@7.1.0/node_modules/strip-ansi
 │   │   ├── package.json
@@ -330,17 +334,18 @@
 │   │   │   ├── index.js
 │   │   │   └── index.js.map
 │   │   ├── docs
+│   │   │   ├── CLI-Design.md
+│   │   │   ├── CLI-Test-Design.md
 │   │   │   └── requirements.md
 │   │   ├── node_modules
 │   │   │   ├── @dpml
 │   │   │   │   └── agent -> ../../../agent
-│   │   │   ├── @types
-│   │   │   │   └── node -> ../../../../node_modules/.pnpm/@types+node@22.15.3/node_modules/@types/node
 │   │   │   ├── commander -> ../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander
 │   │   │   └── execa -> ../../../node_modules/.pnpm/execa@9.5.2/node_modules/execa
 │   │   ├── package.json
 │   │   ├── src
 │   │   │   ├── __tests__
+│   │   │   │   └── dummy.test.ts
 │   │   │   ├── bin.ts
 │   │   │   └── index.ts
 │   │   ├── tsconfig.build.json
@@ -417,20 +422,10 @@
 │   │   │       ├── Schema-Design.md
 │   │   │       └── Transformer-Design.md
 │   │   ├── node_modules
-│   │   │   ├── @types
-│   │   │   │   ├── chai -> ../../../../node_modules/.pnpm/@types+chai@5.2.1/node_modules/@types/chai
-│   │   │   │   ├── lodash -> ../../../../node_modules/.pnpm/@types+lodash@4.17.16/node_modules/@types/lodash
-│   │   │   │   ├── node -> ../../../../node_modules/.pnpm/@types+node@22.15.3/node_modules/@types/node
-│   │   │   │   └── xml2js -> ../../../../node_modules/.pnpm/@types+xml2js@0.4.14/node_modules/@types/xml2js
-│   │   │   ├── @vitest
-│   │   │   │   └── coverage-v8 -> ../../../../node_modules/.pnpm/@vitest+coverage-v8@3.1.2_vitest@1.6.1_@types+node@22.15.3_/node_modules/@vitest/coverage-v8
-│   │   │   ├── chai -> ../../../node_modules/.pnpm/chai@5.2.0/node_modules/chai
 │   │   │   ├── commander -> ../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander
 │   │   │   ├── lodash -> ../../../node_modules/.pnpm/lodash@4.17.21/node_modules/lodash
 │   │   │   ├── marked -> ../../../node_modules/.pnpm/marked@15.0.11/node_modules/marked
 │   │   │   ├── strnum -> ../../../node_modules/.pnpm/strnum@2.1.0/node_modules/strnum
-│   │   │   ├── typescript -> ../../../node_modules/.pnpm/typescript@5.8.2/node_modules/typescript
-│   │   │   ├── vitest -> ../../../node_modules/.pnpm/vitest@1.6.1_@types+node@22.15.3/node_modules/vitest
 │   │   │   └── xml2js -> ../../../node_modules/.pnpm/xml2js@0.6.2/node_modules/xml2js
 │   │   ├── package.json
 │   │   ├── src
@@ -835,4 +830,4 @@
 ├── typedoc.json
 └── vitest.config.ts
 
-249 directories, 587 files
+241 directories, 590 files

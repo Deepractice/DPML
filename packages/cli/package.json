@@ -1,43 +1,44 @@
 {
-    "name": "@dpml/cli",
-    "version": "0.1.0",
-    "description": "DPML命令行界面：统一路由入口",
-    "type": "module",
-    "main": "dist/index.cjs",
-    "module": "dist/index.js",
-    "types": "dist/index.d.ts",
-    "bin": {
-      "dpml": "dist/bin.js"
-    },
-    "exports": {
-      ".": {
-        "types": "./dist/index.d.ts",
-        "import": "./dist/index.js",
-        "require": "./dist/index.cjs"
-      }
-    },
-    "scripts": {
-      "prebuild": "pnpm lint --fix",
-      "build": "tsup",
-      "postbuild": "chmod +x dist/bin.js",
-      "lint": "eslint src --ext .ts --fix",
-      "test": "vitest run",
-      "test:coverage": "vitest run --coverage",
-      "clean": "rm -rf dist node_modules coverage .turbo"
-    },
-    "files": [
-      "dist"
-    ],
-    "keywords": [
-      "dpml",
-      "cli",
-      "command-line"
-    ],
-    "author": "",
-    "license": "MIT",
-    "dependencies": {
-      "commander": "^13.1.0",
-      "@dpml/agent": "workspace:*",
-      "execa": "^9.5.2"
+  "name": "@dpml/cli",
+  "version": "0.1.0",
+  "description": "DPML命令行界面：统一路由入口",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "dpml": "dist/bin.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     }
+  },
+  "scripts": {
+    "prebuild": "pnpm lint --fix",
+    "build": "tsup",
+    "postbuild": "chmod +x dist/bin.js",
+    "lint": "eslint src --ext .ts --fix",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "clean": "rm -rf dist node_modules coverage .turbo"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "dpml",
+    "cli",
+    "command-line"
+  ],
+  "author": "Deepractice",
+  "license": "MIT",
+  "dependencies": {
+    "@dpml/agent": "workspace:*",
+    "commander": "^13.1.0",
+    "execa": "^9.5.2",
+    "read-package-up": "^11.0.0"
   }
+}
