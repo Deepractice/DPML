@@ -83,7 +83,8 @@ export class CommanderAdapter implements CommandAdapter {
     this.program
       .name('dpml')
       .description('DPML (Deepractice Prompt Markup Language) Command Line Tool')
-      .version(this.getVersion(), '-v, --version', 'Display Version');
+      .version(this.getVersion(), '-v, --version', 'Display Version')
+      .allowUnknownOption(); // 允许未知选项，以便传递给子命令
 
     // 注意：--list选项由parseAndExecute方法直接处理，这里只添加标准选项帮助文档
     this.program.option('-h, --help', 'Display help information');
