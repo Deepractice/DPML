@@ -23,6 +23,7 @@ const getPackages = () => {
       const pkgJsonPath = path.join(packagesDir, dir, 'package.json');
       if (fs.existsSync(pkgJsonPath)) {
         const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8'));
+        // 确保包名与package.json中完全一致
         if (pkgJson.name && !pkgJson.private) {
           packages.push(pkgJson.name);
         }
@@ -45,9 +46,9 @@ const getPackages = () => {
 
 // Create empty changeset
 const createChangeset = (packages) => {
-  // Generate a unique ID
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const changesetId = `ci-auto-${timestamp}`;
+  // Generate a unique ID - 保持简短且只包含安全字符
+  const timestamp = Math.floor(Date.now() / 1000);
+  const changesetId = `ci-${timestamp}`;
   const changesetDir = '.changeset';
   
   // Ensure directory exists
@@ -55,19 +56,20 @@ const createChangeset = (packages) => {
     fs.mkdirSync(changesetDir, { recursive: true });
   }
   
-  // Create changeset file
-  const content = {
-    summary: 'CI auto-generated snapshot release',
-    packages: packages.reduce((acc, name) => {
-      acc[name] = { type: 'patch' };
-      return acc;
-    }, {})
+  // 按照changesets期望的格式创建内容
+  const frontmatter = {
+    // 不要使用"summary"键，这可能引起混淆
+    // 而是直接在frontmatter中列出包
   };
+  
+  packages.forEach(pkgName => {
+    frontmatter[pkgName] = "patch"; // 使用字符串而不是对象
+  });
   
   const filePath = path.join(changesetDir, `${changesetId}.md`);
   
   const mdContent = `---
-${JSON.stringify(content, null, 2)}
+${JSON.stringify(frontmatter, null, 2)}
 ---
 
 CI auto-generated snapshot release
@@ -75,6 +77,10 @@ CI auto-generated snapshot release
   
   fs.writeFileSync(filePath, mdContent, 'utf-8');
   console.log(`Created changeset: ${filePath}`);
+  
+  // 输出生成的内容以便调试
+  console.log("Changeset content:");
+  console.log(mdContent);
 };
 
 // Main function
@@ -93,4 +99,4 @@ const main = () => {
   }
 };
 
-main(); 
+main();
