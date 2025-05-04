@@ -52,19 +52,20 @@ jobs:
           # 其他测试环境变量
           DEBUG: "dpml:*"
       
-      - name: Create and publish snapshot version
-        run: |
-          # 自动创建changeset
-          node scripts/create-empty-changeset.js
-          
-          # 创建带时间戳的snapshot版本
-          pnpm changeset version --snapshot ci-$(date +%Y%m%d%H%M%S)
-          
-          # 构建所有包
-          pnpm build
-          
-          # 发布到npm
-          pnpm changeset publish --tag snapshot --no-git-tag
+      - name: Create empty changeset
+        run: node scripts/create-empty-changeset.js
+      
+      - name: Create snapshot version
+        run: pnpm changeset version --snapshot ci-$(date +%Y%m%d%H%M%S)-${{ github.run_id }}
+      
+      - name: Rebuild packages with new version
+        run: pnpm build
+      
+      - name: Publish to npm
+        run: pnpm changeset publish --tag snapshot --no-git-tag
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # 减少npm警告输出
+          NPM_CONFIG_LOGLEVEL: error
+          NPM_CONFIG_COLOR: false 
