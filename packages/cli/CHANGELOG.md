@@ -1,5 +1,11 @@
 # @dpml/cli
 
+## 0.0.0-20250504141354
+
+### Patch Changes
+
+- fix config
+
 ## 0.0.0-20250504135204
 
 ### Patch Changes

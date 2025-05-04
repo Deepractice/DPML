@@ -1,6 +1,6 @@
 {
   "name": "@dpml/cli",
-  "version": "0.0.0-20250504135204",
+  "version": "0.0.0-20250504141354",
   "description": "DPML命令行界面：统一路由入口",
   "type": "module",
   "main": "dist/index.cjs",

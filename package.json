@@ -11,7 +11,9 @@
     "test": "turbo run test",
     "clean": "turbo run clean && rm -rf node_modules",
     "docs": "npx typedoc --out docs/api",
-    "check-env": "node scripts/setup-env.js"
+    "check-env": "node scripts/setup-env.js",
+    "create-changeset": "node scripts/create-empty-changeset.js",
+    "snapshot": "node scripts/create-empty-changeset.js && pnpm changeset version --snapshot ci-$(date +%Y%m%d%H%M%S) && pnpm build && pnpm changeset publish --tag snapshot --no-git-tag"
   },
   "keywords": [
     "dpml",

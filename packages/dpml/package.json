@@ -1,6 +1,6 @@
 {
   "name": "dpml",
-  "version": "0.0.0-20250504135738",
+  "version": "0.0.0-20250504141354",
   "description": "Deepractice Prompt Markup Language",
   "type": "module",
   "bin": {

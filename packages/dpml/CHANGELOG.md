@@ -1,5 +1,12 @@
 # dpml
 
+## 0.0.0-20250504141354
+
+### Patch Changes
+
+- Updated dependencies
+  - @dpml/cli@0.0.0-20250504141354
+
 ## 0.0.0-20250504135738
 
 ### Patch Changes

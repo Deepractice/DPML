@@ -1,0 +1,59 @@
+name: Publish Snapshot
+
+on:
+  # 可以手动触发
+  workflow_dispatch:
+  
+  # 当推送到 main 分支时自动触发
+  push:
+    branches:
+      - develop
+    paths:
+      - 'packages/**'
+      - '!**.md'
+      - '!.github/**'
+      - 'package.json'
+
+jobs:
+  publish-snapshot:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22.x'
+          registry-url: 'https://registry.npmjs.org'
+      
+      - name: Install volta
+        uses: volta-cli/action@v4
+      
+      - name: Install dependencies
+        run: |
+          npm install -g pnpm
+          pnpm install --frozen-lockfile
+      
+      - name: Build packages
+        run: pnpm build
+      
+      - name: Create and publish snapshot version
+        run: |
+          # 自动创建changeset
+          node scripts/create-empty-changeset.js
+          
+          # 创建带时间戳的snapshot版本
+          pnpm changeset version --snapshot ci-$(date +%Y%m%d%H%M%S)
+          
+          # 构建所有包
+          pnpm build
+          
+          # 发布到npm
+          pnpm changeset publish --tag snapshot --no-git-tag
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 

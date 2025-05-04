@@ -115,6 +115,7 @@
 │   │   └── coverage-v8 -> ../.pnpm/@vitest+coverage-v8@3.1.2_vitest@3.1.2_@types+node@22.15.3_yaml@2.7.1_/node_modules/@vitest/coverage-v8
 │   ├── barrelsby -> .pnpm/barrelsby@2.8.1/node_modules/barrelsby
 │   ├── chai -> .pnpm/chai@5.2.0/node_modules/chai
+│   ├── chalk -> .pnpm/chalk@5.4.1/node_modules/chalk
 │   ├── chokidar-cli -> .pnpm/chokidar-cli@3.0.0/node_modules/chokidar-cli
 │   ├── dotenv -> .pnpm/dotenv@16.5.0/node_modules/dotenv
 │   ├── eslint -> .pnpm/eslint@9.23.0/node_modules/eslint
@@ -129,6 +130,7 @@
 │   ├── prettier -> .pnpm/prettier@3.5.3/node_modules/prettier
 │   ├── read-package-up -> .pnpm/read-package-up@11.0.0/node_modules/read-package-up
 │   ├── reflect-metadata -> .pnpm/reflect-metadata@0.2.2/node_modules/reflect-metadata
+│   ├── semver -> .pnpm/semver@7.7.1/node_modules/semver
 │   ├── serve -> .pnpm/serve@14.2.4/node_modules/serve
 │   ├── strip-ansi -> .pnpm/strip-ansi@7.1.0/node_modules/strip-ansi
 │   ├── ts-auto-mock -> .pnpm/ts-auto-mock@3.7.4_typescript@5.8.2/node_modules/ts-auto-mock
@@ -897,7 +899,8 @@
 │   └── task
 │       └── oes-task-design.md
 ├── scripts
-│   └── generate-barrels.js
+│   ├── generate-barrels.js
+│   └── setup-env.js
 ├── tree.txt
 ├── tsconfig.json
 ├── tsup.base.config.ts
@@ -905,4 +908,4 @@
 ├── typedoc.json
 └── vitest.config.ts
 
-269 directories, 637 files
+271 directories, 638 files
