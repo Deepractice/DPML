@@ -7,14 +7,15 @@
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "dpml": "dist/bin.js"
+    "dpml-cli": "dist/bin.js"
   },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
-    }
+    },
+    "./dist/bin.js": "./dist/bin.js"
   },
   "scripts": {
     "prebuild": "pnpm lint --fix",
