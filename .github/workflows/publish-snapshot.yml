@@ -39,6 +39,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       
+      - name: Build packages
+        run: pnpm build
+      
       - name: Run tests
         run: pnpm test
         env:
@@ -48,9 +51,6 @@ jobs:
           API_KEY: ${{ secrets.TEST_API_KEY }}
           # 其他测试环境变量
           DEBUG: "dpml:*"
-      
-      - name: Build packages
-        run: pnpm build
       
       - name: Create and publish snapshot version
         run: |
