@@ -1,6 +1,6 @@
 {
   "name": "@dpml/core",
-  "version": "0.0.1",
+  "version": "0.0.0-20250504131739",
   "description": "DPML Core: Implementations of base compiler, and provide a simple framework for domain developers.",
   "type": "module",
   "main": "dist/index.cjs",

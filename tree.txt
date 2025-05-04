@@ -855,55 +855,13 @@
 │   │   ├── tsconfig.json
 │   │   ├── tsup.config.ts
 │   │   └── vitest.config.ts
-│   ├── dpml
-│   │   ├── bin.cjs
-│   │   ├── dist
-│   │   ├── node_modules
-│   │   │   └── @dpml
-│   │   │       └── cli -> ../../../cli
-│   │   └── package.json
-│   └── example
-│       ├── README.md
+│   └── dpml
+│       ├── bin.cjs
 │       ├── dist
-│       │   ├── bin.cjs
-│       │   ├── bin.cjs.map
-│       │   ├── bin.d.cts
-│       │   ├── bin.d.ts
-│       │   ├── bin.js
-│       │   ├── bin.js.map
-│       │   ├── index.cjs
-│       │   ├── index.cjs.map
-│       │   ├── index.d.cts
-│       │   ├── index.d.ts
-│       │   ├── index.js
-│       │   └── index.js.map
-│       ├── examples
-│       │   ├── basic.ts
-│       │   └── workflow.xml
 │       ├── node_modules
 │       │   └── @dpml
-│       │       └── core -> ../../../core
-│       ├── package.json
-│       ├── src
-│       │   ├── __tests__
-│       │   │   └── dummy.test.ts
-│       │   ├── api
-│       │   │   └── index.ts
-│       │   ├── bin.ts
-│       │   ├── config
-│       │   │   ├── cli.ts
-│       │   │   ├── schema.ts
-│       │   │   └── transformers.ts
-│       │   ├── core
-│       │   │   ├── transformers
-│       │   │   └── utils
-│       │   ├── index.ts
-│       │   └── types
-│       │       └── workflow.ts
-│       ├── tsconfig.build.json
-│       ├── tsconfig.json
-│       ├── tsup.config.ts
-│       └── vitest.config.ts
+│       │       └── cli -> ../../../cli
+│       └── package.json
 ├── pnpm-lock.yaml
 ├── pnpm-workspace.yaml
 ├── prompts
@@ -943,4 +901,4 @@
 ├── typedoc.json
 └── vitest.config.ts
 
-283 directories, 661 files
+269 directories, 633 files
