@@ -168,6 +168,12 @@ importers:
         specifier: ^0.6.2
         version: 0.6.2
 
+  packages/dpml:
+    dependencies:
+      '@dpml/cli':
+        specifier: workspace:*
+        version: link:../cli
+
   packages/example:
     dependencies:
       '@dpml/core':

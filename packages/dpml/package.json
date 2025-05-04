@@ -1,0 +1,26 @@
+{
+  "name": "dpml",
+  "version": "0.0.1",
+  "description": "Deepractice Prompt Markup Language",
+  "type": "module",
+  "bin": {
+    "dpml": "./bin.cjs"
+  },
+  "files": [
+    "bin.cjs"
+  ],
+  "scripts": {
+    "build": "chmod +x ./bin.cjs"
+  },
+  "keywords": [
+    "dpml",
+    "prompt",
+    "llm",
+    "ai"
+  ],
+  "author": "Deepractice",
+  "license": "MIT",
+  "dependencies": {
+    "@dpml/cli": "workspace:*"
+  }
+} 
