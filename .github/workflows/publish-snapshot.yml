@@ -24,19 +24,20 @@ jobs:
         with:
           fetch-depth: 0
       
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '22.x'
           registry-url: 'https://registry.npmjs.org'
-      
-      - name: Install volta
-        uses: volta-cli/action@v4
+          cache: 'pnpm'
       
       - name: Install dependencies
-        run: |
-          npm install -g pnpm
-          pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
       
       - name: Build packages
         run: pnpm build
