@@ -50,6 +50,9 @@ importers:
       chai:
         specifier: ^5.2.0
         version: 5.2.0
+      chalk:
+        specifier: ^5.3.0
+        version: 5.4.1
       chokidar-cli:
         specifier: ^3.0.0
         version: 3.0.0
@@ -92,6 +95,9 @@ importers:
       reflect-metadata:
         specifier: ^0.2.0
         version: 0.2.2
+      semver:
+        specifier: ^7.5.4
+        version: 7.7.1
       serve:
         specifier: ^14.2.2
         version: 14.2.4
@@ -173,12 +179,6 @@ importers:
       '@dpml/cli':
         specifier: workspace:*
         version: link:../cli
-
-  packages/example:
-    dependencies:
-      '@dpml/core':
-        specifier: workspace:*
-        version: link:../core
 
 packages:
 
@@ -1335,6 +1335,10 @@ packages:
 
   chalk@5.0.1:
     resolution: {integrity: sha512-Fo07WOYGqMfCWHOzSXOt2CxDbC6skS/jO9ynEcmpANMoPrD+W1r1K6Vx7iNm+AQmETU1Xr2t+n8nzkV9t6xh3w==}
+    engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
+
+  chalk@5.4.1:
+    resolution: {integrity: sha512-zgVZuo2WcZgfUEmsn6eO3kINexW8RAE4maiQ8QNs8CtpPCSyMiYsULR3HQYkm3w8FIA3SberyMJMSldGsW+U3w==}
     engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
 
   chardet@0.7.0:
@@ -4490,7 +4494,7 @@ snapshots:
     dependencies:
       ansi-align: 3.0.1
       camelcase: 7.0.1
-      chalk: 5.0.1
+      chalk: 5.4.1
       cli-boxes: 3.0.0
       string-width: 5.1.2
       type-fest: 2.19.0
@@ -4579,6 +4583,8 @@ snapshots:
       supports-color: 7.2.0
 
   chalk@5.0.1: {}
+
+  chalk@5.4.1: {}
 
   chardet@0.7.0: {}
 

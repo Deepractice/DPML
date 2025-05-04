@@ -6,7 +6,9 @@
  */
 try {
   // Try to load through package name - for production environment
-  require('@dpml/cli/dist/bin.js');
+  const cliPath = require.resolve('@dpml/cli');
+  const binPath = cliPath.replace(/[\\/]dist[\\/]index\.cjs$|[\\/]dist[\\/]index\.js$/, '/dist/bin.js');
+  require(binPath);
 } catch (error) {
   try {
     // If not found, try to load from workspace path - for development environment

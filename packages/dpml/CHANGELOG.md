@@ -1,5 +1,11 @@
 # dpml
 
+## 0.0.0-20250504135738
+
+### Patch Changes
+
+- fix config
+
 ## 0.0.0-20250504135204
 
 ### Patch Changes
