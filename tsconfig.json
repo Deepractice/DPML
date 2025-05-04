@@ -20,17 +20,12 @@
     ],
     "paths": {
       "@core/*": ["packages/core/src/*"],
-      "@prompt/*": ["packages/prompt/src/*"],
-      "@agent/*": ["packages/agent/src/*"],
-      "@workflow/*": ["packages/workflow/src/*"],
-      "@testing/*": ["packages/testing/src/*"],
-      "@common/*": ["packages/common/src/*"]
+      "@agent/*": ["packages/agent/src/*"]
     }
   },
   "files": [],
   "references": [
     { "path": "./packages/core" },
-    { "path": "./packages/example" },
     { "path": "./packages/agent" }
   ],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]

@@ -1,6 +1,13 @@
 .
 ├── LICENSE
 ├── README.md
+├── dist
+│   ├── bin.cjs
+│   ├── bin.cjs.map
+│   ├── bin.d.cts
+│   ├── bin.d.ts
+│   ├── bin.js
+│   └── bin.js.map
 ├── docs
 │   ├── api
 │   │   ├── README.md
@@ -848,6 +855,13 @@
 │   │   ├── tsconfig.json
 │   │   ├── tsup.config.ts
 │   │   └── vitest.config.ts
+│   ├── dpml
+│   │   ├── bin.cjs
+│   │   ├── dist
+│   │   ├── node_modules
+│   │   │   └── @dpml
+│   │   │       └── cli -> ../../../cli
+│   │   └── package.json
 │   └── example
 │       ├── README.md
 │       ├── dist
@@ -922,13 +936,6 @@
 │       └── oes-task-design.md
 ├── scripts
 │   └── generate-barrels.js
-├── src
-│   └── __tests__
-│       └── unit
-│           └── core
-│               ├── adapters
-│               ├── discovery
-│               └── execution
 ├── tree.txt
 ├── tsconfig.json
 ├── tsup.base.config.ts
@@ -936,4 +943,4 @@
 ├── typedoc.json
 └── vitest.config.ts
 
-284 directories, 653 files
+283 directories, 661 files

@@ -1,6 +1,6 @@
 {
   "name": "dpml",
-  "version": "0.0.1",
+  "version": "0.0.2-snapshot.20250504210412.0",
   "description": "Deepractice Prompt Markup Language",
   "type": "module",
   "bin": {
@@ -23,4 +23,4 @@
   "dependencies": {
     "@dpml/cli": "workspace:*"
   }
-} 
+}
