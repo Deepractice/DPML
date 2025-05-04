@@ -143,6 +143,7 @@
 ├── package.json
 ├── packages
 │   ├── agent
+│   │   ├── CHANGELOG.md
 │   │   ├── README.md
 │   │   ├── coverage
 │   │   │   ├── base.css
@@ -329,6 +330,7 @@
 │   │   ├── tsup.config.ts
 │   │   └── vitest.config.ts
 │   ├── cli
+│   │   ├── CHANGELOG.md
 │   │   ├── README.md
 │   │   ├── coverage
 │   │   │   ├── base.css
@@ -459,6 +461,7 @@
 │   │   ├── tsup.config.ts
 │   │   └── vitest.config.ts
 │   ├── core
+│   │   ├── CHANGELOG.md
 │   │   ├── README.md
 │   │   ├── dist
 │   │   │   ├── __tests__
@@ -856,6 +859,7 @@
 │   │   ├── tsup.config.ts
 │   │   └── vitest.config.ts
 │   └── dpml
+│       ├── CHANGELOG.md
 │       ├── bin.cjs
 │       ├── dist
 │       ├── node_modules
@@ -901,4 +905,4 @@
 ├── typedoc.json
 └── vitest.config.ts
 
-269 directories, 633 files
+269 directories, 637 files
