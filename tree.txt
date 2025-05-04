@@ -86,6 +86,8 @@
 │   ├── redesign-cli-service-api.md
 │   └── refactor-framework-api.md
 ├── node_modules
+│   ├── @changesets
+│   │   └── cli -> ../.pnpm/@changesets+cli@2.29.2/node_modules/@changesets/cli
 │   ├── @eslint
 │   │   └── js -> ../.pnpm/@eslint+js@9.25.1/node_modules/@eslint/js
 │   ├── @swc
@@ -934,4 +936,4 @@
 ├── typedoc.json
 └── vitest.config.ts
 
-282 directories, 653 files
+284 directories, 653 files
