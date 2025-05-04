@@ -32,8 +32,6 @@
   ],
   "author": "",
   "license": "MIT",
-  "devDependencies": {
-  },
   "dependencies": {
     "@dpml/core": "workspace:*"
   }

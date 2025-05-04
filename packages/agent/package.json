@@ -27,11 +27,8 @@
   ],
   "author": "Deepractice",
   "license": "MIT",
-  "devDependencies": {
-    "execa": "^9.5.2",
-    "strip-ansi": "^7.1.0"
-  },
   "dependencies": {
-    "@dpml/core": "workspace:*"
+    "@dpml/core": "workspace:*",
+    "strip-ansi": "^7.1.0"
   }
 }

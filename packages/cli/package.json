@@ -35,12 +35,9 @@
     ],
     "author": "",
     "license": "MIT",
-    "devDependencies": {
-      "@types/node": "^22.14.0",
-      "execa": "^9.5.2"
-    },
     "dependencies": {
       "commander": "^13.1.0",
-      "@dpml/agent": "workspace:*"
+      "@dpml/agent": "workspace:*",
+      "execa": "^9.5.2"
     }
   }

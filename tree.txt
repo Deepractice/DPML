@@ -339,6 +339,10 @@
 │   │   │   ├── commander -> ../../../node_modules/.pnpm/commander@13.1.0/node_modules/commander
 │   │   │   └── execa -> ../../../node_modules/.pnpm/execa@9.5.2/node_modules/execa
 │   │   ├── package.json
+│   │   ├── src
+│   │   │   ├── __tests__
+│   │   │   ├── bin.ts
+│   │   │   └── index.ts
 │   │   ├── tsconfig.build.json
 │   │   ├── tsconfig.json
 │   │   ├── tsup.config.ts
@@ -748,7 +752,6 @@
 │   │   │       └── transformer-07-final.task.md
 │   │   ├── tsconfig.build.json
 │   │   ├── tsconfig.json
-│   │   ├── tsconfig.tsbuildinfo
 │   │   ├── tsup.config.ts
 │   │   └── vitest.config.ts
 │   └── example
@@ -825,9 +828,6 @@
 │       └── oes-task-design.md
 ├── scripts
 │   └── generate-barrels.js
-├── src
-│   └── core
-│       └── cliService.ts
 ├── tree.txt
 ├── tsconfig.json
 ├── tsup.base.config.ts
