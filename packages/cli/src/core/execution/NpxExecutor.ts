@@ -33,8 +33,11 @@ export class NpxExecutor implements DomainExecutor {
    */
   public async execute(args: string[]): Promise<void> {
     try {
+      // 添加域名作为第一个参数，解决命令冗余问题
+      const execArgs = [this.domainInfo.name, ...args];
+      
       // Use execa to execute npx command with the domain package
-      const result = await execa('npx', [this.domainInfo.packageName, ...args], {
+      const result = await execa('npx', [this.domainInfo.packageName, ...execArgs], {
         stdio: 'inherit', // Pass stdio stream directly
         reject: false // Don't throw on non-zero exit codes, handle manually
       });
