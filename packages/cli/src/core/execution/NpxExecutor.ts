@@ -35,7 +35,7 @@ export class NpxExecutor implements DomainExecutor {
     try {
       // 添加域名作为第一个参数，解决命令冗余问题
       const execArgs = [this.domainInfo.name, ...args];
-      
+
       // Use execa to execute npx command with the domain package
       const result = await execa('npx', [this.domainInfo.packageName, ...execArgs], {
         stdio: 'inherit', // Pass stdio stream directly
