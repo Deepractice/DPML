@@ -443,7 +443,8 @@
 │   │   ├── tasks
 │   │   │   ├── cli-01-base.task.md
 │   │   │   ├── cli-02-implementation.task.md
-│   │   │   └── cli-03-final.task.md
+│   │   │   ├── cli-03-final.task.md
+│   │   │   └── cli-04-command-parsing-fix.task.md
 │   │   ├── tsconfig.build.json
 │   │   ├── tsconfig.json
 │   │   ├── tsup.config.ts
@@ -933,4 +934,4 @@
 ├── typedoc.json
 └── vitest.config.ts
 
-282 directories, 652 files
+282 directories, 653 files

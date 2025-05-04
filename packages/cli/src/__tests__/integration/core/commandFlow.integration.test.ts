@@ -3,7 +3,6 @@ import { describe, test, expect, vi, beforeEach, afterAll } from 'vitest';
 import { execute } from '../../../api/cli';
 import { NpxDiscoverer } from '../../../core/discovery/NpxDiscoverer';
 import { NpxExecutor } from '../../../core/execution/NpxExecutor';
-import { DPMLError, DPMLErrorType } from '../../../types/DPMLError';
 import { createCommandArgsFixture, createDomainInfoFixture, createExpectedOutputFixture } from '../../fixtures/cli/cliFixtures';
 
 // 模拟console以捕获输出
@@ -39,6 +38,7 @@ describe('IT-CMDFLOW', () => {
   // Mock的process.exit
   const mockExit = vi.fn((code?: number | string | null) => {
     const error = { message: `Process exit called with code ${code}` };
+
     throw error;
   });
 
@@ -110,23 +110,24 @@ describe('IT-CMDFLOW', () => {
     } catch (error) {
       // 验证正确的行为：process.exit应该被调用并带有退出码1
       expect(mockExit).toHaveBeenCalledWith(1);
-      
+
       // 验证领域查找被调用
       expect(mockTryFindDomain).toHaveBeenCalledWith('unknown');
-      
+
       // 验证错误消息适当
       if (error && typeof error === 'object' && 'message' in error) {
         expect(error.message).toContain('Process exit called with code 1');
       } else {
         // 如果错误类型不对，测试失败
-        expect(error).toEqual({message: 'Process exit called with code 1'});
+        expect(error).toEqual({ message: 'Process exit called with code 1' });
       }
-      
+
       // 验证错误被适当地记录到控制台
       expect(mockConsoleError).toHaveBeenCalled();
-      const errorCallArgs = mockConsoleError.mock.calls.some(args => 
+      const errorCallArgs = mockConsoleError.mock.calls.some(args =>
         typeof args[0] === 'string' && args[0].includes('Domain not found: unknown')
       );
+
       expect(errorCallArgs).toBe(true);
     }
   });
