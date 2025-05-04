@@ -12,11 +12,13 @@ vi.mock('execa', () => ({
 
       // Return different responses based on package name
       if (packageName === '@dpml/core') {
-        return Promise.resolve({ stdout: '1.0.0', exitCode: 0 });
+        // core包虽然在OFFICIAL_DOMAINS中列出，但实际检查版本时会失败
+        return Promise.resolve({ stdout: '', exitCode: 1 });
       } else if (packageName === '@dpml/agent') {
         return Promise.resolve({ stdout: '1.0.0', exitCode: 0 });
       } else if (packageName === '@dpml/example') {
-        return Promise.resolve({ stdout: '1.0.0', exitCode: 0 });
+        // Example package实际上不存在，返回失败
+        return Promise.resolve({ stdout: '', exitCode: 1 });
       } else if (packageName === '@dpml/custom') {
         return Promise.resolve({ stdout: '0.1.0', exitCode: 0 });
       } else {
@@ -53,13 +55,13 @@ describe('UT-NPXDISC', () => {
     const { execa } = await import('execa');
 
     // Act
-    const domainInfo = await discoverer.tryFindDomain('core');
+    const domainInfo = await discoverer.tryFindDomain('agent');
 
     // Assert
-    expect(execa).toHaveBeenCalledWith('npm', ['view', '@dpml/core', 'version'], expect.any(Object));
+    expect(execa).toHaveBeenCalledWith('npm', ['view', '@dpml/agent', 'version'], expect.any(Object));
     expect(domainInfo).toEqual({
-      name: 'core',
-      packageName: '@dpml/core',
+      name: 'agent',
+      packageName: '@dpml/agent',
       source: 'npx',
       version: '1.0.0'
     });
@@ -107,12 +109,18 @@ describe('UT-NPXDISC', () => {
     const domains = await discoverer.listDomains();
 
     // Assert
-    expect(domains).toHaveLength(3); // core, agent, example
+    expect(domains).toHaveLength(1); // 只有agent是可用的
     expect(domains).toEqual(expect.arrayContaining([
-      expect.objectContaining({ name: 'core', packageName: '@dpml/core' }),
-      expect.objectContaining({ name: 'agent', packageName: '@dpml/agent' }),
-      expect.objectContaining({ name: 'example', packageName: '@dpml/example' })
+      expect.objectContaining({ name: 'agent', packageName: '@dpml/agent' })
     ]));
+    // 确保example包不在结果中
+    expect(domains).not.toContainEqual(
+      expect.objectContaining({ name: 'example' })
+    );
+    // 确保core包不在结果中(因为我们的模拟中只让agent返回成功)
+    expect(domains).not.toContainEqual(
+      expect.objectContaining({ name: 'core' })
+    );
   });
 
   test('getPackageVersion should use execa to check npm version (UT-NPXDISC-06)', async () => {
@@ -124,10 +132,10 @@ describe('UT-NPXDISC', () => {
     const getPackageVersion = Reflect.get(discoverer, 'getPackageVersion').bind(discoverer);
 
     // Act
-    const version = await getPackageVersion('@dpml/core');
+    const version = await getPackageVersion('@dpml/agent');
 
     // Assert
-    expect(execa).toHaveBeenCalledWith('npm', ['view', '@dpml/core', 'version'], expect.any(Object));
+    expect(execa).toHaveBeenCalledWith('npm', ['view', '@dpml/agent', 'version'], expect.any(Object));
     expect(version).toBe('1.0.0');
   });
 

@@ -10,10 +10,12 @@ const mockCommandInstance = {
   description: vi.fn().mockReturnThis(),
   version: vi.fn().mockReturnThis(),
   option: vi.fn().mockReturnThis(),
+  argument: vi.fn().mockReturnThis(),
   arguments: vi.fn().mockReturnThis(),
   allowUnknownOption: vi.fn().mockReturnThis(),
   action: vi.fn().mockReturnThis(),
   addHelpText: vi.fn().mockReturnThis(),
+  help: vi.fn().mockReturnThis(),
   parseAsync: vi.fn().mockResolvedValue({})
 };
 
@@ -22,14 +24,26 @@ vi.mock('commander', () => ({
   Command: vi.fn(() => mockCommandInstance)
 }));
 
-// Mock read-package-up
-vi.mock('read-package-up', () => ({
-  readPackageUp: vi.fn()
+// Mock fs, url, and path modules
+vi.mock('fs', () => ({
+  readFileSync: vi.fn()
+}));
+
+vi.mock('url', () => ({
+  fileURLToPath: vi.fn()
+}));
+
+vi.mock('path', () => ({
+  dirname: vi.fn(),
+  resolve: vi.fn()
 }));
 
 // 导入已模拟的模块
 import { Command } from 'commander';
-import { readPackageUp } from 'read-package-up';
+
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
 
 describe('UT-CMDADP', () => {
   // Setup fixtures
@@ -58,7 +72,14 @@ describe('UT-CMDADP', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(readPackageUp).mockResolvedValue({ packageJson: { version: '1.0.0' } });
+
+    // 设置文件路径模拟
+    vi.mocked(fileURLToPath).mockReturnValue('/mock/path/src/core/adapters/CommanderAdapter.ts');
+    vi.mocked(dirname).mockReturnValue('/mock/path/src/core/adapters');
+    vi.mocked(resolve).mockReturnValue('/mock/path/package.json');
+
+    // 模拟package.json内容
+    vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ version: '1.0.0' }));
   });
 
   test('constructor should initialize Commander program (UT-CMDADP-01)', () => {
@@ -71,7 +92,7 @@ describe('UT-CMDADP', () => {
     expect(mockCommandInstance.description).toHaveBeenCalled();
     expect(mockCommandInstance.version).toHaveBeenCalled();
     expect(mockCommandInstance.option).toHaveBeenCalled();
-    expect(mockCommandInstance.arguments).toHaveBeenCalled();
+    expect(mockCommandInstance.argument).toHaveBeenCalled();
     expect(mockCommandInstance.action).toHaveBeenCalled();
     expect(mockCommandInstance.addHelpText).toHaveBeenCalled();
   });
@@ -80,22 +101,42 @@ describe('UT-CMDADP', () => {
     // Arrange
     const adapter = new CommanderAdapter(mockDiscoverer, mockExecutorFactory);
 
-    // Act
-    await adapter.parseAndExecute(commandArgs.list);
+    // 模拟标准命令行参数，不含--list选项
+    const regularArgs = ['domain', 'arg1', 'arg2'];
 
-    // Assert
-    expect(mockCommandInstance.parseAsync).toHaveBeenCalledWith(commandArgs.list, { from: 'user' });
+    // Spy handleListOption方法
+    const handleListOptionSpy = vi.spyOn(adapter as any, 'handleListOption');
+
+    // Act - 执行普通命令
+    await adapter.parseAndExecute(regularArgs);
+
+    // Assert - 验证parseAsync被调用
+    expect(mockCommandInstance.parseAsync).toHaveBeenCalledWith(regularArgs, { from: 'user' });
+    expect(handleListOptionSpy).not.toHaveBeenCalled();
+
+    // 清除记录，准备测试--list选项
+    vi.clearAllMocks();
+
+    // Act - 执行--list选项
+    await adapter.parseAndExecute(['--list']);
+
+    // Assert - 验证handleListOption被调用而不是parseAsync
+    expect(mockCommandInstance.parseAsync).not.toHaveBeenCalled();
+    expect(handleListOptionSpy).toHaveBeenCalled();
   });
 
-  test('getVersion should read version using read-package-up (UT-CMDADP-03)', async () => {
+  test('getVersion should read version from package.json (UT-CMDADP-03)', () => {
     // Arrange
     const adapter = new CommanderAdapter(mockDiscoverer, mockExecutorFactory);
 
     // Act
-    const version = await adapter.getVersion();
+    const version = adapter.getVersion();
 
     // Assert
-    expect(readPackageUp).toHaveBeenCalled();
+    expect(fileURLToPath).toHaveBeenCalled();
+    expect(dirname).toHaveBeenCalled();
+    expect(resolve).toHaveBeenCalled();
+    expect(readFileSync).toHaveBeenCalled();
     expect(version).toBe('1.0.0');
   });
 
@@ -151,7 +192,11 @@ describe('UT-CMDADP', () => {
     // Arrange
     const adapter = new CommanderAdapter(mockDiscoverer, mockExecutorFactory);
 
+    // 确保返回null(域不存在)
     mockDiscoverer.tryFindDomain.mockResolvedValue(null);
+
+    // 提供可用域列表
+    mockDiscoverer.listDomains.mockResolvedValue([domainFixtures.core, domainFixtures.agent]);
 
     // Get access to private method
     const handleDomainCommand = Reflect.get(adapter, 'handleDomainCommand').bind(adapter);
@@ -176,18 +221,20 @@ describe('UT-CMDADP', () => {
     await expect(handleDomainCommand('core', [])).rejects.toThrow('Domain Command Execution Failed: Execution failed');
   });
 
-  test('getVersion should handle read-package-up errors (UT-CMDADP-NEG-04)', async () => {
+  test('getVersion should handle file read errors (UT-CMDADP-NEG-04)', () => {
     // Arrange
     const adapter = new CommanderAdapter(mockDiscoverer, mockExecutorFactory);
 
-    // 模拟readPackageUp抛出错误
-    vi.mocked(readPackageUp).mockRejectedValueOnce(new Error('Package read error'));
+    // 模拟文件读取错误
+    vi.mocked(readFileSync).mockImplementationOnce(() => {
+      throw new Error('File read error');
+    });
 
     // Act
-    const version = await adapter.getVersion();
+    const version = adapter.getVersion();
 
     // Assert
-    expect(readPackageUp).toHaveBeenCalled();
+    expect(readFileSync).toHaveBeenCalled();
     expect(version).toBe('0.1.0'); // Default version fallback
   });
 });

@@ -73,6 +73,7 @@
 ├── eslint.config.js
 ├── issues
 │   ├── cli-command-format-summary.md
+│   ├── cli-command-parsing-issues.md
 │   ├── cli-commander-error-handling.md
 │   ├── fix-framework-cli-config-missing.md
 │   ├── fix-structural-mapper-array-path.md
@@ -320,6 +321,44 @@
 │   │   └── vitest.config.ts
 │   ├── cli
 │   │   ├── README.md
+│   │   ├── coverage
+│   │   │   ├── base.css
+│   │   │   ├── block-navigation.js
+│   │   │   ├── clover.xml
+│   │   │   ├── coverage-final.json
+│   │   │   ├── favicon.png
+│   │   │   ├── index.html
+│   │   │   ├── prettify.css
+│   │   │   ├── prettify.js
+│   │   │   ├── sort-arrow-sprite.png
+│   │   │   ├── sorter.js
+│   │   │   └── src
+│   │   │       ├── api
+│   │   │       │   ├── cli.ts.html
+│   │   │       │   └── index.html
+│   │   │       ├── bin.ts.html
+│   │   │       ├── core
+│   │   │       │   ├── adapters
+│   │   │       │   │   ├── CommanderAdapter.ts.html
+│   │   │       │   │   └── index.html
+│   │   │       │   ├── cliService.ts.html
+│   │   │       │   ├── discovery
+│   │   │       │   │   ├── NpxDiscoverer.ts.html
+│   │   │       │   │   └── index.html
+│   │   │       │   ├── execution
+│   │   │       │   │   ├── ExecutorFactory.ts.html
+│   │   │       │   │   ├── NpxExecutor.ts.html
+│   │   │       │   │   └── index.html
+│   │   │       │   └── index.html
+│   │   │       ├── index.html
+│   │   │       ├── index.ts.html
+│   │   │       └── types
+│   │   │           ├── CommandAdapter.ts.html
+│   │   │           ├── DPMLError.ts.html
+│   │   │           ├── DomainDiscoverer.ts.html
+│   │   │           ├── DomainExecutor.ts.html
+│   │   │           ├── DomainInfo.ts.html
+│   │   │           └── index.html
 │   │   ├── dist
 │   │   │   ├── bin.cjs
 │   │   │   ├── bin.cjs.map
@@ -337,6 +376,7 @@
 │   │   │   ├── CLI-Design.md
 │   │   │   ├── CLI-Test-Design.md
 │   │   │   └── requirements.md
+│   │   ├── issues
 │   │   ├── node_modules
 │   │   │   ├── @dpml
 │   │   │   │   └── agent -> ../../../agent
@@ -346,9 +386,64 @@
 │   │   ├── package.json
 │   │   ├── src
 │   │   │   ├── __tests__
-│   │   │   │   └── dummy.test.ts
+│   │   │   │   ├── contract
+│   │   │   │   │   ├── api
+│   │   │   │   │   │   └── cli.contract.test.ts
+│   │   │   │   │   └── types
+│   │   │   │   │       ├── CommandAdapter.contract.test.ts
+│   │   │   │   │       ├── DPMLError.contract.test.ts
+│   │   │   │   │       ├── DomainDiscoverer.contract.test.ts
+│   │   │   │   │       ├── DomainExecutor.contract.test.ts
+│   │   │   │   │       └── DomainInfo.contract.test.ts
+│   │   │   │   ├── dummy.test.ts
+│   │   │   │   ├── e2e
+│   │   │   │   │   ├── cli
+│   │   │   │   │   │   └── cliExecution.e2e.test.ts
+│   │   │   │   │   └── issues
+│   │   │   │   │       └── cli-command-issues.e2e.test.ts
+│   │   │   │   ├── fixtures
+│   │   │   │   │   └── cli
+│   │   │   │   │       └── cliFixtures.ts
+│   │   │   │   ├── helpers
+│   │   │   │   │   └── cli-process-runner.ts
+│   │   │   │   ├── integration
+│   │   │   │   │   └── core
+│   │   │   │   │       ├── commandFlow.integration.test.ts
+│   │   │   │   │       └── discovery
+│   │   │   │   │           └── domainResolution.integration.test.ts
+│   │   │   │   └── unit
+│   │   │   │       └── core
+│   │   │   │           ├── adapters
+│   │   │   │           │   └── CommanderAdapter.test.ts
+│   │   │   │           ├── cliService.test.ts
+│   │   │   │           ├── discovery
+│   │   │   │           │   └── NpxDiscoverer.test.ts
+│   │   │   │           └── execution
+│   │   │   │               ├── ExecutorFactory.test.ts
+│   │   │   │               └── NpxExecutor.test.ts
+│   │   │   ├── api
+│   │   │   │   └── cli.ts
 │   │   │   ├── bin.ts
-│   │   │   └── index.ts
+│   │   │   ├── core
+│   │   │   │   ├── adapters
+│   │   │   │   │   └── CommanderAdapter.ts
+│   │   │   │   ├── cliService.ts
+│   │   │   │   ├── discovery
+│   │   │   │   │   └── NpxDiscoverer.ts
+│   │   │   │   └── execution
+│   │   │   │       ├── ExecutorFactory.ts
+│   │   │   │       └── NpxExecutor.ts
+│   │   │   ├── index.ts
+│   │   │   └── types
+│   │   │       ├── CommandAdapter.ts
+│   │   │       ├── DPMLError.ts
+│   │   │       ├── DomainDiscoverer.ts
+│   │   │       ├── DomainExecutor.ts
+│   │   │       └── DomainInfo.ts
+│   │   ├── tasks
+│   │   │   ├── cli-01-base.task.md
+│   │   │   ├── cli-02-implementation.task.md
+│   │   │   └── cli-03-final.task.md
 │   │   ├── tsconfig.build.json
 │   │   ├── tsconfig.json
 │   │   ├── tsup.config.ts
@@ -824,6 +919,13 @@
 │       └── oes-task-design.md
 ├── scripts
 │   └── generate-barrels.js
+├── src
+│   └── __tests__
+│       └── unit
+│           └── core
+│               ├── adapters
+│               ├── discovery
+│               └── execution
 ├── tree.txt
 ├── tsconfig.json
 ├── tsup.base.config.ts
@@ -831,4 +933,4 @@
 ├── typedoc.json
 └── vitest.config.ts
 
-242 directories, 590 files
+282 directories, 652 files

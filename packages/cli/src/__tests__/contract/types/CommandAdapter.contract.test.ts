@@ -7,7 +7,7 @@ describe('CT-TYPE-CMDADP', () => {
     // 创建一个最小实现的CommandAdapter，验证结构稳定性
     const adapter: CommandAdapter = {
       parseAndExecute: async () => {},
-      getVersion: async () => '1.0.0'
+      getVersion: () => '1.0.0'
     };
 
     // 验证所需方法存在
@@ -28,7 +28,7 @@ describe('CT-TYPE-CMDADP', () => {
 
         return Promise.resolve();
       },
-      getVersion: async () => {
+      getVersion: () => {
         // 验证返回string
         return '1.0.0';
       }

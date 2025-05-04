@@ -15,5 +15,5 @@ export interface CommandAdapter {
    * Get CLI Version
    * @returns Version string
    */
-  getVersion(): Promise<string>;
+  getVersion(): string;
 }

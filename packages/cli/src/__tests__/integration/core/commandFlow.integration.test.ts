@@ -36,6 +36,12 @@ describe('IT-CMDFLOW', () => {
   // 创建模拟执行器结果
   const mockExecute = vi.fn().mockResolvedValue(undefined);
 
+  // Mock的process.exit
+  const mockExit = vi.fn((code?: number | string | null) => {
+    const error = { message: `Process exit called with code ${code}` };
+    throw error;
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
 
@@ -47,11 +53,7 @@ describe('IT-CMDFLOW', () => {
     vi.spyOn(NpxExecutor.prototype, 'execute').mockImplementation(mockExecute);
 
     // 模拟process.exit以便我们可以捕获它而不是终止测试
-    vi.spyOn(process, 'exit').mockImplementation((code) => {
-      const error = { message: `Process exit called with code ${code}` };
-
-      throw error;
-    }) as unknown as typeof process.exit;
+    vi.spyOn(process, 'exit').mockImplementation(mockExit) as unknown as typeof process.exit;
   });
 
   // 在所有测试后恢复原始process.exit
@@ -96,45 +98,36 @@ describe('IT-CMDFLOW', () => {
   });
 
   test('CLI should handle unknown domain correctly (IT-CMDFLOW-05)', async () => {
-    // 设置一个全局错误处理器来捕获和验证未处理的拒绝
-    const unhandledRejections: Error[] = [];
-    const originalOnUnhandledRejection = process.listeners('unhandledRejection');
-
-    // 移除现有的监听器并添加我们自己的监听器
-    process.removeAllListeners('unhandledRejection');
-    process.on('unhandledRejection', (err) => {
-      if (err instanceof DPMLError && err.message.includes('Domain not found')) {
-        // 收集错误而不是抛出
-        unhandledRejections.push(err);
-      }
-    });
+    // 确保mockTryFindDomain返回null
+    mockTryFindDomain.mockResolvedValueOnce(null);
 
     try {
-      // 确保mockTryFindDomain返回null
-      mockTryFindDomain.mockResolvedValueOnce(null);
-
       // 尝试使用未知领域命令
       await execute(['unknown', 'command']);
 
+      // 这行代码不应该被执行，因为execute应该throw error
+      expect(true).toBe(false);
+    } catch (error) {
+      // 验证正确的行为：process.exit应该被调用并带有退出码1
+      expect(mockExit).toHaveBeenCalledWith(1);
+      
       // 验证领域查找被调用
       expect(mockTryFindDomain).toHaveBeenCalledWith('unknown');
-
-      // 等待一下，以确保unhandledRejection事件有机会被触发
-      await new Promise(resolve => setTimeout(resolve, 10));
-
-      // 验证正确的错误被捕获
-      expect(unhandledRejections.length).toBeGreaterThan(0);
-      const capturedError = unhandledRejections[0] as DPMLError;
-
-      expect(capturedError).toBeInstanceOf(DPMLError);
-      expect(capturedError.message).toContain('Domain not found: unknown');
-      expect(capturedError.type).toBe(DPMLErrorType.DISCOVERY);
-    } finally {
-      // 恢复原始的unhandledRejection监听器
-      process.removeAllListeners('unhandledRejection');
-      originalOnUnhandledRejection.forEach(listener => {
-        process.on('unhandledRejection', listener as (...args: any[]) => void);
-      });
+      
+      // 验证错误消息适当
+      if (error && typeof error === 'object' && 'message' in error) {
+        expect(error.message).toContain('Process exit called with code 1');
+      } else {
+        // 如果错误类型不对，测试失败
+        expect(error).toEqual({message: 'Process exit called with code 1'});
+      }
+      
+      // 验证错误被适当地记录到控制台
+      expect(mockConsoleError).toHaveBeenCalled();
+      const errorCallArgs = mockConsoleError.mock.calls.some(args => 
+        typeof args[0] === 'string' && args[0].includes('Domain not found: unknown')
+      );
+      expect(errorCallArgs).toBe(true);
     }
   });
 });

@@ -8,9 +8,7 @@ import { DPMLError, DPMLErrorType } from '../../types/DPMLError';
  * Official Domain Package Mapping Table
  */
 const OFFICIAL_DOMAINS: Record<string, string> = {
-  'core': '@dpml/core',
-  'agent': '@dpml/agent',
-  'example': '@dpml/example'
+  'agent': '@dpml/agent'
 };
 
 /**
