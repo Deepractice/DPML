@@ -1,13 +1,13 @@
 {
   "name": "@dpml/core",
-  "version": "0.1.0",
-  "description": "DPML核心库：包含解析器、处理器和转换器的实现",
+  "version": "0.0.1",
+  "description": "DPML Core: Implementations of base compiler, and provide a simple framework for domain developers.",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "dpml": "./dist/bin.js"
+    "dpml-core": "./dist/bin.js"
   },
   "exports": {
     ".": {
@@ -31,10 +31,18 @@
   ],
   "keywords": [
     "dpml",
+    "AI",
+    "agent",
+    "compiler",
+    "framework",
     "prompt",
-    "llm"
+    "llm",
+    "mcp",
+    "domain",
+    "language",
+    "workflow"
   ],
-  "author": "",
+  "author": "Deepractice",
   "license": "MIT",
   "devDependencies": {
     "@types/chai": "^5.2.1",

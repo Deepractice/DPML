@@ -1,6 +1,6 @@
 {
   "name": "@dpml/agent",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Agent implementation for DPML",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -22,10 +22,10 @@
   ],
   "keywords": [
     "dpml",
-    "workflow",
-    "example"
+    "AI",
+    "agent"
   ],
-  "author": "",
+  "author": "Deepractice",
   "license": "MIT",
   "devDependencies": {
     "execa": "^9.5.2",

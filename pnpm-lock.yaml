@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      read-pkg-up:
+        specifier: ^11.0.0
+        version: 11.0.0
     devDependencies:
       '@eslint/js':
         specifier: ^9.24.0
@@ -117,6 +121,22 @@ importers:
       strip-ansi:
         specifier: ^7.1.0
         version: 7.1.0
+
+  packages/cli:
+    dependencies:
+      '@dpml/agent':
+        specifier: workspace:*
+        version: link:../agent
+      commander:
+        specifier: ^13.1.0
+        version: 13.1.0
+    devDependencies:
+      '@types/node':
+        specifier: ^22.14.0
+        version: 22.15.3
+      execa:
+        specifier: ^9.5.2
+        version: 9.5.2
 
   packages/core:
     dependencies:
@@ -2727,6 +2747,11 @@ packages:
   read-package-up@11.0.0:
     resolution: {integrity: sha512-MbgfoNPANMdb4oRBNg5eqLbB2t2r+o5Ua1pNt8BqGp4I0FJZhuVSOj3PaBPni4azWuSzEdNn2evevzVmEk1ohQ==}
     engines: {node: '>=18'}
+
+  read-pkg-up@11.0.0:
+    resolution: {integrity: sha512-LOVbvF1Q0SZdjClSefZ0Nz5z8u+tIE7mV5NibzmE9VYmDe9CaBbAVtz1veOSZbofrdsilxuDAYnFenukZVp8/Q==}
+    engines: {node: '>=18'}
+    deprecated: Renamed to read-package-up
 
   read-pkg@9.0.1:
     resolution: {integrity: sha512-9viLL4/n1BJUCT1NXVTdS1jtm80yDEgR5T4yCelII49Mbj0v1rZdKqj7zCiYdbB0CuCgdrvHcNogAKTFPBocFA==}
@@ -6035,6 +6060,12 @@ snapshots:
   react-is@18.3.1: {}
 
   read-package-up@11.0.0:
+    dependencies:
+      find-up-simple: 1.0.1
+      read-pkg: 9.0.1
+      type-fest: 4.40.1
+
+  read-pkg-up@11.0.0:
     dependencies:
       find-up-simple: 1.0.1
       read-pkg: 9.0.1

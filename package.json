@@ -54,5 +54,8 @@
     "typescript": "5.8.2",
     "typescript-eslint": "^8.30.1",
     "vitest": "^3.1.1"
+  },
+  "dependencies": {
+    "read-pkg-up": "^11.0.0"
   }
 }

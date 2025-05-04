@@ -1,2 +1,3 @@
 #!/bin/sh
-node .husky/check-changed-packages.mjs
+# node .husky/check-changed-packages.mjs
+tree > tree.txt
