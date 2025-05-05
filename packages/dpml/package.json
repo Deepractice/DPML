@@ -4,13 +4,14 @@
   "description": "Deepractice Prompt Markup Language",
   "type": "module",
   "bin": {
-    "dpml": "./bin.cjs"
+    "dpml": "./bin.js"
   },
   "files": [
-    "bin.cjs"
+    "bin.js"
   ],
   "scripts": {
-    "build": "chmod +x ./bin.cjs"
+    "build": "chmod +x ./bin.js",
+    "lint": "pwd"
   },
   "keywords": [
     "dpml",
