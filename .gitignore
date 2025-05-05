@@ -90,6 +90,9 @@ docs/api/
 **/*.d.ts
 **/*.map
 
+# 排除.husky目录中的mjs文件
+!.husky/**/*.mjs
+
 # 排除脚本文件
 !scripts/**/*.js
 !**/jest.config.js

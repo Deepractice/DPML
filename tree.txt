@@ -863,6 +863,7 @@
 │   └── dpml
 │       ├── CHANGELOG.md
 │       ├── bin.cjs
+│       ├── bin.js
 │       ├── dist
 │       ├── node_modules
 │       │   └── @dpml
@@ -909,4 +910,4 @@
 ├── typedoc.json
 └── vitest.config.ts
 
-271 directories, 639 files
+271 directories, 640 files
