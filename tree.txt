@@ -1,6 +1,8 @@
 .
 ├── LICENSE
 ├── README.md
+├── assets
+│   └── demo.gif
 ├── dist
 │   ├── bin.cjs
 │   ├── bin.cjs.map
@@ -212,6 +214,9 @@
 │   │   ├── docs
 │   │   │   ├── develop
 │   │   │   │   ├── Agent-Design.md
+│   │   │   │   ├── Agent-MCP-Testcase-Design.md
+│   │   │   │   ├── Agent-MCP-design.md
+│   │   │   │   ├── Agent-MCP-develop-design.md
 │   │   │   │   ├── Agent-Testcase-Design.md
 │   │   │   │   ├── Agentenv-Design.md
 │   │   │   │   ├── Agentenv-Testcase-Design.md
@@ -220,14 +225,18 @@
 │   │   │   ├── iteration
 │   │   │   │   └── ITER-2025050301.task.md
 │   │   │   ├── requirements.md
-│   │   │   └── testing
-│   │   │       ├── e2e-testing-guide.md
-│   │   │       └── e2e-testing.md
+│   │   │   ├── testing
+│   │   │   │   ├── e2e-testing-guide.md
+│   │   │   │   └── e2e-testing.md
+│   │   │   └── usage
+│   │   │       └── MCP-Usage-Guide.md
 │   │   ├── examples
 │   │   │   └── simple-agent.dpml
 │   │   ├── node_modules
 │   │   │   ├── @dpml
 │   │   │   │   └── core -> ../../../core
+│   │   │   ├── @modelcontextprotocol
+│   │   │   │   └── sdk -> ../../../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.11.0/node_modules/@modelcontextprotocol/sdk
 │   │   │   ├── rimraf -> ../../../node_modules/.pnpm/rimraf@5.0.10/node_modules/rimraf
 │   │   │   └── strip-ansi -> ../../../node_modules/.pnpm/strip-ansi@7.1.0/node_modules/strip-ansi
 │   │   ├── package.json
@@ -236,7 +245,8 @@
 │   │   │   │   ├── contract
 │   │   │   │   │   ├── api
 │   │   │   │   │   │   ├── agent.contract.test.ts
-│   │   │   │   │   │   └── agentenv.contract.test.ts
+│   │   │   │   │   │   ├── agentenv.contract.test.ts
+│   │   │   │   │   │   └── mcp.contract.test.ts
 │   │   │   │   │   ├── dpml
 │   │   │   │   │   │   ├── cli.contract.test.ts
 │   │   │   │   │   │   ├── schema.contract.test.ts
@@ -246,6 +256,7 @@
 │   │   │   │   │       ├── Chat.contract.test.ts
 │   │   │   │   │       ├── Content.contract.test.ts
 │   │   │   │   │       ├── LLMConfig.contract.test.ts
+│   │   │   │   │       ├── McpConfig.contract.test.ts
 │   │   │   │   │       └── agentenvConstants.contract.test.ts
 │   │   │   │   ├── e2e
 │   │   │   │   │   ├── README.md
@@ -258,11 +269,24 @@
 │   │   │   │   │   │   └── streaming-cli.e2e.test.ts
 │   │   │   │   │   ├── dpml-cli.e2e.test.ts
 │   │   │   │   │   ├── dpml-configuration.e2e.test.ts
-│   │   │   │   │   └── env-helper.ts
+│   │   │   │   │   ├── env-helper.ts
+│   │   │   │   │   └── mcp
+│   │   │   │   │       ├── ErrorHandling.e2e.test.ts
+│   │   │   │   │       ├── MCP-SDK-Integration.e2e.test.ts
+│   │   │   │   │       ├── Performance.e2e.test.ts
+│   │   │   │   │       ├── UserInteraction.e2e.test.ts
+│   │   │   │   │       └── fixtures
+│   │   │   │   │           ├── mcp-fixtures.ts
+│   │   │   │   │           └── mock-mcp-sdk.ts
 │   │   │   │   ├── fixtures
 │   │   │   │   │   ├── cli.fixture.ts
 │   │   │   │   │   ├── dpml.fixture.ts
 │   │   │   │   │   ├── env.fixture.ts
+│   │   │   │   │   ├── mcp
+│   │   │   │   │   │   ├── AsyncStreamHelper.ts
+│   │   │   │   │   │   ├── MockLLMClient.ts
+│   │   │   │   │   │   └── MockMcpClient.ts
+│   │   │   │   │   ├── mcp.fixture.ts
 │   │   │   │   │   ├── test.dpml
 │   │   │   │   │   └── testUtils.fixture.ts
 │   │   │   │   ├── helpers
@@ -276,6 +300,11 @@
 │   │   │   │   │   │   ├── compiler.integration.test.ts
 │   │   │   │   │   │   └── schema-transformer.integration.test.ts
 │   │   │   │   │   ├── llm-adapters.integration.test.ts
+│   │   │   │   │   ├── mcp
+│   │   │   │   │   │   ├── McpClientIntegration.integration.test.ts
+│   │   │   │   │   │   ├── McpEnhancer.integration.test.ts
+│   │   │   │   │   │   └── pipeline
+│   │   │   │   │   │       └── ToolCallPipeline.integration.test.ts
 │   │   │   │   │   └── message-processing.integration.test.ts
 │   │   │   │   └── unit
 │   │   │   │       ├── core
@@ -288,6 +317,16 @@
 │   │   │   │       │   ├── llm
 │   │   │   │       │   │   ├── OpenAIClient.test.ts
 │   │   │   │       │   │   └── llmFactory.test.ts
+│   │   │   │       │   ├── mcp
+│   │   │   │       │   │   └── pipeline
+│   │   │   │       │   │       └── processors
+│   │   │   │       │   │           ├── ConversationEntryProcessor.test.ts
+│   │   │   │       │   │           ├── RecursiveProcessor.test.ts
+│   │   │   │       │   │           ├── ResultFormattingProcessor.test.ts
+│   │   │   │       │   │           ├── StartSideBandProcessor.test.ts
+│   │   │   │       │   │           ├── ToolCallExtractorProcessor.test.ts
+│   │   │   │       │   │           ├── ToolExecutionProcessor.test.ts
+│   │   │   │       │   │           └── ToolPreparationProcessor.test.ts
 │   │   │   │       │   └── session
 │   │   │   │       │       └── InMemoryAgentSession.test.ts
 │   │   │   │       └── types
@@ -295,7 +334,8 @@
 │   │   │   ├── api
 │   │   │   │   ├── agent.ts
 │   │   │   │   ├── agentenv.ts
-│   │   │   │   └── index.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   └── mcp.ts
 │   │   │   ├── bin.ts
 │   │   │   ├── config
 │   │   │   │   ├── cli.ts
@@ -314,6 +354,22 @@
 │   │   │   │   │   ├── LLMClient.ts
 │   │   │   │   │   ├── OpenAIClient.ts
 │   │   │   │   │   └── llmFactory.ts
+│   │   │   │   ├── mcp
+│   │   │   │   │   ├── McpEnhancer.ts
+│   │   │   │   │   ├── McpRegistry.ts
+│   │   │   │   │   └── pipeline
+│   │   │   │   │       ├── ToolCallContext.ts
+│   │   │   │   │       ├── ToolCallPipeline.ts
+│   │   │   │   │       ├── ToolCallProcessor.ts
+│   │   │   │   │       └── processors
+│   │   │   │   │           ├── ConversationEntryProcessor.ts
+│   │   │   │   │           ├── RecursiveProcessor.ts
+│   │   │   │   │           ├── ResultFormattingProcessor.ts
+│   │   │   │   │           ├── StartSideBandProcessor.ts
+│   │   │   │   │           ├── ToolCallExtractorProcessor.ts
+│   │   │   │   │           ├── ToolExecutionProcessor.ts
+│   │   │   │   │           └── ToolPreparationProcessor.ts
+│   │   │   │   ├── mcpService.ts
 │   │   │   │   ├── session
 │   │   │   │   │   ├── AgentSession.ts
 │   │   │   │   │   └── InMemoryAgentSession.ts
@@ -325,8 +381,17 @@
 │   │   │       ├── Chat.ts
 │   │   │       ├── Content.ts
 │   │   │       ├── LLMConfig.ts
+│   │   │       ├── McpConfig.ts
+│   │   │       ├── McpError.ts
+│   │   │       ├── declarations
 │   │   │       ├── errors.ts
 │   │   │       └── index.ts
+│   │   ├── tasks
+│   │   │   └── mcp
+│   │   │       ├── mcp-01-base.task.md
+│   │   │       ├── mcp-02-implementation.task.md
+│   │   │       ├── mcp-03-integration.task.md
+│   │   │       └── mcp-04-final.task.md
 │   │   ├── tsconfig.build.json
 │   │   ├── tsconfig.json
 │   │   ├── tsup.config.ts
@@ -903,6 +968,12 @@
 │   ├── create-empty-changeset.js
 │   ├── generate-barrels.js
 │   └── setup-env.js
+├── src
+│   └── __tests__
+│       └── e2e
+│           └── mcp
+│               └── fixtures
+│                   └── mcp-fixtures.ts
 ├── tree.txt
 ├── tsconfig.json
 ├── tsup.base.config.ts
@@ -910,4 +981,4 @@
 ├── typedoc.json
 └── vitest.config.ts
 
-271 directories, 640 files
+294 directories, 688 files

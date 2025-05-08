@@ -1,3 +1,4 @@
 #!/bin/sh
 node .husky/check-changed-packages.mjs
 tree > tree.txt
+git add tree.txt

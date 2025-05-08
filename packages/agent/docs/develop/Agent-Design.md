@@ -1115,4 +1115,157 @@ Agent模块根据不同层次分配了清晰的职责：
 ```
 创建Agent实例 → 初始化LLM客户端和会话 → 用户调用chat/chatStream方法 → 
 标准化输入内容 → 添加消息到会话 → 准备完整消息列表 → 发送到LLM服务 → 提取文本内容 → 返回结果
-``` 
+```
+
+## 9. ModelContextProtocol SDK集成
+
+DPML Agent 模块通过集成 ModelContextProtocol(MCP) 官方 SDK，为大语言模型提供高级工具调用能力。MCP 是一个开放协议，用于建立 LLM 应用程序与外部数据源和工具之间的标准化连接。
+
+### 9.1 ModelContextProtocol 概述
+
+ModelContextProtocol 采用客户端-服务器架构：
+
+- **MCP客户端**：集成在 Agent 模块中，负责发起请求
+- **MCP服务器**：提供外部功能，如工具（函数）、资源（数据）和提示模板
+- **传输层**：支持 stdio 和 Streamable HTTP 等多种通信方式
+
+所有交互通过标准化的 JSON-RPC 消息进行，确保安全和结构化的通信。
+
+### 9.2 官方 SDK 集成
+
+DPML 项目使用官方 TypeScript SDK，只需要在几个关键点进行集成：
+
+```typescript
+// 安装依赖
+// npm install @modelcontextprotocol/sdk
+```
+
+#### 创建 MCP 客户端
+
+```typescript
+// core/mcp/McpRegistry.ts 的 createMcpClient 方法
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+
+private createMcpClient(config: McpConfig): Client {
+  // 创建客户端实例
+  const client = new Client({
+    name: "dpml-agent",
+    version: "1.0.0"
+  });
+  
+  // 创建并连接传输层
+  let transport;
+  if (config.type === 'http' && config.http) {
+    transport = new StreamableHTTPClientTransport(
+      new URL(config.http.url)
+    );
+  } else if (config.type === 'stdio' && config.stdio) {
+    transport = new StdioClientTransport({
+      command: config.stdio.command,
+      args: config.stdio.args || []
+    });
+  } else {
+    throw new Error(`无效的MCP配置: ${config.type}`);
+  }
+  
+  // 连接并返回客户端
+  (async () => {
+    try {
+      await client.connect(transport);
+    } catch (error) {
+      console.error("MCP连接失败:", error);
+    }
+  })();
+  
+  return client;
+}
+```
+
+#### 使用官方 SDK 类型
+
+```typescript
+// 直接使用官方类型
+import type { 
+  Tool, 
+  ToolCall, 
+  ToolResult 
+} from "@modelcontextprotocol/sdk/types.js";
+```
+
+#### 获取工具列表
+
+```typescript
+// ToolPreparationProcessor.ts 的 getTools 方法
+private async getTools(): Promise<Tool[]> {
+  if (!this.toolsCache) {
+    const response = await this.mcpClient.listTools();
+    this.toolsCache = response.tools;
+  }
+  return this.toolsCache;
+}
+```
+
+#### 执行工具调用
+
+```typescript
+// ToolExecutionProcessor.ts 的 executeTool 方法
+private async executeTool(toolCall: ToolCall): Promise<ToolResult> {
+  try {
+    return await this.mcpClient.callTool({
+      name: toolCall.name,
+      arguments: toolCall.parameters
+    });
+  } catch (error) {
+    console.error(`执行工具 ${toolCall.name} 失败:`, error);
+    throw error;
+  }
+}
+```
+
+### 9.3 MCP配置示例
+
+下面是DPML项目中使用MCP的配置示例：
+
+```typescript
+// 定义MCP配置
+const mcpConfig: McpConfig = {
+  name: 'search-tools',
+  enabled: true,
+  type: 'http',
+  http: {
+    url: 'http://localhost:3000/mcp'
+  }
+};
+
+// 注册MCP增强器
+registerMcp(mcpConfig);
+
+// 创建Agent配置
+const agentConfig: AgentConfig = {
+  llm: {
+    apiType: 'openai',
+    apiKey: process.env.OPENAI_API_KEY,
+    model: 'gpt-4-turbo'
+  },
+  prompt: '你是一个专业的AI助手，能够帮助用户查询信息和回答问题。',
+  mcp: {
+    enabled: true,
+    name: 'search-tools'
+  }
+};
+
+// 创建Agent实例
+const agent = createAgent(agentConfig);
+```
+
+### 9.4 MCP架构优势
+
+通过集成官方MCP SDK，DPML Agent获得了以下优势：
+
+1. **标准化实现**：遵循最新的MCP规范
+2. **多种传输类型支持**：支持stdio和streamableHttp传输
+3. **健壮的错误处理**：内置完善的错误处理机制
+4. **与Claude等模型原生兼容**：无需额外适配层
+5. **社区维护**：持续更新和改进

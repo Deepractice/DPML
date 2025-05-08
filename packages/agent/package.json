@@ -29,6 +29,7 @@
   "license": "MIT",
   "dependencies": {
     "@dpml/core": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.11.0",
     "strip-ansi": "^7.1.0"
   }
 }

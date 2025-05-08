@@ -9,3 +9,5 @@ export type { LLMConfig } from './LLMConfig';
 export type { Content, ContentItem, ContentType } from './Content';
 export type { ChatInput, ChatOutput } from './Chat';
 export { AgentError, AgentErrorType } from './errors';
+export type { McpConfig, HttpConfig, StdioConfig } from './McpConfig';
+export { McpError, McpErrorType } from './McpError';
