@@ -3,9 +3,8 @@
  * 测试XML配置到McpConfig的转换和验证
  */
 import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+
 import { createAgent } from '../../../api';
-import * as llmFactory from '../../../core/llm/llmFactory';
-import { OpenAIClient } from '../../../core/llm/OpenAIClient';
 import { TestHttpMcpServer } from '../../fixtures/mcp/transport-http';
 import { isLLMConfigValid, getLLMConfig } from '../env-helper';
 
@@ -22,21 +21,21 @@ beforeAll(() => {
 
 describe('E2E-MCP-Config', () => {
   let mcpServer: TestHttpMcpServer;
-  
+
   beforeAll(async () => {
     mcpServer = new TestHttpMcpServer();
     await mcpServer.start();
   });
-  
+
   afterAll(async () => {
     await mcpServer.stop();
   });
-  
+
   beforeEach(() => {
     // 清理测试状态
     mcpServer.resetCallCount();
   });
-  
+
   test('E2E-MCP-Config-01: 应正确解析HTTP类型的MCP配置', async () => {
     // 准备包含HTTP MCP配置的DPML
     const dpmlContent = `
@@ -49,7 +48,7 @@ describe('E2E-MCP-Config', () => {
         </mcp-servers>
       </agent>
     `;
-    
+
     // 编译DPML并创建Agent - 使用直接的配置对象而不是编译
     const config = {
       llm: {
@@ -70,24 +69,26 @@ describe('E2E-MCP-Config', () => {
         }
       ]
     };
-    
+
     // 验证配置正确解析
     expect(config.mcpServers).toBeDefined();
     expect(config.mcpServers?.length).toBe(1);
     expect(config.mcpServers?.[0].name).toBe('test-server');
     expect(config.mcpServers?.[0].http?.url).toBe(mcpServer.url);
     expect(config.mcpServers?.[0].type).toBe('http');
-    
+
     // 创建Agent并验证
     const agent = createAgent(config);
+
     expect(agent).toBeDefined();
   });
-  
+
   test('E2E-MCP-Config-02: 应支持多服务器配置', async () => {
     // 准备第二个测试服务器
     const secondServer = new TestHttpMcpServer();
+
     await secondServer.start();
-    
+
     try {
       // 准备包含多个MCP服务器配置
       const config = {
@@ -117,22 +118,23 @@ describe('E2E-MCP-Config', () => {
           }
         ]
       };
-      
+
       // 验证配置正确解析
       expect(config.mcpServers).toBeDefined();
       expect(config.mcpServers?.length).toBe(2);
       expect(config.mcpServers?.[0].name).toBe('test-server-1');
       expect(config.mcpServers?.[1].name).toBe('test-server-2');
-      
+
       // 创建Agent并验证
       const agent = createAgent(config);
+
       expect(agent).toBeDefined();
     } finally {
       // 确保清理第二个服务器
       await secondServer.stop();
     }
   });
-  
+
   test('E2E-MCP-Config-03: 应正确处理具有默认设置的MCP配置', async () => {
     // 准备具有默认设置的配置
     const config = {
@@ -154,16 +156,17 @@ describe('E2E-MCP-Config', () => {
         }
       ]
     };
-    
+
     // 验证配置使用默认设置
     expect(config.mcpServers?.[0].enhancerName).toBeUndefined(); // 使用默认增强器
     expect(config.mcpServers?.[0].type).toBe('http'); // 默认为HTTP类型
-    
+
     // 创建Agent并验证
     const agent = createAgent(config);
+
     expect(agent).toBeDefined();
   });
-  
+
   test('E2E-MCP-Config-04: 应正确处理具有自定义属性的MCP配置', async () => {
     // 准备具有自定义属性的配置
     const config = {
@@ -186,15 +189,16 @@ describe('E2E-MCP-Config', () => {
         }
       ]
     };
-    
+
     // 验证自定义配置属性
     expect(config.mcpServers?.[0].enhancerName).toBe('custom-enhancer');
     expect(config.mcpServers?.[0].type).toBe('http');
-    
+
     // 创建Agent并验证 - 注意：由于使用了未注册的增强器，Agent创建可能会失败
     // 这取决于系统设计是否允许未注册的增强器名称
     try {
       const agent = createAgent(config);
+
       // 如果创建成功，说明系统能容忍未注册的增强器名称
       expect(agent).toBeDefined();
     } catch (error) {
@@ -202,4 +206,4 @@ describe('E2E-MCP-Config', () => {
       expect((error as Error).message).toContain('enhancer');
     }
   });
-}); 
+});

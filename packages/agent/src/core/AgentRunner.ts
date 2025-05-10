@@ -1,9 +1,10 @@
 import type { AgentConfig, ChatInput, ChatOutput } from '../types';
 import type { McpConfig } from '../types/McpConfig';
+
 import type { LLMClient } from './llm/LLMClient';
+import { registerEnhancer, enhanceLLMClient } from './mcpService';
 import type { AgentSession } from './session/AgentSession';
 import type { Message } from './types';
-import { registerEnhancer, enhanceLLMClient } from './mcpService';
 
 /**
  * Agent运行器
@@ -17,7 +18,7 @@ export class AgentRunner {
 
   constructor(config: AgentConfig, llmClient: LLMClient, session: AgentSession) {
     this.config = config;
-    
+
     // 检查并应用MCP增强
     this.llmClient = this.applyMcpEnhancement(llmClient, config.mcpServers);
     this.session = session;
@@ -25,7 +26,7 @@ export class AgentRunner {
 
   /**
    * 应用MCP增强
-   * 
+   *
    * @param baseClient 基础LLM客户端
    * @param mcpConfigs MCP配置数组
    * @returns 增强后的LLM客户端
@@ -38,6 +39,7 @@ export class AgentRunner {
 
     // 应用所有启用的MCP增强
     let enhancedClient = baseClient;
+
     for (const mcpConfig of mcpConfigs) {
       // 跳过未启用的MCP服务
       if (mcpConfig.enabled === false) {
@@ -47,10 +49,10 @@ export class AgentRunner {
       try {
         // 注册MCP增强器
         registerEnhancer(mcpConfig);
-        
+
         // 增强LLM客户端
         enhancedClient = enhanceLLMClient(enhancedClient, mcpConfig.name);
-        
+
         console.log(`成功加载MCP服务: ${mcpConfig.name}`);
       } catch (error) {
         // 记录错误但继续处理其他MCP服务

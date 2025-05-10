@@ -9,7 +9,7 @@ const definer = createTransformerDefiner();
 
 /**
  * Agent配置转换器
- * 
+ *
  * 将DPML文档转换为AgentConfig对象
  */
 export const agentTransformer = definer.defineStructuralMapper<unknown, AgentConfig>(
@@ -38,6 +38,7 @@ export const agentTransformer = definer.defineStructuralMapper<unknown, AgentCon
       targetPath: 'prompt',
       transform: (value: unknown) => {
         const node = value as DPMLNode;
+
         return node.content || '';
       }
     }
@@ -46,7 +47,7 @@ export const agentTransformer = definer.defineStructuralMapper<unknown, AgentCon
 
 /**
  * MCP服务器配置转换器
- * 
+ *
  * 将DPML文档中的MCP服务器配置转换为McpConfig数组
  */
 const _mcpTransformer = definer.defineStructuralMapper<unknown, AgentConfig>(
@@ -59,11 +60,11 @@ const _mcpTransformer = definer.defineStructuralMapper<unknown, AgentConfig>(
         // 获取所有MCP服务器节点
         const node = value as DPMLNode;
         const serverNodes = node.children?.filter(child => child.tagName === 'mcp-server') || [];
-        
+
         if (serverNodes.length === 0) {
           return undefined;
         }
-        
+
         return serverNodes.map(serverNode => {
           const name = serverNode.attributes.get('name');
           const enabled = serverNode.attributes.get('enabled') !== 'false';
@@ -71,13 +72,13 @@ const _mcpTransformer = definer.defineStructuralMapper<unknown, AgentConfig>(
           const url = serverNode.attributes.get('url');
           const command = serverNode.attributes.get('command');
           const argsStr = serverNode.attributes.get('args');
-          
+
           // 解析args字符串为数组
           const args = argsStr ? argsStr.split(' ') : undefined;
-          
+
           // 推断传输类型
           const type = inferTransportType(explicitType, command, url);
-          
+
           // 根据类型创建配置
           if (type === 'http') {
             return {
@@ -91,9 +92,9 @@ const _mcpTransformer = definer.defineStructuralMapper<unknown, AgentConfig>(
               name,
               enabled,
               type,
-              stdio: { 
+              stdio: {
                 command: command || '',
-                args 
+                args
               }
             } as McpConfig;
           }
@@ -117,21 +118,21 @@ export const mcpTransformer = {
 
 /**
  * 推断MCP服务器传输类型
- * 
+ *
  * 根据配置属性推断传输类型：
  * 1. 如果明确指定了类型，则使用指定的类型
  * 2. 如果有command属性，则使用stdio传输
  * 3. 如果有url属性，则使用http传输
  * 4. 默认使用stdio传输
- * 
+ *
  * @param explicitType 明确指定的类型
  * @param command 命令属性
  * @param url URL属性
  * @returns 推断的传输类型
  */
 function inferTransportType(
-  explicitType?: string, 
-  command?: string, 
+  explicitType?: string,
+  command?: string,
   url?: string
 ): 'http' | 'stdio' {
   // 如果明确指定了类型，则使用指定的类型
@@ -140,14 +141,14 @@ function inferTransportType(
   } else if (explicitType === 'stdio') {
     return 'stdio';
   }
-  
+
   // 否则根据提供的属性推断
   if (command) {
     return 'stdio';
   } else if (url) {
     return 'http';
   }
-  
+
   // 默认为stdio
   return 'stdio';
 }

@@ -41,27 +41,27 @@ export async function mockLLMResponse(
   config: MockLLMConfig = {}
 ): Promise<{ text: string; model: string }> {
   const mergedConfig = { ...DEFAULT_MOCK_CONFIG, ...config };
-  
+
   console.info(`[MockLLM] 收到提示词: ${prompt.substring(0, 100)}${prompt.length > 100 ? '...' : ''}`);
-  
+
   // 模拟处理延迟
   if (mergedConfig.delay && mergedConfig.delay > 0) {
     await new Promise(resolve => setTimeout(resolve, mergedConfig.delay));
   }
-  
+
   // 模拟错误
   if (mergedConfig.shouldFail) {
     console.error(`[MockLLM] 模拟错误: ${mergedConfig.errorMessage}`);
     throw new Error(mergedConfig.errorMessage || '未知错误');
   }
-  
+
   // 处理特殊指令
   const response = mergedConfig.response || DEFAULT_MOCK_CONFIG.response || '';
-  
+
   // 可以在这里添加根据提示词内容的特殊处理逻辑
-  
+
   console.info(`[MockLLM] 返回响应: ${response.substring(0, 100)}${response.length > 100 ? '...' : ''}`);
-  
+
   return {
     text: response,
     model: mergedConfig.modelName || DEFAULT_MOCK_CONFIG.modelName || 'unknown-model',
@@ -102,10 +102,10 @@ export async function mockLLMWithToolCalls(
 ): Promise<{ text: string; model: string; toolCalls: ToolCallResponse[] }> {
   // 获取基本响应
   const baseResponse = await mockLLMResponse(prompt, config);
-  
+
   // 添加工具调用
   console.info(`[MockLLM] 模拟工具调用: ${JSON.stringify(toolCalls)}`);
-  
+
   return {
     ...baseResponse,
     toolCalls: toolCalls.map((call, index) => ({
@@ -117,4 +117,4 @@ export async function mockLLMWithToolCalls(
       }
     })),
   };
-} 
+}

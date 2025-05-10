@@ -90,8 +90,9 @@ export class McpRegistry {
 
       // 创建HTTP传输，添加会话ID作为选项参数
       const sessionId = `session-${config.name}-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+
       console.log(`设置HTTP会话ID: ${sessionId}`);
-      
+
       // 确保传递会话ID，SDK内部会自动添加到请求头
       const transport = new StreamableHTTPClientTransport(
         new URL(config.http.url),

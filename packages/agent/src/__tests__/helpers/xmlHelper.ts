@@ -4,7 +4,7 @@
 
 /**
  * 创建一个简单的XML解析器，用于测试目的
- * 
+ *
  * @returns 解析函数
  */
 export function createSimpleXmlParser() {
@@ -12,4 +12,4 @@ export function createSimpleXmlParser() {
     // 这是一个模拟实现，实际测试中会被vi.fn替代
     return {};
   };
-} 
+}

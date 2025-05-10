@@ -1,4 +1,4 @@
-import { Tool } from '@modelcontextprotocol/sdk';
+import type { Tool } from '@modelcontextprotocol/sdk';
 import { z } from 'zod';
 
 /**
@@ -18,6 +18,7 @@ export const createTestTools = (): Tool[] => {
       }),
       handler: async (params: { operation: 'add' | 'subtract' | 'multiply' | 'divide'; a: number; b: number }) => {
         let result = 0; // 初始化为0以避免"未赋值"错误
+
         switch (params.operation) {
           case 'add':
             result = params.a + params.b;
@@ -35,15 +36,17 @@ export const createTestTools = (): Tool[] => {
                 isError: true,
               };
             }
+
             result = params.a / params.b;
             break;
         }
+
         return {
           content: [{ type: 'text', text: String(result) }],
         };
       },
     },
-    
+
     // 搜索工具
     {
       name: 'search',
@@ -57,7 +60,7 @@ export const createTestTools = (): Tool[] => {
         };
       },
     },
-    
+
     // 错误测试工具
     {
       name: 'error_test',
@@ -73,12 +76,13 @@ export const createTestTools = (): Tool[] => {
             isError: true,
           };
         }
+
         return {
           content: [{ type: 'text', text: '工具调用成功' }],
         };
       },
     },
-    
+
     // 回显工具
     {
       name: 'echo',
@@ -93,4 +97,4 @@ export const createTestTools = (): Tool[] => {
       },
     }
   ];
-}; 
+};

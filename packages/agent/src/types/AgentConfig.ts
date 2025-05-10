@@ -16,10 +16,10 @@ export interface AgentConfig {
    * 系统提示词，定义Agent的行为和能力
    */
   readonly prompt: string;
-  
+
   /**
    * MCP服务器配置
-   * 
+   *
    * 可选的MCP服务器配置数组，用于增强Agent的工具调用能力
    */
   readonly mcpServers?: McpConfig[];

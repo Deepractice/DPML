@@ -2,13 +2,13 @@ import type { McpConfig } from '../../types/McpConfig';
 
 /**
  * MCP测试夹具
- * 
+ *
  * 提供用于测试的MCP配置示例。
  */
 
 /**
  * 创建HTTP类型的MCP配置
- * 
+ *
  * @param name 配置名称
  * @param url 服务器URL
  * @param enabled 是否启用
@@ -29,7 +29,7 @@ export function createHttpMcpConfig(
 
 /**
  * 创建stdio类型的MCP配置
- * 
+ *
  * @param name 配置名称
  * @param command 执行命令
  * @param args 命令参数
@@ -52,7 +52,7 @@ export function createStdioMcpConfig(
 
 /**
  * 创建包含多个MCP服务器的XML配置
- * 
+ *
  * @returns XML字符串
  */
 export function createMcpXml(): string {
@@ -71,7 +71,7 @@ export function createMcpXml(): string {
 
 /**
  * 创建带有MCP配置的AgentConfig对象
- * 
+ *
  * @returns Agent配置对象
  */
 export function createMcpAgentConfig(): any {
@@ -90,4 +90,4 @@ export function createMcpAgentConfig(): any {
       }
     ]
   };
-} 
+}

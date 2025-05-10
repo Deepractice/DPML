@@ -1,4 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+
 import { createTestTools } from './tools';
 
 /**
@@ -21,6 +22,7 @@ export const createTestMcpServer = async (
 
   // 注册测试工具
   const tools = createTestTools();
+
   for (const tool of tools) {
     server.tool(
       tool.name,
@@ -46,7 +48,7 @@ export const createAndConnectTestMcpServer = async (
   version = '1.0.0'
 ): Promise<McpServer> => {
   const server = await createTestMcpServer(serverName, version);
-  
+
   console.info('[TestMcpServer] 正在连接到传输...');
   try {
     await server.connect(transport);
@@ -55,6 +57,6 @@ export const createAndConnectTestMcpServer = async (
     console.error('[TestMcpServer] 服务器连接失败', error);
     throw error;
   }
-  
+
   return server;
-}; 
+};

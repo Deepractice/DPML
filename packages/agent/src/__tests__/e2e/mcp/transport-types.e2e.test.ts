@@ -2,20 +2,16 @@
  * MCP传输类型端到端测试
  * 测试不同传输类型（HTTP、stdio）的工具调用功能
  */
+import { PassThrough } from 'stream';
+
 import { describe, test, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest';
+
 import { createAgent } from '../../../api';
-import * as llmFactory from '../../../core/llm/llmFactory';
 import { OpenAIClient } from '../../../core/llm/OpenAIClient';
 import { TestHttpMcpServer } from '../../fixtures/mcp/transport-http';
 import { TestStdioMcpServer } from '../../fixtures/mcp/transport-stdio';
 import { isLLMConfigValid, getLLMConfig } from '../env-helper';
-import fs from 'fs';
-import path from 'path';
-import { promisify } from 'util';
-import { exec } from 'child_process';
-import { fileURLToPath } from 'url';
-import * as mcpService from '../../../core/mcpService';
-import { PassThrough } from 'stream';
+
 
 // 检查是否使用真实API
 const useRealAPI = isLLMConfigValid('openai');
@@ -36,18 +32,19 @@ beforeAll(() => {
   if (oldListener) {
     process.removeListener('unhandledRejection', oldListener);
   }
-  
+
   // 添加自定义的监听器
   process.on('unhandledRejection', (reason: any) => {
     if (reason instanceof Error) {
       // 对于MCP连接关闭错误，我们不记录它
-      if (reason.message?.includes('Connection closed') || 
+      if (reason.message?.includes('Connection closed') ||
           reason.message?.includes('Not connected') ||
           (reason as any)?.code === -32000) {
         console.warn('[测试捕获] 忽略预期的MCP连接关闭错误:', reason.message);
+
         return;
       }
-      
+
       // 记录其他未处理的错误
       console.warn('[测试捕获] 未处理的Promise拒绝:', reason);
       unhandledRejections.push(reason);
@@ -62,12 +59,12 @@ beforeAll(() => {
 afterAll(() => {
   // 移除我们的监听器
   process.removeAllListeners('unhandledRejection');
-  
+
   // 恢复原始监听器
   if (oldListener) {
     process.on('unhandledRejection', oldListener);
   }
-  
+
   // 检查是否有未处理的错误
   if (unhandledRejections.length > 0) {
     console.warn(`[测试完成] 共发现 ${unhandledRejections.length} 个未处理的Promise拒绝`);
@@ -82,14 +79,14 @@ afterEach(() => {
 // 提供模拟功能
 if (!useRealAPI) {
   console.info('ℹ️ MCP传输类型测试使用模拟模式');
-  
+
   // 模拟LLM调用，使其返回工具调用响应
   vi.spyOn(OpenAIClient.prototype, 'sendMessages').mockImplementation((messages) => {
     const userMessage = messages.find(msg => msg.role === 'user');
-    const userText = typeof userMessage?.content === 'string' 
-      ? userMessage.content 
+    const userText = typeof userMessage?.content === 'string'
+      ? userMessage.content
       : JSON.stringify(userMessage?.content);
-    
+
     if (userText.includes('tool') || userText.includes('工具')) {
       return Promise.resolve({
         id: 'test-id',
@@ -110,7 +107,7 @@ if (!useRealAPI) {
         ]
       });
     }
-    
+
     return Promise.resolve({
       id: 'test-id',
       model: 'test-model',
@@ -135,37 +132,37 @@ describe('E2E-MCP-Transport', () => {
   // HTTP传输测试
   describe('HTTP传输', () => {
     let httpServer: TestHttpMcpServer;
-    
+
     beforeAll(async () => {
       httpServer = new TestHttpMcpServer();
       await httpServer.start();
       console.info(`HTTP MCP服务器URL: ${httpServer.url}`);
     });
-    
+
     afterAll(async () => {
       await httpServer.stop();
     });
-    
+
     beforeEach(() => {
       httpServer.resetCallCount();
     });
-    
+
     test('E2E-MCP-Transport-01: 应能成功连接HTTP传输类型的MCP服务器', async () => {
       // 创建Agent配置
       const config = {
-        llm: useRealAPI 
+        llm: useRealAPI
           ? {
-              apiType: 'openai',
-              model: getLLMConfig('openai').model,
-              apiKey: getLLMConfig('openai').apiKey,
-              apiUrl: getLLMConfig('openai').apiUrl
-            }
+            apiType: 'openai',
+            model: getLLMConfig('openai').model,
+            apiKey: getLLMConfig('openai').apiKey,
+            apiUrl: getLLMConfig('openai').apiUrl
+          }
           : {
-              apiType: 'openai',
-              model: 'gpt-4',
-              apiKey: 'sk-test',
-              apiUrl: MOCK_API_URL // 使用可快速失败的本地URL
-            },
+            apiType: 'openai',
+            model: 'gpt-4',
+            apiKey: 'sk-test',
+            apiUrl: MOCK_API_URL // 使用可快速失败的本地URL
+          },
         prompt: '你是一个有帮助的助手',
         mcpServers: [
           {
@@ -178,38 +175,38 @@ describe('E2E-MCP-Transport', () => {
           }
         ]
       };
-      
+
       // 创建Agent
       const agent = createAgent(config);
-      
+
       // 发送消息
       console.info('HTTP传输: 发送使用工具的消息');
       const response = await agent.chat('使用工具');
-      
+
       // 验证服务器被调用
       expect(httpServer.getCallCount()).toBeGreaterThan(0);
-      
+
       // 验证响应
       expect(response).toBeTruthy();
       console.info('HTTP响应:', response);
     }, TEST_TIMEOUT);
-    
+
     test('E2E-MCP-Transport-02: HTTP服务器应能正确处理工具调用', async () => {
       // 创建Agent配置
       const config = {
-        llm: useRealAPI 
+        llm: useRealAPI
           ? {
-              apiType: 'openai',
-              model: getLLMConfig('openai').model,
-              apiKey: getLLMConfig('openai').apiKey,
-              apiUrl: getLLMConfig('openai').apiUrl
-            }
+            apiType: 'openai',
+            model: getLLMConfig('openai').model,
+            apiKey: getLLMConfig('openai').apiKey,
+            apiUrl: getLLMConfig('openai').apiUrl
+          }
           : {
-              apiType: 'openai',
-              model: 'gpt-4',
-              apiKey: 'sk-test',
-              apiUrl: MOCK_API_URL // 使用可快速失败的本地URL
-            },
+            apiType: 'openai',
+            model: 'gpt-4',
+            apiKey: 'sk-test',
+            apiUrl: MOCK_API_URL // 使用可快速失败的本地URL
+          },
         prompt: '你是一个有帮助的助手',
         mcpServers: [
           {
@@ -222,66 +219,66 @@ describe('E2E-MCP-Transport', () => {
           }
         ]
       };
-      
+
       // 创建Agent
       const agent = createAgent(config);
-      
+
       // 发送需要使用工具的消息
       console.info('HTTP传输: 发送使用工具的消息');
       const response = await agent.chat('使用工具搜索关于TypeScript的信息');
-      
+
       // 验证服务器被调用
       expect(httpServer.getCallCount()).toBeGreaterThan(0);
-      
+
       // 验证响应
       expect(response).toBeTruthy();
       console.info('HTTP工具调用响应:', response);
     }, TEST_TIMEOUT * 3);
   });
-  
+
   // Stdio传输测试
   describe('Stdio传输', () => {
     let stdioServer: TestStdioMcpServer;
-    
+
     beforeAll(async () => {
       stdioServer = new TestStdioMcpServer();
       await stdioServer.start();
       console.info('Stdio MCP服务器已启动');
     });
-    
+
     afterAll(async () => {
       await stdioServer.stop();
     });
-    
+
     test('E2E-MCP-Transport-03: 应能成功连接Stdio传输类型的MCP服务器', async () => {
       // 如果使用真实API模式，我们跳过此测试，但不返回
       // stdio传输测试需要更复杂的测试环境设置
       if (useRealAPI) {
         console.info('在真实API模式下，stdio测试需要更多设置');
       }
-      
+
       // 准备测试流
       const input = new PassThrough();
       const output = new PassThrough();
-      
+
       // 启动stdio服务器，使用可控的流而不是实际子进程
       await stdioServer.start(output, input);
-      
+
       // 创建Agent配置，使用模拟命令
       const config = {
-        llm: useRealAPI 
+        llm: useRealAPI
           ? {
-              apiType: 'openai',
-              model: getLLMConfig('openai').model,
-              apiKey: getLLMConfig('openai').apiKey,
-              apiUrl: getLLMConfig('openai').apiUrl
-            }
+            apiType: 'openai',
+            model: getLLMConfig('openai').model,
+            apiKey: getLLMConfig('openai').apiKey,
+            apiUrl: getLLMConfig('openai').apiUrl
+          }
           : {
-              apiType: 'openai',
-              model: 'gpt-4',
-              apiKey: 'sk-test',
-              apiUrl: MOCK_API_URL // 使用可快速失败的本地URL
-            },
+            apiType: 'openai',
+            model: 'gpt-4',
+            apiKey: 'sk-test',
+            apiUrl: MOCK_API_URL // 使用可快速失败的本地URL
+          },
         prompt: '你是一个有帮助的助手',
         mcpServers: [
           {
@@ -296,7 +293,7 @@ describe('E2E-MCP-Transport', () => {
           }
         ]
       };
-      
+
       try {
         // 模拟LLM响应
         vi.spyOn(OpenAIClient.prototype, 'sendMessages').mockImplementation(() => {
@@ -309,23 +306,23 @@ describe('E2E-MCP-Transport', () => {
             }
           });
         });
-        
+
         // 创建Agent
         const agent = createAgent(config);
-        
+
         // 发送消息
         console.info('Stdio传输: 发送简单消息');
-        
+
         try {
           const response = await agent.chat('你好，世界！');
-          
+
           // 验证响应
           expect(response).toBeTruthy();
           console.info('Stdio响应:', response);
         } catch (error) {
           // 对于连接关闭类型的错误，我们可以忽略
           if (error instanceof Error &&
-              (error.message?.includes('Connection closed') || 
+              (error.message?.includes('Connection closed') ||
                error.message?.includes('Not connected') ||
                (error as any)?.code === -32000)) {
             console.info('捕获到预期的MCP连接关闭错误，测试继续进行');
@@ -337,7 +334,7 @@ describe('E2E-MCP-Transport', () => {
       } finally {
         // 恢复模拟
         vi.restoreAllMocks();
-        
+
         // 确保关闭
         try {
           await stdioServer.stop();
@@ -347,37 +344,40 @@ describe('E2E-MCP-Transport', () => {
       }
     }, TEST_TIMEOUT);
   });
-  
+
   // 混合传输类型测试
   test('E2E-MCP-Transport-04: 应能同时支持多种传输类型的MCP服务器', async () => {
     // 创建HTTP服务器
     const httpServer = new TestHttpMcpServer();
+
     await httpServer.start();
-    
+
     // 创建Stdio服务器
     const stdioServer = new TestStdioMcpServer();
+
     await stdioServer.start();
-    
+
     try {
       // 记录服务器初始调用次数
       const initialHttpCallCount = httpServer.getCallCount();
+
       console.info(`HTTP服务器初始调用计数: ${initialHttpCallCount}`);
-      
+
       // 创建Agent配置，同时使用HTTP和Stdio
       const config = {
-        llm: useRealAPI 
+        llm: useRealAPI
           ? {
-              apiType: 'openai',
-              model: getLLMConfig('openai').model,
-              apiKey: getLLMConfig('openai').apiKey,
-              apiUrl: getLLMConfig('openai').apiUrl
-            }
+            apiType: 'openai',
+            model: getLLMConfig('openai').model,
+            apiKey: getLLMConfig('openai').apiKey,
+            apiUrl: getLLMConfig('openai').apiUrl
+          }
           : {
-              apiType: 'openai',
-              model: 'gpt-4',
-              apiKey: 'sk-test',
-              apiUrl: MOCK_API_URL // 使用可快速失败的本地URL
-            },
+            apiType: 'openai',
+            model: 'gpt-4',
+            apiKey: 'sk-test',
+            apiUrl: MOCK_API_URL // 使用可快速失败的本地URL
+          },
         prompt: '你是一个有帮助的助手',
         mcpServers: [
           {
@@ -400,7 +400,7 @@ describe('E2E-MCP-Transport', () => {
           }
         ]
       };
-      
+
       try {
         // 强制模拟LLM响应，避免真实调用
         vi.spyOn(OpenAIClient.prototype, 'sendMessages').mockImplementation(() => {
@@ -413,18 +413,18 @@ describe('E2E-MCP-Transport', () => {
             }
           });
         });
-        
+
         // 创建Agent
         const agent = createAgent(config);
-        
+
         // 确保服务器处于初始化状态
         await new Promise(resolve => setTimeout(resolve, 500));
-        
+
         try {
           // 发送消息
           console.info('混合传输: 发送工具消息');
           const response = await agent.chat('使用工具');
-          
+
           // 验证响应
           expect(response).toBeTruthy();
           expect(response).toContain('混合传输模拟响应');
@@ -432,7 +432,7 @@ describe('E2E-MCP-Transport', () => {
         } catch (error) {
           // 对于连接关闭类型的错误，如果错误包含连接关闭信息，我们可以忽略
           if (error instanceof Error &&
-              (error.message?.includes('Connection closed') || 
+              (error.message?.includes('Connection closed') ||
                error.message?.includes('Not connected') ||
                (error as any)?.code === -32000)) {
             console.info('捕获到预期的MCP连接关闭错误，测试继续进行');
@@ -441,11 +441,12 @@ describe('E2E-MCP-Transport', () => {
             throw error;
           }
         }
-        
+
         // 记录调用计数并进行验证
         const finalHttpCallCount = httpServer.getCallCount();
+
         console.info(`HTTP服务器最终调用计数: ${finalHttpCallCount}`);
-        
+
         // 验证HTTP服务器被调用 - 计数应该增加
         // 如果看到日志中显示了处理请求，但计数为0，暂时跳过这个断言
         if (finalHttpCallCount <= initialHttpCallCount && httpServer.url.includes('localhost')) {
@@ -464,4 +465,4 @@ describe('E2E-MCP-Transport', () => {
       await stdioServer.stop();
     }
   }, TEST_TIMEOUT * 4); // 增加超时时间
-}); 
+});

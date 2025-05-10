@@ -13,7 +13,7 @@ export function isLLMConfigValid(provider?: string): boolean {
   if (process.env.TEST_USE_REAL_API !== 'true') {
     return false;
   }
-  
+
   // 如果指定了提供商，检查对应配置
   if (provider) {
     switch (provider) {
@@ -25,7 +25,7 @@ export function isLLMConfigValid(provider?: string): boolean {
         return false;
     }
   }
-  
+
   // 默认检查是否有任一提供商配置
   return Boolean(process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY);
 }
@@ -62,7 +62,7 @@ export function getLLMConfig(provider: LLMProvider): LLMConfig {
       model: process.env.ANTHROPIC_MODEL || 'claude-3-opus-20240229',
     };
   }
-  
+
   throw new Error(`不支持的LLM提供商: ${provider}`);
 }
 
@@ -85,7 +85,7 @@ export function getMcpTestMode() {
  */
 export function withEnvVars(vars: Record<string, string | undefined>): () => void {
   const originalVars: Record<string, string | undefined> = {};
-  
+
   // 保存原始值并设置新值
   Object.entries(vars).forEach(([key, value]) => {
     originalVars[key] = process.env[key];
@@ -95,7 +95,7 @@ export function withEnvVars(vars: Record<string, string | undefined>): () => voi
       process.env[key] = value;
     }
   });
-  
+
   // 返回清理函数
   return () => {
     Object.entries(originalVars).forEach(([key, value]) => {
@@ -117,12 +117,12 @@ function getTestSkipFunction(): ((message: string) => void) | undefined {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const globalObj = globalThis as any;
-    
+
     // 检查Jest/Vitest中的test对象
     if (globalObj.test && typeof globalObj.test.skip === 'function') {
       return (message: string) => globalObj.test.skip(message);
     }
-    
+
     // 检查Jest/Vitest中的it对象
     if (globalObj.it && typeof globalObj.it.skip === 'function') {
       return (message: string) => globalObj.it.skip(message);
@@ -131,7 +131,7 @@ function getTestSkipFunction(): ((message: string) => void) | undefined {
     // 访问全局对象出错，返回undefined
     console.warn('无法访问测试框架全局对象', e);
   }
-  
+
   return undefined;
 }
 
@@ -143,14 +143,16 @@ function getTestSkipFunction(): ((message: string) => void) | undefined {
 export function requireRealApi(message?: string): void {
   if (!isLLMConfigValid()) {
     const skipMessage = message || '此测试需要配置真实API（设置TEST_USE_REAL_API=true和API密钥）';
-    
+
     // 尝试使用测试框架的跳过功能
     const skipFn = getTestSkipFunction();
+
     if (skipFn) {
       skipFn(skipMessage);
+
       return; // 成功跳过测试
     }
-    
+
     // 后备方案：抛出错误
     throw new Error(`测试被跳过: ${skipMessage}`);
   }
@@ -162,27 +164,29 @@ export function requireRealApi(message?: string): void {
  */
 export function logTestEnvironment(): void {
   const { useRealApi, testTimeout, debug } = getMcpTestMode();
-  
+
   console.info('===== MCP测试配置信息 =====');
   console.info(`使用API模式: ${useRealApi ? '真实API' : '模拟API'}`);
   console.info(`测试超时设置: ${testTimeout}ms`);
   console.info(`调试模式: ${debug ? '开启' : '关闭'}`);
-  
+
   if (useRealApi) {
     const hasOpenAI = Boolean(process.env.OPENAI_API_KEY);
     const hasAnthropic = Boolean(process.env.ANTHROPIC_API_KEY);
-    
+
     console.info('已配置的API提供商:');
     if (hasOpenAI) {
       console.info(`- OpenAI (${getLLMConfig('openai').model})`);
     }
+
     if (hasAnthropic) {
       console.info(`- Anthropic (${getLLMConfig('anthropic').model})`);
     }
+
     if (!hasOpenAI && !hasAnthropic) {
       console.warn('警告: 启用了真实API模式但未配置任何API密钥');
     }
   }
-  
+
   console.info('===========================');
-} 
+}
