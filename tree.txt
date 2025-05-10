@@ -212,6 +212,7 @@
 │   │   │   ├── index.mjs
 │   │   │   └── index.mjs.map
 │   │   ├── docs
+│   │   │   ├── MCP-Requirements.md
 │   │   │   ├── develop
 │   │   │   │   ├── Agent-Design.md
 │   │   │   │   ├── Agent-MCP-Testcase-Design.md
@@ -221,7 +222,9 @@
 │   │   │   │   ├── Agentenv-Design.md
 │   │   │   │   ├── Agentenv-Testcase-Design.md
 │   │   │   │   ├── DPML-Integration-Design.md
-│   │   │   │   └── DPML-Integration-Testcase-Design.md
+│   │   │   │   ├── DPML-Integration-Testcase-Design.md
+│   │   │   │   ├── MCP-DPML-Integration-Design.md
+│   │   │   │   └── MCP-DPML-Integration-Testcase-Design.md
 │   │   │   ├── iteration
 │   │   │   │   └── ITER-2025050301.task.md
 │   │   │   ├── requirements.md
@@ -237,8 +240,12 @@
 │   │   │   │   └── core -> ../../../core
 │   │   │   ├── @modelcontextprotocol
 │   │   │   │   └── sdk -> ../../../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.11.0/node_modules/@modelcontextprotocol/sdk
+│   │   │   ├── @types
+│   │   │   │   └── express -> ../../../../node_modules/.pnpm/@types+express@5.0.1/node_modules/@types/express
+│   │   │   ├── express -> ../../../node_modules/.pnpm/express@5.1.0/node_modules/express
 │   │   │   ├── rimraf -> ../../../node_modules/.pnpm/rimraf@5.0.10/node_modules/rimraf
-│   │   │   └── strip-ansi -> ../../../node_modules/.pnpm/strip-ansi@7.1.0/node_modules/strip-ansi
+│   │   │   ├── strip-ansi -> ../../../node_modules/.pnpm/strip-ansi@7.1.0/node_modules/strip-ansi
+│   │   │   └── zod -> ../../../node_modules/.pnpm/zod@3.24.4/node_modules/zod
 │   │   ├── package.json
 │   │   ├── src
 │   │   │   ├── __tests__
@@ -249,6 +256,9 @@
 │   │   │   │   │   │   └── mcp.contract.test.ts
 │   │   │   │   │   ├── dpml
 │   │   │   │   │   │   ├── cli.contract.test.ts
+│   │   │   │   │   │   ├── schema.contract.test.ts
+│   │   │   │   │   │   └── transformers.contract.test.ts
+│   │   │   │   │   ├── mcp
 │   │   │   │   │   │   ├── schema.contract.test.ts
 │   │   │   │   │   │   └── transformers.contract.test.ts
 │   │   │   │   │   └── types
@@ -275,9 +285,14 @@
 │   │   │   │   │       ├── MCP-SDK-Integration.e2e.test.ts
 │   │   │   │   │       ├── Performance.e2e.test.ts
 │   │   │   │   │       ├── UserInteraction.e2e.test.ts
-│   │   │   │   │       └── fixtures
-│   │   │   │   │           ├── mcp-fixtures.ts
-│   │   │   │   │           └── mock-mcp-sdk.ts
+│   │   │   │   │       ├── error-handling.e2e.test.ts
+│   │   │   │   │       ├── fixtures
+│   │   │   │   │       │   ├── mcp-fixtures.ts
+│   │   │   │   │       │   └── mock-mcp-sdk.ts
+│   │   │   │   │       ├── mcp-configuration.e2e.test.ts
+│   │   │   │   │       ├── tool-calling.e2e.test.ts
+│   │   │   │   │       └── transport-types.e2e.test.ts
+│   │   │   │   ├── env-helper.ts
 │   │   │   │   ├── fixtures
 │   │   │   │   │   ├── cli.fixture.ts
 │   │   │   │   │   ├── dpml.fixture.ts
@@ -285,13 +300,21 @@
 │   │   │   │   │   ├── mcp
 │   │   │   │   │   │   ├── AsyncStreamHelper.ts
 │   │   │   │   │   │   ├── MockLLMClient.ts
-│   │   │   │   │   │   └── MockMcpClient.ts
+│   │   │   │   │   │   ├── MockMcpClient.ts
+│   │   │   │   │   │   ├── index.ts
+│   │   │   │   │   │   ├── llm-mock.ts
+│   │   │   │   │   │   ├── server.ts
+│   │   │   │   │   │   ├── tools.ts
+│   │   │   │   │   │   ├── transport-http.ts
+│   │   │   │   │   │   └── transport-stdio.ts
 │   │   │   │   │   ├── mcp.fixture.ts
+│   │   │   │   │   ├── mcp.ts
 │   │   │   │   │   ├── test.dpml
 │   │   │   │   │   └── testUtils.fixture.ts
 │   │   │   │   ├── helpers
 │   │   │   │   │   ├── cli-process-runner.ts
-│   │   │   │   │   └── interactive-cli-runner.ts
+│   │   │   │   │   ├── interactive-cli-runner.ts
+│   │   │   │   │   └── xmlHelper.ts
 │   │   │   │   ├── integration
 │   │   │   │   │   ├── agent-creation.integration.test.ts
 │   │   │   │   │   ├── agentenv.integration.test.ts
@@ -303,8 +326,10 @@
 │   │   │   │   │   ├── mcp
 │   │   │   │   │   │   ├── McpClientIntegration.integration.test.ts
 │   │   │   │   │   │   ├── McpEnhancer.integration.test.ts
-│   │   │   │   │   │   └── pipeline
-│   │   │   │   │   │       └── ToolCallPipeline.integration.test.ts
+│   │   │   │   │   │   ├── agentRunner.integration.test.ts
+│   │   │   │   │   │   ├── pipeline
+│   │   │   │   │   │   │   └── ToolCallPipeline.integration.test.ts
+│   │   │   │   │   │   └── schema-transformer.integration.test.ts
 │   │   │   │   │   └── message-processing.integration.test.ts
 │   │   │   │   └── unit
 │   │   │   │       ├── core
@@ -391,7 +416,10 @@
 │   │   │       ├── mcp-01-base.task.md
 │   │   │       ├── mcp-02-implementation.task.md
 │   │   │       ├── mcp-03-integration.task.md
-│   │   │       └── mcp-04-final.task.md
+│   │   │       ├── mcp-04-final.task.md
+│   │   │       ├── mcp-05-dpml-integration.task.md
+│   │   │       ├── mcp-06-testing.task.md
+│   │   │       └── mcp-07-e2e.task.md
 │   │   ├── tsconfig.build.json
 │   │   ├── tsconfig.json
 │   │   ├── tsup.config.ts
@@ -981,4 +1009,4 @@
 ├── typedoc.json
 └── vitest.config.ts
 
-294 directories, 688 files
+298 directories, 712 files

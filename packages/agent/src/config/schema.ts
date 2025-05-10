@@ -1,4 +1,4 @@
-import type { DocumentSchema } from '@dpml/core';
+import type { Schema } from '@dpml/core';
 
 /**
  * Agent的DPML Schema定义
@@ -6,7 +6,7 @@ import type { DocumentSchema } from '@dpml/core';
  * 定义DPML文档的结构和约束规则，
  * 包括元素、属性和内容模型。
  */
-export const schema: DocumentSchema = {
+export const schema: Schema = {
   // 根元素定义
   root: {
     element: 'agent',
@@ -14,6 +14,7 @@ export const schema: DocumentSchema = {
       elements: [
         { $ref: 'llm' },
         { $ref: 'prompt' },
+        { $ref: 'mcp-servers' },
         { $ref: 'experimental' }
       ]
     }
@@ -29,14 +30,14 @@ export const schema: DocumentSchema = {
           required: true
         },
         {
-          name: 'api-url'
+          name: 'model',
+          required: true
         },
         {
           name: 'api-key'
         },
         {
-          name: 'model',
-          required: true
+          name: 'api-url'
         }
       ]
     },
@@ -57,8 +58,44 @@ export const schema: DocumentSchema = {
         ]
       }
     },
+    // MCP服务器配置
     {
-      // 工具集元素
+      element: 'mcp-servers',
+      children: {
+        elements: [
+          { $ref: 'mcp-server' }
+        ]
+      }
+    },
+    {
+      element: 'mcp-server',
+      attributes: [
+        {
+          name: 'name',
+          required: true
+        },
+        {
+          name: 'enabled',
+          type: 'boolean',
+          default: 'true'
+        },
+        {
+          name: 'type',
+          enum: ['http', 'stdio']
+        },
+        {
+          name: 'url'
+        },
+        {
+          name: 'command'
+        },
+        {
+          name: 'args'
+        }
+      ]
+    },
+    {
+      // 工具元素
       element: 'tools',
       children: {
         elements: [
@@ -67,7 +104,7 @@ export const schema: DocumentSchema = {
       }
     },
     {
-      // 工具元素
+      // 工具配置
       element: 'tool',
       attributes: [
         {

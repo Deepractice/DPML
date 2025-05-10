@@ -88,9 +88,16 @@ export class McpRegistry {
     if (config.type === 'http' && config.http) {
       console.log(`创建HTTP客户端，连接到: ${config.http.url}`);
 
-      // 创建HTTP传输
+      // 创建HTTP传输，添加会话ID作为选项参数
+      const sessionId = `session-${config.name}-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+      console.log(`设置HTTP会话ID: ${sessionId}`);
+      
+      // 确保传递会话ID，SDK内部会自动添加到请求头
       const transport = new StreamableHTTPClientTransport(
-        new URL(config.http.url)
+        new URL(config.http.url),
+        {
+          sessionId: sessionId
+        }
       );
 
       // 连接客户端
@@ -98,10 +105,16 @@ export class McpRegistry {
     } else if (config.type === 'stdio' && config.stdio) {
       console.log(`创建STDIO客户端，命令: ${config.stdio.command}`);
 
+      // 确保命令存在
+      if (!config.stdio.command) {
+        throw new Error('无效的STDIO配置: command不能为空');
+      }
+
       // 创建STDIO传输
       const transport = new StdioClientTransport({
         command: config.stdio.command,
-        args: config.stdio.args || []
+        args: config.stdio.args || [],
+        env: config.stdio.env
       });
 
       // 连接客户端
