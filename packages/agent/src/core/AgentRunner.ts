@@ -1,5 +1,4 @@
-import type { AgentConfig, ChatInput, ChatOutput } from '../types';
-import type { McpConfig } from '../types/McpConfig';
+import type { AgentConfig, ChatInput, ChatOutput, McpConfig } from '../types';
 
 import type { LLMClient } from './llm/LLMClient';
 import { registerEnhancer, enhanceLLMClient } from './mcpService';
@@ -16,7 +15,11 @@ export class AgentRunner {
   private llmClient: LLMClient;
   private session: AgentSession;
 
-  constructor(config: AgentConfig, llmClient: LLMClient, session: AgentSession) {
+  constructor(
+    config: AgentConfig,
+    llmClient: LLMClient,
+    session: AgentSession
+  ) {
     this.config = config;
 
     // 检查并应用MCP增强
@@ -31,7 +34,10 @@ export class AgentRunner {
    * @param mcpConfigs MCP配置数组
    * @returns 增强后的LLM客户端
    */
-  private applyMcpEnhancement(baseClient: LLMClient, mcpConfigs?: McpConfig[]): LLMClient {
+  private applyMcpEnhancement(
+    baseClient: LLMClient,
+    mcpConfigs?: McpConfig[]
+  ): LLMClient {
     // 如果没有MCP配置，返回原始客户端
     if (!mcpConfigs || mcpConfigs.length === 0) {
       return baseClient;
@@ -42,7 +48,7 @@ export class AgentRunner {
 
     for (const mcpConfig of mcpConfigs) {
       // 跳过未启用的MCP服务
-      if (mcpConfig.enabled === false) {
+      if (!mcpConfig.enabled) {
         continue;
       }
 
@@ -70,11 +76,14 @@ export class AgentRunner {
    * @param stream 是否使用流式响应
    * @returns 响应内容或流式响应迭代器
    */
-  public sendMessage(input: ChatInput, stream: boolean): Promise<ChatOutput | AsyncIterable<ChatOutput>> {
+  public sendMessage(
+    input: ChatInput,
+    stream: boolean
+  ): Promise<ChatOutput | AsyncIterable<ChatOutput>> {
     // 创建用户消息
     const userMessage: Message = {
       role: 'user',
-      content: input.content
+      content: input.content,
     };
 
     // 添加到会话历史
@@ -101,8 +110,8 @@ export class AgentRunner {
         role: 'system',
         content: {
           type: 'text',
-          value: this.config.prompt
-        }
+          value: this.config.prompt,
+        },
       });
     }
 

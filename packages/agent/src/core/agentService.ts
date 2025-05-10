@@ -73,26 +73,49 @@ async function* handleChatStream(runner: AgentRunner, input: string | ChatInput)
   // 标准化输入为ChatInput
   const chatInput = normalizeChatInput(input);
 
+  console.log('AgentService: 开始处理流式聊天请求');
+
   try {
     // 发送消息并获取流式响应
+    console.log('AgentService: 向AgentRunner发送请求');
     const responseStream = await runner.sendMessage(chatInput, true);
+
+    console.log('AgentService: 从AgentRunner获取响应');
 
     // 确保响应是异步迭代器
     if (!(Symbol.asyncIterator in responseStream)) {
+      console.log('AgentService: 收到的不是流式响应，将作为单个文本块返回');
       // 如果收到单一响应而非流，也将其作为单个块返回
-      yield extractTextFromContent((responseStream as ChatOutput).content);
+      const textContent = extractTextFromContent((responseStream as ChatOutput).content);
+
+      console.log(`AgentService: 提取文本内容，长度 ${textContent.length}`);
+      yield textContent;
 
       return;
     }
 
     // 处理流式响应
-    for await (const chunk of responseStream as AsyncIterable<ChatOutput>) {
-      // 提取每个块中的文本内容
-      const textContent = extractTextFromContent(chunk.content);
+    console.log('AgentService: 开始处理流式响应');
+    let chunkCount = 0;
 
-      if (textContent) {
-        yield textContent;
+    try {
+      for await (const chunk of responseStream as AsyncIterable<ChatOutput>) {
+        chunkCount++;
+        // 提取每个块中的文本内容
+        const textContent = extractTextFromContent(chunk.content);
+
+        if (textContent) {
+          console.log(`AgentService: 产出第${chunkCount}个响应块，长度 ${textContent.length}`);
+          yield textContent;
+        } else {
+          console.log(`AgentService: 跳过第${chunkCount}个响应块，内容为空`);
+        }
       }
+
+      console.log(`AgentService: 流处理完成，共处理${chunkCount}个响应块`);
+    } catch (streamError) {
+      console.error(`AgentService: 流处理出错: ${streamError instanceof Error ? streamError.message : String(streamError)}`);
+      throw streamError; // 重新抛出错误以便上层处理
     }
   } catch (error: unknown) {
     // 已经是AgentError则直接抛出
@@ -101,12 +124,15 @@ async function* handleChatStream(runner: AgentRunner, input: string | ChatInput)
     }
 
     // 否则包装为AgentError
-    throw new AgentError(
+    const agentError = new AgentError(
       `流式聊天请求处理失败: ${error instanceof Error ? error.message : String(error)}`,
       AgentErrorType.UNKNOWN,
       'STREAM_PROCESSING_ERROR',
       error instanceof Error ? error : new Error(String(error))
     );
+
+    console.error(`AgentService: ${agentError.message}`);
+    throw agentError;
   }
 }
 

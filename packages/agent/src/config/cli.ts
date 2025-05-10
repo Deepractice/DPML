@@ -52,8 +52,30 @@ export async function handleStreamChat(agent: any, input: string): Promise<void>
   try {
     process.stdout.write('\n'); // 输出开始新行
 
-    for await (const chunk of agent.chatStream(input)) {
-      process.stdout.write(chunk);
+    const chatStream = agent.chatStream(input);
+
+    console.log('CLI处理: 开始接收流式响应');
+
+    // 处理流式响应
+    let receivedChunks = 0;
+    let totalTextLength = 0;
+
+    try {
+      for await (const chunk of chatStream) {
+        receivedChunks++;
+
+        if (chunk && chunk.length > 0) {
+          totalTextLength += chunk.length;
+          console.log(`CLI处理: 收到第${receivedChunks}个文本块，长度${chunk.length}`);
+          process.stdout.write(chunk);
+        } else {
+          console.log(`CLI处理: 收到第${receivedChunks}个文本块，但内容为空`);
+        }
+      }
+
+      console.log(`\nCLI处理: 流式响应结束，共接收${receivedChunks}个文本块，总长度${totalTextLength}`);
+    } catch (streamError) {
+      console.error(`\nCLI处理: 流处理出错: ${streamError instanceof Error ? streamError.message : String(streamError)}`);
     }
 
     process.stdout.write('\n\n'); // 输出结束添加空行

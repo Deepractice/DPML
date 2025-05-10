@@ -201,7 +201,7 @@ describe('ToolCallPipeline集成测试', () => {
     vi.spyOn(convEntry, 'process');
 
     // 监视SideBandProcessor的私有方法
-    const forkStreamSpy = vi.spyOn(sideBand as any, 'forkStream');
+    const asyncIterableToReadableStreamSpy = vi.spyOn(sideBand as any, 'asyncIterableToReadableStream');
 
     // 重建管道
     pipeline = new ToolCallPipeline();
@@ -220,7 +220,7 @@ describe('ToolCallPipeline集成测试', () => {
     // 验证流式处理
     expect(llmClientWithStream.sendMessages).toHaveBeenCalledWith(expect.anything(), true);
     expect(sideBand.process).toHaveBeenCalled();
-    expect(forkStreamSpy).toHaveBeenCalled();
+    expect(asyncIterableToReadableStreamSpy).toHaveBeenCalled();
   });
 
   test('处理器链应正确处理多轮工具调用', async () => {

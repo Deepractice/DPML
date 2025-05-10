@@ -19,12 +19,11 @@ describe('CT-MCP-Transformer', () => {
   });
 
   test('CT-MCP-Trans-03: mcpTransformer应定义正确的选择器', () => {
-    // 通过转换器对象获取选择器信息
-    const transformer = mcpTransformer as any;
-    const rules = transformer.rules || [];
+    // 使用转换器的mappingRules属性获取规则
+    const mappingRules = (mcpTransformer as any).mappingRules || [];
 
     // 查找包含mcp-servers选择器的规则
-    const mcpRule = rules.find((rule: any) =>
+    const mcpRule = mappingRules.find((rule: any) =>
       rule.selector && rule.selector.includes('mcp-servers')
     );
 

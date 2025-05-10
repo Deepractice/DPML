@@ -50,7 +50,7 @@ export const agentTransformer = definer.defineStructuralMapper<unknown, AgentCon
  *
  * 将DPML文档中的MCP服务器配置转换为McpConfig数组
  */
-const _mcpTransformer = definer.defineStructuralMapper<unknown, AgentConfig>(
+export const mcpTransformer = definer.defineStructuralMapper<unknown, AgentConfig>(
   'mcpTransformer',
   [
     {
@@ -103,18 +103,6 @@ const _mcpTransformer = definer.defineStructuralMapper<unknown, AgentConfig>(
     }
   ]
 );
-
-// 创建具有测试所需属性的转换器
-export const mcpTransformer = {
-  name: 'mcpTransformer',
-  transform: _mcpTransformer.transform,
-  rules: [
-    {
-      selector: 'agent > mcp-servers',
-      targetPath: 'mcpServers'
-    }
-  ]
-};
 
 /**
  * 推断MCP服务器传输类型

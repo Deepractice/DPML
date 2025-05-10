@@ -234,6 +234,7 @@
 │   │   │   └── usage
 │   │   │       └── MCP-Usage-Guide.md
 │   │   ├── examples
+│   │   │   ├── debug-error.js
 │   │   │   └── simple-agent.dpml
 │   │   ├── node_modules
 │   │   │   ├── @dpml
@@ -419,7 +420,8 @@
 │   │   │       ├── mcp-04-final.task.md
 │   │   │       ├── mcp-05-dpml-integration.task.md
 │   │   │       ├── mcp-06-testing.task.md
-│   │   │       └── mcp-07-e2e.task.md
+│   │   │       ├── mcp-07-e2e.task.md
+│   │   │       └── mcp-08-stream-processing-fix.task.md
 │   │   ├── tsconfig.build.json
 │   │   ├── tsconfig.json
 │   │   ├── tsup.config.ts
@@ -1009,4 +1011,4 @@
 ├── typedoc.json
 └── vitest.config.ts
 
-298 directories, 712 files
+298 directories, 714 files
