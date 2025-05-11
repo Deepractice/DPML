@@ -8,22 +8,29 @@ import { describe, test, expect, vi, beforeEach, afterEach, beforeAll } from 'vi
 
 import { createAgent } from '../../api/agent';
 import * as agentModule from '../../api/agent';
+import type { Agent } from '../../types/Agent';
 import { createMockActionContext } from '../fixtures/cli.fixture';
 import { createExpectedConfig } from '../fixtures/dpml.fixture';
 
 import { isLLMConfigValid, getLLMConfig } from './env-helper';
 
+// 添加标志变量，防止重复打印日志
+const hasLoggedAgentCreation = {
+  openai: false,
+  anthropic: false
+};
 
 // 检查是否使用真实API
 const useOpenAIRealAPI = isLLMConfigValid('openai');
 const useAnthropicRealAPI = isLLMConfigValid('anthropic');
 
 // 避免真实导入，改用类型声明和模拟
-let mockAgent = {
+let mockAgent: Agent = {
   chat: vi.fn().mockResolvedValue('模拟响应'),
-  chatStream: vi.fn().mockImplementation(async function* () {
-    yield '模拟流式响应';
-  })
+  cancel: vi.fn(),
+  createSession: vi.fn().mockReturnValue('mock-session-id'),
+  getSession: vi.fn(),
+  removeSession: vi.fn()
 };
 
 // 测试DPML文件路径
@@ -50,7 +57,11 @@ vi.spyOn(agentModule, 'createAgent').mockImplementation((config) => {
   if ((config.llm.apiType === 'openai' && useOpenAIRealAPI) ||
       (config.llm.apiType === 'anthropic' && useAnthropicRealAPI)) {
     // 在使用真实API时，创建真实的Agent
-    console.info(`使用真实${config.llm.apiType}客户端创建Agent`);
+    // 只在首次创建时输出日志
+    if (!hasLoggedAgentCreation[config.llm.apiType as 'openai' | 'anthropic']) {
+      console.info(`使用真实${config.llm.apiType}客户端创建Agent`);
+      hasLoggedAgentCreation[config.llm.apiType as 'openai' | 'anthropic'] = true;
+    }
 
     return createAgent({
       ...config,
@@ -66,7 +77,11 @@ vi.spyOn(agentModule, 'createAgent').mockImplementation((config) => {
   }
 
   // 模拟模式下返回模拟Agent
-  console.info(`使用模拟${config.llm.apiType}客户端创建Agent`);
+  // 只在首次创建时输出日志
+  if (!hasLoggedAgentCreation[config.llm.apiType as 'openai' | 'anthropic']) {
+    console.info(`使用模拟${config.llm.apiType}客户端创建Agent`);
+    hasLoggedAgentCreation[config.llm.apiType as 'openai' | 'anthropic'] = true;
+  }
 
   return mockAgent;
 });
@@ -154,7 +169,7 @@ const mockExecuteChat = async (context: any, filePath: string, options: any) => 
 
     // 创建Agent实例并发送消息
     const agent = agentModule.createAgent(config);
-    const response = await agent.chat('测试消息');
+    const response = await agent.chat('test-session-id', '测试消息');
 
     if (useOpenAIRealAPI || useAnthropicRealAPI) {
       console.info(`真实API响应: ${response}`);
@@ -233,9 +248,10 @@ describe('E2E-CLI', () => {
     // 重置mockAgent
     mockAgent = {
       chat: vi.fn().mockResolvedValue('模拟响应'),
-      chatStream: vi.fn().mockImplementation(async function* () {
-        yield '模拟流式响应';
-      })
+      cancel: vi.fn(),
+      createSession: vi.fn().mockReturnValue('mock-session-id'),
+      getSession: vi.fn(),
+      removeSession: vi.fn()
     };
 
     // 设置chat命令动作

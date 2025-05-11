@@ -1,12 +1,13 @@
 /**
  * OpenAIClient 单元测试
  */
+import { firstValueFrom } from 'rxjs';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
+import type { LLMRequest } from '../../../../core/llm/LLMRequest';
 import { OpenAIClient } from '../../../../core/llm/OpenAIClient';
-import type { Message } from '../../../../core/types';
-import { AgentError, AgentErrorType } from '../../../../types';
-import type { LLMConfig } from '../../../../types';
+import { AgentError, AgentErrorType } from '../../../../types/errors';
+import type { LLMConfig } from '../../../../types/LLMConfig';
 
 describe('UT-OpenAI', () => {
   // 有效的配置
@@ -22,15 +23,18 @@ describe('UT-OpenAI', () => {
     // 模拟全局fetch函数（如果实现使用fetch）
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: vi.fn().mockResolvedValue({
-        choices: [
-          {
-            message: {
-              content: '模拟响应'
-            }
-          }
-        ]
-      })
+      body: {
+        getReader: vi.fn().mockReturnValue({
+          read: vi.fn().mockResolvedValueOnce({
+            done: false,
+            value: new TextEncoder().encode('data: {"choices":[{"delta":{"content":"模拟响应"}}]}\n\n')
+          }).mockResolvedValueOnce({
+            done: true,
+            value: undefined
+          }),
+          releaseLock: vi.fn()
+        })
+      }
     });
   });
 
@@ -54,7 +58,7 @@ describe('UT-OpenAI', () => {
     // 执行
     const client = new OpenAIClient(configWithoutUrl);
 
-    // 验证（OpenAIClient实例通过了创建，如果URL错误会在sendMessages中暴露）
+    // 验证（OpenAIClient实例通过了创建，如果URL错误会在sendRequest中暴露）
     expect(client).toBeDefined();
   });
 
@@ -98,105 +102,135 @@ describe('UT-OpenAI', () => {
     expect(client).toBeDefined();
   });
 
-  test('UT-OpenAI-05: convertToOpenAIMessages应转换消息格式', () => {
-    // 注意：由于convertToOpenAIMessages是私有方法，我们通过调用public方法间接测试
+  test('UT-OpenAI-05: sendRequest应使用正确的模型参数', async () => {
     // 准备
     const client = new OpenAIClient(validConfig);
-    const messages: Message[] = [
-      {
-        role: 'system',
-        content: { type: 'text', value: '你是一个助手' }
-      },
-      {
+    const request: LLMRequest = {
+      sessionId: 'test-session',
+      messages: [{
+        id: 'msg-1',
         role: 'user',
-        content: { type: 'text', value: '你好' }
-      }
-    ];
-
-    // 执行 - 由于内部实现尚未完成，这里可能会抛出错误，我们只验证调用了正确的方法
-    try {
-      client.sendMessages(messages, false);
-    } catch (error) {
-      // 预期会抛出"方法未实现"错误，忽略
-    }
-
-    // 因为我们无法直接访问私有方法，此测试作用有限
-    // 当实现完成后，我们应该验证fetch或axios是否被调用并传递了正确格式的消息
-    expect(true).toBe(true);
-  });
-
-  test('UT-OpenAI-06: convertContent应正确处理文本内容', () => {
-    // 同样，这是对私有方法的间接测试
-    const client = new OpenAIClient(validConfig);
-    const messages: Message[] = [
-      {
-        role: 'user',
-        content: { type: 'text', value: '纯文本消息' }
-      }
-    ];
+        content: { type: 'text', value: '你好' },
+        timestamp: Date.now()
+      }]
+    };
 
     // 执行
-    try {
-      client.sendMessages(messages, false);
-    } catch (error) {
-      // 预期会抛出"方法未实现"错误，忽略
-    }
+    const subscription = client.sendRequest(request).subscribe();
 
-    // 同样，因为内部实现尚未完成，此测试作用有限
-    expect(true).toBe(true);
+    // 等待异步操作完成
+    await new Promise(resolve => setTimeout(resolve, 50));
+    subscription.unsubscribe();
+
+    // 验证
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/chat/completions'),
+      expect.objectContaining({
+        method: 'POST',
+        body: expect.stringContaining(validConfig.model)
+      })
+    );
   });
 
-  test('UT-OpenAI-07: convertContent应正确处理多模态内容', () => {
+  test('UT-OpenAI-06: sendRequest应处理请求被取消的情况', async () => {
     // 准备
     const client = new OpenAIClient(validConfig);
-    const messages: Message[] = [
-      {
+    const request: LLMRequest = {
+      sessionId: 'test-session',
+      messages: [{
+        id: 'msg-1',
         role: 'user',
-        content: [
-          { type: 'text', value: '带图片的消息' },
-          {
-            type: 'image',
-            value: new Uint8Array([1, 2, 3]),
-            mimeType: 'image/jpeg'
-          }
-        ]
-      }
-    ];
+        content: { type: 'text', value: '你好' },
+        timestamp: Date.now()
+      }]
+    };
+
+    // 模拟fetch时abort事件
+    global.fetch = vi.fn().mockImplementation(() => {
+      const error = new Error('请求被中止');
+
+      error.name = 'AbortError';
+
+      return Promise.reject(error);
+    });
 
     // 执行
-    try {
-      client.sendMessages(messages, false);
-    } catch (error) {
-      // 预期会抛出"方法未实现"错误，忽略
-    }
+    const subscription = client.sendRequest(request).subscribe({
+      error: (_err) => {
+        // 不应该到达这里，因为AbortError应当被视为完成而非错误
+        expect(true).toBe(false);
+      }
+    });
 
-    // 同样，因为内部实现尚未完成，此测试作用有限
-    expect(true).toBe(true);
+    // 立即取消
+    subscription.unsubscribe();
+
+    // 等待一小段时间确保没有触发error回调
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    // 验证fetch被调用
+    expect(global.fetch).toHaveBeenCalled();
   });
 
-  test('UT-OpenAI-08: sendMessages应处理API错误', async () => {
+  test('UT-OpenAI-07: sendRequest应将API错误包装为AgentError', async () => {
     // 准备
     const client = new OpenAIClient(validConfig);
-    const messages: Message[] = [
-      { role: 'user', content: { type: 'text', value: '测试消息' } }
-    ];
+    const request: LLMRequest = {
+      sessionId: 'test-session',
+      messages: [{
+        id: 'msg-1',
+        role: 'user',
+        content: { type: 'text', value: '你好' },
+        timestamp: Date.now()
+      }]
+    };
 
     // 模拟API错误
-    global.fetch = vi.fn().mockRejectedValue(new Error('API调用失败'));
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      statusText: 'Unauthorized',
+      text: vi.fn().mockResolvedValue('无效的API密钥')
+    });
 
-    // 执行和验证
-    await expect(client.sendMessages(messages, false)).rejects.toThrow(AgentError);
-    await expect(client.sendMessages(messages, false)).rejects.toThrow('LLM服务调用失败');
+    // 使用await/expect().rejects验证错误
+    await expect(
+      firstValueFrom(client.sendRequest(request))
+    ).rejects.toEqual(expect.objectContaining({
+      type: AgentErrorType.LLM_SERVICE,
+      code: 'LLM_API_ERROR',
+      message: expect.stringContaining('无效的API密钥')
+    }));
+  });
 
-    try {
-      await client.sendMessages(messages, false);
-    } catch (error) {
-      expect(error).toBeInstanceOf(AgentError);
-      const agentError = error as AgentError;
+  test('UT-OpenAI-08: sendRequest应支持自定义model参数', async () => {
+    // 准备
+    const client = new OpenAIClient(validConfig);
+    const customModel = 'gpt-4-turbo';
+    const request: LLMRequest = {
+      sessionId: 'test-session',
+      messages: [{
+        id: 'msg-1',
+        role: 'user',
+        content: { type: 'text', value: '你好' },
+        timestamp: Date.now()
+      }],
+      model: customModel // 自定义模型
+    };
 
-      expect(agentError.type).toBe(AgentErrorType.LLM_SERVICE);
-      expect(agentError.code).toBe('LLM_API_ERROR');
-      expect(agentError.cause).toBeDefined();
-    }
+    // 执行
+    const subscription = client.sendRequest(request).subscribe();
+
+    // 等待异步操作完成
+    await new Promise(resolve => setTimeout(resolve, 50));
+    subscription.unsubscribe();
+
+    // 验证
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        body: expect.stringContaining(customModel)
+      })
+    );
   });
 });

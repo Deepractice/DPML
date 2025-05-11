@@ -330,4 +330,11 @@ export default [
       '@typescript-eslint/no-unused-vars': 'off', // 在API定义文件中禁用未使用变量的检查
     },
   },
+  // LLM客户端文件特殊规则 - 禁用camelcase检查，因为它们需要与外部API对接
+  {
+    files: ['**/core/llm/*Client.ts', '**/core/llm/LLMRequest.ts'],
+    rules: {
+      'camelcase': 'off', // 在LLM客户端文件中禁用camelcase检查，因为需要与外部API对接使用蛇形命名法
+    },
+  },
 ];

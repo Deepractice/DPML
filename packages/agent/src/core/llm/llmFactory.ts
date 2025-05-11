@@ -1,5 +1,5 @@
-import { AgentError, AgentErrorType } from '../../types';
-import type { LLMConfig } from '../../types';
+import { AgentError, AgentErrorType } from '../../types/errors';
+import type { LLMConfig } from '../../types/LLMConfig';
 
 import { AnthropicClient } from './AnthropicClient';
 import type { LLMClient } from './LLMClient';
@@ -44,7 +44,7 @@ function validateConfig(config: LLMConfig): void {
  * @param config LLM配置
  * @returns LLM客户端实例
  */
-export function createClient(config: LLMConfig): LLMClient {
+export function createLLMClient(config: LLMConfig): LLMClient {
   // 首先验证配置的基本有效性
   validateConfig(config);
 
@@ -61,3 +61,6 @@ export function createClient(config: LLMConfig): LLMClient {
       );
   }
 }
+
+// 保留旧名称作为兼容性导出
+export const createClient = createLLMClient;

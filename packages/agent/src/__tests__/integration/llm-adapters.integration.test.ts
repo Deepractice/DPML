@@ -1,21 +1,24 @@
 /**
  * LLM适配器集成测试
+ *
+ * 已更新以适配RxJS架构
  */
+import { of } from 'rxjs';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-import { createClient } from '../../core/llm/llmFactory';
+import { createLLMClient } from '../../core/llm/llmFactory';
+import type { LLMRequest } from '../../core/llm/LLMRequest';
 import { OpenAIClient } from '../../core/llm/OpenAIClient';
-import type { Message } from '../../core/types';
-import type { LLMConfig } from '../../types';
-import { AgentError, AgentErrorType } from '../../types';
+import { AgentError, AgentErrorType } from '../../types/errors';
+import type { LLMConfig } from '../../types/LLMConfig';
 
 // 模拟OpenAI客户端
 vi.mock('../../core/llm/OpenAIClient', () => {
   return {
     OpenAIClient: vi.fn().mockImplementation(() => ({
-      sendMessages: vi.fn().mockResolvedValue({
+      sendRequest: vi.fn().mockReturnValue(of({
         content: { type: 'text', value: 'OpenAI响应' }
-      })
+      }))
     }))
   };
 });
@@ -34,14 +37,14 @@ describe('IT-LLM', () => {
     };
 
     // 执行
-    const client = createClient(openaiConfig);
+    const client = createLLMClient(openaiConfig);
 
     // 验证
     expect(OpenAIClient).toHaveBeenCalledWith(openaiConfig);
     expect(client).toBeDefined();
   });
 
-  test('IT-LLM-02: LLM客户端应正确转换消息格式', async () => {
+  test('IT-LLM-02: LLM客户端应正确转换消息格式', () => {
     // 准备
     const config: LLMConfig = {
       apiType: 'openai',
@@ -49,29 +52,37 @@ describe('IT-LLM', () => {
       apiKey: 'sk-test123'
     };
 
-    const client = createClient(config);
+    const client = createLLMClient(config);
 
-    // 模拟内部消息
-    const messages: Message[] = [
-      {
-        role: 'system',
-        content: { type: 'text', value: '系统提示词' }
-      },
-      {
-        role: 'user',
-        content: { type: 'text', value: '用户消息' }
-      }
-    ];
+    // 创建测试请求
+    const request: LLMRequest = {
+      sessionId: 'test-session',
+      messages: [
+        {
+          id: 'msg-1',
+          role: 'system',
+          content: { type: 'text', value: '系统提示词' },
+          timestamp: Date.now()
+        },
+        {
+          id: 'msg-2',
+          role: 'user',
+          content: { type: 'text', value: '用户消息' },
+          timestamp: Date.now()
+        }
+      ]
+    };
 
     // 执行
-    try {
-      await client.sendMessages(messages, false);
-    } catch (error) {
-      // 可能抛出未实现错误，对测试无影响
-    }
+    client.sendRequest(request);
 
-    // 验证OpenAIClient被构造
+    // 验证OpenAIClient被构造并调用
     expect(OpenAIClient).toHaveBeenCalledWith(config);
+
+    // 获取模拟的OpenAIClient实例并验证sendRequest被调用
+    const mockInstance = vi.mocked(OpenAIClient).mock.results[0].value;
+
+    expect(mockInstance.sendRequest).toHaveBeenCalled();
   });
 
   test('IT-LLM-03: 应在工厂层正确处理不支持的适配器错误', () => {
@@ -82,11 +93,11 @@ describe('IT-LLM', () => {
     };
 
     // 执行和验证
-    expect(() => createClient(unsupportedConfig)).toThrow(AgentError);
-    expect(() => createClient(unsupportedConfig)).toThrow(/不支持的API类型/);
+    expect(() => createLLMClient(unsupportedConfig)).toThrow(AgentError);
+    expect(() => createLLMClient(unsupportedConfig)).toThrow(/不支持的API类型/);
 
     try {
-      createClient(unsupportedConfig);
+      createLLMClient(unsupportedConfig);
     } catch (error) {
       expect(error).toBeInstanceOf(AgentError);
       const agentError = error as AgentError;
@@ -105,6 +116,6 @@ describe('IT-LLM', () => {
     };
 
     // 执行和验证
-    expect(() => createClient(invalidConfig)).toThrow();
+    expect(() => createLLMClient(invalidConfig)).toThrow();
   });
 });

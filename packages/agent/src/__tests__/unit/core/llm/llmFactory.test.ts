@@ -3,14 +3,14 @@
  */
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-import { createClient } from '../../../../core/llm/llmFactory';
+import { createLLMClient } from '../../../../core/llm/llmFactory';
 import { OpenAIClient } from '../../../../core/llm/OpenAIClient';
-import { AgentError, AgentErrorType } from '../../../../types';
+import { AgentError, AgentErrorType } from '../../../../types/errors';
 
 // 模拟OpenAIClient
 vi.mock('../../../../core/llm/OpenAIClient', () => ({
   OpenAIClient: vi.fn().mockImplementation(() => ({
-    sendMessages: vi.fn()
+    sendRequest: vi.fn()
   }))
 }));
 
@@ -19,7 +19,7 @@ describe('UT-LLMFact', () => {
     vi.clearAllMocks();
   });
 
-  test('UT-LLMFact-01: createClient应为OpenAI配置创建OpenAIClient', () => {
+  test('UT-LLMFact-01: createLLMClient应为OpenAI配置创建OpenAIClient', () => {
     // 准备
     const config = {
       apiType: 'openai',
@@ -28,14 +28,14 @@ describe('UT-LLMFact', () => {
     };
 
     // 执行
-    const client = createClient(config);
+    const client = createLLMClient(config);
 
     // 验证
     expect(OpenAIClient).toHaveBeenCalledWith(config);
     expect(client).toBeDefined();
   });
 
-  test('UT-LLMFact-02: createClient应忽略apiType大小写', () => {
+  test('UT-LLMFact-02: createLLMClient应忽略apiType大小写', () => {
     // 准备
     const config = {
       apiType: 'OpenAI', // 首字母大写
@@ -44,14 +44,14 @@ describe('UT-LLMFact', () => {
     };
 
     // 执行
-    const client = createClient(config);
+    const client = createLLMClient(config);
 
     // 验证
     expect(OpenAIClient).toHaveBeenCalledWith(config);
     expect(client).toBeDefined();
   });
 
-  test('UT-LLMFact-03: createClient应对不支持的API类型抛出错误', () => {
+  test('UT-LLMFact-03: createLLMClient应对不支持的API类型抛出错误', () => {
     // 准备
     const config = {
       apiType: 'unknown',
@@ -60,11 +60,11 @@ describe('UT-LLMFact', () => {
     };
 
     // 执行和验证
-    expect(() => createClient(config)).toThrow(AgentError);
-    expect(() => createClient(config)).toThrow('不支持的API类型');
+    expect(() => createLLMClient(config)).toThrow(AgentError);
+    expect(() => createLLMClient(config)).toThrow('不支持的API类型');
 
     try {
-      createClient(config);
+      createLLMClient(config);
     } catch (error) {
       expect(error).toBeInstanceOf(AgentError);
       const agentError = error as AgentError;

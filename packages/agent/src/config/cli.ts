@@ -4,9 +4,12 @@ import readline from 'readline';
 
 import type { DomainCommandsConfig } from '@dpml/core';
 import dotenv from 'dotenv';
+import { firstValueFrom } from 'rxjs';
 
-import { createAgent } from '../api/agent';
+import { createAgent } from '../api';
 import { replaceEnvVars } from '../api/agentenv';
+import type { ChatOutput } from '../types';
+import { extractTextContent } from '../utils/contentHelpers';
 
 /**
  * 加载环境变量
@@ -32,46 +35,109 @@ function loadEnvironmentVariables(options: any): void {
 }
 
 /**
- * 处理常规聊天（非流式）
+ * 处理聊天输出（支持流式和非流式模式）
+ * @param agent Agent实例
+ * @param sessionId 会话ID
+ * @param input 用户输入
+ * @param streaming 是否使用流式输出
  */
-export async function handleRegularChat(agent: any, input: string): Promise<void> {
+export async function handleChat(
+  agent: any,
+  sessionId: string,
+  input: string,
+  streaming: boolean = true
+): Promise<void> {
   try {
-    // 发送消息并获取响应
-    const response = await agent.chat(input);
+    if (streaming) {
+      // 流式输出处理
+      process.stdout.write('\n');
 
-    console.log('\n' + response + '\n');
-  } catch (error) {
-    console.error('错误:', error instanceof Error ? error.message : String(error));
-  }
-}
+      try {
+        return new Promise<void>((resolve, reject) => {
+          const subscription = agent.chat(sessionId, input).subscribe({
+            next: (chunk: ChatOutput) => {
+              try {
+                // 提取每个块的文本内容并输出
+                const textContent = extractTextContent(chunk.content);
 
-/**
- * 处理流式聊天
- */
-export async function handleStreamChat(agent: any, input: string): Promise<void> {
-  try {
-    process.stdout.write('\n'); // 输出开始新行
+                process.stdout.write(textContent);
+              } catch (err) {
+                console.error(
+                  '\nError:',
+                  err instanceof Error ? err.message : String(err)
+                );
+                reject(err);
+              }
+            },
+            error: (err: any) => {
+              console.error(
+                '\nError:',
+                err instanceof Error ? err.message : String(err)
+              );
+              // 捕获所有错误并转换为 rejection
+              reject(err);
+            },
+            complete: () => {
+              process.stdout.write('\n\n'); // 输出结束添加空行
+              resolve();
+            },
+          });
 
-    for await (const chunk of agent.chatStream(input)) {
-      process.stdout.write(chunk);
+          // 返回取消订阅函数，以便可以在需要时中断处理
+          return () => subscription.unsubscribe();
+        });
+      } catch (streamError) {
+        // 捕获与订阅相关的错误
+        console.error(
+          '\nError:',
+          streamError instanceof Error
+            ? streamError.message
+            : String(streamError)
+        );
+      }
+    } else {
+      // 非流式处理
+      try {
+        const response = (await firstValueFrom(
+          agent.chat(sessionId, input)
+        )) as ChatOutput;
+
+        // 提取文本内容
+        const textContent = extractTextContent(response.content);
+
+        console.log('\n' + textContent + '\n');
+      } catch (nonStreamError) {
+        console.error(
+          'Error:',
+          nonStreamError instanceof Error
+            ? nonStreamError.message
+            : String(nonStreamError)
+        );
+      }
     }
-
-    process.stdout.write('\n\n'); // 输出结束添加空行
   } catch (error) {
-    console.error('\n错误:', error instanceof Error ? error.message : String(error));
+    // 捕获所有其他可能的错误
+    console.error(
+      'Error:',
+      error instanceof Error ? error.message : String(error)
+    );
   }
 }
 
 /**
  * 执行交互式聊天
  */
-async function executeChat(actionContext: any, filePath: string, options: any): Promise<void> {
+async function executeChat(
+  actionContext: any,
+  filePath: string,
+  options: any
+): Promise<void> {
   try {
     // 加载环境变量
     loadEnvironmentVariables(options);
 
     console.log('\nDPML Agent Chat');
-    console.log(`加载Agent配置: ${filePath}\n`);
+    console.log(`Loading Agent configuration: ${filePath}\n`);
 
     // 读取文件内容
     const content = await fs.readFile(filePath, 'utf-8');
@@ -85,33 +151,39 @@ async function executeChat(actionContext: any, filePath: string, options: any): 
     // 创建Agent实例
     const agent = createAgent(processedConfig);
 
+    // 创建会话
+    const sessionId = agent.createSession();
+
+    // 打印会话ID
+    console.log(`Session ID: ${sessionId}`);
+
     // 创建交互界面
     const rl = readline.createInterface({
       input: process.stdin,
-      output: process.stdout
+      output: process.stdout,
     });
 
-    console.log('你好，我是AI助手。有什么我可以帮你的？');
+    console.log('\n');
 
     // 确定是否使用流式输出（默认启用）
     const useStream = options.stream !== false;
 
     // 交互式聊天循环
     const askQuestion = () => {
-      rl.question('> ', async (input) => {
-        if (input.toLowerCase() === 'exit' || input.toLowerCase() === 'quit' || input.toLowerCase() === 'bye') {
-          console.log('会话结束。');
+      rl.question('> ', async input => {
+        if (
+          input.toLowerCase() === 'exit' ||
+          input.toLowerCase() === 'quit' ||
+          input.toLowerCase() === 'bye'
+        ) {
+          console.log('Session ended.');
           rl.close();
 
           return;
         }
 
-        // 根据选项选择处理方式
-        if (useStream) {
-          await handleStreamChat(agent, input);
-        } else {
-          await handleRegularChat(agent, input);
-        }
+        // 处理聊天，使用相应的流式选项
+        await handleChat(agent, sessionId, input, useStream);
 
         // 继续等待输入
         askQuestion();
@@ -121,7 +193,10 @@ async function executeChat(actionContext: any, filePath: string, options: any): 
     // 开始交互循环
     askQuestion();
   } catch (error) {
-    console.error('错误:', error instanceof Error ? error.message : String(error));
+    console.error(
+      'Error:',
+      error instanceof Error ? error.message : String(error)
+    );
     process.exit(1);
   }
 }
@@ -137,34 +212,34 @@ export const commandsConfig: DomainCommandsConfig = {
   actions: [
     {
       name: 'chat',
-      description: '启动与Agent的交互式聊天',
+      description: 'Start interactive chat with the Agent',
       args: [
         {
           name: 'filePath',
-          description: 'Agent配置文件路径',
-          required: true
-        }
+          description: 'Path to the Agent configuration file',
+          required: true,
+        },
       ],
       options: [
         {
           flags: '-e, --env <KEY=VALUE...>',
-          description: '设置环境变量'
+          description: 'Set environment variables',
         },
         {
           flags: '-f, --env-file <path>',
-          description: '指定环境变量文件路径'
+          description: 'Specify the path to the environment variable file',
         },
         {
           flags: '-d, --debug',
-          description: '启用调试模式'
+          description: 'Enable debug mode',
         },
         {
           flags: '-s, --stream',
-          description: '启用流式输出模式（默认开启）',
-          defaultValue: true
-        }
+          description: 'Enable streaming output mode (default enabled)',
+          defaultValue: true,
+        },
       ],
-      action: executeChat
-    }
-  ]
+      action: executeChat,
+    },
+  ],
 };

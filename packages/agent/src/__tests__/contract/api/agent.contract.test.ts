@@ -3,19 +3,24 @@
  *
  * 验证Agent API层的稳定性和一致性。
  */
+import { Observable, of } from 'rxjs';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-import type { AgentConfig } from '../../../types';
-import { AgentError, AgentErrorType } from '../../../types';
+import type { AgentConfig } from '../../../types/AgentConfig';
+import { AgentError, AgentErrorType } from '../../../types/errors';
+
+// 模拟会话ID
+const mockSessionId = 'test-session';
 
 // 使用vi.mock的工厂函数模式进行模拟
 vi.mock('../../../core/agentService', () => {
   return {
     createAgent: vi.fn().mockReturnValue({
-      chat: async () => '模拟响应',
-      chatStream: async function* () {
-        yield '模拟流式响应';
-      }
+      chat: () => of({ content: { type: 'text', value: '模拟响应' } }),
+      cancel: vi.fn(),
+      createSession: () => mockSessionId,
+      getSession: () => ({ id: mockSessionId }),
+      removeSession: () => true
     })
   };
 });
@@ -50,13 +55,35 @@ describe('CT-API-Agent', () => {
     // 验证返回对象实现了Agent接口
     expect(agent).toBeDefined();
     expect(typeof agent.chat).toBe('function');
-    expect(typeof agent.chatStream).toBe('function');
+    expect(typeof agent.cancel).toBe('function');
+    expect(typeof agent.createSession).toBe('function');
+    expect(typeof agent.getSession).toBe('function');
+    expect(typeof agent.removeSession).toBe('function');
 
     // 验证Core层被正确调用
     expect(createAgent).toHaveBeenCalledWith(config);
   });
 
-  test('CT-API-Agent-03: Agent.chat方法应符合公开契约', async () => {
+  test('CT-API-Agent-03: Agent.chat方法应符合公开契约', () => {
+    // 准备
+    const config: AgentConfig = {
+      llm: {
+        apiType: 'openai',
+        model: 'gpt-4'
+      },
+      prompt: '你是一个AI助手'
+    };
+    const agent = apiCreateAgent(config);
+    const sessionId = agent.createSession();
+
+    // 执行
+    const response = agent.chat(sessionId, '测试输入');
+
+    // 验证返回类型为Observable
+    expect(response).toBeInstanceOf(Observable);
+  });
+
+  test('CT-API-Agent-04: Agent.createSession方法应符合公开契约', () => {
     // 准备
     const config: AgentConfig = {
       llm: {
@@ -68,13 +95,14 @@ describe('CT-API-Agent', () => {
     const agent = apiCreateAgent(config);
 
     // 执行
-    const response = await agent.chat('测试输入');
+    const sessionId = agent.createSession();
 
-    // 验证返回类型为Promise<string>
-    expect(typeof response).toBe('string');
+    // 验证返回值为字符串
+    expect(typeof sessionId).toBe('string');
+    expect(sessionId).toBe(mockSessionId);
   });
 
-  test('CT-API-Agent-04: Agent.chatStream方法应符合公开契约', async () => {
+  test('CT-API-Agent-05: Agent.getSession方法应符合公开契约', () => {
     // 准备
     const config: AgentConfig = {
       llm: {
@@ -84,24 +112,37 @@ describe('CT-API-Agent', () => {
       prompt: '你是一个AI助手'
     };
     const agent = apiCreateAgent(config);
+    const sessionId = agent.createSession();
 
     // 执行
-    const stream = agent.chatStream('测试输入');
+    const session = agent.getSession(sessionId);
 
-    // 验证返回值符合AsyncIterable接口
-    expect(stream[Symbol.asyncIterator]).toBeDefined();
-
-    // 验证可以迭代
-    const chunks: string[] = [];
-
-    for await (const chunk of stream) {
-      chunks.push(chunk);
-    }
-
-    expect(chunks.length).toBeGreaterThan(0);
+    // 验证返回值符合AgentSession接口
+    expect(session).toBeDefined();
+    expect(session?.id).toBe(sessionId);
   });
 
-  test('CT-API-Agent-05: createAgent应正确处理配置错误', () => {
+  test('CT-API-Agent-06: Agent.removeSession方法应符合公开契约', () => {
+    // 准备
+    const config: AgentConfig = {
+      llm: {
+        apiType: 'openai',
+        model: 'gpt-4'
+      },
+      prompt: '你是一个AI助手'
+    };
+    const agent = apiCreateAgent(config);
+    const sessionId = agent.createSession();
+
+    // 执行
+    const result = agent.removeSession(sessionId);
+
+    // 验证返回值为布尔值
+    expect(typeof result).toBe('boolean');
+    expect(result).toBe(true);
+  });
+
+  test('CT-API-Agent-07: createAgent应正确处理配置错误', () => {
     // 模拟Core层抛出错误
     vi.mocked(createAgent).mockImplementationOnce(() => {
       throw new AgentError('配置错误', AgentErrorType.CONFIG);

@@ -3,30 +3,66 @@
  *
  * 验证Agent类型的结构稳定性。
  */
-import { describe, test, expect } from 'vitest';
+import { Observable, of } from 'rxjs';
+import { describe, test, expect, vi } from 'vitest';
 
-import type { Agent, AgentConfig, ChatInput, Content } from '../../../types';
-import { AgentError, AgentErrorType } from '../../../types';
+import type { Agent } from '../../../types/Agent';
+import type { AgentConfig } from '../../../types/AgentConfig';
+import type { AgentSession } from '../../../types/AgentSession';
+import type { ChatInput, ChatOutput } from '../../../types/Chat';
+import type { Content } from '../../../types/Content';
+import { AgentError, AgentErrorType } from '../../../types/errors';
 
 describe('CT-Type-Agent', () => {
   test('CT-Type-Agent-01: Agent接口应符合公开契约', () => {
+    // 创建会话ID
+    const sessionId = 'test-session';
+
+    // 创建模拟会话
+    const mockSession: AgentSession = {
+      id: 'test-session',
+      addMessage: vi.fn(),
+      updateMessage: vi.fn(),
+      getMessages: vi.fn().mockReturnValue([]),
+      messages$: of([]),
+      clear: vi.fn()
+    };
+
     // 创建符合Agent接口的对象
     const agent: Agent = {
-      chat: async (input: string | ChatInput) => 'response',
-      chatStream: async function* (input: string | ChatInput) {
-        yield 'stream response';
-      }
+      chat: (sessionId: string, input: string | ChatInput) => {
+        return of({
+          content: { type: 'text', value: 'response' }
+        });
+      },
+      cancel: (sessionId: string) => { /* 空实现 */ },
+      createSession: () => 'new-session',
+      getSession: (sessionId: string) => mockSession,
+      removeSession: (sessionId: string) => true
     };
 
     // 验证接口结构
     expect(agent).toHaveProperty('chat');
-    expect(agent).toHaveProperty('chatStream');
+    expect(agent).toHaveProperty('cancel');
+    expect(agent).toHaveProperty('createSession');
+    expect(agent).toHaveProperty('getSession');
+    expect(agent).toHaveProperty('removeSession');
+
     expect(typeof agent.chat).toBe('function');
-    expect(typeof agent.chatStream).toBe('function');
+    expect(typeof agent.cancel).toBe('function');
+    expect(typeof agent.createSession).toBe('function');
+    expect(typeof agent.getSession).toBe('function');
+    expect(typeof agent.removeSession).toBe('function');
 
     // 验证方法签名能正确工作
-    expect(agent.chat('测试')).resolves.toBeDefined();
-    expect(agent.chatStream('测试')[Symbol.asyncIterator]).toBeDefined();
+    const response = agent.chat(sessionId, '测试');
+
+    expect(response).toBeInstanceOf(Observable);
+
+    // 验证会话管理功能
+    expect(agent.createSession()).toBe('new-session');
+    expect(agent.getSession(sessionId)).toBe(mockSession);
+    expect(agent.removeSession(sessionId)).toBe(true);
   });
 
   test('CT-Type-Agent-02: AgentConfig类型应符合公开契约', () => {
@@ -152,5 +188,77 @@ describe('CT-Type-Agent', () => {
     errors.forEach(error => {
       expect(error instanceof Error).toBe(true);
     });
+  });
+
+  test('CT-Type-Agent-06: ChatOutput类型应符合公开契约', () => {
+    // 创建文本输出
+    const textOutput: ChatOutput = {
+      content: {
+        type: 'text',
+        value: '回复文本'
+      }
+    };
+
+    // 创建多模态输出
+    const multimodalOutput: ChatOutput = {
+      content: [
+        { type: 'text', value: '带图片的回复' },
+        { type: 'image', value: new Uint8Array([1, 2, 3]), mimeType: 'image/png' }
+      ]
+    };
+
+    // 验证结构
+    expect(textOutput).toHaveProperty('content');
+    expect(multimodalOutput).toHaveProperty('content');
+
+    // 验证类型兼容性
+    const outputs: ChatOutput[] = [textOutput, multimodalOutput];
+
+    expect(outputs.length).toBe(2);
+  });
+
+  test('CT-Type-Agent-07: AgentSession接口应符合公开契约', () => {
+    // 创建模拟消息
+    const message = {
+      id: 'test-message',
+      role: 'user' as const,
+      content: { type: 'text' as const, value: '测试消息' },
+      timestamp: Date.now()
+    };
+
+    // 创建消息更新函数
+    const updater = (msg: any) => ({ ...msg, content: { type: 'text', value: '更新后的消息' } });
+
+    // 创建符合AgentSession接口的对象
+    const session: AgentSession = {
+      id: 'test-session',
+      addMessage: (msg) => { /* 空实现 */ },
+      updateMessage: (messageId, updater) => { /* 空实现 */ },
+      getMessages: () => [message],
+      messages$: new Observable(),
+      clear: () => { /* 空实现 */ }
+    };
+
+    // 验证接口结构
+    expect(session).toHaveProperty('id');
+    expect(session).toHaveProperty('addMessage');
+    expect(session).toHaveProperty('updateMessage');
+    expect(session).toHaveProperty('getMessages');
+    expect(session).toHaveProperty('messages$');
+    expect(session).toHaveProperty('clear');
+
+    expect(typeof session.addMessage).toBe('function');
+    expect(typeof session.updateMessage).toBe('function');
+    expect(typeof session.getMessages).toBe('function');
+    expect(typeof session.clear).toBe('function');
+    expect(session.messages$).toBeInstanceOf(Observable);
+
+    // 验证方法签名能正确工作
+    session.addMessage(message);
+    session.updateMessage('test-message', updater);
+    const messages = session.getMessages();
+
+    expect(messages).toBeInstanceOf(Array);
+    expect(messages[0]).toBe(message);
   });
 });

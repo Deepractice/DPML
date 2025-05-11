@@ -1,29 +1,46 @@
+import { of, throwError } from 'rxjs';
 import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest';
 
-import { handleRegularChat, handleStreamChat } from '../../../../config/cli';
+import { handleChat } from '../../../../config/cli';
 
 /**
- * Agent CLI流式输出单元测试
+ * Agent CLI输出单元测试 - 已适配RxJS
  */
-describe('Agent CLI流式输出', () => {
+describe('Agent CLI输出', () => {
   // 模拟控制台输出
   let consoleLogSpy: any;
+  let consoleErrorSpy: any;
   let stdoutWriteSpy: any;
 
-  // 模拟Agent
+  // 模拟AgentSession ID
+  const mockSessionId = 'test-session-id';
+
+  // 模拟Agent（RxJS风格）
   const mockAgent = {
-    chat: vi.fn().mockResolvedValue('这是模拟的非流式响应'),
-    chatStream: vi.fn().mockImplementation(async function* () {
-      yield '这是';
-      yield '模拟';
-      yield '的流';
-      yield '式响应';
-    })
+    chat: vi.fn().mockReturnValue(of({
+      content: {
+        type: 'text',
+        value: '这是模拟的非流式响应'
+      }
+    })),
+    createSession: vi.fn().mockReturnValue(mockSessionId)
+  };
+
+  // 模拟流式响应的Agent
+  const mockStreamingAgent = {
+    chat: vi.fn().mockReturnValue(of(
+      { content: { type: 'text', value: '这是' } },
+      { content: { type: 'text', value: '模拟' } },
+      { content: { type: 'text', value: '的流' } },
+      { content: { type: 'text', value: '式响应' } }
+    )),
+    createSession: vi.fn().mockReturnValue(mockSessionId)
   };
 
   beforeEach(() => {
-    // 模拟console.log和process.stdout.write
+    // 模拟console.log, console.error和process.stdout.write
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     stdoutWriteSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
   });
 
@@ -32,21 +49,21 @@ describe('Agent CLI流式输出', () => {
     vi.clearAllMocks();
   });
 
-  test('handleRegularChat应正确调用agent.chat并输出响应', async () => {
-    await handleRegularChat(mockAgent, '你好');
+  test('handleChat应在非流式模式下正确输出完整响应', async () => {
+    await handleChat(mockAgent, mockSessionId, '你好', false);
 
     // 验证调用了chat方法
-    expect(mockAgent.chat).toHaveBeenCalledWith('你好');
+    expect(mockAgent.chat).toHaveBeenCalledWith(mockSessionId, '你好');
 
     // 验证输出了响应
     expect(consoleLogSpy).toHaveBeenCalledWith('\n这是模拟的非流式响应\n');
   });
 
-  test('handleStreamChat应正确调用agent.chatStream并逐块输出响应', async () => {
-    await handleStreamChat(mockAgent, '你好');
+  test('handleChat应在流式模式下逐块输出响应', async () => {
+    await handleChat(mockStreamingAgent, mockSessionId, '你好', true);
 
-    // 验证调用了chatStream方法
-    expect(mockAgent.chatStream).toHaveBeenCalledWith('你好');
+    // 验证调用了chat方法
+    expect(mockStreamingAgent.chat).toHaveBeenCalledWith(mockSessionId, '你好');
 
     // 验证输出了开始的换行
     expect(stdoutWriteSpy).toHaveBeenNthCalledWith(1, '\n');
@@ -64,40 +81,46 @@ describe('Agent CLI流式输出', () => {
     expect(stdoutWriteSpy).toHaveBeenCalledTimes(6);
   });
 
-  test('handleStreamChat应正确处理异常', async () => {
-    // 模拟chatStream抛出错误
+  test('handleChat应在流式模式下正确处理异常', async () => {
+    // 创建一个返回正确错误Observable的mock
     const errorAgent = {
-      chatStream: vi.fn().mockImplementation(async () => {
-        return Promise.reject(new Error('流式处理错误'));
-      })
+      chat: vi.fn().mockReturnValue(throwError(() => new Error('流式处理错误'))),
+      createSession: vi.fn().mockReturnValue(mockSessionId)
     };
 
-    // 模拟console.error
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    // 使用try-catch包装以模拟实际使用场景
+    try {
+      await handleChat(errorAgent, mockSessionId, '你好', true);
+    } catch (e) {
+      // 不处理错误，handleChat应该已经捕获它了
+    }
 
-    await handleStreamChat(errorAgent, '你好');
-
-    // 验证错误被处理，但不验证具体错误消息，只验证错误前缀
-    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-    expect(consoleErrorSpy.mock.calls[0][0]).toBe('\n错误:');
-    // 错误消息可能会因为实现方式的变化而改变，所以我们不严格验证具体内容
+    // 验证错误被处理并输出
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '\n错误:',
+      '流式处理错误'
+    );
   });
 
-  test('handleRegularChat应正确处理异常', async () => {
-    // 模拟chat抛出错误
+  test('handleChat应在非流式模式下正确处理异常', async () => {
+    // 模拟chat抛出错误（RxJS风格，但使用Promise.reject包装）
     const errorAgent = {
-      chat: vi.fn().mockRejectedValue(new Error('非流式处理错误'))
+      chat: vi.fn().mockImplementation(() => {
+        return {
+          subscribe: () => {
+            throw new Error('source.subscribe is not a function');
+          }
+        };
+      }),
+      createSession: vi.fn().mockReturnValue(mockSessionId)
     };
 
-    // 模拟console.error
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-    await handleRegularChat(errorAgent, '你好');
+    await handleChat(errorAgent, mockSessionId, '你好', false);
 
     // 验证错误被处理
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       '错误:',
-      '非流式处理错误'
+      'source.subscribe is not a function'
     );
   });
 });
