@@ -1,4 +1,7 @@
-import type { ChatInput } from './Chat';
+import type { Observable } from 'rxjs';
+
+import type { AgentSession } from './AgentSession';
+import type { ChatInput, ChatOutput } from './Chat';
 
 /**
  * Agent接口
@@ -7,16 +10,31 @@ import type { ChatInput } from './Chat';
  */
 export interface Agent {
   /**
-   * 发送消息并获取文本响应
+   * 使用指定会话发送消息并获取响应
+   * @param sessionId 会话ID
    * @param input 文本消息或ChatInput对象
-   * @returns 文本响应
+   * @returns 响应内容的Observable流
    */
-  chat(input: string | ChatInput): Promise<string>;
+  chat(sessionId: string, input: string | ChatInput): Observable<ChatOutput>;
 
   /**
-   * 发送消息并获取流式响应
-   * @param input 文本消息或ChatInput对象
-   * @returns 文本块的异步迭代器
+   * 取消指定会话的进行中请求
    */
-  chatStream(input: string | ChatInput): AsyncIterable<string>;
+  cancel(sessionId: string): void;
+
+  /**
+   * 创建新会话
+   * @returns 新会话的ID
+   */
+  createSession(): string;
+
+  /**
+   * 获取指定会话
+   */
+  getSession(sessionId: string): AgentSession | undefined;
+
+  /**
+   * 删除指定会话
+   */
+  removeSession(sessionId: string): boolean;
 }

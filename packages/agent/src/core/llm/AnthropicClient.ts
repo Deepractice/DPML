@@ -1,10 +1,14 @@
+import { Observable, throwError, timer } from 'rxjs';
+import { catchError, finalize, mergeMap, retryWhen, take, timeout } from 'rxjs/operators';
+
 import type { ChatOutput } from '../../types/Chat';
 import type { ContentItem } from '../../types/Content';
 import { AgentError, AgentErrorType } from '../../types/errors';
 import type { LLMConfig } from '../../types/LLMConfig';
-import type { Message } from '../types';
+import type { Message } from '../../types/Message';
 
 import type { LLMClient } from './LLMClient';
+import type { LLMRequest } from './LLMRequest';
 
 /**
  * Anthropic客户端实现
@@ -28,149 +32,213 @@ export class AnthropicClient implements LLMClient {
     }
   }
 
-  public async sendMessages(messages: Message[], stream: boolean): Promise<ChatOutput | AsyncIterable<ChatOutput>> {
-    try {
-      // 转换为Anthropic消息格式
-      const anthropicMessages = this.convertToAnthropicMessages(messages);
+  public sendRequest(request: LLMRequest): Observable<ChatOutput> {
+    // 转换为Anthropic消息格式
+    const anthropicMessages = this.convertToAnthropicMessages(request.messages);
 
-      // 选择同步或流式API
-      if (stream) {
-        return this.streamMessages(anthropicMessages);
-      } else {
-        return this.sendMessagesSync(anthropicMessages);
-      }
-    } catch (error: unknown) {
-      // 将底层错误包装为AgentError
-      throw new AgentError(
-        `LLM服务调用失败: ${error instanceof Error ? error.message : String(error)}`,
-        AgentErrorType.LLM_SERVICE,
-        'LLM_API_ERROR',
-        error instanceof Error ? error : new Error(String(error))
-      );
-    }
-  }
+    // 使用请求中的模型(如果提供)，否则使用默认模型
+    const model = request.model || this.model;
 
-  private async sendMessagesSync(anthropicMessages: Record<string, unknown>): Promise<ChatOutput> {
-    // 准备请求参数
-    const requestBody = {
-      model: this.model,
-      messages: anthropicMessages.messages,
-      max_tokens: 1024,
-      stream: false
-    };
+    // 提取可能的Anthropic特有参数
+    const { temperature, max_tokens, top_p, top_k } =
+      (request.providerParams || {}) as Record<string, number>;
 
-    // 发送请求到Anthropic API
-    const response = await fetch(`${this.apiUrl}/messages`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': this.apiKey,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify(requestBody)
-    });
+    return new Observable<ChatOutput>(observer => {
+      // 创建用于取消请求的AbortController
+      const abortController = new AbortController();
 
-    // 检查响应状态
-    if (!response.ok) {
-      const errorData = await response.text();
+      // 准备请求参数
+      const requestBody: Record<string, unknown> = {
+        model,
+        messages: anthropicMessages.messages,
+        system: anthropicMessages.system,
+        stream: true
+      };
 
-      throw new Error(`Anthropic API请求失败: ${response.status} ${response.statusText} - ${errorData}`);
-    }
+      // 添加可选参数
+      if (max_tokens !== undefined) requestBody.max_tokens = max_tokens || 1024;
+      if (temperature !== undefined) requestBody.temperature = temperature;
+      if (top_p !== undefined) requestBody.top_p = top_p;
+      if (top_k !== undefined) requestBody.top_k = top_k;
 
-    // 解析响应
-    const data = await response.json();
-    const content = data.content?.[0]?.text;
-
-    if (!content) {
-      throw new Error('Anthropic响应格式无效，没有找到内容');
-    }
-
-    // 返回标准化的输出
-    return {
-      content: {
-        type: 'text',
-        value: content
-      }
-    };
-  }
-
-  private async *streamMessages(anthropicMessages: Record<string, unknown>): AsyncIterable<ChatOutput> {
-    // 准备请求参数
-    const requestBody = {
-      model: this.model,
-      messages: anthropicMessages.messages,
-      max_tokens: 1024,
-      stream: true
-    };
-
-    // 发送请求到Anthropic API
-    const response = await fetch(`${this.apiUrl}/messages`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': this.apiKey,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify(requestBody)
-    });
-
-    // 检查响应状态
-    if (!response.ok) {
-      const errorData = await response.text();
-
-      throw new Error(`Anthropic API流式请求失败: ${response.status} ${response.statusText} - ${errorData}`);
-    }
-
-    if (!response.body) {
-      throw new Error('Anthropic API流式响应没有响应体');
-    }
-
-    // 创建流式读取器
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) break;
-
-        // 解码新接收的数据
-        buffer += decoder.decode(value, { stream: true });
-
-        // 处理接收到的事件
-        const lines = buffer.split('\n');
-
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-            const jsonData = line.substring(6); // 去掉 'data: ' 前缀
-
-            try {
-              const data = JSON.parse(jsonData);
-
-              if (data.type === 'content_block_delta' && data.delta?.text) {
-                yield {
-                  content: {
-                    type: 'text',
-                    value: data.delta.text
-                  }
-                };
-              }
-            } catch (e) {
-              console.error('解析SSE事件失败:', e);
-            }
+      // 发送流式请求
+      fetch(`${this.apiUrl}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': this.apiKey,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify(requestBody),
+        signal: abortController.signal
+      })
+        .then(response => {
+        // 检查响应状态
+          if (!response.ok) {
+            return response.text().then(errorData => {
+              throw new AgentError(
+                `Anthropic API流式请求失败: ${response.status} ${response.statusText} - ${errorData}`,
+                AgentErrorType.LLM_SERVICE,
+                'LLM_API_ERROR'
+              );
+            });
           }
-        }
-      }
-    } finally {
-      reader.releaseLock();
-    }
+
+          if (!response.body) {
+            throw new AgentError(
+              'Anthropic API流式响应没有响应体',
+              AgentErrorType.LLM_SERVICE,
+              'MISSING_RESPONSE_BODY'
+            );
+          }
+
+          // 处理流式响应
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+
+          const processStream = () => {
+            reader.read().then(({ done, value }) => {
+              if (done) {
+                observer.complete();
+
+                return;
+              }
+
+              try {
+              // 解码新接收的数据
+                buffer += decoder.decode(value, { stream: true });
+
+                // 处理接收到的事件
+                const lines = buffer.split('\n');
+
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                  if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                    const jsonData = line.substring(6); // 去掉 'data: ' 前缀
+
+                    try {
+                      const data = JSON.parse(jsonData);
+
+                      if (data.type === 'content_block_delta' && data.delta?.text) {
+                        observer.next({
+                          content: {
+                            type: 'text',
+                            value: data.delta.text
+                          }
+                        });
+                      }
+                    } catch (e) {
+                      console.error('解析SSE事件失败:', e);
+                      observer.error(new AgentError(
+                        `解析SSE事件失败: ${e instanceof Error ? e.message : String(e)}`,
+                        AgentErrorType.LLM_SERVICE,
+                        'SSE_PARSING_ERROR',
+                        e instanceof Error ? e : new Error(String(e))
+                      ));
+
+                      return;
+                    }
+                  }
+                }
+
+                // 继续处理流
+                processStream();
+              } catch (error) {
+                observer.error(new AgentError(
+                  `处理流式响应失败: ${error instanceof Error ? error.message : String(error)}`,
+                  AgentErrorType.LLM_SERVICE,
+                  'STREAM_PROCESSING_ERROR',
+                  error instanceof Error ? error : new Error(String(error))
+                ));
+              }
+            }).catch(error => {
+            // 处理读取流时的错误
+              if (error.name === 'AbortError') {
+              // 请求被中止，这是预期的行为
+                observer.complete();
+              } else {
+                observer.error(new AgentError(
+                  `读取流失败: ${error.message}`,
+                  AgentErrorType.LLM_SERVICE,
+                  'STREAM_READ_ERROR',
+                  error
+                ));
+              }
+            });
+          };
+
+          // 开始处理流
+          processStream();
+        })
+        .catch(error => {
+        // 处理fetch调用本身的错误
+          if (error.name === 'AbortError') {
+          // 请求被中止，这是预期的行为
+            observer.complete();
+          } else {
+            observer.error(error instanceof AgentError ? error : new AgentError(
+              `LLM服务调用失败: ${error.message}`,
+              AgentErrorType.LLM_SERVICE,
+              'LLM_API_ERROR',
+              error
+            ));
+          }
+        });
+
+      // 返回清理函数，用于取消请求
+      return () => {
+        abortController.abort();
+      };
+    }).pipe(
+      // 添加30秒超时
+      timeout({
+        each: 30000,
+        with: () => throwError(() => new AgentError(
+          '请求超时',
+          AgentErrorType.LLM_SERVICE,
+          'REQUEST_TIMEOUT'
+        ))
+      }),
+
+      // 针对特定错误类型进行重试
+      retryWhen(errors => errors.pipe(
+        // 仅重试网络相关错误
+        mergeMap(error => {
+          const shouldRetry =
+            error instanceof AgentError &&
+            error.type === AgentErrorType.LLM_SERVICE &&
+            ['NETWORK_ERROR', 'RATE_LIMIT_EXCEEDED'].includes(error.code);
+
+          if (shouldRetry) {
+            console.log(`重试LLM请求: ${error.message}`);
+
+            return timer(1000); // 1秒后重试
+          }
+
+          return throwError(() => error); // 其他错误不重试
+        }),
+        // 最多重试3次
+        take(3)
+      )),
+
+      // 最终错误处理
+      catchError(error => {
+        console.error(`LLM请求失败: ${error.message}`, error);
+
+        return throwError(() => error);
+      }),
+
+      // 资源清理
+      finalize(() => {
+        // 使用debug级别，不会在标准输出中显示
+        console.debug(`请求完成: ${request.sessionId}`);
+      })
+    );
   }
 
-  private convertToAnthropicMessages(messages: Message[]): Record<string, unknown> {
+  private convertToAnthropicMessages(messages: ReadonlyArray<Message>): Record<string, unknown> {
     // Anthropic格式要求系统提示和用户消息分开处理
     const systemMessage = messages.find(msg => msg.role === 'system');
 

@@ -29,6 +29,11 @@
   "license": "MIT",
   "dependencies": {
     "@dpml/core": "workspace:*",
-    "strip-ansi": "^7.1.0"
+    "rxjs": "^7.8.2",
+    "strip-ansi": "^7.1.0",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/uuid": "^10.0.0"
   }
 }

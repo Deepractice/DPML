@@ -17,8 +17,15 @@
  *   prompt: '你是一个专业的JavaScript和TypeScript助手。'
  * });
  *
- * const response = await agent.chat('如何在TypeScript中实现单例模式？');
- * console.log(response);
+ * // 创建会话
+ * const sessionId = agent.createSession();
+ *
+ * // 聊天并获取响应流
+ * agent.chat(sessionId, '如何在TypeScript中实现单例模式？').subscribe({
+ *   next: (output) => console.log(output.content),
+ *   error: (err) => console.error('错误:', err),
+ *   complete: () => console.log('完成')
+ * });
  * ```
  *
  * 或者使用DPML声明式语法：
@@ -44,13 +51,24 @@
 import { createDomainDPML } from '@dpml/core';
 
 import { schema, transformers, commandsConfig } from './config';
-import type { AgentConfig } from './types';
+import type { AgentConfig } from './types/AgentConfig';
 
 // 导出API
-export * from './api';
+export * from './api/agent';
+export * from './api/agentenv';
 
 // 导出类型定义
-export * from './types';
+export * from './types/Agent';
+export * from './types/AgentConfig';
+export * from './types/AgentSession';
+export * from './types/Chat';
+export * from './types/Content';
+export * from './types/errors';
+export * from './types/LLMConfig';
+export * from './types/Message';
+
+// 导出工具函数
+export * from './utils/contentHelpers';
 
 /**
  * 创建Agent领域DPML实例

@@ -1,79 +1,60 @@
 /**
  * Agent Service 单元测试
+ *
+ * 此文件已经完全重构，以适应RxJS架构
  */
+import { of, throwError, firstValueFrom } from 'rxjs';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
 import type { ChatInput } from '../../../types';
-import { AgentError, AgentErrorType } from '../../../types';
 
 // 模拟依赖
 vi.mock('../../../core/llm/llmFactory', () => {
-  const mockLLMClient = { sendMessages: vi.fn() };
+  const mockLLMClient = { sendRequest: vi.fn() };
 
   return {
-    createClient: vi.fn().mockReturnValue(mockLLMClient)
+    createLLMClient: vi.fn().mockReturnValue(mockLLMClient)
   };
 });
 
-vi.mock('../../../core/AgentRunner', () => {
-  const mockSendMessage = vi.fn();
+// 模拟DPMLAgent
+vi.mock('../../../core/DPMLAgent', () => {
+  const sessionId = 'test-session-id';
+  const mockChat = vi.fn();
 
-  mockSendMessage.mockImplementation((input, stream) => {
-    if (stream) {
-      return {
-        [Symbol.asyncIterator]: async function* () {
-          yield { content: { type: 'text', value: '流式响应1' } };
-          yield { content: { type: 'text', value: '流式响应2' } };
-        }
-      };
-    } else {
-      return Promise.resolve({ content: { type: 'text', value: '同步响应' } });
-    }
+  mockChat.mockImplementation((sid, input) => {
+    return of({ content: { type: 'text', value: '同步响应' } });
   });
 
   return {
-    AgentRunner: vi.fn().mockImplementation(() => ({
-      sendMessage: mockSendMessage
+    DPMLAgent: vi.fn().mockImplementation(() => ({
+      createSession: () => sessionId,
+      getSession: () => ({ id: sessionId }),
+      chat: mockChat,
+      cancel: vi.fn(),
+      removeSession: vi.fn()
     }))
   };
 });
 
-vi.mock('../../../core/session/InMemoryAgentSession', () => {
-  const mockGetMessages = vi.fn().mockReturnValue([]);
-  const mockAddMessage = vi.fn();
-
-  return {
-    InMemoryAgentSession: vi.fn().mockImplementation(() => ({
-      addMessage: mockAddMessage,
-      getMessages: mockGetMessages
-    }))
-  };
-});
-
-// 导入被模拟的模块和被测试的模块
-import { AgentRunner } from '../../../core/AgentRunner';
+// 导入被测试的模块和依赖
 import { createAgent } from '../../../core/agentService';
-import { createClient } from '../../../core/llm/llmFactory';
-import { InMemoryAgentSession } from '../../../core/session/InMemoryAgentSession';
+import { DPMLAgent } from '../../../core/DPMLAgent';
+import { createLLMClient } from '../../../core/llm/llmFactory';
 
 describe('UT-AgentSvc', () => {
+  // 测试会话ID
+  const testSessionId = 'test-session-id';
+
+  // 每个测试前重置模拟
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // 重置默认模拟行为
-    const agentRunnerInstance = new (AgentRunner as any)();
+    // 重置模拟行为
+    const dpmlAgentInstance = new (DPMLAgent as any)();
 
-    agentRunnerInstance.sendMessage.mockImplementation((input, stream) => {
-      if (stream) {
-        return {
-          [Symbol.asyncIterator]: async function* () {
-            yield { content: { type: 'text', value: '流式响应1' } };
-            yield { content: { type: 'text', value: '流式响应2' } };
-          }
-        };
-      } else {
-        return Promise.resolve({ content: { type: 'text', value: '同步响应' } });
-      }
+    dpmlAgentInstance.chat.mockImplementation((sid, input) => {
+      return of({ content: { type: 'text', value: '同步响应' } });
     });
   });
 
@@ -88,11 +69,13 @@ describe('UT-AgentSvc', () => {
     const agent = createAgent(config);
 
     // 验证
-    expect(createClient).toHaveBeenCalledWith(config.llm);
-    expect(InMemoryAgentSession).toHaveBeenCalled();
-    expect(AgentRunner).toHaveBeenCalledWith(config, expect.anything(), expect.anything());
+    expect(createLLMClient).toHaveBeenCalledWith(config.llm);
+    expect(DPMLAgent).toHaveBeenCalledWith(config, expect.anything());
     expect(agent).toHaveProperty('chat');
-    expect(agent).toHaveProperty('chatStream');
+    expect(agent).toHaveProperty('createSession');
+    expect(agent).toHaveProperty('getSession');
+    expect(agent).toHaveProperty('removeSession');
+    expect(agent).toHaveProperty('cancel');
   });
 
   test('UT-AgentSvc-02: createAgent应当传递正确配置给LLM客户端', () => {
@@ -111,43 +94,38 @@ describe('UT-AgentSvc', () => {
     createAgent(config);
 
     // 验证
-    expect(createClient).toHaveBeenCalledWith(config.llm);
+    expect(createLLMClient).toHaveBeenCalledWith(config.llm);
   });
 
-  test('UT-AgentSvc-03: handleChat应正确处理文本输入', async () => {
+  test('UT-AgentSvc-03: chat应正确处理文本输入', async () => {
     // 准备
     const config = {
       llm: { apiType: 'openai', model: 'gpt-4' },
       prompt: '测试提示词'
     };
     const agent = createAgent(config);
+    const dpmlAgentInstance = new (DPMLAgent as any)();
 
-    // 获取模拟的AgentRunner实例
-    const agentRunnerInstance = new (AgentRunner as any)();
-
-    // 执行
-    const response = await agent.chat('测试文本输入');
+    // 执行 - 使用firstValueFrom将Observable转换为Promise
+    const responseObservable = agent.chat(testSessionId, '测试文本输入');
+    const response = await firstValueFrom(responseObservable);
 
     // 验证
-    expect(response).toBe('同步响应');
-    expect(agentRunnerInstance.sendMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        content: expect.objectContaining({
-          type: 'text',
-          value: '测试文本输入'
-        })
-      }),
-      false
+    expect(response.content).toEqual({ type: 'text', value: '同步响应' });
+    expect(dpmlAgentInstance.chat).toHaveBeenCalledWith(
+      testSessionId,
+      '测试文本输入'
     );
   });
 
-  test('UT-AgentSvc-04: handleChat应正确处理ChatInput对象', async () => {
+  test('UT-AgentSvc-04: chat应正确处理ChatInput对象', async () => {
     // 准备
     const config = {
       llm: { apiType: 'openai', model: 'gpt-4' },
       prompt: '测试提示词'
     };
     const agent = createAgent(config);
+    const dpmlAgentInstance = new (DPMLAgent as any)();
     const chatInput: ChatInput = {
       content: {
         type: 'text',
@@ -155,54 +133,53 @@ describe('UT-AgentSvc', () => {
       }
     };
 
-    // 获取模拟的AgentRunner实例
-    const agentRunnerInstance = new (AgentRunner as any)();
-
     // 执行
-    const response = await agent.chat(chatInput);
+    const responseObservable = agent.chat(testSessionId, chatInput);
+    const response = await firstValueFrom(responseObservable);
 
     // 验证
-    expect(response).toBe('同步响应');
-    expect(agentRunnerInstance.sendMessage).toHaveBeenCalledWith(chatInput, false);
+    expect(response.content).toEqual({ type: 'text', value: '同步响应' });
+    expect(dpmlAgentInstance.chat).toHaveBeenCalledWith(testSessionId, chatInput);
   });
 
-  test('UT-AgentSvc-05: handleChatStream应返回有效的AsyncIterable', async () => {
+  test('UT-AgentSvc-05: chat应支持Observable流式响应', async () => {
     // 准备
     const config = {
       llm: { apiType: 'openai', model: 'gpt-4' },
       prompt: '测试提示词'
     };
     const agent = createAgent(config);
+    const dpmlAgentInstance = new (DPMLAgent as any)();
 
-    // 获取模拟的AgentRunner实例
-    const agentRunnerInstance = new (AgentRunner as any)();
+    // 设置模拟返回多个值的Observable
+    dpmlAgentInstance.chat.mockImplementation((sid, input) => {
+      return of(
+        { content: { type: 'text', value: '流式响应1' } },
+        { content: { type: 'text', value: '流式响应2' } }
+      );
+    });
 
-    // 执行
-    const stream = agent.chatStream('测试文本输入');
+    // 执行 - 手动收集Observable发出的所有值
+    const responses: any[] = [];
+    const subscription = agent.chat(testSessionId, '测试文本输入').subscribe(
+      response => responses.push(response)
+    );
+
+    // 等待异步操作完成
+    await new Promise(resolve => setTimeout(resolve, 10));
+    subscription.unsubscribe();
 
     // 验证
-    expect(stream[Symbol.asyncIterator]).toBeDefined();
-
-    // 收集流式响应
-    const chunks: string[] = [];
-
-    for await (const chunk of stream) {
-      chunks.push(chunk);
-    }
-
-    expect(chunks).toEqual(['流式响应1', '流式响应2']);
-    expect(agentRunnerInstance.sendMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        content: expect.objectContaining({
-          type: 'text',
-          value: '测试文本输入'
-        })
-      }),
-      true
+    expect(responses.length).toBe(2);
+    expect(responses[0].content).toEqual({ type: 'text', value: '流式响应1' });
+    expect(responses[1].content).toEqual({ type: 'text', value: '流式响应2' });
+    expect(dpmlAgentInstance.chat).toHaveBeenCalledWith(
+      testSessionId,
+      '测试文本输入'
     );
   });
 
-  test('UT-AgentSvc-06: handleChat应处理底层错误并转换为AgentError', async () => {
+  test('UT-AgentSvc-06: chat应正确传递错误', async () => {
     // 准备
     const config = {
       llm: { apiType: 'openai', model: 'gpt-4' },
@@ -210,92 +187,89 @@ describe('UT-AgentSvc', () => {
     };
     const agent = createAgent(config);
     const originalError = new Error('API错误');
+    const dpmlAgentInstance = new (DPMLAgent as any)();
 
-    // 获取模拟的AgentRunner实例并直接替换实现
-    const agentRunnerInstance = new (AgentRunner as any)();
-
-    // 完全重新设置模拟以确保错误正确抛出
-    vi.mocked(agentRunnerInstance.sendMessage).mockImplementation(() => {
-      throw originalError;
+    // 设置模拟抛出错误
+    dpmlAgentInstance.chat.mockImplementation((sid, input) => {
+      return throwError(() => originalError);
     });
 
-    // 验证
-    await expect(agent.chat('测试文本')).rejects.toThrow(AgentError);
+    // 验证 - 使用Promise方式验证错误
+    await expect(
+      firstValueFrom(agent.chat(testSessionId, '测试文本'))
+    ).rejects.toThrow('API错误');
 
-    // 重置模拟以测试后续断言
-    vi.mocked(agentRunnerInstance.sendMessage).mockImplementation(() => {
-      throw originalError;
-    });
-
-    try {
-      await agent.chat('测试文本');
-    } catch (error) {
-      expect(error).toBeInstanceOf(AgentError);
-      expect(error).toMatchObject({
-        type: AgentErrorType.UNKNOWN,
-        code: 'CHAT_PROCESSING_ERROR'
-      });
-    }
-  });
-
-  test('UT-AgentSvc-07: normalizeChatInput应将字符串转换为ChatInput', async () => {
-    // 准备
-    const config = {
-      llm: { apiType: 'openai', model: 'gpt-4' },
-      prompt: '测试提示词'
-    };
-    const agent = createAgent(config);
-
-    // 获取模拟的AgentRunner实例
-    const agentRunnerInstance = new (AgentRunner as any)();
-
-    // 执行
-    await agent.chat('测试文本');
-
-    // 验证转换后的格式
-    expect(agentRunnerInstance.sendMessage).toHaveBeenCalledWith(
-      {
-        content: {
-          type: 'text',
-          value: '测试文本'
+    // 验证 - 使用订阅方式验证错误
+    return new Promise<void>((resolve, reject) => {
+      agent.chat(testSessionId, '测试文本').subscribe({
+        next: () => reject(new Error('不应该进入next回调')),
+        error: (error) => {
+          try {
+            expect(error).toEqual(originalError);
+            expect(error.message).toBe('API错误');
+            resolve();
+          } catch (e) {
+            reject(e);
+          }
         }
-      },
-      false
-    );
+      });
+    });
   });
 
-  test('UT-AgentSvc-08: extractTextFromContent应从内容中提取文本', async () => {
+  test('UT-AgentSvc-07: extractTextFromContent应从内容中提取文本', async () => {
     // 准备
     const config = {
       llm: { apiType: 'openai', model: 'gpt-4' },
       prompt: '测试提示词'
     };
     const agent = createAgent(config);
+    const dpmlAgentInstance = new (DPMLAgent as any)();
 
-    // 获取模拟的AgentRunner实例
-    const agentRunnerInstance = new (AgentRunner as any)();
-
-    // 模拟不同的响应内容类型
-    agentRunnerInstance.sendMessage.mockResolvedValueOnce({
-      content: [
-        { type: 'image', value: new Uint8Array([1, 2, 3]) },
-        { type: 'text', value: '文本内容' }
-      ]
+    // 设置模拟返回数组内容
+    dpmlAgentInstance.chat.mockImplementation((sid, input) => {
+      return of({
+        content: [
+          { type: 'image', value: new Uint8Array([1, 2, 3]) },
+          { type: 'text', value: '文本内容' }
+        ]
+      });
     });
 
-    // 执行：数组内容
-    const arrayResponse = await agent.chat('测试');
+    // 执行：测试从数组中提取文本
+    const response = await firstValueFrom(agent.chat(testSessionId, '测试'));
+    const textContent = getTextFromContent(response.content);
 
-    expect(arrayResponse).toBe('文本内容');
+    expect(textContent).toBe('文本内容');
 
-    // 模拟非文本单一内容
-    agentRunnerInstance.sendMessage.mockResolvedValueOnce({
-      content: { type: 'image', value: new Uint8Array([1, 2, 3]) }
+    // 设置模拟返回非文本内容
+    dpmlAgentInstance.chat.mockImplementation((sid, input) => {
+      return of({
+        content: { type: 'image', value: new Uint8Array([1, 2, 3]) }
+      });
     });
 
-    // 执行：非文本内容
-    const nonTextResponse = await agent.chat('测试');
+    // 执行：测试从非文本内容中提取文本
+    const response2 = await firstValueFrom(agent.chat(testSessionId, '测试'));
+    const textContent2 = getTextFromContent(response2.content);
 
-    expect(nonTextResponse).toBe('');
+    expect(textContent2).toBe('');
   });
 });
+
+/**
+ * 辅助函数：从内容中提取文本
+ */
+function getTextFromContent(content: any): string {
+  if (Array.isArray(content)) {
+    // 如果是数组，查找第一个文本内容
+    const textItem = content.find(item => item.type === 'text');
+
+    return textItem ? String(textItem.value) : '';
+  } else if (content && content.type === 'text') {
+    // 如果是单个文本内容
+    return String(content.value);
+  }
+
+  // 其他情况返回空字符串
+  return '';
+}
