@@ -6,15 +6,15 @@
 
 全局安装DPML CLI：
 
-\`\`\`bash
+```bash
 npm install -g dpml
-\`\`\`
+```
 
 或使用npx（无需安装）：
 
-\`\`\`bash
+```bash
 npx dpml --version
-\`\`\`
+```
 
 ## 你的第一个Agent
 
@@ -22,7 +22,7 @@ npx dpml --version
 
 创建一个名为`travel-assistant.dpml`的文件：
 
-\`\`\`xml
+```xml
 <agent>
   <llm
     api-type="openai"
@@ -41,36 +41,36 @@ npx dpml --version
 - 提供旅行建议
   </prompt>
 </agent>
-\`\`\`
+```
 
 ### 2. 配置环境变量
 
 在同一目录创建`.env`文件：
 
-\`\`\`env
+```env
 OPENAI_API_KEY=sk-your-api-key-here
-\`\`\`
+```
 
 ### 3. 开始对话
 
-\`\`\`bash
+```bash
 dpml agent chat travel-assistant.dpml --env-file .env
-\`\`\`
+```
 
 你会看到一个交互式对话界面：
 
-\`\`\`
+```
 🤖 旅游助手已就绪。输入'exit'退出。
 
 你: 你好！我想下个月去张家界。
 助手: 好选择！张家界非常美丽...
-\`\`\`
+```
 
 ## 理解代码
 
 让我们分解每个部分的作用：
 
-\`\`\`xml
+```xml
 <agent>
   <!-- LLM配置 -->
   <llm
@@ -83,15 +83,15 @@ dpml agent chat travel-assistant.dpml --env-file .env
     你是一名旅游规划师...
   </prompt>
 </agent>
-\`\`\`
+```
 
 ### 环境变量引用
 
 `@env:`前缀告诉DPML从环境变量中读取：
 
-\`\`\`xml
+```xml
 api-key="@env:OPENAI_API_KEY"
-\`\`\`
+```
 
 这比硬编码敏感信息更安全。
 
@@ -122,32 +122,32 @@ api-key="@env:OPENAI_API_KEY"
 
 确保已全局安装：
 
-\`\`\`bash
+```bash
 npm install -g dpml
-\`\`\`
+```
 
 或使用npx：
 
-\`\`\`bash
+```bash
 npx dpml agent chat travel-assistant.dpml
-\`\`\`
+```
 
 ### "未找到API密钥"
 
 检查你的`.env`文件：
 
-\`\`\`bash
+```bash
 # 确保文件存在并包含密钥
 cat .env
-\`\`\`
+```
 
 ### "DPML语法无效"
 
 验证你的DPML文件：
 
-\`\`\`bash
+```bash
 dpml validate travel-assistant.dpml
-\`\`\`
+```
 
 ## 获取帮助
 

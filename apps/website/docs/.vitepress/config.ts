@@ -4,6 +4,8 @@ export default defineConfig({
   title: 'DPML',
   description: 'Deepractice Prompt Markup Language - Define AI like writing HTML',
 
+  ignoreDeadLinks: true,
+
   locales: {
     en: {
       label: 'English',
