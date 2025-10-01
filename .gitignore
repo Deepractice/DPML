@@ -80,7 +80,11 @@ tmp/
 temp/
 
 # Generated documentation
-docs/api/ 
+docs/api/
+
+# VitePress
+**/.vitepress/dist/
+**/.vitepress/cache/ 
 
 # cursor 配置
 .cursorrules
