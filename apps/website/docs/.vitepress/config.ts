@@ -5,12 +5,13 @@ export default defineConfig({
   description: 'Deepractice Prompt Markup Language - Define AI like writing HTML',
 
   locales: {
-    root: {
+    en: {
       label: 'English',
       lang: 'en',
       themeConfig: {
         nav: [
           { text: 'Guide', link: '/en/guide/' },
+          { text: 'Protocol', link: '/en/protocol/' },
           { text: 'GitHub', link: 'https://github.com/Deepractice/DPML' }
         ],
 
@@ -24,6 +25,12 @@ export default defineConfig({
               ]
             }
           ]
+          // Protocol page has no sidebar, use outline only
+        },
+
+        outline: {
+          level: [2, 3],
+          label: 'On this page'
         }
       }
     },
@@ -33,6 +40,7 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: '指南', link: '/zh/guide/' },
+          { text: '协议', link: '/zh/protocol/' },
           { text: 'GitHub', link: 'https://github.com/Deepractice/DPML' }
         ],
 
@@ -46,6 +54,7 @@ export default defineConfig({
               ]
             }
           ]
+          // 协议页面没有侧边栏，只使用右侧目录
         },
 
         outline: {

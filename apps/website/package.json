@@ -5,8 +5,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vitepress dev docs",
-    "build": "vitepress build docs",
+    "sync:specs": "node scripts/sync-specs.js",
+    "dev": "pnpm sync:specs && vitepress dev docs",
+    "build": "pnpm sync:specs && vitepress build docs",
     "preview": "vitepress preview docs"
   },
   "keywords": ["dpml", "documentation", "website"],
