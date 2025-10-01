@@ -31,7 +31,6 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        working-directory: apps/website
         run: pnpm install --frozen-lockfile
 
       - name: Sync specifications
