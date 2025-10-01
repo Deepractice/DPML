@@ -124,7 +124,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 **Example**:
 
 ```xml
-<!-- ❌ WRONG: Restricting logic -->
+<!-- [INVALID] WRONG: Restricting logic -->
 <rules>
   <if condition="user_angry">
     <response>I apologize for the inconvenience</response>
@@ -134,7 +134,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
   </if>
 </rules>
 
-<!-- ✅ CORRECT: Constraining structure, not logic -->
+<!-- [VALID] CORRECT: Constraining structure, not logic -->
 <personality>
 I am an empathetic assistant. When users are upset, I first
 address their emotions. When users are confused, I explain
@@ -257,17 +257,17 @@ Step 3: Evaluate candidates
 Step 4: Calculate entropy cost
         └─ How many words needed to explain?
 Step 5: Decision
-        ├─ All criteria ⭐⭐⭐⭐+ → Adopt
-        ├─ Any criteria ⭐⭐- → Reject
+        ├─ All criteria + → Adopt
+        ├─ Any criteria - → Reject
         └─ Can't find suitable → Re-examine requirements
 ```
 
 **Examples**:
 
-✅ **Good choices**:
-- `role`, `agent`, `personality`, `task`, `principle` - All are consensus concepts with ⭐⭐⭐⭐⭐ across criteria
+[VALID] **Good choices**:
+- `role`, `agent`, `personality`, `task`, `principle` - All are consensus concepts with  across criteria
 
-❌ **Poor choices**:
+[INVALID] **Poor choices**:
 - `lero` - Self-invented, no consensus (Cost: 50+ words to explain)
 - `xuanwu` - Culture-specific, not universal (Cost: 30+ words)
 - `thing` - Too generic, imprecise (Cost: 20+ words)
@@ -453,14 +453,14 @@ Elements MAY be:
 ### 6.3 Protocol-Level Rules
 
 The protocol defines:
-- ✅ **Naming convention**: kebab-case
-- ✅ **Concept principle**: Use consensus terms
+- [VALID] **Naming convention**: kebab-case
+- [VALID] **Concept principle**: Use consensus terms
 
 The protocol does NOT define:
-- ❌ **Specific elements**: What `<agent>`, `<task>` mean (Domain responsibility)
-- ❌ **Hierarchy rules**: Which elements can contain which (Domain responsibility)
-- ❌ **Required/optional**: Which elements are mandatory (Domain responsibility)
-- ❌ **Order**: Element ordering constraints (Domain responsibility)
+- [INVALID] **Specific elements**: What `<agent>`, `<task>` mean (Domain responsibility)
+- [INVALID] **Hierarchy rules**: Which elements can contain which (Domain responsibility)
+- [INVALID] **Required/optional**: Which elements are mandatory (Domain responsibility)
+- [INVALID] **Order**: Element ordering constraints (Domain responsibility)
 
 ### 6.4 Mixed Content
 
@@ -638,13 +638,13 @@ if (x < 10 && y > 5) {
 ### 8.5 Protocol Responsibility
 
 Protocol defines:
-- ✅ `type` attribute mechanism
-- ✅ XML content rules (whitespace, escaping)
+- [VALID] `type` attribute mechanism
+- [VALID] XML content rules (whitespace, escaping)
 
 Protocol does NOT define:
-- ❌ What content SHOULD contain (Domain responsibility)
-- ❌ Content validation rules (Domain responsibility)
-- ❌ Content interpretation (Domain responsibility)
+- [INVALID] What content SHOULD contain (Domain responsibility)
+- [INVALID] Content validation rules (Domain responsibility)
+- [INVALID] Content interpretation (Domain responsibility)
 
 ---
 
@@ -677,12 +677,12 @@ The `+xml` suffix indicates XML-based format.
 A DPML document MUST have exactly ONE root element:
 
 ```xml
-<!-- ✅ VALID -->
+<!-- [VALID] VALID -->
 <agent>
   ...
 </agent>
 
-<!-- ❌ INVALID: Multiple roots -->
+<!-- [INVALID] INVALID: Multiple roots -->
 <agent>...</agent>
 <task>...</task>
 ```
