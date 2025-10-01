@@ -1,0 +1,20 @@
+{
+  "name": "@dpml/website",
+  "version": "1.0.0",
+  "description": "DPML Official Website",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev docs",
+    "build": "vitepress build docs",
+    "preview": "vitepress preview docs"
+  },
+  "keywords": ["dpml", "documentation", "website"],
+  "author": "Deepractice.ai",
+  "license": "MIT",
+  "packageManager": "pnpm@10.7.0",
+  "devDependencies": {
+    "vitepress": "^1.6.4",
+    "vue": "^3.5.22"
+  }
+}
