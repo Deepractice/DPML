@@ -1,0 +1,52 @@
+name: Deploy DPML Website
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/website/**'
+      - 'specs/v1.0/**'
+      - '.github/workflows/deploy-website.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to Cloudflare Pages
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.7.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        working-directory: apps/website
+        run: pnpm install --frozen-lockfile
+
+      - name: Sync specifications
+        working-directory: apps/website
+        run: pnpm sync:specs
+
+      - name: Build website
+        working-directory: apps/website
+        run: pnpm build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: dpml-website
+          directory: apps/website/docs/.vitepress/dist
+          gitHubToken: ${{ github.token }}
