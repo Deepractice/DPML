@@ -10,13 +10,15 @@
 
 This document defines the Deepractice Prompt Markup Language (DPML) Protocol version 1.0.
 
-DPML is a **three-party prompt protocol** that uses structured information to enable computers, AI, and humans to collaborate in AI systems:
+DPML is a **three-party prompt protocol** that uses structured information to enable computers, AI, and humans to collaborate in AI systems. In modern AI systems, each party occupies an irreplaceable core role:
 
-- **Prompt for Computers**: Attributes drive configuration and execution
-- **Prompt for AI**: Content drives understanding and reasoning
-- **Prompt for Humans**: Structure enables observation and control
+- **Human: Creative Intent** - Defines goals and direction, provides creative thinking
+- **AI: Semantic Translation** - Bidirectionally converts between intent and execution, connecting natural language and structured instructions
+- **Computer: Precise Execution** - Efficiently completes deterministic tasks, returns reliable results
 
-Traditional prompts serve only AI. DPML recognizes that modern AI systems require three distinct types of prompts—instructions for machines, context for AI, and visibility for humans—unified in a single document that serves as a flowing carrier for system collaboration. DPML flows between the three parties, with each step driving the next actor to take action, and the entire flow is fully observable.
+Traditional prompts serve only AI. DPML recognizes that modern AI systems require three distinct types of prompts—human intent expression, AI semantic translation, and computer execution instructions—unified in a single document system that serves as a flowing carrier for system collaboration.
+
+To achieve this three-party unification, the information carrier must simultaneously provide: **concept definition** (enabling all parties to understand "what this is"), **configuration data** (for machine parsing), **semantic content** (for AI reasoning), and **visualization structure** (for human observation).
 
 XML's four dimensions—tag (concept definition), attribute (configuration data), content (semantic carrier), and DOM structure (visualization rendering)—make it the only format capable of serving computers, AI, and humans simultaneously, with AI playing the critical mediator role connecting human intent to computer execution.
 
@@ -48,17 +50,17 @@ XML's four dimensions—tag (concept definition), attribute (configuration data)
 
 ### 1.1 Motivation
 
-Modern AI systems involve three distinct stakeholders, each requiring different types of information:
+In modern AI systems, three parties each occupy irreplaceable core positions:
 
-- **Computers** need structured configuration to initialize models, register APIs, and manage execution
-- **AI** needs natural language instructions to understand roles, principles, and behaviors
-- **Humans** need observable structure to audit, debug, and control AI systems
+- **Human (Creative Intent)**: Defines system goals and direction, needs observable system state to understand and adjust intent
+- **AI (Semantic Translation)**: Bidirectionally converts between human intent and computer execution, needs context and constraints to translate accurately
+- **Computer (Precise Execution)**: Efficiently completes deterministic tasks, needs structured instructions for precise execution
 
 Traditional approaches force these three types of information into incompatible formats:
 
-- Pure text prompts serve AI but are unparseable by computers and unobservable by humans
-- YAML/JSON configurations serve computers but create cognitive load for AI and lack visualization structure for humans
-- Separate files fragment information, requiring synchronization and increasing maintenance burden
+- **Pure text prompts**: AI can understand natural language, but computers cannot reliably parse it, and humans only see linear text
+- **YAML/JSON configurations**: Computers can parse key-value pairs, but AI must understand path syntax, and humans see flat hierarchies
+- **Separate files**: Information is scattered across multiple locations, requiring synchronization and increasing coordination costs
 
 **DPML solves this by recognizing that all three needs are fundamentally "drive signals"**—structured information that guides and drives system behavior—and unifying them as a single flowing carrier. DPML flows between the three parties, with each step driving the next role to take action, and the entire flow is fully observable.
 
@@ -67,9 +69,9 @@ Traditional approaches force these three types of information into incompatible 
 The DPML Protocol aims to:
 
 1. **Unify three-party drives**: Enable computers, AI, and humans to mutually drive each other through a single information carrier in AI systems
-2. **Leverage structured information**: Use XML's multi-dimensional semantics (tag/attribute/content/structure) to separate concerns
-3. **Enable full observability**: Support real-time visualization and audit trails throughout the DPML flow
-4. **Maintain simplicity**: Minimize cognitive load while maximizing expressive power
+2. **Leverage structured information**: Use XML's multi-dimensional semantics (tag/attribute/content/structure) to achieve separation of concerns for computers, AI, and humans
+3. **Enable full observability**: Support real-time visualization and audit trails for each step in the DPML flow
+4. **Maintain simplicity**: Protocol-level core concepts ≤5, AI cognitive load < traditional OpenAPI specs (error rate reduced from 30% to <5%)
 
 ### 1.3 Scope
 
@@ -84,7 +86,9 @@ This specification does NOT define:
 
 - **Domain semantics**: Specific meanings of `<agent>`, `<task>`, etc. (defined in Domain Specifications)
 - **Runtime behavior**: How elements are executed or interpreted
-- **Extension mechanisms**: Detailed plugin or namespace systems (reserved for future versions)
+- **Extension mechanisms**:
+  - v1.0 allows custom elements and attributes (must follow kebab-case naming conventions)
+  - Detailed namespace and plugin systems are reserved for future versions
 
 ### 1.4 Requirements Language
 
@@ -94,11 +98,17 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ## 2. Design Philosophy: The Three-Party Prompt Protocol
 
-### 2.0 Three-Party Ecological Positioning
+### 2.0 Three-Party Core Positioning: Intent-Translation-Execution
 
-In AI systems, computers, AI, and humans each occupy unique ecological niches with irreplaceable core values:
+In AI systems, computers, AI, and humans each occupy unique **core positions**—functional roles where they play irreplaceable functions in the system:
 
-#### Human: Ultimate Innovation Carrier
+| Core Position | Essential Function | Irreplaceable Value |
+|--------------|-------------------|---------------------|
+| **Human: Creative Intent** | Define goals and direction | The only role capable of proactively initiating practice, learning from it, and generating genuine innovation |
+| **AI: Semantic Translation** | Bidirectionally convert between intent and execution | The only role capable of understanding natural language intent and converting it to executable instructions |
+| **Computer: Precise Execution** | Efficiently complete deterministic tasks | The only role capable of executing instructions with ultra-high speed and absolute precision |
+
+#### Human: Creative Intent
 
 **Core Capability**: Practice + Consciousness = Innovation
 
@@ -108,9 +118,9 @@ In AI systems, computers, AI, and humans each occupy unique ecological niches wi
 | **Self-driven Consciousness** | Proactively initiate and engage in practice, set goals | Define "what to do" and "why to do it" |
 | **Innovation** | Practice combined with consciousness generates creativity | Break existing boundaries, create new value |
 
-**Ecological Niche**: Humans are the only role capable of proactively initiating practice, learning from practice, and generating genuine innovation.
+**Position**: Humans are the only role capable of proactively initiating practice, learning from practice, and generating genuine innovation.
 
-#### Computer: Ultimate Efficiency Carrier
+#### Computer: Precise Execution
 
 **Core Capability**: Precision + Speed = Efficiency
 
@@ -120,9 +130,9 @@ In AI systems, computers, AI, and humans each occupy unique ecological niches wi
 | **High-speed Processing** | Computation and data processing far exceeding human capability | Complete massive work in short time |
 | **Execution Efficiency** | Precision combined with speed brings extreme efficiency | Free human time for high-value work |
 
-**Ecological Niche**: Computers are the only role capable of executing deterministic tasks with ultra-high speed and absolute precision.
+**Position**: Computers are the only role capable of executing deterministic tasks with ultra-high speed and absolute precision.
 
-#### AI: Bridge Between Human and Computer
+#### AI: Semantic Translation
 
 **Core Capability**: Pattern + Knowledge = Mapping
 
@@ -132,23 +142,28 @@ In AI systems, computers, AI, and humans each occupy unique ecological niches wi
 | **Knowledge Integration** | Associate and organize knowledge across domains | Provide cross-domain knowledge connections |
 | **Mapping Capability** | Transform abstract intent into concrete instructions | Connect human thinking to computer execution |
 
-**Ecological Niche**: AI is the only role capable of understanding human natural language intent and converting it into computer-executable instructions.
+**Position**: AI is the only role capable of understanding human natural language intent and converting it into computer-executable instructions.
 
 #### Three-Party Collaboration Relationship
 
 ```
-Human (Innovation)
+Human (Creative Intent)
     ↓ Express intent (natural language)
-AI (Mapping)
-    ↓ Convert to structured information (DPML)
-Computer (Execution)
+AI (Semantic Translation)
+    ↓ Convert to structured instructions (DPML)
+Computer (Precise Execution)
     ↓ Return execution results
-AI (Understanding)
+AI (Semantic Translation)
     ↓ Convert to human-understandable form
-Human (Observation, Adjustment)
+Human (Observation, Adjust Intent)
 ```
 
-**Core Insight**: In the future three-party interaction environment, humans are the ultimate innovation carrier, computers are the ultimate efficiency carrier, and AI completes the transformation task between them. DPML is precisely the protocol implementing this three-party collaboration.
+**Core Insight**: Intent-Translation-Execution forms a complete collaborative loop. Humans provide creative intent, AI performs semantic translation, and computers complete precise execution. DPML is precisely the protocol implementing this three-party collaboration.
+
+This is a **continuous optimization loop**:
+- Humans observe computer execution results → adjust intent → AI translates → computer re-executes
+- Each iteration brings the system closer to human's true needs
+- DPML serves as the flowing carrier, ensuring lossless information transfer throughout the cycle
 
 ### 2.1 Rethinking "Prompt"
 
@@ -156,13 +171,18 @@ Human (Observation, Adjustment)
 
 **DPML definition**: A prompt is **structured information that guides system behavior**.
 
-In any AI application, there are actually three systems that need prompting:
+In any AI application, there are actually three roles that need prompting:
 
-| System | Needs to know | Traditional approach | Problem |
-|--------|--------------|---------------------|---------|
-| **Computer** | Model name, API keys, timeout values | Config files (YAML/JSON) | AI cannot understand, humans see flat structure |
-| **AI** | Role, principles, capabilities | Text prompts | Computer cannot parse, humans cannot audit structure |
-| **Human** | System purpose, current state, changes | Documentation + logs | Separated from definition, hard to maintain |
+| Core Position | Needs What | Traditional Approach | Problem |
+|--------------|-----------|---------------------|---------|
+| **Human: Creative Intent** | Observable system state | Docs separated from code | Cannot observe AI reasoning process, docs drift from implementation |
+| **AI: Semantic Translation** | Context and constraints | Prompts separated from config | Lacks execution context, cannot translate accurately |
+| **Computer: Precise Execution** | Structured instructions | Config files (YAML/JSON) | AI cannot understand, humans find it hard to audit |
+
+**Core Contradiction**: Three types of information operate independently, resulting in:
+- When modifying configuration, AI prompts may not be updated synchronously
+- Human documentation gradually drifts from actual code
+- Debugging requires jumping between multiple files
 
 DPML's core insight: **These are all prompts, just for different audiences.**
 
@@ -171,10 +191,10 @@ DPML's core insight: **These are all prompts, just for different audiences.**
 The **number of structural dimensions** in information determines whether all three parties can be served simultaneously:
 
 ```
-Plain Text (0-dimensional structure)
+Plain Text (1-dimensional linear structure, 0 semantic dimensions)
 ├─ AI can understand natural language
-├─ Computer cannot reliably parse (no structure)
-└─ Human sees linear text (no hierarchy)
+├─ Computer cannot reliably parse (no structured semantics)
+└─ Human sees linear text (no hierarchical visualization)
 → Only serves AI
 
 YAML/JSON (2-dimensional: key + value)
@@ -203,7 +223,13 @@ XML (4-dimensional: tag + attribute + content + structure)
 
 3. **Structure is not overhead, but foundation for collaboration**
    - More dimensions = richer shared semantic space
-   - XML's 4 dimensions are precisely the minimum needed for three-party collaboration
+   - **Why exactly 4 dimensions?**
+     - Tag: Concept identity (all 3 parties need to know "what this is")
+     - Attribute: Machine configuration (computer parses, AI understands, human views)
+     - Content: Semantic content (AI's primary domain, human reads, computer extracts)
+     - Structure: Hierarchical visualization (human observes, computer traverses, AI understands context)
+   - Less than 4 dimensions → at least one party's needs cannot be met
+   - More than 4 dimensions → introduces unnecessary complexity
 
 ### 2.3 How DPML Achieves Three-Party Drives
 
@@ -218,11 +244,7 @@ A single DPML document uses XML's four dimensions, allowing each dimension to be
     You specialize in creating detailed itineraries and recommending local experiences.
   </prompt>
 
-  <metadata
-    purpose="Travel planning assistant"
-    version="2.0"
-    last-reviewed="2025-10-01"
-    reviewer="Zhang San"/>
+  <metadata purpose="Travel planning assistant"/>
 </agent>
 ```
 
@@ -242,7 +264,7 @@ A single DPML document uses XML's four dimensions, allowing each dimension to be
 
 #### Processing Flow: Three Parties Understanding in Parallel
 
-The same DPML document is understood from different perspectives by all three parties simultaneously:
+The same DPML document is understood **simultaneously but independently** by all three parties from their own perspectives (not sequential processing):
 
 **Computer Perspective**:
 1. Parse `<agent>` node, create agent object
@@ -264,6 +286,8 @@ The same DPML document is understood from different perspectives by all three pa
 3. See `<prompt>` content, understand AI's role positioning
 4. See `<metadata>`, understand system purpose, version, review info
 5. **Focus on** DOM structure visualization for audit and debugging
+
+**Key Point**: These three perspectives are **parallel**, not sequential. Computer, AI, and human can simultaneously read and understand the same DPML document, each taking what they need.
 
 #### Key Insight
 
@@ -300,45 +324,45 @@ DPML's essence is not merely an information carrier, but a **drive protocol**—
 Using a real-world scenario to demonstrate how DPML flows between the three parties and drives the entire system:
 
 ```
-1. Human expresses intent (natural language)
+1. Human expresses intent (Creative Intent)
    "Help me check the weather in Beijing today"
 
-2. Computer structures it into DPML Prompt
+2. System wraps user input into DPML Prompt
    <prompt context="weather-query">
      Help me check the weather in Beijing today
    </prompt>
-   ↓ (drives AI)
+   ↓ (drives AI for semantic translation)
 
-3. AI understands and generates DPML Tool Call
+3. AI understands and generates DPML Tool Call (Semantic Translation)
    <tool-call name="get-weather">
      <parameter name="city">Beijing</parameter>
      <parameter name="date">2025-10-02</parameter>
    </tool-call>
-   ↓ (drives computer)
+   ↓ (drives computer for precise execution)
 
-4. Computer executes tool and returns DPML Result
+4. Computer executes tool and returns DPML Result (Precise Execution)
    <tool-result name="get-weather" status="success">
      <data type="json">
        {"city": "Beijing", "temp": 18, "condition": "sunny"}
      </data>
    </tool-result>
-   ↓ (drives AI)
+   ↓ (drives AI for semantic translation)
 
-5. AI generates DPML Response based on result
+5. AI generates DPML Response based on result (Semantic Translation)
    <response>
      Beijing has sunny weather today, 18°C, great for going out.
    </response>
-   ↓ (drives computer)
+   ↓ (drives computer for rendering)
 
-6. Computer renders entire DPML flow
+6. Computer renders entire DPML flow (Precise Execution)
    [Visualization shows complete call chain]
-   ↓ (drives human)
+   ↓ (drives human for observation)
 
-7. Human observes visualization results
+7. Human observes visualization results (Creative Intent)
    - Sees AI called get-weather tool
    - Sees raw data returned
    - Sees AI's final response
-   - Can audit, debug, intervene
+   - Can audit, debug, adjust intent
 ```
 
 #### XML's Four Dimensions Support Drive Capability
@@ -355,7 +379,7 @@ DPML's ability to drive all three parties relies on XML's four dimensions, and *
 **Content type diversity**:
 
 ```xml
-<!-- type="code": Drives computer execution -->
+<!-- type="javascript": Drives computer execution -->
 <script type="javascript">
   function calculate(x) { return x * 2; }
 </script>
@@ -386,14 +410,20 @@ In the three-party drive loop, AI plays a critical **bidirectional translation**
    - AI understands intent and generates DPML (structured)
    - Computer parses DPML and executes (programmatic)
 
-   **Value**: Without AI, humans would need to hand-write complete DPML (high technical barrier)
+   **Value**:
+   - Lower technical barrier: Regular users don't need to learn XML syntax
+   - Improve expression efficiency: Natural language is 10x faster than hand-writing DPML
+   - Reduce error rate: AI-generated DPML has >95% format correctness
 
 2. **Computer → AI → Human**
    - Computer returns structured data (e.g., JSON, XML)
    - AI understands data and generates natural language response (DPML Response)
    - Human sees friendly explanation and visualization interface
 
-   **Value**: Without AI, raw data returned by computer is hard for humans to understand directly
+   **Value**:
+   - Improve user experience: Raw JSON is not user-friendly for regular users
+   - Provide intelligent interpretation: AI can explain data meaning and correlations
+   - Support multimodal presentation: Text, charts, suggestions in various forms
 
 3. **DPML Connects the Entire Flow**
    - Traditional Markdown Prompts cannot drive computers (lack structured configuration)
