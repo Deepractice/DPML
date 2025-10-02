@@ -8,29 +8,39 @@
 
 ## Abstract
 
-This document defines the Deepractice Prompt Markup Language (DPML) Protocol version 1.0. DPML is an XML-based markup language designed for defining AI applications in a declarative way. The protocol establishes the foundational syntax and semantics that enable humans, AI systems, and computers to collaborate effectively in creating and understanding AI application definitions.
+This document defines the Deepractice Prompt Markup Language (DPML) Protocol version 1.0.
 
-DPML follows two core design principles: "Constrain but not Restrict" and "Minimize Cognitive Load", ensuring that the language provides structure without limiting AI's flexibility, while keeping the mental overhead low for both humans and AI systems.
+DPML is a **three-party prompt protocol** that uses structured information to enable computers, AI, and humans to collaborate on the same document:
+
+- **Prompt for Computers**: Attributes drive configuration and execution
+- **Prompt for AI**: Content drives understanding and reasoning
+- **Prompt for Humans**: Structure enables observation and control
+
+Traditional prompts serve only AI. DPML recognizes that modern AI systems require three distinct types of prompts—instructions for machines, context for AI, and visibility for humans—unified in a single structured document.
+
+XML's unique combination of attributes (machine semantics), content (AI semantics), and DOM structure (human observability) makes it the only format capable of serving all three stakeholders simultaneously.
 
 ---
 
 ## Table of Contents
 
 1. [Introduction](#1-introduction)
-2. [Terminology](#2-terminology)
-3. [Design Principles](#3-design-principles)
-4. [Protocol Overview](#4-protocol-overview)
-5. [Syntax Specification](#5-syntax-specification)
-6. [Element Specification](#6-element-specification)
-7. [Attribute Specification](#7-attribute-specification)
-8. [Content Specification](#8-content-specification)
-9. [File Format](#9-file-format)
-10. [Validation Rules](#10-validation-rules)
-11. [Security Considerations](#11-security-considerations)
-12. [IANA Considerations](#12-iana-considerations)
-13. [References](#13-references)
-14. [Appendix A: Complete Examples](#appendix-a-complete-examples)
-15. [Appendix B: ABNF Grammar](#appendix-b-abnf-grammar)
+2. [Design Philosophy: The Three-Party Prompt Protocol](#2-design-philosophy-the-three-party-prompt-protocol)
+3. [Terminology](#3-terminology)
+4. [Design Principles](#4-design-principles)
+5. [Protocol Overview](#5-protocol-overview)
+6. [Syntax Specification](#6-syntax-specification)
+7. [Element Specification](#7-element-specification)
+8. [Attribute Specification](#8-attribute-specification)
+9. [Content Specification](#9-content-specification)
+10. [File Format](#10-file-format)
+11. [Validation Rules](#11-validation-rules)
+12. [Security Considerations](#12-security-considerations)
+13. [IANA Considerations](#13-iana-considerations)
+14. [References](#14-references)
+15. [Appendix A: Complete Examples](#appendix-a-complete-examples)
+16. [Appendix B: ABNF Grammar](#appendix-b-abnf-grammar)
+17. [Appendix C: Why XML vs YAML/JSON](#appendix-c-why-xml-vs-yamljson)
 
 ---
 
@@ -38,21 +48,28 @@ DPML follows two core design principles: "Constrain but not Restrict" and "Minim
 
 ### 1.1 Motivation
 
-Traditional AI application development requires deep understanding of model APIs, prompt engineering techniques, and complex programming. DPML changes this by providing a declarative markup language that:
+Modern AI systems involve three distinct stakeholders, each requiring different types of information:
 
-- Uses familiar XML-like syntax
-- Employs consensus concepts that both humans and AI understand
-- Separates structure (for computers) from semantics (for AI)
-- Minimizes cognitive load through simplicity
+- **Computers** need structured configuration to initialize models, register APIs, and manage execution
+- **AI** needs natural language instructions to understand roles, principles, and behaviors
+- **Humans** need observable structure to audit, debug, and control AI systems
+
+Traditional approaches force these three types of information into incompatible formats:
+
+- Pure text prompts serve AI but are unparseable by computers and unobservable by humans
+- YAML/JSON configurations serve computers but create cognitive load for AI and lack visualization structure for humans
+- Separate files fragment information, requiring synchronization and increasing maintenance burden
+
+**DPML solves this by recognizing that all three needs are fundamentally "prompts"**—structured information that guides system behavior—and unifying them in a single document.
 
 ### 1.2 Goals
 
 The DPML Protocol aims to:
 
-1. **Establish a foundation**: Define the meta-language for AI application markup
-2. **Enable interoperability**: Provide a standard format that tools can parse and generate
-3. **Support extensibility**: Allow domain-specific extensions while maintaining core consistency
-4. **Optimize for dual understanding**: Serve both machine parsing and AI comprehension
+1. **Unify three-party prompts**: Enable computers, AI, and humans to collaborate on the same document
+2. **Leverage structured information**: Use XML's multi-dimensional semantics (tag/attribute/content) to separate concerns
+3. **Enable observability**: Support real-time visualization and audit trails for AI systems
+4. **Maintain simplicity**: Minimize cognitive load while maximizing expressive power
 
 ### 1.3 Scope
 
@@ -75,9 +92,196 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ---
 
-## 2. Terminology
+## 2. Design Philosophy: The Three-Party Prompt Protocol
 
-### 2.1 Core Terms
+### 2.1 Rethinking "Prompt"
+
+**Traditional definition**: A prompt is text given to AI to guide its behavior.
+
+**DPML definition**: A prompt is **structured information that guides system behavior**.
+
+In any AI application, there are actually three systems that need prompting:
+
+| System | Needs to know | Traditional approach | Problem |
+|--------|--------------|---------------------|---------|
+| 🖥️ **Computer** | Model name, API keys, timeout values | Config files (YAML/JSON) | AI cannot understand, humans see flat structure |
+| 🤖 **AI** | Role, principles, capabilities | Text prompts | Computer cannot parse, humans cannot audit structure |
+| 👤 **Human** | System purpose, current state, changes | Documentation + logs | Separated from definition, hard to maintain |
+
+DPML's core insight: **These are all prompts, just for different audiences.**
+
+### 2.2 Structured Information as the Foundation
+
+The level of information structure determines how many stakeholders can be served:
+
+```
+Unstructured (pure text)
+├─ ✓ AI can understand
+├─ ✗ Computer cannot parse reliably
+└─ ✗ Human cannot observe structure
+
+Semi-structured (YAML/JSON)
+├─ ✓ Computer can parse
+├─ △ AI needs to process key-value paths
+└─ ✗ Human sees flat hierarchy
+
+Multi-dimensional structured (XML)
+├─ ✓ Computer: Attributes = configuration
+├─ ✓ AI: Content = natural language
+└─ ✓ Human: DOM tree = visual structure
+```
+
+**Key principle**: Information structure is not overhead—it's the mechanism that enables multi-party collaboration.
+
+### 2.3 How DPML Achieves Three-Party Prompting
+
+A single DPML document is three prompts layered together:
+
+```xml
+<agent>
+  <!-- Layer 1: Prompting the Computer (Attributes) -->
+  <llm model="gpt-4" temperature="0.7" max-tokens="2000"/>
+
+  <!-- Layer 2: Prompting the AI (Content) -->
+  <prompt>
+    You are a professional travel planning assistant.
+    You specialize in creating detailed itineraries and recommending local experiences.
+  </prompt>
+
+  <!-- Layer 3: Prompting the Human (Structure + Metadata) -->
+  <metadata
+    purpose="Travel planning assistant"
+    version="2.0"
+    last-reviewed="2025-10-01"
+    reviewer="Zhang San"/>
+</agent>
+```
+
+**Processing flow**:
+
+1. **Computer reads** `model="gpt-4"` → Initializes GPT-4 client
+2. **Computer reads** `temperature="0.7"` → Configures parameters
+3. **AI reads** `You are a professional...` → Understands role
+4. **Human sees** DOM structure + metadata → Audits system configuration
+
+**Critical design**: These three layers coexist without interfering with each other.
+
+### 2.4 Why XML is the Only Viable Choice
+
+#### The Semantic Dimension Problem
+
+Different formats have different semantic dimensions:
+
+| Format | Semantic Dimensions | Computer | AI | Human |
+|--------|-------------------|----------|-----|--------|
+| **YAML** | 2 (key + value) | ✓ Can parse | ✗ Indentation cognitive load | ✗ Flat visualization |
+| **JSON** | 2 (key + value) | ✓ Can parse | △ Bracket noise | ✗ Flat visualization |
+| **XML** | 4 (tag + attribute + content + structure) | ✓ Mature parsing | ✓ Natural content | ✓ DOM tree |
+
+#### Why YAML Fails
+
+```yaml
+# All information is compressed into key-value pairs
+agent:
+  llm:
+    model: gpt-4
+    temperature: 0.7
+  prompt: |
+    You are an assistant
+  metadata:
+    version: "2.0"
+```
+
+Problems:
+- AI must understand hierarchical paths (`agent.llm.model`)
+- Indentation is semantic (cognitive load for AI)
+- All information is at the same conceptual level (machine config + AI instruction mixed)
+- No natural "content" space for AI's natural language
+
+#### Why XML Succeeds
+
+```xml
+<agent>
+  <!-- Attributes: Machine's domain -->
+  <llm model="gpt-4" temperature="0.7"/>
+
+  <!-- Content: AI's domain -->
+  <prompt>You are an assistant</prompt>
+
+  <!-- Structure: Human's domain -->
+  <metadata version="2.0"/>
+</agent>
+```
+
+Advantages:
+- **Tag**: Concept definition (`<prompt>` means "this is a prompt")
+- **Attribute**: Machine configuration (key-value pairs for parsers)
+- **Content**: AI's natural expression space (no format constraints)
+- **Structure**: Human-visible hierarchy (DOM tree)
+
+**This is the only format with sufficient semantic dimensions to serve all three parties.**
+
+### 2.5 Observable AI Systems
+
+Humans need more than "read the config"—they need **real-time observation and control**.
+
+#### Static Definition (Development)
+```xml
+<agent>
+  <llm model="gpt-4"/>
+  <prompt>You are an assistant</prompt>
+</agent>
+```
+
+#### Dynamic State (Runtime)
+```xml
+<agent status="running" uptime="3600s">
+  <llm model="gpt-4" tokens-used="1520" requests="23"/>
+  <prompt version="2.0"/>
+  <tools>
+    <tool name="search" calls="15" avg-latency="120ms"/>
+  </tools>
+</agent>
+```
+
+#### Visualization Rendering
+
+The same XML structure maps directly to UI components:
+
+```
+┌─ Agent: Travel Assistant ──────────────┐
+│ Status: ⚫ Running (1h)                 │
+│ Model:  GPT-4                          │
+│ Tokens: 1,520 / 10,000                 │
+│                                         │
+│ 📝 Prompt (v2.0)                       │
+│ You are a professional travel...       │
+│                                         │
+│ 🛠️ Tools                                │
+│ • search      15 calls  120ms avg     │
+└─────────────────────────────────────────┘
+```
+
+**Key advantage**: DPML's DOM structure makes visualization a natural transformation, not an afterthought.
+
+### 2.6 Core Value Proposition
+
+**DPML is not "XML for prompts".**
+
+**DPML is the first protocol that recognizes:**
+
+1. Modern AI systems require **three types of prompts** (for computers, AI, and humans)
+2. These prompts must be **unified** (not scattered across files)
+3. Information must be **structurally separated** (attributes ≠ content ≠ structure)
+4. AI systems must be **observable** (runtime state + static definition)
+
+**Only XML's multi-dimensional semantics can satisfy all four requirements.**
+
+---
+
+## 3. Terminology
+
+### 3.1 Core Terms
 
 **DPML Document**: A file containing DPML markup, typically with `.dpml` or `.pml` extension.
 
@@ -93,7 +297,12 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 **Domain**: A specialized area of DPML with specific element definitions (e.g., Agent Domain, Task Domain).
 
-### 2.2 Design Principle Terms
+**Prompt**: In DPML, a prompt is **structured information that guides system behavior**. DPML documents contain three types of prompts simultaneously:
+- **Machine Prompt**: Attributes and configuration that drive computer behavior
+- **AI Prompt**: Content and instructions that drive AI reasoning
+- **Human Prompt**: Structure and metadata that enable human observation and control
+
+### 3.2 Design Principle Terms
 
 **Constrain but not Restrict (约而不束)**: Establish structure and conventions (constrain) without limiting AI's logical flexibility (not restrict).
 
@@ -105,9 +314,9 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ---
 
-## 3. Design Principles
+## 4. Design Principles
 
-### 3.1 Constrain but not Restrict Principle
+### 4.1 Constrain but not Restrict Principle
 
 **Core Philosophy**: Provide structure and direction without limiting AI's creative and adaptive capabilities.
 
@@ -142,7 +351,7 @@ patiently. I maintain professionalism while being friendly.
 </personality>
 ```
 
-### 3.2 Minimize Cognitive Load Principle
+### 4.2 Minimize Cognitive Load Principle
 
 **Core Philosophy**: AI's attention is a scarce resource. Complex rules consume cognitive bandwidth.
 
@@ -173,7 +382,7 @@ patiently. I maintain professionalism while being friendly.
 
 3. **Layered Complexity**: Structure (simple) + Content (flexible)
 
-### 3.3 Consensus Concept First Principle
+### 4.3 Consensus Concept First Principle
 
 **Core Philosophy**: When defining domain concepts (element names), rigorously select concepts with maximum contemporaneity, precision, semanticity, and connotation.
 
@@ -291,7 +500,7 @@ A concept is NOT a good consensus concept if:
 
 This principle ensures DPML's **economy** and **efficiency** as a markup language, applying Occam's Razor at the vocabulary level.
 
-### 3.4 Dual Semantics Principle
+### 4.4 Dual Semantics Principle
 
 Every syntax element serves two audiences:
 
@@ -311,9 +520,9 @@ Every syntax element serves two audiences:
 
 ---
 
-## 4. Protocol Overview
+## 5. Protocol Overview
 
-### 4.1 Foundation
+### 5.1 Foundation
 
 DPML is a **subset of XML 1.0**, adding specific conventions and constraints:
 
@@ -321,7 +530,7 @@ DPML is a **subset of XML 1.0**, adding specific conventions and constraints:
 - **Adds**: Naming conventions, reserved attributes, meta-semantic rules
 - **Removes**: DTD, XML Schema, Processing Instructions, Entities (for simplicity)
 
-### 4.2 Architecture
+### 5.2 Architecture
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -341,7 +550,7 @@ DPML is a **subset of XML 1.0**, adding specific conventions and constraints:
 └─────────────────────────────────────────────┘
 ```
 
-### 4.3 Layer Responsibilities
+### 5.3 Layer Responsibilities
 
 **Protocol Layer** (this document):
 - HOW to define concepts (syntax, structure)
@@ -355,9 +564,9 @@ DPML is a **subset of XML 1.0**, adding specific conventions and constraints:
 
 ---
 
-## 5. Syntax Specification
+## 6. Syntax Specification
 
-### 5.1 Basic Structure
+### 6.1 Basic Structure
 
 DPML documents MUST be well-formed XML:
 
@@ -367,9 +576,9 @@ DPML documents MUST be well-formed XML:
 </concept-name>
 ```
 
-### 5.2 Naming Conventions
+### 6.2 Naming Conventions
 
-#### 5.2.1 Element Names
+#### 6.2.1 Element Names
 
 Element names MUST follow **kebab-case**:
 
@@ -385,14 +594,14 @@ Element names MUST follow **kebab-case**:
 - Readable for both humans and AI
 - Avoids case-sensitivity issues
 
-#### 5.2.2 Attribute Names
+#### 6.2.2 Attribute Names
 
 Attribute names MUST follow **kebab-case** (same as elements):
 
 **Valid**: `api-key="..."`, `type="..."`, `model-name="..."`
 **Invalid**: `apiKey="..."`, `API_KEY="..."`, `ModelName="..."`
 
-### 5.3 Character Encoding
+### 6.3 Character Encoding
 
 DPML documents SHOULD use UTF-8 encoding. If using other encodings, an XML declaration SHOULD be included:
 
@@ -400,7 +609,7 @@ DPML documents SHOULD use UTF-8 encoding. If using other encodings, an XML decla
 <?xml version="1.0" encoding="UTF-8"?>
 ```
 
-### 5.4 Whitespace
+### 6.4 Whitespace
 
 - Whitespace within content is PRESERVED (per XML specification)
 - Leading/trailing whitespace handling is determined by Domain specifications
@@ -408,9 +617,9 @@ DPML documents SHOULD use UTF-8 encoding. If using other encodings, an XML decla
 
 ---
 
-## 6. Element Specification
+## 7. Element Specification
 
-### 6.1 Elements as Concepts
+### 7.1 Elements as Concepts
 
 In DPML, elements represent **concepts** rather than mere structural markers.
 
@@ -428,7 +637,7 @@ In DPML, elements represent **concepts** rather than mere structural markers.
 </role>
 ```
 
-### 6.2 Element Structure
+### 7.2 Element Structure
 
 Elements MAY be:
 
@@ -450,7 +659,7 @@ Elements MAY be:
    <prompt>You are a helpful assistant</prompt>
    ```
 
-### 6.3 Protocol-Level Rules
+### 7.3 Protocol-Level Rules
 
 The protocol defines:
 - [VALID] **Naming convention**: kebab-case
@@ -462,7 +671,7 @@ The protocol does NOT define:
 - [INVALID] **Required/optional**: Which elements are mandatory (Domain responsibility)
 - [INVALID] **Order**: Element ordering constraints (Domain responsibility)
 
-### 6.4 Mixed Content
+### 7.4 Mixed Content
 
 Mixed content (text + child elements) is syntactically VALID at protocol level:
 
@@ -478,9 +687,9 @@ However, most domains will likely accept EITHER text OR child elements, not mixe
 
 ---
 
-## 7. Attribute Specification
+## 8. Attribute Specification
 
-### 7.1 Attribute Semantics
+### 8.1 Attribute Semantics
 
 Attributes primarily serve **machine semantics**:
 - Type marking (`type="json"`)
@@ -489,7 +698,7 @@ Attributes primarily serve **machine semantics**:
 
 AI can understand attribute meanings, but attributes are optimized for machine processing.
 
-### 7.2 Attribute Syntax
+### 8.2 Attribute Syntax
 
 Attributes follow XML attribute syntax:
 
@@ -502,11 +711,11 @@ Attributes follow XML attribute syntax:
 - Attribute values MUST be quoted (single or double quotes)
 - Attribute values are ALWAYS strings at protocol level
 
-### 7.3 Reserved Attributes
+### 8.3 Reserved Attributes
 
 The protocol defines TWO reserved attributes that all elements MAY use:
 
-#### 7.3.1 `type`
+#### 8.3.1 `type`
 
 **Purpose**: Indicates the format type of element content
 **Values**: `markdown`, `json`, `javascript`, `python`, `yaml`, `text`, or other format identifiers
@@ -541,7 +750,7 @@ You are an assistant.
 </prompt>
 ```
 
-#### 7.3.2 `id`
+#### 8.3.2 `id`
 
 **Purpose**: Unique identifier for an element
 **Values**: String identifier
@@ -554,7 +763,7 @@ You are an assistant.
 </prompt>
 ```
 
-### 7.4 Domain-Specific Attributes
+### 8.4 Domain-Specific Attributes
 
 Domains MAY define their own attributes:
 
@@ -569,7 +778,7 @@ Domains MAY define their own attributes:
 
 These are NOT protocol-level reserved attributes; their semantics are defined by the respective Domain Specification.
 
-### 7.5 Type System
+### 8.5 Type System
 
 The protocol has NO type system for attribute values:
 - All attribute values are strings at protocol level
@@ -585,9 +794,9 @@ At Domain level: Agent Domain interprets `"0.7"` as number 0.7
 
 ---
 
-## 8. Content Specification
+## 9. Content Specification
 
-### 8.1 Content Types
+### 9.1 Content Types
 
 Element content can be:
 
@@ -596,7 +805,7 @@ Element content can be:
 3. **Mixed content**: Combination (syntactically valid, semantically domain-dependent)
 4. **Empty**: Self-closing elements
 
-### 8.2 Content Semantics by Type
+### 9.2 Content Semantics by Type
 
 Content semantics depend on `type` attribute:
 
@@ -609,13 +818,13 @@ Content semantics depend on `type` attribute:
 | `python` | Code parsing/execution | Code logic understanding | Executable scripts |
 | `yaml` | YAML parsing | Data structure understanding | Configuration |
 
-### 8.3 Whitespace Handling
+### 9.3 Whitespace Handling
 
 - Protocol level: All whitespace is PRESERVED (XML standard)
 - Domain level: MAY trim or normalize whitespace
 - `type` MAY influence handling (e.g., `markdown` preserves newlines)
 
-### 8.4 Special Characters
+### 9.4 Special Characters
 
 Use XML escaping for special characters in text content:
 
@@ -635,7 +844,7 @@ if (x < 10 && y > 5) {
 </script>
 ```
 
-### 8.5 Protocol Responsibility
+### 9.5 Protocol Responsibility
 
 Protocol defines:
 - [VALID] `type` attribute mechanism
@@ -648,9 +857,9 @@ Protocol does NOT define:
 
 ---
 
-## 9. File Format
+## 10. File Format
 
-### 9.1 File Extensions
+### 10.1 File Extensions
 
 DPML documents MUST use one of these extensions:
 
@@ -663,16 +872,16 @@ Both extensions are treated identically by parsers.
 - `.dpml` is explicit and unambiguous
 - `.pml` provides convenience without conflict in AI domain
 
-### 9.2 MIME Type
+### 10.2 MIME Type
 
 **Primary**: `application/dpml+xml`
 **Alternative**: `text/dpml+xml`
 
 The `+xml` suffix indicates XML-based format.
 
-### 9.3 Document Structure
+### 10.3 Document Structure
 
-#### 9.3.1 Root Element
+#### 10.3.1 Root Element
 
 A DPML document MUST have exactly ONE root element:
 
@@ -689,7 +898,7 @@ A DPML document MUST have exactly ONE root element:
 
 The root element can be any concept defined by a Domain Specification.
 
-#### 9.3.2 XML Declaration
+#### 10.3.2 XML Declaration
 
 XML declaration is OPTIONAL:
 
@@ -706,7 +915,7 @@ XML declaration is OPTIONAL:
 </agent>
 ```
 
-#### 9.3.3 Comments
+#### 10.3.3 Comments
 
 XML comments are SUPPORTED:
 
@@ -718,7 +927,7 @@ XML comments are SUPPORTED:
 </agent>
 ```
 
-### 9.4 Minimal Example
+### 10.4 Minimal Example
 
 The smallest valid DPML document:
 
@@ -729,7 +938,7 @@ The smallest valid DPML document:
 </agent>
 ```
 
-### 9.5 Complete Example
+### 10.5 Complete Example
 
 A well-formed DPML document with all features:
 
@@ -763,9 +972,9 @@ You are a Zhangjiajie travel planning specialist.
 
 ---
 
-## 10. Validation Rules
+## 11. Validation Rules
 
-### 10.1 Well-Formedness
+### 11.1 Well-Formedness
 
 A DPML document MUST be well-formed XML:
 
@@ -774,7 +983,7 @@ A DPML document MUST be well-formed XML:
 - Special characters in text content properly escaped
 - Exactly one root element
 
-### 10.2 Protocol-Level Validation
+### 11.2 Protocol-Level Validation
 
 Validators MUST check:
 
@@ -782,7 +991,7 @@ Validators MUST check:
 2. **Reserved attributes**: `type` and `id` used correctly (if present)
 3. **File structure**: Single root element
 
-### 10.3 Domain-Level Validation
+### 11.3 Domain-Level Validation
 
 Domain specifications define additional validation:
 
@@ -795,9 +1004,9 @@ Protocol-level validators SHOULD allow any well-formed DPML document, leaving do
 
 ---
 
-## 11. Security Considerations
+## 12. Security Considerations
 
-### 11.1 Code Injection
+### 12.1 Code Injection
 
 Content with `type="javascript"` or `type="python"` contains executable code. Implementations MUST:
 
@@ -805,7 +1014,7 @@ Content with `type="javascript"` or `type="python"` contains executable code. Im
 - Run code in sandboxed environments
 - Respect user consent before executing
 
-### 11.2 Data Sensitivity
+### 12.2 Data Sensitivity
 
 Attributes like `api-key` may contain sensitive information. Implementations SHOULD:
 
@@ -813,7 +1022,7 @@ Attributes like `api-key` may contain sensitive information. Implementations SHO
 - Warn against hardcoding secrets
 - Provide key management best practices
 
-### 11.3 XML Security
+### 12.3 XML Security
 
 DPML inherits XML security considerations:
 
@@ -821,15 +1030,15 @@ DPML inherits XML security considerations:
 - **Billion laughs**: Limit entity expansion
 - **DTD attacks**: DTDs are not supported in DPML v1.0
 
-### 11.4 Content Trust
+### 12.4 Content Trust
 
 AI-generated or user-provided DPML documents should be validated and reviewed before execution in production environments.
 
 ---
 
-## 12. IANA Considerations
+## 13. IANA Considerations
 
-### 12.1 Media Type Registration
+### 13.1 Media Type Registration
 
 **Type name**: application
 **Subtype name**: dpml+xml
@@ -845,7 +1054,7 @@ AI-generated or user-provided DPML documents should be validated and reviewed be
 - File extension(s): `.dpml`, `.pml`
 - Macintosh file type code(s): TEXT
 
-### 12.2 File Extension Registration
+### 13.2 File Extension Registration
 
 **Extension**: `.dpml`
 **MIME type**: `application/dpml+xml`
@@ -857,9 +1066,9 @@ AI-generated or user-provided DPML documents should be validated and reviewed be
 
 ---
 
-## 13. References
+## 14. References
 
-### 13.1 Normative References
+### 14.1 Normative References
 
 - **[XML]** Extensible Markup Language (XML) 1.0 (Fifth Edition), W3C Recommendation, November 2008.
   https://www.w3.org/TR/xml/
@@ -867,7 +1076,7 @@ AI-generated or user-provided DPML documents should be validated and reviewed be
 - **[RFC2119]** Bradner, S., "Key words for use in RFCs to Indicate Requirement Levels", BCP 14, RFC 2119, March 1997.
   https://www.rfc-editor.org/rfc/rfc2119
 
-### 13.2 Informative References
+### 14.2 Informative References
 
 - **[RFC7322]** Flanagan, H. and S. Ginoza, "RFC Style Guide", RFC 7322, September 2014.
   https://www.rfc-editor.org/rfc/rfc7322
@@ -990,6 +1199,321 @@ quoted-string  = DQUOTE *CHAR DQUOTE / SQUOTE *CHAR SQUOTE
 ```
 
 **Note**: This is a simplified representation. Full XML grammar applies.
+
+---
+
+## Appendix C: Why XML vs YAML/JSON
+
+This appendix provides an in-depth comparison of XML, YAML, and JSON formats from the perspective of DPML's three-party prompt protocol design.
+
+### C.1 The Semantic Dimension Problem
+
+The fundamental challenge in designing a three-party protocol is that different stakeholders need different types of information from the same document. The format must provide sufficient **semantic dimensions** to express all three types simultaneously without interference.
+
+#### Semantic Dimensions Comparison
+
+| Format | Semantic Dimensions | Can Express |
+|--------|-------------------|-------------|
+| **YAML** | 2 (key, value) | Names and data only |
+| **JSON** | 2 (key, value) | Names and data only |
+| **XML** | 4 (tag, attribute, content, structure) | Concepts, config, content, and hierarchy |
+
+### C.2 Why YAML Fails for Three-Party Prompting
+
+#### Problem 1: Indentation as Semantic
+
+In YAML, indentation carries semantic meaning, creating cognitive load for AI:
+
+```yaml
+agent:
+  llm:
+    model: gpt-4
+    temperature: 0.7
+  prompt: |
+    You are an assistant
+```
+
+**AI processing burden**:
+- Must count spaces to determine hierarchy (`agent` → `llm` → `model`)
+- Indentation errors break structure (2 vs 4 spaces changes meaning)
+- AI needs to maintain a "indentation stack" mentally
+
+**XML equivalent (no indentation burden)**:
+
+```xml
+<agent>
+  <llm model="gpt-4" temperature="0.7"/>
+  <prompt>You are an assistant</prompt>
+</agent>
+```
+
+Indentation is purely for human readability; structure is explicit in tags.
+
+#### Problem 2: No Distinct Content Space
+
+YAML has no concept of "content" separate from "value":
+
+```yaml
+prompt:
+  type: markdown
+  content: |
+    You are an assistant.
+    You specialize in travel planning.
+```
+
+The actual prompt content is just another `content:` key-value pair. AI sees it as structurally equivalent to `type:`, creating noise.
+
+**XML's content space**:
+
+```xml
+<prompt type="markdown">
+  You are an assistant.
+  You specialize in travel planning.
+</prompt>
+```
+
+Content lives in its own semantic space, clearly separated from attributes.
+
+#### Problem 3: All Information on Same Plane
+
+In YAML, machine configuration and AI instructions exist at the same conceptual level:
+
+```yaml
+agent:
+  llm:
+    model: gpt-4         # Machine config
+    temperature: 0.7     # Machine config
+  prompt: |              # AI instruction
+    You are an assistant
+  metadata:
+    version: "2.0"       # Human metadata
+```
+
+There's no inherent distinction between `model` (for computers), `prompt` (for AI), and `metadata` (for humans). They're all just keys.
+
+**XML's layered semantics**:
+
+```xml
+<agent>
+  <!-- Machine domain: Attributes -->
+  <llm model="gpt-4" temperature="0.7"/>
+
+  <!-- AI domain: Content -->
+  <prompt>You are an assistant</prompt>
+
+  <!-- Human domain: Metadata + Structure -->
+  <metadata version="2.0"/>
+</agent>
+```
+
+Each stakeholder has a dedicated semantic space.
+
+#### Problem 4: Poor Visualization Structure
+
+YAML is inherently flat, making it difficult to render as visual hierarchy:
+
+```yaml
+# How do you map this to UI components?
+agent:
+  llm:
+    model: gpt-4
+  tools:
+    - name: search
+      endpoint: /api/search
+    - name: calc
+```
+
+There's no natural mapping to visual elements (cards, panels, sections).
+
+**XML's DOM maps naturally to UI**:
+
+```xml
+<agent>                    → Card: "Agent"
+  <llm model="gpt-4"/>     →   Section: "LLM Config"
+  <tools>                  →   Section: "Tools"
+    <tool name="search"/>  →     Item: "search"
+    <tool name="calc"/>    →     Item: "calc"
+  </tools>
+</agent>
+```
+
+Each element is a potential UI component.
+
+### C.3 Why JSON Has the Same Limitations
+
+JSON suffers from similar issues as YAML, despite having explicit brackets:
+
+```json
+{
+  "agent": {
+    "llm": {
+      "model": "gpt-4",
+      "temperature": 0.7
+    },
+    "prompt": "You are an assistant",
+    "metadata": {
+      "version": "2.0"
+    }
+  }
+}
+```
+
+**Problems**:
+- Only 2 semantic dimensions (key + value)
+- No distinct content space (prompt is a string value like any other)
+- Bracket and quote noise adds cognitive load
+- Same flat hierarchy as YAML
+
+### C.4 Why XML Succeeds
+
+#### Advantage 1: Four Independent Semantic Dimensions
+
+```xml
+<concept-name attribute="value">
+  content text
+</concept-name>
+```
+
+**Four dimensions**:
+1. **Tag name**: Concept identity (`<prompt>` means "this is a prompt")
+2. **Attributes**: Machine configuration (key-value pairs)
+3. **Content**: AI's natural expression space
+4. **Structure**: Human-visible hierarchy (DOM tree)
+
+#### Advantage 2: Clear Responsibility Separation
+
+| Dimension | Primary Consumer | Secondary Consumer | Example |
+|-----------|-----------------|-------------------|---------|
+| **Tag** | Human (understanding structure) | Computer & AI (context) | `<prompt>`, `<tool>` |
+| **Attribute** | Computer (parsing config) | AI (understanding metadata) | `model="gpt-4"` |
+| **Content** | AI (understanding intent) | Human (reading definition) | `You are an assistant` |
+| **Structure** | Human (observation) | Computer (validation) | Nesting, hierarchy |
+
+#### Advantage 3: Extensibility Without Restructuring
+
+Adding new information doesn't require changing the document structure:
+
+**YAML**:
+```yaml
+# Original
+prompt:
+  type: markdown
+  content: You are an assistant
+
+# Adding metadata requires restructuring
+prompt:
+  type: markdown
+  metadata:           # New layer!
+    author: Zhang San
+    created: 2025-01-01
+  content: You are an assistant  # Moved down
+```
+
+**XML**:
+```xml
+<!-- Original -->
+<prompt type="markdown">You are an assistant</prompt>
+
+<!-- Adding metadata - no restructuring -->
+<prompt type="markdown" author="Zhang San" created="2025-01-01">
+  You are an assistant
+</prompt>
+
+<!-- Or as child element -->
+<prompt type="markdown">
+  <metadata author="Zhang San" created="2025-01-01"/>
+  You are an assistant
+</prompt>
+```
+
+#### Advantage 4: Observable AI Systems
+
+XML's DOM structure enables real-time observability:
+
+**Development (static definition)**:
+```xml
+<agent>
+  <llm model="gpt-4"/>
+  <prompt>You are an assistant</prompt>
+</agent>
+```
+
+**Runtime (dynamic state injection)**:
+```xml
+<agent status="running" uptime="3600s">
+  <llm model="gpt-4" tokens-used="1520" requests="23"/>
+  <prompt version="2.0"/>
+  <tools>
+    <tool name="search" calls="15" latency="120ms"/>
+  </tools>
+</agent>
+```
+
+**Visualization (automatic rendering)**:
+```
+┌─ Agent ──────────────────────┐
+│ Status: Running (1h)          │
+│ Model:  GPT-4                 │
+│ Tokens: 1,520 / 10,000        │
+│                                │
+│ Tools:                         │
+│ • search  15 calls  120ms     │
+└────────────────────────────────┘
+```
+
+This is difficult to achieve with YAML/JSON's flat structure.
+
+### C.5 Cognitive Load Comparison
+
+From AI's perspective:
+
+**Generating YAML**:
+```yaml
+agent:
+  llm:
+    model: gpt-4    # Must maintain indentation level (4 spaces)
+  prompt: |         # Must remember to use |
+    Content here    # Must indent content correctly
+```
+
+AI mental checklist:
+- ✗ Count spaces for each level
+- ✗ Remember current indentation depth
+- ✗ Use `|` for multi-line strings
+- ✗ Ensure content indentation matches
+
+**Generating XML**:
+```xml
+<agent>
+  <llm model="gpt-4"/>
+  <prompt>
+    Content here
+  </prompt>
+</agent>
+```
+
+AI mental checklist:
+- ✓ Write `<tag>`
+- ✓ Write `</tag>`
+- ✓ Indentation doesn't matter
+
+XML's explicit closing tags act as "error detection"—AI knows when a structure is complete.
+
+### C.6 Summary: The Format Decision Matrix
+
+| Requirement | YAML | JSON | XML |
+|------------|------|------|-----|
+| **Three-party prompts** | ✗ | ✗ | ✓ |
+| **Semantic dimensions** | 2 | 2 | 4 |
+| **Distinct content space** | ✗ | ✗ | ✓ |
+| **Visual hierarchy** | ✗ | ✗ | ✓ |
+| **Low AI cognitive load** | ✗ | △ | ✓ |
+| **Extensibility** | △ | △ | ✓ |
+| **Observability** | ✗ | ✗ | ✓ |
+
+**Conclusion**: XML is not chosen because it's "familiar" or "mature"—it's chosen because it's the **only format with sufficient semantic dimensions** to serve computers, AI, and humans simultaneously.
+
+DPML's three-party protocol fundamentally requires four semantic spaces (tag/attribute/content/structure), and only XML provides them.
 
 ---
 
