@@ -104,9 +104,9 @@ In any AI application, there are actually three systems that need prompting:
 
 | System | Needs to know | Traditional approach | Problem |
 |--------|--------------|---------------------|---------|
-| 🖥️ **Computer** | Model name, API keys, timeout values | Config files (YAML/JSON) | AI cannot understand, humans see flat structure |
-| 🤖 **AI** | Role, principles, capabilities | Text prompts | Computer cannot parse, humans cannot audit structure |
-| 👤 **Human** | System purpose, current state, changes | Documentation + logs | Separated from definition, hard to maintain |
+| **Computer** | Model name, API keys, timeout values | Config files (YAML/JSON) | AI cannot understand, humans see flat structure |
+| **AI** | Role, principles, capabilities | Text prompts | Computer cannot parse, humans cannot audit structure |
+| **Human** | System purpose, current state, changes | Documentation + logs | Separated from definition, hard to maintain |
 
 DPML's core insight: **These are all prompts, just for different audiences.**
 
