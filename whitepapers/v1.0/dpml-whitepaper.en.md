@@ -1,7 +1,7 @@
 # DPML Design Whitepaper
 
-**Status**: Draft
-**Version**: 1.0
+**Status**: Draft<br>
+**Version**: 1.0<br>
 **Author**: Sean Jiang (Deepractice.ai)
 
 ---
@@ -1662,9 +1662,9 @@ Thanks to all contributors who provided feedback and suggestions for the DPML de
 
 ## Author Address
 
-**Sean Jiang**
-Deepractice.ai
-Email: sean@deepractice.ai
+**Sean Jiang**<br>
+Deepractice.ai<br>
+Email: sean@deepractice.ai<br>
 Website: https://deepractice.ai
 
 ---

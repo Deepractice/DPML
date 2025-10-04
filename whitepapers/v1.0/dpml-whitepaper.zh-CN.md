@@ -1,7 +1,7 @@
 # DPML 设计白皮书
 
-**状态**: 草稿
-**版本**: 1.0
+**状态**: 草稿<br>
+**版本**: 1.0<br>
 **作者**: 姜山 (Deepractice.ai)
 
 ---
@@ -1662,9 +1662,9 @@ Total: 300ms | Tokens: 75 in, 70 out
 
 ## 作者地址
 
-**姜山 (Sean Jiang)**
-Deepractice.ai
-邮箱: sean@deepractice.ai
+**姜山 (Sean Jiang)**<br>
+Deepractice.ai<br>
+邮箱: sean@deepractice.ai<br>
 网站: https://deepractice.ai
 
 ---
