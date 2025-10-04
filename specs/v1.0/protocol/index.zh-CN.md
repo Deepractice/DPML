@@ -1,831 +1,291 @@
-# DPML 协议规范
+# DPML 协议规范 v1.0
 
-**版本**: v1.0
-**状态**: 草案
-**日期**: 2025年10月
-**作者**: 姜山 (Deepractice.ai)
+## 文档元数据
 
----
-
-## 摘要
-
-DPML (Deepractice Prompt Markup Language) 是基于 XML 的标记语言，用于统一 AI 系统中计算机、AI 和人类的信息交换。
-
-本规范定义 DPML 的语法、语义和验证规则。设计理念详见 [DPML 设计白皮书](../../whitepapers/v1.0/dpml-whitepaper.zh-CN.md)。
+- **版本**: 1.0.0
+- **状态**: Draft
+- **最后更新**: 2025-10-04
+- **作者**: 姜山 (Deepractice.ai)
+- **语言**: 中文
+- **英文版本**: [index.en.md](./index.en.md)
 
 ---
 
-## 目录
+## 协议概述
 
-1. [引言](#1-引言)
-2. [语法规范](#2-语法规范)
-3. [元素规范](#3-元素规范)
-4. [属性规范](#4-属性规范)
-5. [内容规范](#5-内容规范)
-6. [文件格式](#6-文件格式)
-7. [验证规则](#7-验证规则)
-8. [一致性要求](#8-一致性要求)
-9. [IANA 考虑](#9-iana-考虑)
-10. [参考文献](#10-参考文献)
-11. [附录](#附录)
+DPML (Deepractice Prompt Markup Language) 协议规范定义了 DPML 的完整技术标准,包括**语法规范**和**语义规范**两个部分。
+
+### 设计理念
+
+DPML 基于**三方定位理论**,通过标记语言连接三方参与者:
+
+```
+人类 ←→ DPML ←→ AI ←→ DPML ←→ 计算机
+ ↓              ↓              ↓
+创新意图       语义转译       精确执行
+```
+
+详细设计理念参见 [DPML 设计白皮书](../whitepaper/index.zh-CN.md)。
 
 ---
 
-## 1. 引言
+## 协议组成
 
-### 1.1 目标
+DPML 协议由两个互补的规范组成:
 
-DPML 协议旨在：
+### 1. 语法规范 (Syntax Specification)
 
-1. **定义精确语法** - 明确什么是合法的 DPML 文档
-2. **规范解析行为** - 确保不同实现的一致性
-3. **保持简洁性** - 核心概念 ≤ 5 个
-4. **预留扩展性** - 支持未来演进
+- **文档**: [syntax.zh-CN.md](./syntax.zh-CN.md)
+- **受众**: XML 解析器实现者、验证器开发者、工具构建者
+- **关注点**: "**能不能解析**" (计算机视角)
 
-**5 个核心概念**：
+**定义内容:**
+- XML 语法规则
+- 元素和属性的格式要求
+- 文件结构规范
+- 验证规则和一致性要求
+- 错误处理机制
 
-- **元素（Element）** - 表示概念的 XML 标签
-- **属性（Attribute）** - 机器可解析的配置
-- **内容（Content）** - AI 和人类可读的文本
-- **保留属性（type/id）** - 协议层定义的通用属性
-- **文件格式（.dpml/.pml）** - 标准化容器
+**核心问题:**
+- 这个 DPML 文档格式是否合法?
+- 解析器应该如何处理这个文档?
+- 什么样的文档会被拒绝?
 
-### 1.2 范围
+### 2. 语义规范 (Semantics Specification)
 
-**本规范定义**：
-- 核心语法（元素、属性、内容的格式规则）
-- 验证规则（格式正确性和结构有效性）
-- 一致性要求（不同实现的兼容性保证）
+- **文档**: [semantics.zh-CN.md](./semantics.zh-CN.md)
+- **受众**: AI 系统、内容生成者、标签设计者、领域专家
+- **关注点**: "**什么意思**" (AI 视角)
 
-**本规范不定义**：
-- 领域语义（`<agent>`、`<task>` 的具体含义由领域规范定义）
-- 运行时行为（元素如何执行由实现决定）
-- 高级扩展（命名空间、版本控制预留给未来版本）
+**定义内容:**
+- 标签的语义含义
+- 标签设计原则(词性、命名、组合)
+- 认知框架设计指南
+- AI 理解和生成 DPML 的规则
+- 内容类型系统(type 机制)
 
-### 1.3 术语
-
-**DPML 文档**
-包含 DPML 标记的文件，使用 `.dpml` 或 `.pml` 扩展名。
-
-**元素（Element）**
-表示概念的 XML 标签结构，包含开始标签、结束标签（或自闭合）、可选的属性和内容。
-
-**属性（Attribute）**
-附加到元素的键值对，格式为 `name="value"`。
-
-**内容（Content）**
-元素内的文本数据或子元素。
-
-**保留属性**
-协议层定义的通用属性：`type`（内容格式类型）、`id`（唯一标识符）。
-
-**格式良好（Well-Formed）**
-符合 XML 1.0 语法规则的文档。
-
-**有效（Valid）**
-同时满足格式良好和 DPML 验证规则的文档。
-
-**kebab-case**
-全小写字母，单词间用连字符分隔（如 `travel-planner`）。
-
-**领域（Domain）**
-DPML 的专门化应用区域（如 Agent、Task），由独立规范定义。
-
-### 1.4 需求语言
-
-关键词"必须（MUST）"、"禁止（MUST NOT）"、"应该（SHOULD）"、"不应该（SHOULD NOT）"、"可以（MAY）"按照 RFC 2119 解释。
-
-### 1.5 协议概述
-
-DPML 是 **XML 1.0 的受约束子集**：
-
-- **基于** XML 1.0 规范 [XML]
-- **增加** 命名约定、保留属性、验证规则
-- **移除** DTD、XML Schema、处理指令、实体（为简洁性）
-
-**层次结构**：
-
-```
-┌─────────────────────────────────────────────┐
-│           DPML 协议（本规范）               │
-│  • 语法规则                                 │
-│  • 元语义（tag/attribute/content/structure）│
-│  • 保留属性（type/id）                      │
-│  • 验证规则                                 │
-└─────────────────────────────────────────────┘
-                    ▼
-┌─────────────────────────────────────────────┐
-│           领域规范（独立文档）              │
-│  • 定义具体元素（如 <agent>）               │
-│  • 定义领域特定属性和验证规则               │
-└─────────────────────────────────────────────┘
-```
-
-**一致性级别**：
-
-- **Level 1: 基础解析器** - 正确解析格式良好的文档，验证 kebab-case，识别保留属性
-- **Level 2: 验证解析器** - Level 1 + 执行完整验证规则
-- **Level 3: 领域感知解析器** - Level 2 + 支持至少一个领域规范的验证
+**核心问题:**
+- 这个标签应该包含什么性质的内容?
+- 如何设计一个好的认知框架?
+- AI 应该如何理解和生成这个结构?
 
 ---
 
-## 2. 语法规范
+## 两者关系
 
-### 2.1 基本结构
-
-DPML 文档必须是格式良好的 XML：
-
-```xml
-<element-name attribute-name="attribute-value">
-  内容或子元素
-</element-name>
+```
+┌─────────────────┐      ┌─────────────────┐
+│   语法规范      │      │   语义规范      │
+│   (Syntax)      │      │  (Semantics)    │
+├─────────────────┤      ├─────────────────┤
+│ • XML 格式      │      │ • 标签含义      │
+│ • 结构规则      │ ───▶ │ • 设计原则      │
+│ • 验证标准      │      │ • 认知框架      │
+│ • 解析行为      │      │ • AI 指南       │
+└─────────────────┘      └─────────────────┘
+      ↓                          ↓
+"格式正确吗?"            "表达清晰吗?"
+(必要条件)               (充分条件)
 ```
 
-**ABNF 定义**：
+**类比理解:**
 
-```abnf
-dpml-document  = [xml-decl] root-element
-root-element   = element
-element        = start-tag content end-tag / empty-element
-start-tag      = "<" element-name *attribute ">"
-end-tag        = "</" element-name ">"
-empty-element  = "<" element-name *attribute "/>"
-```
-
-### 2.2 命名约定
-
-#### 2.2.1 元素名称
-
-元素名称必须遵循 **kebab-case**：
-
-**语法规则**：
-- 全部小写字母（a-z）
-- 可以包含数字（0-9），但不能以数字开头
-- 单词之间用连字符（-）分隔
-- 禁止下划线（_）、驼峰命名
-
-**ABNF 定义**：
-
-```abnf
-element-name   = lowercase-word *("-" lowercase-word)
-lowercase-word = ALPHA *(ALPHA / DIGIT)
-ALPHA          = %x61-7A  ; a-z
-DIGIT          = %x30-39  ; 0-9
-```
-
-**有效示例**：
-```xml
-<agent>
-<travel-planner>
-<api-config>
-<tool-call-v2>
-```
-
-**无效示例**：
-```xml
-<Agent>           <!-- 大写 -->
-<travelPlanner>   <!-- 驼峰 -->
-<api_config>      <!-- 下划线 -->
-<2fa-auth>        <!-- 以数字开头 -->
-```
-
-#### 2.2.2 属性名称
-
-属性名称必须遵循与元素相同的 **kebab-case** 规则。
-
-### 2.3 字符编码
-
-DPML 文档应该使用 **UTF-8** 编码。
-
-**规则**：
-- UTF-8 是推荐编码，实现必须支持
-- 如使用其他编码，必须包含 XML 声明：
-  ```xml
-  <?xml version="1.0" encoding="UTF-8"?>
-  ```
-
-### 2.4 空白字符处理
-
-**空白字符定义**：空格（U+0020）、制表符（U+0009）、换行符（U+000A）、回车符（U+000D）
-
-**处理规则**：
-- **元素内容**：协议层必须保留所有空白字符（遵循 XML 1.0）
-- **属性值**：必须保留前导、尾随和内部空白
-- **标签之间**：格式化空白可以忽略
-
----
-
-## 3. 元素规范
-
-### 3.1 元素结构
-
-#### 3.1.1 容器元素
-
-```xml
-<agent>
-  <llm model="gpt-4"/>
-  <prompt>你是助手</prompt>
-</agent>
-```
-
-#### 3.1.2 自闭合元素
-
-```xml
-<llm model="gpt-4" api-key="sk-xxx"/>
-```
-
-#### 3.1.3 文本内容元素
-
-```xml
-<prompt>你是一个有用的助手</prompt>
-```
-
-### 3.2 混合内容
-
-混合内容（文本 + 子元素）在语法上有效：
-
-```xml
-<prompt>
-  你是一个具有以下技能的助手：
-  <skill>规划</skill>
-  <skill>分析</skill>
-</prompt>
-```
-
-**处理规则**：
-- 协议层：语法上合法
-- 领域层：可以限制为纯文本或纯子元素
-- 实现：必须保留文本和元素的顺序
-
-### 3.3 协议层约束
-
-**协议定义**：
-- 命名必须是 kebab-case
-- 必须使用共识概念（推荐）
-
-**协议不定义**：
-- 哪些元素存在（由领域规范定义）
-- 元素的层次规则
-- 必需或可选
-- 元素顺序
-
----
-
-## 4. 属性规范
-
-### 4.1 属性语法
-
-**基本格式**：
-```xml
-<element attr1="value1" attr2="value2">
-```
-
-**规则**：
-- 属性名必须是 kebab-case
-- 属性值必须用引号（单引号或双引号）
-- 同一元素的属性名不能重复
-- 属性顺序对语义无影响
-
-**转义规则**：
-- `<` → `&lt;`
-- `>` → `&gt;`
-- `&` → `&amp;`
-- `"` → `&quot;`（双引号属性值中）
-- `'` → `&apos;`（单引号属性值中）
-
-### 4.2 保留属性
-
-#### 4.2.1 `type` 属性
-
-**用途**：指示元素内容的格式类型
-
-**默认值**：`text`
-
-**标准类型值**：
-
-| 类型值 | 内容格式 | 说明 |
-|--------|---------|------|
-| `text` | 纯文本 | 默认，自然语言 |
-| `markdown` | Markdown | 格式化文本 |
-| `json` | JSON | 数据结构 |
-| `javascript` | JavaScript | 代码 |
-| `python` | Python | 代码 |
-| `yaml` | YAML | 数据结构 |
-
-**示例**：
-
-```xml
-<prompt type="markdown">
-# 系统提示词
-你是一个助手。
-</prompt>
-
-<config type="json">
-{
-  "timeout": 30,
-  "retry": 3
-}
-</config>
-```
-
-**处理规则**：
-- 实现必须识别 `type` 属性
-- 实现应该支持标准类型值
-- 实现可以支持自定义类型值
-- 未识别的类型值应视为 `text`
-
-#### 4.2.2 `id` 属性
-
-**用途**：元素的唯一标识符
-
-**语法规则**：
-- 在单个文档中必须唯一
-- 可以包含字母、数字、连字符、下划线
-- 推荐使用 kebab-case
-
-**示例**：
-
-```xml
-<prompt id="travel-system-prompt">
-  你是一名旅游规划专家。
-</prompt>
-```
-
-**保留用途**：
-- v1.0：仅用于标识，不支持引用
-- 未来版本：支持引用机制
-
-### 4.3 领域特定属性
-
-领域可以定义自己的属性：
-
-```xml
-<llm
-  model="gpt-4"
-  api-key="sk-xxx"
-  temperature="0.7"
-  max-tokens="2000"
-/>
-```
-
-**约束**：
-- 必须遵循 kebab-case
-- 协议层面都是字符串
-- 类型解释由领域规范定义
-
----
-
-## 5. 内容规范
-
-### 5.1 内容类型
-
-元素内容可以是：
-
-1. **文本内容** - 自然语言或数据
-2. **子元素** - 嵌套概念
-3. **混合内容** - 文本 + 子元素
-4. **空** - 自闭合元素
-
-### 5.2 特殊字符和转义
-
-**必须转义的字符**：
-
-| 字符 | 转义形式 | 使用场景 |
+| 对比 | 语法规范 | 语义规范 |
 |------|---------|---------|
-| `<` | `&lt;` | 总是 |
-| `&` | `&amp;` | 总是 |
-| `>` | `&gt;` | 推荐 |
+| 编程语言 | 语法检查器(能编译吗?) | 代码规范(写得好吗?) |
+| 自然语言 | 语法(句子结构正确吗?) | 语义(表达什么意思?) |
+| 建筑 | 结构安全规范 | 设计美学原则 |
 
-**代码内容处理**：
-
-对于 `type="javascript"`、`type="python"` 等代码类型，推荐使用 CDATA：
-
-```xml
-<script type="javascript"><![CDATA[
-if (x < 10 && y > 5) {
-  console.log("Valid");
-}
-]]></script>
-```
-
-### 5.3 空白字符规范化
-
-**规则**：
-- 协议层：必须保留所有空白字符
-- 领域层：可以定义规范化规则
+**依赖关系:**
+- 语法规范是**基础** - 必须先满足语法要求
+- 语义规范是**指南** - 在语法正确的基础上提供最佳实践
 
 ---
 
-## 6. 文件格式
+## 核心设计原则
 
-### 6.1 文件扩展名
+两个规范共同遵循的设计原则:
 
-DPML 文档必须使用以下扩展名之一：
+### 1. 简洁性原则
+**核心概念 ≤ 5 个**
 
-- **`.dpml`** - 主要的官方扩展名（推荐）
-- **`.pml`** - 短别名，完全等价
+语法规范的5个核心概念:
+- 元素 (Element)
+- 属性 (Attribute)
+- 内容 (Content)
+- 保留属性 (type/id)
+- 命名空间 (Namespace, 可选)
 
-### 6.2 MIME 类型
+### 2. 三方定位原则
+**人类 - AI - 计算机** 各司其职
 
-**主要 MIME 类型**：`application/dpml+xml`
-**备选 MIME 类型**：`text/dpml+xml`
+- 人类: 提供创新意图(自然语言)
+- AI: 语义理解和转译(生成/解析 DPML)
+- 计算机: 精确执行和验证(解析/存储)
 
-### 6.3 文档结构
+### 3. 四维语义原则
+**标签 - 属性 - 内容 - 结构** 共同传递语义
 
-#### 6.3.1 根元素
+语义通过四个维度表达:
+- **标签语义**: 标签名称本身的含义
+- **属性语义**: 元数据和约束
+- **内容语义**: 实际的信息载体
+- **结构语义**: 嵌套和组合关系
 
-DPML 文档必须有且仅有一个根元素。
+### 4. 约而不束原则
+**框定边界,不限制内容**
 
-**有效**：
-```xml
-<agent>
-  ...
-</agent>
+- **约**: 通过标签框定内容的**性质和类别**
+- **不束**: 不限制具体内容的**表达和创造**
+
+### 5. 扩展性原则
+**开放扩展,保持兼容**
+
+- 支持自定义标签和属性
+- 通过 Patterns 提供领域规范
+- 保持向后兼容
+
+---
+
+## 协议层次结构
+
 ```
-
-**无效**：
-```xml
-<agent>...</agent>
-<task>...</task>  <!-- 多个根元素 -->
-```
-
-#### 6.3.2 XML 声明
-
-XML 声明是可选的：
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<agent>
-  ...
-</agent>
-```
-
-**推荐**：
-- 如果编码不是 UTF-8，必须包含 XML 声明
-- 为了明确性，推荐总是包含
-
-#### 6.3.3 注释
-
-支持 XML 注释：
-
-```xml
-<!-- 这是注释 -->
-<agent>
-  <!-- 配置 LLM -->
-  <llm model="gpt-4"/>
-</agent>
-```
-
-**规则**：
-- 注释可以出现在元素之间
-- 注释不能出现在标签内部
-- 注释不能嵌套
-- 注释内容不能包含 `--`
-
-### 6.4 最小文档
-
-最小的有效 DPML 文档：
-
-```xml
-<agent/>
+┌─────────────────────────────────────┐
+│         DPML 生态系统               │
+├─────────────────────────────────────┤
+│  理念层 (Whitepaper)                │
+│    ↓                                │
+│  规范层 (Protocol)                  │
+│    ├── 语法规范 (Syntax)            │
+│    └── 语义规范 (Semantics)         │
+│    ↓                                │
+│  应用层 (Patterns)                  │
+│    └── 具体领域的认知框架模式       │
+│    ↓                                │
+│  实现层 (Implementations)           │
+│    ├── 解析器                       │
+│    ├── 验证器                       │
+│    └── AI 工具                      │
+└─────────────────────────────────────┘
 ```
 
 ---
 
-## 7. 验证规则
+## 使用指南
 
-### 7.1 格式良好性
+### 对于不同角色
 
-文档必须满足 XML 1.0 格式良好性规则：
+#### 解析器实现者
+1. 阅读 [语法规范](./syntax.zh-CN.md)
+2. 实现 XML 解析和验证
+3. 支持保留属性 (type, id)
+4. 处理错误和边界情况
 
-1. **唯一根元素**
-2. **标签正确嵌套**
-3. **属性值正确引用**
-4. **特殊字符正确转义**
+#### AI 系统开发者
+1. 阅读 [语义规范](./semantics.zh-CN.md)
+2. 理解标签设计原则
+3. 实现 DPML 生成和理解能力
+4. 参考 [Patterns](../patterns/) 中的应用示例
 
-### 7.2 DPML 特定规则
+#### 领域专家/标签设计者
+1. 先理解 [设计白皮书](../whitepaper/index.zh-CN.md)
+2. 学习 [语义规范](./semantics.zh-CN.md) 的设计原则
+3. 参考 [Meta-Pattern](../patterns/meta/pattern.dpml)
+4. 创建领域特定的 Pattern
 
-#### 规则 V1: 命名规范
-
-- **V1.1**: 所有元素名必须是 kebab-case
-- **V1.2**: 所有属性名必须是 kebab-case
-
-#### 规则 V2: 保留属性
-
-- **V2.1**: `type` 属性值必须非空
-- **V2.2**: `id` 属性值必须匹配模式 `^[a-zA-Z0-9_-]+$`
-- **V2.3**: `id` 在文档中必须唯一
-
-### 7.3 错误代码
-
-**致命错误（E 系列）**：
-
-| 代码 | 描述 |
-|------|------|
-| E01 | 文件读取失败 |
-| E02 | XML 格式不良 |
-
-**验证错误（V 系列）**：
-
-| 代码 | 描述 |
-|------|------|
-| V11 | 元素名不是 kebab-case |
-| V12 | 属性名不是 kebab-case |
-| V21 | type 属性值无效 |
-| V22 | id 属性值格式无效 |
-| V23 | id 重复 |
-
-**警告（W 系列）**：
-
-| 代码 | 描述 |
-|------|------|
-| W01 | 未知的 type 值 |
-| W02 | 推荐使用 UTF-8 |
-
-### 7.4 错误报告格式
-
-实现应该提供结构化的错误报告：
-
-```json
-{
-  "valid": false,
-  "errors": [
-    {
-      "code": "V11",
-      "level": "error",
-      "message": "元素名 'TravelPlanner' 不是 kebab-case",
-      "location": {
-        "line": 5,
-        "column": 3
-      },
-      "suggestion": "使用 'travel-planner'"
-    }
-  ]
-}
-```
+#### 工具开发者
+1. 同时阅读语法和语义规范
+2. 实现符合两个规范的工具
+3. 提供友好的错误提示
+4. 支持 Pattern 验证
 
 ---
 
-## 8. 一致性要求
+## 一致性要求
 
-### 8.1 必须实现（MUST）
+符合 DPML 协议的实现**必须**:
 
-所有实现必须：
+### 语法层面 (MUST)
+- 支持标准 XML 1.0/1.1 语法
+- 正确解析元素、属性、内容
+- 支持保留属性 `type` 和 `id`
+- 正确处理命名空间(如果使用)
+- 提供清晰的错误信息
 
-1. 正确解析格式良好的 DPML 文档
-2. 支持 UTF-8 编码
-3. 验证 kebab-case 命名规范
-4. 识别保留属性（type、id）
-5. 报告规定的错误代码
+### 语义层面 (SHOULD)
+- 理解常见标签的语义
+- 支持 type 系统 (v1.0: text, markdown)
+- 遵循标签设计原则
+- 提供语义验证(如果可能)
 
-### 8.2 应该实现（SHOULD）
-
-实现应该：
-
-1. 支持标准 type 值（text/markdown/json/javascript/python/yaml）
-2. 提供 DOM API
-3. 支持独立验证功能
-
-### 8.3 扩展机制
-
-#### 8.3.1 自定义元素
-
-领域规范可以定义自定义元素，但必须遵循 kebab-case。
-
-#### 8.3.2 自定义属性
-
-领域规范可以定义自定义属性，但：
-- 必须遵循 kebab-case
-- 不能与保留属性（type、id）冲突
-- 推荐使用 `x-` 前缀标识实验性属性
-
-#### 8.3.3 自定义 type 值
-
-实现可以支持自定义 type 值：
-
-```xml
-<code type="rust">
-fn main() {
-    println!("Hello, world!");
-}
-</code>
-```
-
-**处理规则**：
-- 未识别的 type 值应视为 `text`
-- 应该记录警告 W01
-- 不应该导致验证失败
-
-### 8.4 版本兼容性
-
-DPML v1.0 文档在未来版本中必须保持有效。
-
-**规则**：
-- v1.0 的所有语法在 v2.0+ 中仍然有效
-- 新版本可以添加新功能，但不能破坏旧语法
-- 缺少版本声明时，应假定为 v1.0
-
-### 8.5 安全要求
-
-实现必须遵循 XML 1.0 安全最佳实践：
-
-- **禁用** DTD 和外部实体（防止 XXE 攻击）
-- **禁用** 实体扩展（防止十亿笑攻击）
-- **默认禁用** 代码执行（`type="javascript"` / `type="python"`）
+**注意**: 语义规范是**指导性的** (SHOULD),不是强制性的 (MUST)。
 
 ---
 
-## 9. IANA 考虑
+## 扩展机制
 
-### 9.1 媒体类型注册
+### 自定义标签
+DPML **鼓励**创建领域特定标签,只需:
+- 遵循语义规范的设计原则
+- 使用 kebab-case 命名
+- 提供 Pattern 定义(推荐)
 
-**类型名称**：application
-**子类型名称**：dpml+xml
-**必需参数**：无
-**可选参数**：charset（默认 UTF-8）
+### 自定义属性
+领域可以定义自己的属性,建议:
+- 使用命名空间避免冲突
+- 文档化属性的含义和用法
 
-**安全考虑**：实现必须禁用 DTD 和外部实体，默认禁用代码执行。
-
-**已发布规范**：本文档
-
-**使用此媒体类型的应用**：AI 开发工具、提示词工程平台、Agent 配置系统、工作流编排引擎
-
-**文件扩展名**：`.dpml`、`.pml`
-
-**联系人**：姜山 (Sean Jiang) <sean@deepractice.ai>
-
-**预期用途**：COMMON
-
-**作者/变更控制器**：Deepractice.ai
+### Pattern 注册
+通过 [Patterns 目录](../patterns/) 分享:
+- 认知框架模式
+- 领域特定标签定义
+- 最佳实践案例
 
 ---
 
-## 10. 参考文献
+## 版本演化
 
-### 10.1 规范性引用
+### 当前版本: v1.0
+- 建立基础语法和语义规范
+- 定义核心概念和原则
+- type 系统: text, markdown
 
-**[XML]**
-Bray, T., et al.,
-"Extensible Markup Language (XML) 1.0 (Fifth Edition)",
-W3C Recommendation, November 2008.
-https://www.w3.org/TR/xml/
-
-**[RFC2119]**
-Bradner, S.,
-"Key words for use in RFCs to Indicate Requirement Levels",
-BCP 14, RFC 2119, March 1997.
-https://www.rfc-editor.org/rfc/rfc2119
-
-### 10.2 信息性引用
-
-**[DPML-WHITEPAPER]**
-Jiang, S.,
-"DPML 设计白皮书",
-Deepractice.ai, October 2025.
-../../whitepapers/v1.0/dpml-whitepaper.zh-CN.md
+### 未来方向
+- 更多 type 支持 (code, json, etc.)
+- 语义推理机制
+- 跨领域 Pattern 互操作
+- 工具生态建设
 
 ---
 
-## 附录
+## 相关文档
 
-### 附录 A: 完整示例
+### 规范文档
+- [语法规范 (Syntax)](./syntax.zh-CN.md) - 技术实现者必读
+- [语义规范 (Semantics)](./semantics.zh-CN.md) - AI 和设计者必读
 
-#### A.1 简单 Agent
+### 理念文档
+- [DPML 设计白皮书](../whitepaper/index.zh-CN.md) - 理解设计哲学
 
-```xml
-<agent>
-  <llm model="gpt-4" api-key="sk-xxx"/>
-  <prompt>你是一个有用的编程助手。</prompt>
-</agent>
-```
-
-#### A.2 带 Markdown 提示词的 Agent
-
-```xml
-<agent>
-  <llm model="gpt-4" api-key="sk-xxx"/>
-
-  <prompt type="markdown">
-# 角色
-你是一名专注于数据科学的 Python 专家。
-
-## 技能
-- 使用 pandas 进行数据分析
-- 使用 matplotlib 进行可视化
-- 使用 scikit-learn 进行机器学习
-
-## 原则
-- 编写清晰、有文档的代码
-- 解释你的推理
-- 提供可工作的示例
-  </prompt>
-</agent>
-```
-
-#### A.3 带 JSON 配置的 Agent
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<agent>
-  <llm model="gpt-4" api-key="sk-xxx"/>
-
-  <prompt id="system">
-    你是一名张家界旅游规划专家。
-  </prompt>
-
-  <config type="json">
-  {
-    "temperature": 0.7,
-    "max_tokens": 2000,
-    "top_p": 0.9
-  }
-  </config>
-</agent>
-```
-
-#### A.4 多层结构
-
-```xml
-<agent>
-  <llm model="gpt-4" api-key="sk-xxx"/>
-
-  <role>
-    <personality type="markdown">
-我是一个具有强大分析能力的同理心助手。
-当用户感到沮丧时，我首先承认他们的感受。
-当用户困惑时，我会一步步详细解释。
-    </personality>
-
-    <principle>
-始终将用户体验置于技术正确性之上。
-使用类比和示例解释复杂概念。
-    </principle>
-  </role>
-</agent>
-```
+### 应用文档
+- [Meta-Pattern](../patterns/meta/pattern.dpml) - 模式定义的模式
+- [Patterns 目录](../patterns/) - 认知框架应用案例
 
 ---
 
-### 附录 B: 完整 ABNF 语法
+## 反馈与贡献
 
-```abnf
-; DPML 文档
-dpml-document  = [xml-decl] root-element
+### 报告问题
+- 语法歧义或不一致
+- 语义规范的不清晰之处
+- 实现困难或冲突
 
-; XML 声明
-xml-decl       = "<?xml" WSP "version" WSP "=" WSP quoted-string
-                 [WSP "encoding" WSP "=" WSP quoted-string] WSP "?>"
-
-; 根元素
-root-element   = element
-
-; 元素
-element        = empty-element / start-tag content end-tag
-empty-element  = "<" element-name *attribute WSP "/>"
-start-tag      = "<" element-name *attribute ">"
-end-tag        = "</" element-name ">"
-
-; 元素名称（kebab-case）
-element-name   = lowercase-word *("-" lowercase-word)
-lowercase-word = ALPHA *(ALPHA / DIGIT)
-
-; 属性
-attribute      = WSP attribute-name "=" quoted-string
-attribute-name = lowercase-word *("-" lowercase-word)
-
-; 内容
-content        = *(text / element / comment / cdata)
-
-; 文本
-text           = 1*CHAR  ; 排除 < 和 &，或使用转义
-
-; 注释
-comment        = "<!--" *(CHAR - "--") "-->"
-
-; CDATA
-cdata          = "<![CDATA[" *(CHAR - "]]>") "]]>"
-
-; 引用字符串
-quoted-string  = DQUOTE *QCHAR DQUOTE / SQUOTE *QCHAR SQUOTE
-
-; 基本字符
-ALPHA          = %x61-7A  ; a-z
-DIGIT          = %x30-39  ; 0-9
-CHAR           = %x09 / %x0A / %x0D / %x20-D7FF / %xE000-FFFD
-WSP            = %x20 / %x09 / %x0A / %x0D
-DQUOTE         = %x22
-SQUOTE         = %x27
-```
+### 贡献内容
+- 新的 Pattern 定义
+- 最佳实践案例
+- 工具和库的实现
 
 ---
 
-## 作者地址
-
-**姜山（Sean Jiang）**
-Deepractice.ai
-邮箱：sean@deepractice.ai
-网站：https://deepractice.ai
-
----
-
-**DPML 协议规范 v1.0**
+**版本历史:**
+- v1.0.0 (2025-10-04) - 初始版本,分离语法和语义规范

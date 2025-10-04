@@ -8,11 +8,18 @@
 
 ## Abstract
 
-AI systems are evolving from single-prompt interactions to multi-agent collaboration, but prompt engineering faces a critical challenge: configurations, prompts, and documentation are scattered across incompatible formats, leading to synchronization issues and unobservable system states. The root cause is that traditional approaches force the separation of information meant for three parties (humans, AI, and computers), resulting in collaboration difficulties and high maintenance costs.
+**Target Audience**: AI application developers, AI platform architects, prompt engineers
 
-This whitepaper introduces DPML (Deepractice Prompt Markup Language), based on a core insight: the three roles in modern AI systems—humans (innovative intent), AI (semantic translation), and computers (precise execution)—require different types of information, yet must share a single carrier. By proving the necessity and sufficiency of four semantic dimensions (tag/attribute/content/structure), DPML adopts an XML-like tag language to unify the driving signals for all three parties, enabling a unified infrastructure for configuration management, workflow orchestration, and end-to-end observability.
+**Core Problem**: As AI systems evolve from simple conversations to multi-agent collaboration, configuration files, prompts, and documentation become scattered across incompatible formats (YAML configs, Markdown prompts, standalone docs), leading to difficult modifications, black-box debugging, and information desynchronization. The root cause is that traditional approaches force the separation of driving information for three parties (humans, AI, computers), resulting in collaboration difficulties and high maintenance costs.
 
-This document contains: design philosophy and theoretical derivation (Chapter 3), protocol design (Chapter 4), application scenarios (Chapter 6), implementation guidelines (Chapter 7), and ecosystem planning (Chapter 8).
+**Solution**: DPML (Deepractice Prompt Markup Language) is grounded in the "Three-Party Positioning Theory"—humans excel at innovative intent, AI excels at semantic translation, computers excel at precise execution. Each requires different types of information, yet all must share a single carrier. By rigorously proving that the four semantic dimensions (tag/attribute/content/structure) constitute the necessary and sufficient minimal set, DPML adopts XML-like syntax to unify information flow among all three parties, enabling a unified infrastructure for configuration management, workflow orchestration, and end-to-end observability.
+
+**Key Innovations**:
+- Theoretical Foundation: Three-Party Positioning Theory → Four-Dimension Semantic Derivation → Six-State Flow Model
+- Technical Choice: XML-like syntax simultaneously serves humans (visualization), AI (native understanding), computers (structured parsing)
+- Design Philosophy: Constrain without binding (provide framework while preserving creativity), unified protocol with differentiated roles
+
+This document covers: design philosophy and theoretical derivation (Chapter 3), technical decisions (Chapter 4), application scenarios (Chapter 6), implementation considerations (Chapter 7), and ecosystem planning (Chapter 8).
 
 ---
 
@@ -37,12 +44,12 @@ This document contains: design philosophy and theoretical derivation (Chapter 3)
 
 The complexity of AI systems is growing rapidly. From single-prompt interactions to multi-agent collaboration, tool invocation, and state management, prompt engineering faces fundamental challenges of **information fragmentation** and **maintenance difficulty**:
 
-- Prompt files span thousands of lines with configuration parameters mixed with instructions
-- Collaborative editing easily introduces conflicts
-- Debugging is difficult with no way to pinpoint specific issues
+- Prompt files spanning thousands of lines with configuration parameters mixed with instructions
+- Collaborative editing prone to conflicts
+- Debugging difficulties with no way to pinpoint specific issues
 - Lack of modularization and reuse mechanisms
 
-Unlike ordinary articles, prompts require **strong logic** (consistency, structure, precision). As prompts expand, maintaining this strong logic becomes extremely difficult: changing role definitions in location A while forgetting conflicting constraints in location B; tool invocation logic, exception handling, and state management intertwined in long text.
+Unlike ordinary text, prompts require **strong logic** (consistency, structure, precision). As prompts expand, maintaining this strong logic becomes extremely difficult: changing role definitions in location A while forgetting conflicting constraints in location B; tool invocation logic, exception handling, and state management intertwined in long text.
 
 ### 1.2 Problem Statement
 
@@ -66,7 +73,7 @@ temperature: 0.7
 
 ```markdown
 # system_prompt.md
-You are a professional travel planning assistant, providing accurate and reliable advice.
+You are a professional travel planning assistant, maintaining accurate and reliable advice.
 ```
 
 ```markdown
@@ -74,7 +81,7 @@ You are a professional travel planning assistant, providing accurate and reliabl
 This agent uses a conservative strategy, temperature=0.5 (Note: This documentation is outdated)
 ```
 
-When the product manager requests "make responses more creative," the engineer modifies `config.yaml` (temperature 0.7 → 0.9) but forgets to update the "provide accurate" instruction in `system_prompt.md`, while `README.md` is long outdated. Result: AI output becomes inconsistent, user complaints increase, and it takes 3 days to identify the conflict between temperature and prompt instructions.
+When the product manager requests "make responses more creative," the engineer modifies `config.yaml` (temperature 0.7 → 0.9) but forgets to update the "maintain accurate" instruction in `system_prompt.md`, while `README.md` has long been outdated. Result: AI output becomes inconsistent, user complaints increase, and it takes 3 days to identify the conflict between temperature and prompt instructions.
 
 **Core contradiction**: These are all essentially prompts (documentation for humans, instructions for AI, configuration for computers), yet they're forced into incompatible formats, leading to information desynchronization, debugging difficulties, and **lack of a unified information carrier**.
 
@@ -84,15 +91,15 @@ DPML is based on a fundamental understanding:
 
 > **Modern AI systems require three types of driving signals (human-driven, AI-driven, computer-driven). This information must be unified into a single flow carrier, and the flow process must be fully observable.**
 
-This insight comes from a deep understanding of the **core positioning** of the three parties in AI systems:
+This insight stems from a deep understanding of the **core positioning** of the three parties in AI systems:
 
-- **Human: Innovative Intent** - The only role that can actively initiate practice and generate true innovation
-- **AI: Semantic Translation** - The only role that can simultaneously understand natural language and process at high speed
-- **Computer: Precise Execution** - The only role that can execute instructions with ultra-high speed and absolute precision
+- **Human: Innovative Intent** - The only role capable of actively initiating practice and generating true innovation
+- **AI: Semantic Translation** - The only role capable of simultaneously understanding natural language and processing at high speed
+- **Computer: Precise Execution** - The only role capable of executing instructions with ultra-high speed and absolute precision
 
 **For detailed three-party positioning theory, see Section 3.1**.
 
-Based on this insight, DPML needs to solve three levels of problems:
+Based on this insight, DPML addresses three levels of problems:
 
 1. **Semantic Expression**: Unify the information carrier for all three parties, solving prompt inflation
 2. **Structure Visualization**: Make AI systems observable and debuggable, no longer black boxes
@@ -111,17 +118,20 @@ This whitepaper covers:
 
 This whitepaper does not include:
 
-- Detailed syntax specifications (see [DPML Protocol Specification Current Design](../specs/当前设计/dpml-protocol-v1.zh-CN.md))
+- Detailed technical specifications (see [DPML Protocol Specification](../protocol/index.en.md), [Syntax Specification](../protocol/syntax.en.md), [Semantic Specification](../protocol/semantics.en.md))
 - Specific implementation guides (see DPML Implementation Guide)
 - Domain-specific element definitions (see respective domain specifications)
 
 ### 1.5 Terminology
 
 **DPML (Deepractice Prompt Markup Language)**
-A three-party collaboration protocol using XML-like tag language to unify driving signals for computers, AI, and humans.
+A three-party collaboration protocol using XML-like syntax to unify driving signals for computers, AI, and humans.
+
+**XML-like Syntax**
+The format adopted by DPML, featuring 4 semantic dimensions (tag/attribute/content/structure). DPML is not the XML specification and does not use advanced XML features like DTD/Schema/Namespace, but borrows XML's four-dimensional semantic structure.
 
 **Three-Party Positioning**
-The three core roles in modern AI systems and their irreplaceable functions:
+The irreplaceable positioning of three core roles in modern AI systems:
 
 - Human: Innovative intent
 - AI: Semantic translation
@@ -131,13 +141,13 @@ The three core roles in modern AI systems and their irreplaceable functions:
 Structured information that guides and drives system behavior, including configuration for computers, instructions for AI, and state displays for humans.
 
 **Semantic Dimension**
-Independent semantic space for information expression. XML-like tag languages have 4 semantic dimensions (tag/attribute/content/structure), while YAML/JSON have only 2 (key/value).
+Independent semantic space for information expression. XML-like syntax has 4 semantic dimensions (tag/attribute/content/structure), while YAML/JSON have only 2 (key/value).
 
 **Strong Logic**
 Compared to ordinary text, prompts require higher consistency, structure, and precision to ensure stable AI operation.
 
 **DOM (Document Object Model)**
-The tree-like hierarchical structure of tag languages, naturally supporting visual rendering, which is the foundation of DPML's observability.
+The tree-like hierarchical structure of XML-like syntax, naturally supporting visual rendering, which is the foundation of DPML's observability.
 
 ---
 
@@ -174,7 +184,7 @@ Based on the three-party positioning theory, DPML's functional requirements are 
 **Rationale**:
 
 - Configuration parameters (model, temperature) should be outside AI's natural language space
-- AI prompt content should not be mixed with machine parameters
+- AI prompt content should not be mixed with computer parameters
 - Human visualization needs should not affect computer parsing efficiency
 
 **Acceptance Criteria**:
@@ -186,7 +196,7 @@ Based on the three-party positioning theory, DPML's functional requirements are 
 
 #### FR3: Full Observability
 
-**Requirement Statement**: The flow of DPML between the three parties must be visualizable and auditable.
+**Requirement Statement**: The flow of DPML among the three parties must be visualizable and auditable.
 
 **Rationale**:
 
@@ -238,7 +248,7 @@ Based on the three-party positioning theory, DPML's functional requirements are 
 
 - Use consensus concepts (role, agent, task) rather than invented terms
 - Minimize protocol-layer rules (kebab-case + 2 reserved attributes)
-- Leverage AI's native understanding of tag languages
+- Leverage AI's native understanding of XML-like syntax
 
 #### NFR2: Extensibility
 
@@ -268,13 +278,13 @@ Based on the three-party positioning theory, DPML's functional requirements are 
 
 **Design Strategy**:
 
-- Adopt tag syntax (can reuse mature XML parsers)
-- Avoid custom syntax (DTD, Schema, Namespace not introduced in current design)
+- Adopt XML-like syntax (can reuse mature XML parsers)
+- Avoid XML advanced features (DTD, Schema, Namespace not introduced in v1.0)
 - DOM structure naturally supports visualization
 
 ### 2.3 Requirements Priority
 
-| Requirement | Priority | Current Design Status |
+| Requirement | Priority | v1.0 Status |
 |------------|----------|---------------------|
 | FR1: Unified Information Carrier | P0 | Fully implemented |
 | FR2: Separation of Concerns | P0 | Fully implemented (4 dimensions) |
@@ -282,7 +292,7 @@ Based on the three-party positioning theory, DPML's functional requirements are 
 | FR4: Component Reusability | P2 | `id` syntax ready, reference mechanism for future versions |
 | NFR1: Low Cognitive Load | P0 | Core concepts ≤ 5 |
 | NFR2: Extensibility | P1 | Protocol/domain layer separation |
-| NFR3: Toolchain-Friendly | P1 | Tag syntax adopted, can reuse XML parsers |
+| NFR3: Toolchain-Friendly | P1 | XML-like syntax adopted, can reuse XML parsers |
 
 ---
 
@@ -304,9 +314,9 @@ Modern AI systems are not a stage for a single role, but a **three-party collabo
 
 | Role | Core Capability | Irreplaceable Advantage |
 |------|----------------|------------------------|
-| **Human** | Practice + Consciousness → Innovation | The only role that can actively initiate practice, learn from experience, and generate true innovation |
-| **AI** | Pattern + Knowledge → Mapping | The only role that can **simultaneously** understand natural language (like humans) and process at high speed (like computers), best at bidirectional conversion between intent and instructions |
-| **Computer** | Precision + Speed → Efficiency | The only role that can execute deterministic tasks with ultra-high speed and absolute precision |
+| **Human** | Practice + Consciousness → Innovation | The only role capable of actively initiating practice, learning from experience, and generating true innovation |
+| **AI** | Pattern + Knowledge → Mapping | The only role capable of **simultaneously** understanding natural language (like humans) and processing at high speed (like computers), best at bidirectional conversion between intent and instructions |
+| **Computer** | Precision + Speed → Efficiency | The only role capable of executing deterministic tasks with ultra-high speed and absolute precision |
 
 **First Principle**:
 
@@ -319,7 +329,7 @@ Problems with traditional systems:
 - **Separated Documentation**: Information scattered across config files, prompt files, and docs, cannot synchronize
 
 **DPML's Core Insight**:
-A **unified information carrier** is needed, allowing the same document to flow losslessly between all three parties.
+A **unified information carrier** is needed, allowing the same document to flow losslessly among all three parties.
 
 #### 3.1.2 The Essential Needs of the Three Parties
 
@@ -365,7 +375,7 @@ Different formats have different numbers of semantic dimensions:
 |--------|-----------|---------------------|-------------------------------------|
 | Plain Text | 0 | (linear text) | Serves AI only |
 | YAML/JSON | 2 | key + value | Primarily serves computers |
-| XML | 4 | tag + attribute + content + structure | **Serves all three parties simultaneously** |
+| XML-like Syntax | 4 | tag + attribute + content + structure | **Serves all three parties simultaneously** |
 
 #### 3.2.2 Derivation Process: Why Four Dimensions Are Needed
 
@@ -418,7 +428,18 @@ What happens with fewer than 4 dimensions?
 
 Conclusion: All 4 dimensions are necessary, none can be removed.
 
-**Step 3.5: Sufficiency Proof (Reductio ad Absurdum for 5th Dimension)**
+**Step 3.5: Value Dimension Absorption Proof**
+
+YAML/JSON have 2 dimensions (key+value), why not 5 dimensions (tag+attribute+content+structure+value)?
+
+| Format Comparison | Where is value | Why not an independent dimension |
+|---------|-----------|--------------|
+| YAML/JSON | `key: value` | value is a flat string, absorbed by the content dimension |
+| XML-like Syntax | `<tag>content</tag>` | content is a superset of value (supports rich text/nested child elements) |
+
+**Key Insight**: value is not an independent dimension, but a simplified form of content. The content dimension in XML-like syntax can express both simple values (`<name>John</name>`) and complex structures (`<prompt>Multi-line text...</prompt>`), thus fully covering the functionality of value.
+
+**Step 4: Sufficiency Proof (Reductio ad Absurdum for 5th Dimension)**
 
 **Hypothesis**: There exists a 5th independent dimension X
 
@@ -477,7 +498,7 @@ agent:
 - [Partial] Config and content mixed in values (insufficient type dimension)
 - **Conclusion**: Primarily serves computers, cognitive load for AI/humans
 
-**XML (4 dimensions: tag + attribute + content + structure)**:
+**XML-like Syntax (4 dimensions: tag + attribute + content + structure)**:
 
 ```xml
 <agent>
@@ -495,7 +516,7 @@ agent:
 **Natural Advantages of Four Semantic Dimensions**:
 
 - No compilation needed (already in final form, vs custom DSL)
-- AI native understanding (LLMs have strong comprehension and generation capabilities for tag languages)
+- AI native understanding (LLMs have strong comprehension and generation capabilities for XML-like syntax)
 - Human native understanding (DOM structure aligns with human cognition)
 
 #### 3.2.4 Dimension Separation of Concerns and Information Sharing
@@ -515,260 +536,320 @@ Key design principle: **Separation of Concerns + Information Sharing**
 - But all roles can access all dimensions (information sharing)
 - Ensures both professional division of labor and collaborative foundation
 
-### 3.3 Value Progression: From Theory to Application
+#### 3.2.5 From Four Semantic Dimensions to Six-State Flow
 
-Based on the three-party positioning theory and four semantic dimensions, DPML produces **three tiers of progressive value**:
+The four semantic dimensions (Tag/Attribute/Content/Structure) answer the question of "**what to express with**", but have not yet answered the question of "**where to express**".
 
-```
-Tier 1: Semantic Expression Layer
-    ↓ (foundational capability)
-Tier 2: Structure Visualization Layer
-    ↓ (structural advantage)
-Tier 3: Computation Encapsulation Layer
-```
+In modern AI systems, information flows among three entities:
+- **Human** needs to **input intent** and **observe results**
+- **AI** needs to **receive context** and **output instructions**
+- **Computer** needs to **execute commands** and **return data**
 
-#### 3.3.1 Tier 1: Semantic Expression Layer
+This forms a **3×2 matrix** with 6 information exchange points. DPML plays different roles at these 6 positions, but always maintains a unified four-dimensional semantic structure.
 
-**Value**: Highly expressive information exchange format
+The next section elaborates on this six-state flow model.
 
-**Source**: Directly from the four semantic dimensions theory
+---
 
-**Capabilities**:
+### 3.3 Six-State Flow: DPML's Dynamic Value Model
 
-- **Three-party comprehensible**: Same document, human/AI/computer all understand
-- **Separation of concerns**: Config (Attribute), content (Content), concept (Tag), structure (Structure) each serve their purpose
-- **Lossless transmission**: Information flows between three parties without format conversion
+DPML is not a static configuration file, but a **dynamic information carrier that flows**. In a complete AI system operation cycle, DPML plays different roles as it flows among three entities, but always maintains a unified syntactic structure.
 
-**Key**: Each party takes what they need, no coordination required, information fully shared.
+#### 3.3.1 Three-Party Input-Output Matrix
 
-**Detailed examples in Chapter 6 Application Scenarios**.
-
-#### 3.3.2 Tier 2: Structure Visualization Layer
-
-**Value**: Natural structure visualization language
-
-**Source**: Structural advantages from the Structure dimension (DOM tree)
-
-**Capabilities**:
-
-- **Automatic mapping**: Element → UI component, Attribute → config item, Structure → layout hierarchy
-- **State injection**: Runtime state can be directly injected into static structure (`status="running" tokens-used="1520"`)
-- **Full observability**: Each flow step is DPML, computer can render visual interfaces in real-time
-
-**Comparison with traditional systems**:
-
-- **Traditional**: Human → [Black Box] → AI → [Black Box] → Computer → [Black Box] → Result
-- **DPML**: Human → DPML Prompt → AI → DPML Tool Call → Computer → DPML Result → AI → DPML Response → Human
-
-**Value**: See complete call chain when debugging, analyze input/output at each step when optimizing, trace decision process when auditing.
-
-**Detailed case study in Section 6.3 Observability Platform**.
-
-#### 3.3.3 Tier 3: Computation Encapsulation Layer
-
-**Value**: Domain abstraction capability encapsulation language
-
-**Source**: Semantic expression + Structure visualization → Support higher-level abstraction
-
-**Core Insight**:
-DPML is not just a configuration format, but a **domain abstraction layer**. By defining domain tags, it can:
-
-- Encapsulate complex underlying implementations into simple semantic tags
-- Tag structure is extremely AI-friendly, with much higher success rates for understanding and generation than code
-- Declarative semantics are more intuitive for humans, reducing cognitive load
-- Shield underlying details, forming a development framework
-
-**Why Four Semantic Dimensions Support Domain Encapsulation**:
-
-- **Tag conceptualization** → Can define domain tags (`<mcp-server>`, `<rag-pipeline>`, `<workflow>`)
-- **Attribute configuration** → Supports declarative parameter configuration, no need to write initialization code
-- **Content semantics** → Maintains expressive flexibility, can embed natural language or code snippets
-- **Structure hierarchy** → Supports complex composition and nesting, building complete domain models
-
-**Value Chain**:
-
-```
-Domain experts define tags
-    ↓
-Framework implements underlying details
-    ↓
-Human/AI use tags to declare intent
-    ↓
-Framework generates implementation and executes
-```
-
-**Essence**: DPML becomes the "compilation target for natural language", just like SASS/LESS are abstraction layers for CSS.
-
-**Detailed case study in Section 6.4 Domain Framework Encapsulation**.
-
-#### 3.3.4 Unity of Three-Tier Value
-
-The three tiers of value are not independent, but **progressively unified**:
-
-| Tier | Foundation | Value | Beneficiaries |
-|------|-----------|-------|--------------|
-| **Semantic Expression Layer** | Four dimensions | Information exchange foundation | All three parties benefit |
-| **Structure Visualization Layer** | DOM structure | Observability guarantee | Humans primarily, collaborative benefits for all |
-| **Computation Encapsulation Layer** | Semantics + Structure | Domain abstraction capability, AI-friendly development paradigm | Human/AI developers benefit, ecosystem as a whole benefits |
-
-**Unified Theoretical Foundation**: Three-party positioning theory
-
-- Tier 1: Directly achieves three-party comprehensibility
-- Tier 2: Strengthens human observability needs
-- Tier 3: Through tag encapsulation, enables both humans and AI to express intent and generate implementations more efficiently
-
-### 3.4 Driving Mechanism: How DPML Works
-
-#### 3.4.1 Driving Definition
-
-DPML is not a static document, but **dynamically flowing driving signals**.
-
-**Driving**: Structured information that guides and drives system behavior.
-
-| Driven Party | How DPML Drives | Driving Result |
-|-------------|-----------------|---------------|
-| **Computer** | attribute config, element instructions | Execute operations, return results, render interfaces |
-| **AI** | content prompts, structure context | Understand intent, generate responses, call tools |
-| **Human** | structure visualization, metadata explanation | Observe processes, audit system, adjust intent |
-
-#### 3.4.2 Complete Driving Loop
-
-Using weather query as an example:
+Starting from the three-party positioning theory in Section 3.1, each entity has the capability of **information reception** and **information output**. This forms a **3×2 matrix** with 6 information exchange points:
 
 ```mermaid
-sequenceDiagram
-    participant H as Human
-    participant A as AI
-    participant C as Computer
+flowchart LR
+    subgraph H["Human"]
+        direction TB
+        H1["Input<br>Intent Expression"]
+        H2["Output<br>Observation"]
+    end
 
-    H->>A: "Query Beijing weather" (natural language)
-    Note over A: Wrap as DPML Prompt
-    A->>A: <prompt>Query Beijing weather</prompt>
+    subgraph A["AI"]
+        direction TB
+        A1["Input<br>Context Framework"]
+        A2["Output<br>Instructions"]
+    end
 
-    Note over A: Generate DPML Tool Call
-    A->>C: <tool-call name="get-weather"><br/><parameter>Beijing</parameter><br/></tool-call>
+    subgraph C["Computer"]
+        direction TB
+        C1["Input<br>Commands"]
+        C2["Output<br>Results"]
+    end
 
-    Note over C: Execute tool
-    C->>A: <tool-result status="success"><br/><data>18°C Sunny</data><br/></tool-result>
+    H1 ==DPML1==> A1
+    A1 ==DPML3==> C1
+    C1 -.DPML5.-> C2
+    C2 ==DPML6==> A2
+    A2 ==DPML4==> H2
+    H2 -.DPML2.-> H1
 
-    Note over A: Generate DPML Response
-    A->>H: <response>Beijing is 18°C, sunny</response>
+    classDef humanBox fill:#e1f5ff,stroke:#0066cc,stroke-width:2px
+    classDef aiBox fill:#fff4e1,stroke:#ff9900,stroke-width:2px
+    classDef compBox fill:#ffe1f5,stroke:#cc0066,stroke-width:2px
 
-    Note over C: Render visualization
-    C->>H: [Interface displays complete call chain]
+    class H1,H2 humanBox
+    class A1,A2 aiBox
+    class C1,C2 compBox
 ```
 
-**Core Characteristic**: Each step is a DPML document, information flows losslessly, fully observable.
+**Key Insight**: DPML exists at all 6 positions, but plays different roles.
 
-#### 3.4.3 AI as the Key Mediator
+#### 3.3.2 Role Positioning of Six States
 
-AI plays the role of bidirectional translation in three-party collaboration:
+| State | Position | Role | Purpose | Design Goal |
+|---|------|------|---------|---------|
+| **DPML₁** | Human→Computer | Receptive Container | Package user's natural expression | Preserve the original richness of human intent |
+| **DPML₂** | Computer→Human | Visualization Structure | Auto-render as interface | Reduce human comprehension cost, focus on content not format |
+| **DPML₃** | Computer→AI | Structured Framework | Organize context information hierarchically | Provide AI with complete reasoning basis |
+| **DPML₄** | AI→Computer | Parseable Command | AI-generated execution instructions | Enable computer to execute AI intent |
+| **DPML₅** | Computer Internal | Precise Instruction | Validated execution command | Guarantee computer can execute without error |
+| **DPML₆** | Computer Internal | Precise Data | Complete execution result | Provide reliable data source for AI's next reasoning |
 
-| Direction | Translation Process | Core Value |
-|-----------|-------------------|-----------|
-| Human→AI→Computer | Natural language intent → DPML structured expression → Machine-executable instructions | Lowers technical barriers, users don't need to learn DPML syntax |
-| Computer→AI→Human | Structured data → Natural language explanation → Human-comprehensible response | Improves experience, AI provides intelligent interpretation rather than raw data |
+**Detailed Explanation**:
 
-**DPML's Unique Value**: Traditional Markdown prompts lack structure (cannot drive computers), traditional JSON configs lack semantic space (AI struggles to understand), DPML unifies both, enabling lossless information flow between all three parties.
+**[1] Human Input → DPML as "Receptive Container"**
 
-### 3.5 Cognitive Framework Capability: Guiding AI's Structured Generation
+Users express intent through natural language or interface, computer wraps it as DPML.
 
-#### 3.5.1 DPML's Bidirectional Flow
+- **Purpose**: Carry human innovative intent and diverse expressions
+- **Design Goal**: Accept natural language flexibility, don't force users to learn strict syntax
+- **Typical Scenario**: User describes requirements through dialogue interface, system automatically converts to DPML structure
 
-The complete flow path of DPML in AI systems:
+**[2] Human Output → DPML as "Visualization Structure"**
+
+Computer presents final results to users as DPML structure.
+
+- **Purpose**: Visualize system state and execution results
+- **Design Goal**: Utilize DOM tree's hierarchical structure, auto-render as intuitive interface
+- **Typical Scenario**: Dialogue history, workflow state, execution log visualization
+
+**[3] AI Input → DPML as "Structured Framework"**
+
+Computer packages user input into AI's complete context.
+
+- **Purpose**: Provide AI with hierarchically organized reasoning framework
+- **Design Goal**: Through structured organization (system prompt + history + current request + tools), let AI understand the complete task
+- **Typical Scenario**: Build AI's input context, containing role definition, dialogue history, available tool list
+
+**[4] AI Output → DPML as "Parseable Command"**
+
+After understanding context, AI generates tool calls or responses.
+
+- **Purpose**: Carry AI's reasoning results and execution intent
+- **Design Goal**: Clear structure, parseable, while tolerating reasonable deviations in AI generation
+- **Typical Scenario**: AI-generated tool call instructions, structured responses
+
+**[5] Computer Input → DPML as "Precise Instruction"**
+
+After validation and normalization, passes internally in computer for execution.
+
+- **Purpose**: Drive system's deterministic execution
+- **Design Goal**: Zero ambiguity, complete metadata, guarantee execution correctness
+- **Typical Scenario**: Validated and normalized tool calls, state machine transition instructions
+
+**[6] Computer Output → DPML as "Precise Data"**
+
+Computer completes execution, returns structured results.
+
+- **Purpose**: Provide reliable data source for AI's subsequent reasoning
+- **Design Goal**: Type safety, completeness guarantee, ensure reasoning won't deviate due to data loss
+- **Typical Scenario**: Tool execution results, API return data, state update records
+
+#### 3.3.3 System Value of Flow Loop
+
+**Six states form a complete loop**:
 
 ```
-Human (natural language intent)
+User intent
     ↓
-AI (generates DPML) ← Tag framework guides AI to organize content
+[DPML₁] Receptive Container (Computer receives)
     ↓
-Computer (parses and executes)
+[DPML₃] Structured Framework (Computer organizes) → AI understands
     ↓
-AI (generates DPML response) ← Tag framework guides again
+AI reasoning
     ↓
-Human (observes results)
-```
-
-**Core Insight**:
-
-DPML is not just an information container, but **AI's cognitive framework**. Tag structures work like writing outlines, framing "what nature of content should be generated" without limiting the specific content itself.
-
-**Key Understanding**:
-- DPML is primarily generated by AI, not manually written by humans
-- Tag frameworks guide how AI organizes and generates content
-- Humans express intent in natural language, AI automatically generates structured DPML following the framework
-- Humans observe and understand the structured output generated by AI
-
-#### 3.5.2 Framework Guidance Mechanism
-
-**The Essence of Cognitive Frameworks**:
-
-```xml
-<analysis>
-  <context>...</context>        <!-- Frames: this is background information -->
-  <root-cause>...</root-cause>  <!-- Frames: this is root cause analysis -->
-  <solutions>...</solutions>    <!-- Frames: this is solution proposals -->
-</analysis>
-```
-
-**Three Key Characteristics**:
-
-1. **Semantic Boundaries** - The `<context>` tag tells AI "this part should be background-natured content"
-2. **Content Freedom** - What background to write and how to write it, AI decides completely autonomously
-3. **Structural Guarantee** - Must include these parts, ensuring output completeness
-
-**Advantage Comparison**:
-
-| Approach | Markdown Prompts | DPML Framework |
-|----------|-----------------|----------------|
-| Expression | "Please analyze in structure: background→root cause→solution" | `<context>` `<root-cause>` `<solutions>` |
-| Constraint Strength | Soft constraint, AI may ignore | Structurally enforced, must comply |
-| AI Understanding | Needs to parse natural language instructions | Tag semantics directly explicit |
-| Output Consistency | May vary each time | Structure 100% consistent |
-| Human Involvement | Manually write structured prompts | Only need natural language intent, AI generates framework |
-
-#### 3.5.3 Application Value of Cognitive Frameworks
-
-**Typical Scenarios**:
-
-**Chain-of-Thought Guidance**:
-```xml
-<thought>
-  <observation>Observed phenomena...</observation>
-  <reasoning>Reasoning process...</reasoning>
-  <conclusion>Drawn conclusion...</conclusion>
-</thought>
-```
-
-**Multi-Dimensional Evaluation Guidance**:
-```xml
-<review>
-  <security>Security analysis...</security>
-  <performance>Performance analysis...</performance>
-  <maintainability>Maintainability analysis...</maintainability>
-</review>
-```
-
-**Collaboration Process Guidance**:
-```xml
-<issue>
-  <exploration>Explore problem space...</exploration>
-  <challenge>Identify core challenges...</challenge>
-  <solution>Propose solutions...</solution>
-</issue>
+[DPML₄] Parseable Command (AI outputs) → Computer receives
+    ↓
+[DPML₅] Precise Instruction (Computer validates & normalizes) → Executor
+    ↓
+[DPML₆] Precise Data (Execution result) → AI understands
+    ↓
+AI generates response
+    ↓
+[DPML₂] Visualization Structure (Computer renders) → Human observes
+    ↓
+(New round of intent)
 ```
 
 **Core Value**:
-- **Improve Output Quality** - Structured guidance ensures content completeness
-- **Maintain Creativity** - Framework content completely generated freely by AI
-- **Achieve Predictability** - Consistent output structure, convenient for subsequent processing
-- **Reduce Cognitive Load** - Framework is self-explanatory, humans don't need to write complex prompts
 
-**Theoretical Connection**:
+Although the six states have different roles, they share unified DPML syntax, bringing systematic advantages:
 
-This cognitive framework capability stems from the Structure dimension of four semantic dimensions—the hierarchical nesting of tags naturally forms cognitive scaffolding, a unique advantage that Markdown/JSON and other formats cannot provide.
+| Value Dimension | Traditional Approach Problems | DPML Six-State Approach |
+|-----------------|------------------------------|------------------------|
+| **Information Flow** | Format conversion loss (JSON→Python→Markdown), difficult synchronization | Unified format, lossless flow, modify once and all three parties sync |
+| **Observability** | Black box flow, invisible intermediate states, difficult debugging | Every state is structured DPML, fully traceable and auditable |
+| **Tool Reuse** | Each format needs specialized parser, high maintenance cost | One parser handles all six states, lower implementation barrier |
+| **Cognitive Consistency** | Developers need to master multiple formats, difficult collaboration | Unified language, reduce cognitive load, improve collaboration efficiency |
 
-It also embodies the "constrain but not bind" principle: frameworks constrain structure (constrain), but content is freely created by AI (not bind).
+**Design Philosophy**: **Protocol Unified, Role Differentiated**
+
+- Protocol layer defines unique DPML syntax (four-dimensional semantic structure)
+- Implementation layer optimizes processing strategies based on different purposes of six states
+- Tool layer automatically adapts validation and conversion logic based on scenarios
+
+#### 3.3.4 Necessity of Unified Specification
+
+Despite the different purposes of the six states, **DPML protocol specification must be unified**:
+
+**1. Theoretical Consistency**
+
+Unified specification is a direct requirement of the three-party positioning theory. All three parties must share the same carrier to achieve lossless information flow.
+
+**2. Information Flow**
+
+Different formats would lead to:
+- Format conversion loss (JSON→Python→Markdown)
+- Information synchronization issues (modify one place, forget to update other formats)
+- Debugging difficulties (unable to trace complete chain)
+
+**3. Tool Reuse**
+
+One parser handles all six states = Simple and efficient
+- Avoid developing specialized parsers for each form
+- Reduce learning costs and maintenance burden
+
+**4. Cognitive Consistency**
+
+Developers, AI, humans see the same language:
+- Reduce cognitive load
+- Improve collaboration efficiency
+- Reduce understanding deviations
+
+**Design Philosophy**: **Protocol Unified, Role Differentiated**
+
+Protocol layer defines unified syntax, implementation layer optimizes processing based on different purposes of six states. See Chapter 4 Technical Decisions for details.
+
+### 3.4 End-to-End Example: Complete Loop Observability
+
+Through a complete user scenario, demonstrate how DPML flows through the six states to achieve fully observable information loop.
+
+#### 3.4.1 Scenario Description
+
+**User Need**: User expresses in natural language "Help me plan a 3-day Zhangjiajie trip, I love natural scenery, budget 5000 yuan"
+
+**System Response**: Returns detailed itinerary, budget breakdown, attraction recommendation rationale
+
+**Key Feature**: Throughout the process, DPML serves as the sole information carrier, flowing among human, AI, and computer, with every intermediate state traceable.
+
+#### 3.4.2 Six-State Flow Overview
+
+```mermaid
+sequenceDiagram
+    participant Human
+    participant Computer
+    participant AI
+
+    Human->>Computer: Natural language intent<br/>"Plan 3-day Zhangjiajie trip..."
+    Note over Computer: DPML₁ wrapping<br/>Receptive container
+
+    Computer->>AI: Structured context
+    Note over Computer,AI: DPML₃<br/>System prompt+user need+available tools
+
+    AI->>AI: Understand task+plan reasoning
+
+    AI->>Computer: Tool call instruction<br/>"Search attractions"
+    Note over AI,Computer: DPML₄<br/>Parseable command
+
+    Computer->>Computer: Validate+normalize+execute
+
+    Note over Computer: DPML₅<br/>Execute precise instruction
+
+    Computer->>Computer: Generate result data
+
+    Note over Computer: DPML₆<br/>Complete structured data
+
+    Computer->>AI: Result data
+    AI->>AI: Generate final itinerary
+
+    AI->>Computer: Itinerary response
+    Note over AI,Computer: DPML₂<br/>Visualization structure
+
+    Computer->>Human: Render interface<br/>Itinerary+budget+rationale
+```
+
+#### 3.4.3 Information Characteristics of Each State
+
+| State | Information Content | Structural Features | Validation Points |
+|---|---------|---------|--------|
+| **DPML₁** | User intent, preferences ("natural scenery"), constraints ("5000 yuan") | Allows natural language mixing | Whether parseable |
+| **DPML₃** | System prompt (role definition), conversation history, current request, available tool list | Hierarchically organized, clear guidance | Whether information is complete |
+| **DPML₄** | Function name ("search attractions"), parameters (destination/preferences), reasoning process | Structured, may have minor deviations | Semantically correct+parseable |
+| **DPML₅** | Validated function call, complete metadata (timeout/caller) | Precise, zero ambiguity | Strict format+type checking |
+| **DPML₆** | Execution status (success/failure), attraction data (rating/price), timestamp | Complete, type-safe | Data integrity+consistency |
+| **DPML₂** | Itinerary arrangement (days/attractions), budget breakdown, recommendation rationale | Clear hierarchy, easy to render | Readability+structural soundness |
+
+#### 3.4.4 Key Insights
+
+**1. Full Observability**
+
+Traditional black box flow:
+
+```
+Human → [Black box] → AI → [Black box] → Computer → [Black box] → Result
+```
+
+DPML transparent flow:
+
+```
+Human → DPML₁ → DPML₃ → AI → DPML₄ → DPML₅ → Computer →
+DPML₆ → AI → DPML₂ → Human
+```
+
+Every intermediate state is structured DPML, enabling:
+
+- **Debugging**: Precisely locate which state the problem occurred in
+- **Optimization**: Analyze performance and accuracy of each state
+- **Auditing**: Trace complete decision-making process
+
+**2. Lossless Flow**
+
+Traditional format conversion loss:
+
+- Natural language → JSON (lose semantic context)
+- JSON → Python object (lose metadata)
+- Python object → Log (lose structure)
+- Log → Markdown (manual organization)
+
+DPML unified carrier:
+
+- Same format throughout
+- Information passes losslessly among three parties
+- Any state contains complete semantics and metadata
+
+**3. Role Self-Adaptation**
+
+The same DPML, each party takes what they need:
+
+- **Human**: Focus on semantics (what content is) and structure (hierarchical relationships)
+- **AI**: Focus on structure (context framework) and semantics (reasoning basis)
+- **Computer**: Focus on format (whether parseable) and configuration (execution parameters)
+
+All three parties adapt automatically to their respective concerns without coordination.
+
+**4. Necessity of Validation Hierarchy**
+
+From the example, it's clear:
+
+- DPML₁ (human input) must be lenient → otherwise user expression is limited
+- DPML₄ (AI output) must be tolerant → otherwise AI generation failure rate is high
+- DPML₅ (computer input) must be strict → otherwise execution will fail
+- DPML₆ (computer output) must be extremely strict → otherwise AI reasoning will deviate
+
+This is why the **protocol unified, validation hierarchical** design philosophy is needed.
 
 ---
 
@@ -776,10 +857,12 @@ It also embodies the "constrain but not bind" principle: frameworks constrain st
 
 - **Three-Party Positioning Theory**: Human (innovative intent), AI (semantic translation), Computer (precise execution) are first principles
 - **Four Semantic Dimensions Theory**: tag/attribute/content/structure are the necessary and sufficient minimal set
-- **Necessity**: 4 dimensions are mutually independent, any merge violates at least one party's core requirements
-- **Sufficiency**: All possible extension needs can be expressed by these 4 dimensions
-- **Three-Tier Value**: Semantic expression → Structure visualization → Computation encapsulation, progressively building
-- **Driving Mechanism**: Each step is a DPML document, lossless information flow, fully observable
+  - **Necessity**: 4 dimensions are mutually independent, any merge violates at least one party's core requirements
+  - **Sufficiency**: All possible extension needs can be expressed by these 4 dimensions
+- **Six-State Flow Model**: Based on the three-party input-output matrix (3×2), DPML plays different roles at 6 positions
+  - Human input/output, AI input/output, Computer input/output
+  - Unified syntax, hierarchical validation, full observability
+- **End-to-End Value**: Lossless flow, role self-adaptation, protocol unified
 
 ---
 
@@ -796,7 +879,7 @@ Based on requirements derived from the three-party positioning theory, the follo
 | **Custom DSL** | Domain-specific language for natural language | High expressiveness, customizable | High barrier, needs compilation, few tools |
 | **YAML** | Data serialization format | Human-readable, concise | 2D semantics, indentation semantics, AI cognitive load |
 | **JSON** | Data exchange format | Machine-friendly, universal | 2D semantics, bracket noise, no content space |
-| **XML-like Tag Language** | Markup language | 4D semantics, mature ecosystem | Verbose (relative to JSON) |
+| **XML-like Syntax** | Markup language | 4D semantics, mature ecosystem | Verbose (relative to JSON) |
 
 #### 4.1.2 Evaluation Criteria
 
@@ -824,7 +907,7 @@ Based on requirements analysis (Chapter 2) and three-party positioning theory, e
 
 **Evaluation Matrix**:
 
-| Criterion | Weight | Custom DSL | YAML | JSON | Tag Language |
+| Criterion | Weight | Custom DSL | YAML | JSON | XML-like Syntax |
 |-----------|--------|-----------|------|------|-------------|
 | **Semantic Dimensions** | 40% | 4+ | 2 | 2 | 4 |
 | **AI Cognitive Load** | 25% | High (learning) | High (indentation) | Medium (brackets) | Low (native) |
@@ -881,9 +964,9 @@ agent:
 
 **Core Discovery**: 2D semantics (key-value pairs) cannot satisfy three parties' differentiated needs.
 
-**Phase 3: Adopt XML-like Tag Language**
+**Phase 3: Adopt XML-like Syntax**
 
-**Four-Dimensional Semantic Tag Language**:
+**Four-Dimensional Semantic XML-like Syntax**:
 
 ```xml
 <agent>
@@ -896,7 +979,7 @@ agent:
 **Key Advantages**:
 
 1. **4 independent semantic dimensions**: Perfect mapping to three-party needs
-2. **AI native understanding**: LLMs have strong comprehension and generation capabilities for tag languages
+2. **AI native understanding**: LLMs have strong comprehension and generation capabilities for XML-like syntax
 3. **Reusable mature ecosystem**: Can leverage XML parsers and toolchains
 4. **DOM visualization**: Tree structure naturally visualizes
 5. **No compilation needed**: Already in final form
@@ -904,7 +987,7 @@ agent:
 
 #### 4.1.4 Theoretical Validation of Format Selection
 
-**Conclusion**: Based on 3.2.2's four-dimension derivation, only tag languages with four semantic dimensions can simultaneously satisfy three-party needs.
+**Conclusion**: Based on 3.2.2's four-dimension derivation, only XML-like syntax with four semantic dimensions can simultaneously satisfy three-party needs.
 
 **Validation**: Each format's support for four semantic dimensions directly determines its applicability (see "Semantic Dimensions" column in table above).
 
@@ -912,7 +995,7 @@ agent:
 
 #### 4.2.1 Verbosity vs Expressiveness
 
-**Criticism**: Tag language is more verbose than JSON.
+**Criticism**: XML-like syntax is more verbose than JSON.
 
 **Response**: Verbosity is for semantic clarity.
 
@@ -924,7 +1007,7 @@ agent:
 ```
 
 ```xml
-<!-- Tag language: Verbose but semantically clear -->
+<!-- XML-like syntax: Verbose but semantically clear -->
 <agent>
   <llm model="llm-model"/>
   <prompt>You are assistant</prompt>
@@ -943,37 +1026,37 @@ agent:
 
 #### 4.2.2 Learning Curve vs Long-term Benefits
 
-**Criticism**: Tag language has a steep learning curve.
+**Criticism**: XML-like syntax has a steep learning curve.
 
 **Response**: AI as mediator lowers the learning barrier.
 
-**Traditional Scenario** (humans write tag language directly):
+**Traditional Scenario** (humans write XML-like syntax directly):
 
 - Need to learn tag, attribute, entity, namespace...
-- High learning cost [Not Supported]
+- High learning cost
 
-**DPML Scenario** (AI generates tag language):
+**DPML Scenario** (AI generates XML-like syntax):
 
 - Human: Express intent in natural language
 - AI: Automatically generate correctly formatted DPML
 - Human: Understand and modify through visual interface
-- Low learning cost [Supported]
+- Low learning cost
 
 **Trade-off Result**: Through AI mediator, transfer learning burden to AI.
 
-#### 4.2.3 Current Needs vs Future Extension
+#### 4.2.3 Design Boundaries and Extension Reservations
 
 **Design Philosophy**: Design for the present, reserve for the future.
 
-**Current Design Strategy**:
+**v1.0 Strategy**:
 
 - Implement core 4D semantics
 - Define reserved attributes (`type`, `id`)
 - Establish protocol/domain layer separation
-- [Partially Implemented] `id` syntax ready, but reference mechanism reserved for future versions
+- `id` syntax ready, reference mechanism reserved for future versions
 - Advanced features like namespace and version control reserved
 
-**Trade-off Result**: Current design keeps it simple (core concepts ≤ 5), leaves space for future expansion.
+**Trade-off Result**: v1.0 keeps it simple (core concepts ≤ 5), leaves space for future expansion.
 
 **Section Summary**:
 
@@ -981,7 +1064,7 @@ Through three dimensions of trade-off analysis, DPML's technical choices follow 
 
 - **Prioritize three-party collaboration** (accept verbosity for semantic clarity)
 - **Leverage AI capabilities** (lower learning barrier, transfer cognitive load)
-- **Simple but extensible** (current design has complete core functionality, reserves space for future)
+- **Simple but extensible** (v1.0 has complete core functionality, reserves space for future)
 
 These trade-off decisions directly reflect the guiding role of three-party positioning theory.
 
@@ -993,7 +1076,7 @@ These trade-off decisions directly reflect the guiding role of three-party posit
 
 **What We Constrain**:
 
-- Syntax: kebab-case naming, basic tag language specifications
+- Syntax: kebab-case naming, basic XML-like syntax specifications
 - Structure: Reserved attributes (`type`, `id`)
 - Concepts: Use consensus terms (role, agent, task)
 
@@ -1091,17 +1174,17 @@ Total information entropy: Very high
 
 **Examples**:
 
-- Good: role, agent, personality, task, principle
-- [Not Supported] Bad: lero, xuanwu (culture-specific), thing (too generic)
+- Recommended: role, agent, personality, task, principle
+- Avoid: lero, xuanwu (culture-specific), thing (too generic)
 
 #### 4.3.3 Dual Semantics
 
-**Definition**: Each syntactic element serves both machine semantics and AI semantics simultaneously.
+**Definition**: Each syntactic element serves both computer semantics and AI semantics simultaneously.
 
 **Semantic Balance Across Four Dimensions**:
 
-| Dimension | Machine Semantics | AI Semantics |
-|-----------|------------------|--------------|
+| Dimension | Computer Semantics | AI Semantics |
+|-----------|-------------------|--------------|
 | Tag | Node type, traversal starting point | Concept definition, context |
 | Attribute | Key-value pair data | Comprehensible configuration |
 | Content | Text data | Natural language, home field |
@@ -1109,7 +1192,7 @@ Total information entropy: Very high
 
 **Theoretical Connection**: This is the concrete manifestation of 3.2.4 "Separation of Concerns and Information Sharing"—each dimension optimized for a specific role (primary responsibility), but all roles can access all dimensions (information sharing).
 
-**Core Insight**: Not "machine OR AI", but "machine AND AI"—each element is understood by both, but with different emphases.
+**Core Insight**: Not "computer OR AI", but "computer AND AI"—each element is understood by both, but with different emphases.
 
 ---
 
@@ -1125,7 +1208,7 @@ DPML adopts a **protocol layer/domain layer** separation architecture:
 │  • Meta-semantics: tag/attribute/content/structure │
 │  • Reserved attributes: type, id             │
 │  • Naming convention: kebab-case             │
-│  • Validation rules: tag language format correctness │
+│  • Validation rules: XML-like syntax format correctness │
 └─────────────────────────────────────────────┘
                     ▼
 ┌─────────────────────────────────────────────┐
@@ -1154,7 +1237,7 @@ DPML adopts a **protocol layer/domain layer** separation architecture:
 - How to define concepts (syntax, structure)
 - Meta-semantics (general meanings of tag/attribute/content)
 - Reserved attributes (`type`, `id`)
-- Validation rules (tag language format correctness)
+- Validation rules (XML-like syntax format correctness)
 
 **Protocol Layer Does Not Define**:
 
@@ -1485,7 +1568,7 @@ Total: 300ms | Tokens: 75 in, 70 out
 |-----------|------------------------|----------------|
 | **Learning Curve** | Need to understand underlying protocols | Only need to understand domain concepts |
 | **Development Efficiency** | Write complete code | Declarative configuration |
-| **AI Collaboration** | AI struggles to generate low-level code | AI excels at generating tag language |
+| **AI Collaboration** | AI struggles to generate low-level code | AI excels at generating XML-like syntax |
 | **Maintainability** | Modify code and redeploy | Modify configuration directly |
 
 **For detailed design principles**: See Section 3.3.3 "Computation Encapsulation Layer" for complete theoretical justification and design principles.
@@ -1496,7 +1579,16 @@ Total: 300ms | Tokens: 75 in, 70 out
 
 AI needs structured guidance in complex tasks to ensure output completeness and consistency. Traditional methods use lengthy prompts to describe structural requirements, but effects are unstable.
 
-DPML's tag frameworks provide natural cognitive scaffolding, guiding AI to generate high-quality, structured content.
+DPML's XML-like syntax frameworks provide natural cognitive scaffolding, guiding AI to generate high-quality, structured content.
+
+**Theoretical Foundation**:
+
+Based on the "Separation of Concerns and Information Sharing" principle in Section 3.2.4, DPML's tag dimension provides cognitive scaffolding for AI:
+- Tag defines content nature (overview/strengths/weaknesses)
+- Content preserves creative freedom (AI fills autonomously)
+- Structure ensures output completeness (must fill all tags)
+
+This implements the "Constrain Without Binding" design philosophy from Section 4.3.1—framework constrains structure, content retains freedom.
 
 #### Typical Application: Product Evaluation
 
@@ -1620,7 +1712,7 @@ DPML enables AI to have both creativity and discipline—frameworks provide disc
 
 ### 7.1 Parsing and Validation
 
-**Parsing Strategy**: DPML uses XML-like tag syntax and can reuse the mature XML parser ecosystem. When implementing:
+**Parsing Strategy**: DPML uses XML-like syntax and can reuse the mature XML parser ecosystem. When implementing:
 
 - Disable DTD and external entities (security considerations)
 - Limit document size (prevent abuse)
@@ -1880,11 +1972,11 @@ You are a professional Zhangjiajie tourism planning expert
 
 **Agent**: AI agent, an AI system that performs specific tasks.
 
-**XML-like Tag Language**: The format adopted by DPML, with 4 semantic dimensions (tag/attribute/content/structure). Usage convention: Use full name "XML-like tag language" on first mention, can abbreviate to "tag language" subsequently; avoid using "XML" alone (easily confused with XML specification).
+**XML-like Syntax**: The format adopted by DPML, with 4 semantic dimensions (tag/attribute/content/structure). DPML is not the XML specification and does not use advanced XML features like DTD/Schema/Namespace.
 
 **Protocol Layer**: The bottom layer of DPML architecture, defining meta-semantics, reserved attributes, naming conventions, and validation rules, without defining specific elements.
 
-**DOM**: Document Object Model, the tree-like hierarchical structure of tag languages.
+**DOM**: Document Object Model, the tree-like hierarchical structure of XML-like syntax.
 
 **DPML**: Deepractice Prompt Markup Language, the full name of this protocol.
 
@@ -1894,7 +1986,7 @@ You are a professional Zhangjiajie tourism planning expert
 
 **Three-Party Positioning Theory**: The irreplaceable positioning of three core roles in modern AI systems—Human (innovative intent), AI (semantic translation), Computer (precise execution). Abbreviated as "three-party positioning".
 
-**Semantic Dimension**: Independent semantic space for information expression. XML-like tag languages have 4 dimensions (tag/attribute/content/structure), YAML/JSON have only 2 (key/value).
+**Semantic Dimension**: Independent semantic space for information expression. XML-like syntax has 4 dimensions (tag/attribute/content/structure), YAML/JSON have only 2 (key/value).
 
 **Strong Logic**: Compared to ordinary text, prompts require higher consistency, structure, and precision to ensure stable AI operation.
 
@@ -1918,4 +2010,3 @@ Website: https://deepractice.ai
 **Document Status**: Design draft, seeking community feedback
 
 **Feedback Channels**: Welcome suggestions via GitHub Issues or email
-
