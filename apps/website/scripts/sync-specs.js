@@ -20,17 +20,31 @@ const docsDir = path.join(__dirname, '../docs')
 
 // Specification files to sync
 const syncMap = [
-  // Protocol specifications
+  // Protocol specifications - Index
   {
     source: path.join(specsDir, 'protocol/index.zh-CN.md'),
     target: path.join(docsDir, 'zh/protocol/index.md'),
     lang: 'zh',
     type: 'protocol'
   },
+  // Protocol specifications - Syntax
   {
-    source: path.join(specsDir, 'protocol/index.en.md'),
-    target: path.join(docsDir, 'en/protocol/index.md'),
+    source: path.join(specsDir, 'protocol/syntax.zh-CN.md'),
+    target: path.join(docsDir, 'zh/protocol/syntax.md'),
+    lang: 'zh',
+    type: 'protocol'
+  },
+  {
+    source: path.join(specsDir, 'protocol/syntax.en.md'),
+    target: path.join(docsDir, 'en/protocol/syntax.md'),
     lang: 'en',
+    type: 'protocol'
+  },
+  // Protocol specifications - Semantics
+  {
+    source: path.join(specsDir, 'protocol/semantics.zh-CN.md'),
+    target: path.join(docsDir, 'zh/protocol/semantics.md'),
+    lang: 'zh',
     type: 'protocol'
   },
   // Whitepapers
