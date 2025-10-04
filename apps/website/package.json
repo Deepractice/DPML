@@ -11,12 +11,17 @@
     "preview": "vitepress preview docs",
     "deploy": "pnpm build && wrangler pages deploy docs/.vitepress/dist"
   },
-  "keywords": ["dpml", "documentation", "website"],
+  "keywords": [
+    "dpml",
+    "documentation",
+    "website"
+  ],
   "author": "Deepractice.ai",
   "license": "MIT",
   "packageManager": "pnpm@10.7.0",
   "devDependencies": {
     "vitepress": "^1.6.4",
+    "vitepress-plugin-mermaid": "^2.0.17",
     "vue": "^3.5.22",
     "wrangler": "^3.105.0"
   }

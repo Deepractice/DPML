@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitepress';
+import { withMermaid } from 'vitepress-plugin-mermaid';
 
-export default defineConfig({
+export default withMermaid(defineConfig({
   title: 'DPML',
   description: 'Deepractice Prompt Markup Language - Define AI like writing HTML',
 
@@ -75,5 +76,10 @@ export default defineConfig({
     search: {
       provider: 'local'
     }
+  },
+
+  // Mermaid diagram support
+  mermaid: {
+    // Optional: Mermaid config
   }
-});
+}));
