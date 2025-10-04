@@ -12,22 +12,13 @@ export default defineConfig({
       lang: 'en',
       themeConfig: {
         nav: [
-          { text: 'Guide', link: '/en/guide/' },
+          { text: 'Whitepaper', link: '/en/whitepaper/' },
           { text: 'Protocol', link: '/en/protocol/' },
           { text: 'GitHub', link: 'https://github.com/Deepractice/DPML' }
         ],
 
         sidebar: {
-          '/en/guide/': [
-            {
-              text: 'Getting Started',
-              items: [
-                { text: 'Introduction', link: '/en/guide/' },
-                { text: 'Quick Start', link: '/en/guide/quickstart' }
-              ]
-            }
-          ]
-          // Protocol page has no sidebar, use outline only
+          // Whitepaper and Protocol pages have no sidebar, use outline only
         },
 
         outline: {
@@ -41,22 +32,13 @@ export default defineConfig({
       lang: 'zh-CN',
       themeConfig: {
         nav: [
-          { text: '指南', link: '/zh/guide/' },
+          { text: '白皮书', link: '/zh/whitepaper/' },
           { text: '协议', link: '/zh/protocol/' },
           { text: 'GitHub', link: 'https://github.com/Deepractice/DPML' }
         ],
 
         sidebar: {
-          '/zh/guide/': [
-            {
-              text: '开始使用',
-              items: [
-                { text: '介绍', link: '/zh/guide/' },
-                { text: '快速开始', link: '/zh/guide/quickstart' }
-              ]
-            }
-          ]
-          // 协议页面没有侧边栏，只使用右侧目录
+          // 白皮书和协议页面没有侧边栏，只使用右侧目录
         },
 
         outline: {
