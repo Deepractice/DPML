@@ -18,33 +18,30 @@ const projectRoot = path.resolve(__dirname, '../../..')
 const specsDir = path.join(projectRoot, 'specs/v1.0')
 const docsDir = path.join(__dirname, '../docs')
 
-// Paths for whitepapers
-const whitepapersDir = path.join(projectRoot, 'whitepapers/v1.0')
-
 // Specification files to sync
 const syncMap = [
   // Protocol specifications
   {
-    source: path.join(specsDir, 'dpml-protocol-v1.zh-CN.md'),
+    source: path.join(specsDir, 'protocol/index.zh-CN.md'),
     target: path.join(docsDir, 'zh/protocol/index.md'),
     lang: 'zh',
     type: 'protocol'
   },
   {
-    source: path.join(specsDir, 'dpml-protocol-v1.md'),
+    source: path.join(specsDir, 'protocol/index.en.md'),
     target: path.join(docsDir, 'en/protocol/index.md'),
     lang: 'en',
     type: 'protocol'
   },
   // Whitepapers
   {
-    source: path.join(whitepapersDir, 'dpml-whitepaper.zh-CN.md'),
+    source: path.join(specsDir, 'whitepaper/index.zh-CN.md'),
     target: path.join(docsDir, 'zh/whitepaper/index.md'),
     lang: 'zh',
     type: 'whitepaper'
   },
   {
-    source: path.join(whitepapersDir, 'dpml-whitepaper.en.md'),
+    source: path.join(specsDir, 'whitepaper/index.en.md'),
     target: path.join(docsDir, 'en/whitepaper/index.md'),
     lang: 'en',
     type: 'whitepaper'
