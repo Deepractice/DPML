@@ -13,8 +13,7 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: 'Whitepaper', link: '/en/whitepaper/' },
-          { text: 'Protocol', link: '/en/protocol/' },
-          { text: 'GitHub', link: 'https://github.com/Deepractice/DPML' }
+          { text: 'Protocol', link: '/en/protocol/' }
         ],
 
         sidebar: {
@@ -33,8 +32,7 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: '白皮书', link: '/zh/whitepaper/' },
-          { text: '协议', link: '/zh/protocol/' },
-          { text: 'GitHub', link: 'https://github.com/Deepractice/DPML' }
+          { text: '协议', link: '/zh/protocol/' }
         ],
 
         sidebar: {
