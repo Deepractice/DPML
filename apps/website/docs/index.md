@@ -1,6 +1,14 @@
-# DPML
+<script setup>
+import { onMounted } from 'vue'
+import { useRouter } from 'vitepress'
 
-Select your language:
+const router = useRouter()
 
-- [English](/en/)
-- [简体中文](/zh/)
+onMounted(() => {
+  router.go('/en/whitepaper/')
+})
+</script>
+
+# Redirecting...
+
+Redirecting to DPML Whitepaper...
