@@ -114,16 +114,25 @@ DPML 的语义通过四个维度表达：
 
 ### 4.1 标签词性要求
 
-标签 MUST 是名词。
+标签 SHOULD 表达概念，优先使用名词。
 
 **理论依据:**
-- 概念是可定义、可理解、可传递的抽象实体
-- 名词是概念在自然语言中的载体
-- 动词和形容词描述关系或属性，本身不构成独立概念
+- 名词表达独立概念，语义边界清晰
+- 利于 AI 理解和人类认知
+- 概念化标签易于组合和复用
 
-**因此:**
-- 动词 MUST 名词化后使用（如：validate → validation）
-- 形容词 MUST 转换为名词或使用属性（如：required → requirement 或 requirement="true"）
+**推荐做法:**
+- 优先使用名词（如：`<agent>`, `<prompt>`, `<config>`）
+- 动作性概念名词化（如：validate → `<validation>`, execute → `<execution>`）
+- 状态性概念可用形容词名词化（如：pending → `<pending-state>` 或直接 `<pending>`）
+
+**允许的例外:**
+- 动作性概念，当名词化会产生歧义时（如：`<execute>` 表示执行动作本身）
+- 状态性概念，当形容词本身已成为领域共识术语（如：`<required>`, `<optional>`）
+
+**不推荐:**
+- 纯动词标签且可名词化（如：`<validate>` 应改为 `<validation>`）
+- 形容词标签且应为属性（如：`<enabled>` 应改为 `enabled="true"`）
 
 ### 4.2 标签命名规范
 
@@ -201,11 +210,50 @@ v1.0 定义以下标准 type 值：
 
 实现 MAY 定义额外的 type 值以支持特定格式（如 json, python, yaml）。
 
+**命名约定:**
+
 自定义 type 值 SHOULD 直接使用格式名称或语言名称，不使用中间抽象层。
 
+- **标准格式直接用名称**：`json`, `yaml`, `xml`, `toml`
+- **编程语言用语言名**：`python`, `javascript`, `rust`, `java`
+- **自定义格式建议命名空间**：`x-custom-format`, `myorg-format`
+
 **示例:**
-- 正确：`type="python"`
-- 不推荐：`type="code" language="python"`
+```xml
+<!-- 推荐：直接使用格式名 -->
+<code type="python">
+def hello():
+    print("Hello")
+</code>
+
+<!-- 不推荐：使用中间抽象层 -->
+<code type="code" language="python">  <!-- 过度复杂 -->
+```
+
+**扩展机制:**
+
+为避免 type 值冲突和促进生态互操作，DPML 社区提供以下机制：
+
+1. **Type Registry（类型注册表）**
+   - 仓库地址：`https://github.com/deepractice/dpml-registry`（规划中）
+   - 维护已知 type 值的列表和定义
+   - 包含格式说明、解析规范和示例
+
+2. **注册流程（推荐，非强制）**
+   - 提交 PR 到 DPML Registry
+   - 提供 type 值名称、格式定义、处理规范
+   - 社区 review 后合并
+   - 注册后的 type 值获得"社区认可"标记
+
+3. **命名空间约定**
+   - 未注册的自定义 type 建议使用 `x-` 前缀（实验性）
+   - 组织特定 type 建议使用组织标识前缀（如 `myorg-format`）
+
+**冲突处理:**
+
+- v1.0 不强制注册，实现可自由定义 type 值
+- 建议优先采用社区已注册的 type 值
+- 如遇冲突，优先采用"先注册"原则
 
 #### 6.1.4 type 的嵌套限制
 
@@ -249,18 +297,207 @@ v1.0 不支持嵌套的 type 定义。一个元素只能有一个 type 值。
 
 认知框架是由 DPML 标签组成的结构，用于引导 AI 的内容生成和思维组织。
 
-### 8.2 框架特性
-
-认知框架：
+**核心特性:**
 - 通过标签框定"应该生成什么性质的内容"
 - 不限制具体内容本身
 - 是可复制的模式（Pattern）
 
-### 8.3 框架完备性
+### 8.2 设计原则
+
+#### 8.2.1 完备性原则
 
 认知框架 SHOULD 覆盖目标认知过程的所有关键维度。
 
-框架内的元素 SHOULD 语义正交且层次清晰。
+**完备性检查:**
+- 是否涵盖了思维过程的主要阶段？
+- 遗漏某个标签会导致输出不完整吗？
+- 框架是否引导了完整的认知闭环？
+
+**示例 - 问题分析框架:**
+```xml
+<analysis>
+  <situation>当前状况</situation>     <!-- 观察 -->
+  <problem>核心问题</problem>         <!-- 识别 -->
+  <root-cause>根本原因</root-cause>   <!-- 分析 -->
+  <solution>解决方案</solution>       <!-- 决策 -->
+</analysis>
+```
+
+**反例 - 不完备:**
+```xml
+<analysis>
+  <problem>核心问题</problem>
+  <solution>解决方案</solution>
+  <!-- 缺少观察和分析阶段，框架不完整 -->
+</analysis>
+```
+
+#### 8.2.2 正交性原则
+
+框架内的元素 SHOULD 语义正交（互不重叠）。
+
+**正交性检查:**
+- 两个标签的内容能否合并？
+- 某个标签的内容会不会同时符合另一个标签？
+- 标签间是否有明确的语义边界？
+
+**示例 - 正交性良好:**
+```xml
+<evaluation>
+  <strengths>优势</strengths>
+  <weaknesses>不足</weaknesses>
+  <opportunities>机会</opportunities>
+  <threats>威胁</threats>
+</evaluation>
+<!-- SWOT 四个维度互不重叠 -->
+```
+
+**反例 - 语义重叠:**
+```xml
+<evaluation>
+  <good-points>优点</good-points>
+  <advantages>优势</advantages>      <!-- 与 good-points 语义重叠 -->
+  <bad-points>缺点</bad-points>
+</evaluation>
+```
+
+#### 8.2.3 层次性原则
+
+框架 SHOULD 具有清晰的层次结构，体现认知过程的逻辑关系。
+
+**层次设计:**
+- 并列关系：同级标签表达同类性质的内容
+- 包含关系：父标签包含子标签，表达整体与部分
+- 顺序关系：标签顺序反映认知流程
+
+**示例 - 层次清晰:**
+```xml
+<decision>
+  <context>背景</context>
+  <options>
+    <option id="a">方案A</option>
+    <option id="b">方案B</option>
+  </options>
+  <analysis>
+    <pros>优势分析</pros>
+    <cons>劣势分析</cons>
+  </analysis>
+  <recommendation>推荐决策</recommendation>
+</decision>
+```
+
+### 8.3 设计反模式
+
+#### 8.3.1 过度嵌套
+
+**问题:** 层级过深（>3层），增加理解和使用成本。
+
+**反例:**
+```xml
+<analysis>
+  <level1>
+    <level2>
+      <level3>
+        <level4>内容</level4>
+      </level3>
+    </level2>
+  </level1>
+</analysis>
+```
+
+**改进:** 扁平化或使用属性
+```xml
+<analysis>
+  <insight category="level1.level2.level3">内容</insight>
+</analysis>
+```
+
+#### 8.3.2 概念混淆
+
+**问题:** 标签名称抽象或模糊，AI 和人类难以理解应该填充什么内容。
+
+**反例:**
+```xml
+<thing>
+  <stuff>...</stuff>
+  <info>...</info>
+</thing>
+```
+
+**改进:** 使用具体、自解释的标签名
+```xml
+<product-review>
+  <features>...</features>
+  <user-feedback>...</user-feedback>
+</product-review>
+```
+
+#### 8.3.3 语义冗余
+
+**问题:** 多个标签表达相同或高度重叠的语义。
+
+**反例:**
+```xml
+<report>
+  <summary>摘要</summary>
+  <abstract>摘要</abstract>      <!-- 冗余 -->
+  <overview>概览</overview>       <!-- 冗余 -->
+</report>
+```
+
+**改进:** 合并为单一标签或明确区分
+```xml
+<report>
+  <executive-summary>执行摘要</executive-summary>
+  <technical-details>技术细节</technical-details>
+</report>
+```
+
+### 8.4 设计检查清单
+
+在发布认知框架前，使用以下检查清单验证：
+
+**完备性:**
+- [ ] 框架覆盖了认知过程的所有关键阶段
+- [ ] 每个标签都有明确的用途和价值
+- [ ] 没有遗漏的关键维度
+
+**正交性:**
+- [ ] 标签间语义边界清晰
+- [ ] 没有内容可以同时归入两个标签
+- [ ] 没有明显的语义重叠
+
+**可用性:**
+- [ ] 标签名称自解释
+- [ ] 层级结构清晰（≤3层）
+- [ ] AI 和人类都能理解应该填充什么
+
+**一致性:**
+- [ ] 遵循命名规范（kebab-case）
+- [ ] 标签词性一致（优先名词）
+- [ ] 层次关系符合逻辑
+
+### 8.5 实践建议
+
+**从简单开始:**
+- 先设计 2-3 个核心标签
+- 验证框架可用性后再扩展
+- 避免过早优化
+
+**参考成熟模式:**
+- 5W1H（What/Why/When/Where/Who/How）
+- SWOT（Strengths/Weaknesses/Opportunities/Threats）
+- PDCA（Plan/Do/Check/Act）
+
+**迭代优化:**
+- 收集实际使用反馈
+- 观察 AI 生成质量
+- 根据数据调整框架
+
+**文档化:**
+- 说明框架的适用场景
+- 提供示例用法
+- 解释每个标签的预期内容
 
 ---
 

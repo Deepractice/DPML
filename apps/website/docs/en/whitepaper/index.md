@@ -1,4 +1,4 @@
-# DPML Design Whitepaper
+# DPML Whitepaper
 
 **Status**: Draft<br>
 **Version**: 1.0<br>
@@ -128,7 +128,7 @@ This whitepaper does not include:
 A three-party collaboration protocol using XML-like syntax to unify driving signals for computers, AI, and humans.
 
 **XML-like Syntax**
-The format adopted by DPML, featuring 4 semantic dimensions (tag/attribute/content/structure). DPML is not the XML specification and does not use advanced XML features like DTD/Schema/Namespace, but borrows XML's four-dimensional semantic structure.
+The format adopted by DPML, featuring 4 semantic dimensions (tag/attribute/content/structure). DPML is not the XML specification and does not use advanced XML features like DTD/Schema/Namespace, but borrows XML's four-dimensional semantic structure. Can leverage mature XML parser ecosystems without being bound by all XML specifications.
 
 **Three-Party Positioning**
 The irreplaceable positioning of three core roles in modern AI systems:
@@ -138,13 +138,23 @@ The irreplaceable positioning of three core roles in modern AI systems:
 - Computer: Precise execution
 
 **Driving Signal**
-Structured information that guides and drives system behavior, including configuration for computers, instructions for AI, and state displays for humans.
+In modern AI systems, structured information that guides and triggers system behavior. Divided into three types:
+- Computer driving signals: Configuration parameters (e.g., model, temperature)
+- AI driving signals: Natural language instructions (e.g., system prompts)
+- Human driving signals: Observable state information (e.g., execution logs, visual interfaces)
+
+The core value of DPML is to unify these three types of signals in a single carrier, enabling lossless flow.
 
 **Semantic Dimension**
 Independent semantic space for information expression. XML-like syntax has 4 semantic dimensions (tag/attribute/content/structure), while YAML/JSON have only 2 (key/value).
 
 **Strong Logic**
-Compared to ordinary text, prompts require higher consistency, structure, and precision to ensure stable AI operation.
+Compared to ordinary text, prompts require higher levels of:
+- Consistency: The same concept must be expressed consistently across different locations
+- Structure: Information organization must follow clear hierarchical relationships
+- Precision: Instructions and constraints must be unambiguous
+
+Example: "You are an assistant" conflicts with "maintain accuracy" when temperature=0.9.
 
 **DOM (Document Object Model)**
 The tree-like hierarchical structure of XML-like syntax, naturally supporting visual rendering, which is the foundation of DPML's observability.
@@ -733,6 +743,46 @@ Developers, AI, humans see the same language:
 
 Protocol layer defines unified syntax, implementation layer optimizes processing based on different purposes of six states. See Chapter 4 Technical Decisions for details.
 
+### 3.3.5 Developer Perspective: Six States in Practice
+
+From the developer's practical work scenarios, the six-state flow corresponds to the following specific development activities:
+
+| State | Developer-Facing Form | Typical Files/Interfaces | Development Work |
+|---|----------------|--------------|---------|
+| **DPML₁** | User input auto-wrapped as DPML by framework | Frontend form → `<user-input>...</>` | Design input forms, no need to handle DPML format |
+| **DPML₂** | Write Agent config, framework renders to UI | `agent.dpml` → React component tree | Write .dpml config files |
+| **DPML₃** | SDK auto-builds AI context | `buildContext(agent.dpml, history)` | Call SDK interface, pass config |
+| **DPML₄** | AI-returned tool call instructions | LLM response → `<tool-call>...</>` | Implement tool functions, handle calls |
+| **DPML₅** | Framework-validated execution commands | `validateAndExecute(toolCall)` | Framework auto-handles, transparent to developer |
+| **DPML₆** | Tool execution results | `<tool-result status="success">...</>` | Return structured data |
+
+**Key Insight**: Developers typically only need to focus on **DPML₂** (configuring Agent) and **DPML₄/₆** (implementing and handling tools). The other three states are automatically handled by the framework. This layering reduces development complexity, allowing developers to focus on business logic rather than protocol details.
+
+**Practical Example**:
+
+```typescript
+// Developer work 1: Write Agent config (DPML₂)
+// agent.dpml
+<agent>
+  <llm model="llm-model"/>
+  <prompt>You are an assistant</prompt>
+  <tools>
+    <tool name="search"/>
+  </tools>
+</agent>
+
+// Developer work 2: Implement tool function (handle DPML₄)
+function search(query: string) {
+  // Business logic
+  return { results: [...] }; // Framework auto-wraps as DPML₆
+}
+
+// Framework-handled parts (DPML₁₃₅)
+// - User input → DPML₁ wrapping
+// - Build context → DPML₃
+// - Validate & execute → DPML₅
+```
+
 ### 3.4 End-to-End Example: Complete Loop Observability
 
 Through a complete user scenario, demonstrate how DPML flows through the six states to achieve fully observable information loop.
@@ -980,7 +1030,7 @@ agent:
 
 1. **4 independent semantic dimensions**: Perfect mapping to three-party needs
 2. **AI native understanding**: LLMs have strong comprehension and generation capabilities for XML-like syntax
-3. **Reusable mature ecosystem**: Can leverage XML parsers and toolchains
+3. **Reusable mature ecosystem**: Can leverage mature XML parser ecosystems without being bound by all XML specifications
 4. **DOM visualization**: Tree structure naturally visualizes
 5. **No compilation needed**: Already in final form
 6. **Independent evolution**: Not constrained by XML specifications, can optimize for AI scenarios
@@ -1712,7 +1762,7 @@ DPML enables AI to have both creativity and discipline—frameworks provide disc
 
 ### 7.1 Parsing and Validation
 
-**Parsing Strategy**: DPML uses XML-like syntax and can reuse the mature XML parser ecosystem. When implementing:
+**Parsing Strategy**: DPML uses XML-like syntax and can leverage mature XML parser ecosystems without being bound by all XML specifications. When implementing:
 
 - Disable DTD and external entities (security considerations)
 - Limit document size (prevent abuse)
@@ -1794,42 +1844,19 @@ DPML enables AI to have both creativity and discipline—frameworks provide disc
 - Security scanning
 - Performance recommendations
 
-### 8.2 Domain Specification System
+### 8.2 Domain Extension Strategy
 
-#### 8.2.1 Core Domains
+DPML adopts a protocol layer/domain layer separation architecture (see Section 5.1). Domain specifications evolve independently based on community needs and practical requirements.
 
-| Domain | Purpose | Core Element Examples |
-|--------|---------|----------------------|
-| **Agent** | Conversational AI configuration | `<agent>`, `<llm>`, `<prompt>`, `<tools>` |
-| **Task** | State machine task orchestration | `<task>`, `<state>`, `<action>`, `<transition>` |
-| **Workflow** | Workflow orchestration | `<workflow>`, `<step>`, `<router>`, `<parallel>` |
-| **Role** | AI personality definition | `<role>`, `<personality>`, `<principles>`, `<capabilities>` |
-| **MCP** | MCP service development | `<mcp-server>`, `<mcp-tool>`, `<mcp-resource>` |
-| **RAG** | Retrieval-augmented generation | `<rag-pipeline>`, `<indexing>`, `<retrieval>`, `<generation>` |
+**Domain Definition Principles**:
 
-#### 8.2.2 Community Contributions
+- Follow protocol layer meta-semantic specifications (four semantic dimensions, naming conventions)
+- Use domain consensus terminology (see Section 4.3.2)
+- Provide complete domain specification documentation and reference implementations
 
-**Encourage community to define new domains**:
+**Encourage Community Contributions**: Any domain complying with protocol layer specifications can be submitted to the DPML ecosystem without centralized approval.
 
-- Follow DPML protocol specifications
-- Submit domain specification documentation
-- Provide reference implementations
-
-**Example: Custom Domain**
-
-```xml
-<!-- Game domain (community contribution) -->
-<game id="rpg-quest">
-  <character>
-    <llm model="llm-model"/>
-    <personality>Brave knight</personality>
-  </character>
-  <world>
-    <location>Magic forest</location>
-    <npc>Wise elder</npc>
-  </world>
-</game>
-```
+Specific domain specifications will gradually form through practice. See individual domain documentation for details.
 
 ### 8.3 Standardization Vision
 
@@ -2005,8 +2032,8 @@ Website: https://deepractice.ai
 
 ---
 
-**DPML Design Whitepaper**
+**DPML Whitepaper**
 
-**Document Status**: Design draft, seeking community feedback
+**Document Status**: Draft, seeking community feedback
 
 **Feedback Channels**: Welcome suggestions via GitHub Issues or email

@@ -145,7 +145,7 @@ DPML documents MUST be well-formed XML:
 
 **ABNF Definition**:
 
-```abnf
+```text
 dpml-document  = [xml-decl] root-element
 root-element   = element
 element        = start-tag content end-tag / empty-element
@@ -168,7 +168,7 @@ Element names MUST follow **kebab-case**:
 
 **ABNF Definition**:
 
-```abnf
+```text
 element-name   = lowercase-word *("-" lowercase-word)
 lowercase-word = ALPHA *(ALPHA / DIGIT)
 ALPHA          = %x61-7A  ; a-z
@@ -775,7 +775,7 @@ Use analogies and examples to explain complex concepts.
 
 ### Appendix B: Complete ABNF Grammar
 
-```abnf
+```text
 ; DPML Document
 dpml-document  = [xml-decl] root-element
 

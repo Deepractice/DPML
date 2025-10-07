@@ -149,7 +149,7 @@ DPML 文档必须是格式良好的 XML：
 
 **ABNF 定义**：
 
-```abnf
+```text
 dpml-document  = [xml-decl] root-element
 root-element   = element
 element        = start-tag content end-tag / empty-element
@@ -172,7 +172,7 @@ empty-element  = "<" element-name *attribute "/>"
 
 **ABNF 定义**：
 
-```abnf
+```text
 element-name   = lowercase-word *("-" lowercase-word)
 lowercase-word = ALPHA *(ALPHA / DIGIT)
 ALPHA          = %x61-7A  ; a-z
@@ -307,25 +307,32 @@ DPML 文档应该使用 **UTF-8** 编码。
 
 **默认值**：`text`
 
-**标准类型值**：
+**v1.0 规范性类型值**：
+
+| 类型值 | 内容格式 | 规范性 |
+|--------|---------|--------|
+| `text` | 纯文本/自然语言 | **MUST 支持** (默认) |
+| `markdown` | Markdown 格式文本 | **MUST 支持** |
+
+**扩展类型值**(示例，非规范性要求)：
 
 | 类型值 | 内容格式 | 说明 |
 |--------|---------|------|
-| `text` | 纯文本 | 默认，自然语言 |
-| `markdown` | Markdown | 格式化文本 |
-| `json` | JSON | 数据结构 |
-| `javascript` | JavaScript | 代码 |
-| `python` | Python | 代码 |
-| `yaml` | YAML | 数据结构 |
+| `json` | JSON | 数据结构，实现可选支持 |
+| `javascript` | JavaScript | 代码，实现可选支持 |
+| `python` | Python | 代码，实现可选支持 |
+| `yaml` | YAML | 数据结构，实现可选支持 |
 
 **示例**：
 
 ```xml
+<!-- v1.0 规范性类型 -->
 <prompt type="markdown">
 # 系统提示词
 你是一个助手。
 </prompt>
 
+<!-- 扩展类型示例 (可选支持) -->
 <config type="json">
 {
   "timeout": 30,
@@ -335,10 +342,10 @@ DPML 文档应该使用 **UTF-8** 编码。
 ```
 
 **处理规则**：
-- 实现必须识别 `type` 属性
-- 实现应该支持标准类型值
-- 实现可以支持自定义类型值
-- 未识别的类型值应视为 `text`
+- 实现**必须**识别 `type` 属性
+- 实现**必须**支持 `text` 和 `markdown`
+- 实现**可以**支持扩展类型值(如 json, python 等)
+- 未识别的类型值**应该**视为 `text` 并记录警告 W01
 
 #### 4.2.2 `id` 属性
 
@@ -588,9 +595,9 @@ XML 声明是可选的：
 
 实现应该：
 
-1. 支持标准 type 值（text/markdown/json/javascript/python/yaml）
-2. 提供 DOM API
-3. 支持独立验证功能
+1. 提供 DOM API
+2. 支持独立验证功能
+3. 支持扩展 type 值（json/javascript/python/yaml 等）
 
 ### 8.3 扩展机制
 
@@ -786,7 +793,7 @@ Deepractice.ai, October 2025.
 
 ### 附录 B: 完整 ABNF 语法
 
-```abnf
+```text
 ; DPML 文档
 dpml-document  = [xml-decl] root-element
 
@@ -824,15 +831,26 @@ comment        = "<!--" *(CHAR - "--") "-->"
 cdata          = "<![CDATA[" *(CHAR - "]]>") "]]>"
 
 ; 引用字符串
-quoted-string  = DQUOTE *QCHAR DQUOTE / SQUOTE *QCHAR SQUOTE
+quoted-string  = dquoted-string / squoted-string
+dquoted-string = DQUOTE *dqchar DQUOTE
+squoted-string = SQUOTE *sqchar SQUOTE
+
+; 字符串内字符（排除引号和特殊字符，或使用转义）
+dqchar         = %x20-21 / %x23-26 / %x28-D7FF / %xE000-FFFD / escaped-char
+                 ; 排除 " (%x22) 和控制字符
+sqchar         = %x20-26 / %x28-D7FF / %xE000-FFFD / escaped-char
+                 ; 排除 ' (%x27) 和控制字符
+
+; 转义字符
+escaped-char   = "&lt;" / "&gt;" / "&amp;" / "&quot;" / "&apos;"
 
 ; 基本字符
 ALPHA          = %x61-7A  ; a-z
 DIGIT          = %x30-39  ; 0-9
 CHAR           = %x09 / %x0A / %x0D / %x20-D7FF / %xE000-FFFD
 WSP            = %x20 / %x09 / %x0A / %x0D
-DQUOTE         = %x22
-SQUOTE         = %x27
+DQUOTE         = %x22     ; "
+SQUOTE         = %x27     ; '
 ```
 
 ---

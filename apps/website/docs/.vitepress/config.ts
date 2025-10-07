@@ -1,11 +1,14 @@
 import { defineConfig } from 'vitepress';
-import { withMermaid } from 'vitepress-plugin-mermaid';
 
-export default withMermaid(defineConfig({
+export default defineConfig({
   title: 'DPML',
   description: 'Deepractice Prompt Markup Language - Define AI like writing HTML',
 
   ignoreDeadLinks: true,
+
+  rewrites: {
+    'index.md': 'zh/index.md'
+  },
 
   locales: {
     en: {
@@ -18,7 +21,15 @@ export default withMermaid(defineConfig({
         ],
 
         sidebar: {
-          // Whitepaper and Protocol pages have no sidebar, use outline only
+          '/en/protocol/': [
+            {
+              text: 'Protocol Specification',
+              items: [
+                { text: 'Overview', link: '/en/protocol/' },
+                { text: 'Syntax Specification', link: '/en/protocol/syntax' }
+              ]
+            }
+          ]
         },
 
         outline: {
@@ -37,7 +48,16 @@ export default withMermaid(defineConfig({
         ],
 
         sidebar: {
-          // 白皮书和协议页面没有侧边栏，只使用右侧目录
+          '/zh/protocol/': [
+            {
+              text: '协议规范',
+              items: [
+                { text: '概述', link: '/zh/protocol/' },
+                { text: '语法规范', link: '/zh/protocol/syntax' },
+                { text: '语义规范', link: '/zh/protocol/semantics' }
+              ]
+            }
+          ]
         },
 
         outline: {
@@ -64,6 +84,18 @@ export default withMermaid(defineConfig({
   themeConfig: {
     logo: '/logo.png',
 
+    // Version switcher in navbar
+    nav: [
+      {
+        text: 'v1.0',
+        items: [
+          { text: 'v1.0 (Current)', link: '/zh/' },
+          // Future versions will be added here
+          // { text: 'v2.0', link: '/v2.0/zh/' }
+        ]
+      }
+    ],
+
     socialLinks: [
       { icon: 'github', link: 'https://github.com/Deepractice/DPML' }
     ],
@@ -76,10 +108,8 @@ export default withMermaid(defineConfig({
     search: {
       provider: 'local'
     }
-  },
-
-  // Mermaid diagram support
-  mermaid: {
-    // Optional: Mermaid config
   }
-}));
+
+  // Note: Mermaid support temporarily disabled due to dependency issues
+  // Will re-enable after fixing vitepress-plugin-mermaid compatibility
+});

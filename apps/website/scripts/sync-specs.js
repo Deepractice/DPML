@@ -2,7 +2,7 @@
 /**
  * Sync DPML Protocol Specifications to Website Docs
  *
- * This script copies the protocol specifications from specs/ to docs/
+ * This script mirrors the specs/ directory structure to docs/
  * ensuring the website always displays the authoritative version.
  */
 
@@ -18,73 +18,75 @@ const projectRoot = path.resolve(__dirname, '../../..')
 const specsDir = path.join(projectRoot, 'specs/v1.0')
 const docsDir = path.join(__dirname, '../docs')
 
-// Specification files to sync
-const syncMap = [
-  // Protocol specifications - Index
-  {
-    source: path.join(specsDir, 'protocol/index.zh-CN.md'),
-    target: path.join(docsDir, 'zh/protocol/index.md'),
-    lang: 'zh',
-    type: 'protocol'
-  },
-  // Protocol specifications - Syntax
-  {
-    source: path.join(specsDir, 'protocol/syntax.zh-CN.md'),
-    target: path.join(docsDir, 'zh/protocol/syntax.md'),
-    lang: 'zh',
-    type: 'protocol'
-  },
-  {
-    source: path.join(specsDir, 'protocol/syntax.en.md'),
-    target: path.join(docsDir, 'en/protocol/syntax.md'),
-    lang: 'en',
-    type: 'protocol'
-  },
-  // Protocol specifications - Semantics
-  {
-    source: path.join(specsDir, 'protocol/semantics.zh-CN.md'),
-    target: path.join(docsDir, 'zh/protocol/semantics.md'),
-    lang: 'zh',
-    type: 'protocol'
-  },
-  // Whitepapers
-  {
-    source: path.join(specsDir, 'whitepaper/index.zh-CN.md'),
-    target: path.join(docsDir, 'zh/whitepaper/index.md'),
-    lang: 'zh',
-    type: 'whitepaper'
-  },
-  {
-    source: path.join(specsDir, 'whitepaper/index.en.md'),
-    target: path.join(docsDir, 'en/whitepaper/index.md'),
-    lang: 'en',
-    type: 'whitepaper'
-  }
-]
+/**
+ * Recursively copy directory contents
+ */
+function copyDirectory(src, dest) {
+  const stats = []
 
-console.log('📄 Syncing DPML Documentation (Protocols & Whitepapers)...\n')
+  function copyRecursive(source, destination) {
+    // Create destination directory if it doesn't exist
+    if (!fs.existsSync(destination)) {
+      fs.mkdirSync(destination, { recursive: true })
+    }
+
+    // Read directory contents
+    const entries = fs.readdirSync(source, { withFileTypes: true })
+
+    for (const entry of entries) {
+      const sourcePath = path.join(source, entry.name)
+      const destPath = path.join(destination, entry.name)
+
+      if (entry.isDirectory()) {
+        // Recursively copy subdirectories
+        copyRecursive(sourcePath, destPath)
+      } else if (entry.isFile() && entry.name.endsWith('.md')) {
+        // Only copy markdown files
+        fs.copyFileSync(sourcePath, destPath)
+        stats.push({
+          source: sourcePath,
+          target: destPath,
+          name: entry.name
+        })
+      }
+    }
+  }
+
+  copyRecursive(src, dest)
+  return stats
+}
+
+console.log('📄 Syncing DPML Documentation...\n')
 
 let success = true
 
-for (const { source, target, lang, type } of syncMap) {
+// Sync directories by language
+const languages = ['zh', 'en']
+
+for (const lang of languages) {
   try {
-    // Check if source exists
-    if (!fs.existsSync(source)) {
-      console.error(`❌ Source not found: ${source}`)
-      success = false
+    const sourceLangDir = path.join(specsDir, lang)
+    const targetLangDir = path.join(docsDir, lang)
+
+    // Check if source language directory exists
+    if (!fs.existsSync(sourceLangDir)) {
+      console.log(`⏭️  Skipping ${lang}: source directory not found`)
       continue
     }
 
-    // Ensure target directory exists
-    const targetDir = path.dirname(target)
-    if (!fs.existsSync(targetDir)) {
-      fs.mkdirSync(targetDir, { recursive: true })
+    console.log(`📂 Syncing [${lang}] ...`)
+
+    // Copy the entire language directory
+    const copiedFiles = copyDirectory(sourceLangDir, targetLangDir)
+
+    // Report copied files
+    for (const file of copiedFiles) {
+      const relativePath = path.relative(targetLangDir, file.target)
+      const type = relativePath.startsWith('protocol') ? '📋' : '📖'
+      console.log(`   ✅ ${type} ${relativePath}`)
     }
 
-    // Copy file
-    fs.copyFileSync(source, target)
-    const emoji = type === 'protocol' ? '📋' : '📖'
-    console.log(`✅ ${emoji} [${lang}] ${path.basename(source)} → ${path.relative(projectRoot, target)}`)
+    console.log(`   ${copiedFiles.length} file(s) synced\n`)
   } catch (error) {
     console.error(`❌ Failed to sync ${lang}:`, error.message)
     success = false
@@ -92,7 +94,7 @@ for (const { source, target, lang, type } of syncMap) {
 }
 
 if (success) {
-  console.log('\n✨ All documentation synced successfully!')
+  console.log('✨ All documentation synced successfully!')
 } else {
   console.error('\n❌ Some documentation failed to sync')
   process.exit(1)
