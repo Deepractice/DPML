@@ -1,6 +1,6 @@
 {
   "name": "@dpml/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "DPML Core: Parsing, validation, and transformation for DPML documents",
   "type": "module",
   "main": "./dist/index.js",
