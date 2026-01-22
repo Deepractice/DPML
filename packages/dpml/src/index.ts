@@ -33,6 +33,9 @@ export type {
   TransformerDefinition,
 } from './types';
 
+// Resource types (built-in intrinsic)
+export type { ResourceInfo, ResourceResult } from './intrinsics';
+
 // Re-export core types for convenience
 export type {
   Schema,

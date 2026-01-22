@@ -15,6 +15,7 @@ import {
   processDocument,
   TransformContext,
 } from '@dpml/core';
+import { resourceTransformer } from './intrinsics';
 
 /**
  * Normalize schema to DocumentSchema format
@@ -44,7 +45,8 @@ export function createDPML(config: DPMLConfig): DPML {
   }
 
   let schema = config.schema;
-  let transformers = [...config.transformers];
+  // Auto-register built-in resource transformer at the beginning
+  let transformers = [resourceTransformer, ...config.transformers];
   const options = { ...config.options };
 
   return {

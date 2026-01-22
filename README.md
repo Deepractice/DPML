@@ -22,6 +22,7 @@ DPML is a declarative markup language designed for defining structured prompts a
 - **Schema Validation** - Validate documents against customizable schemas
 - **Extensible** - Create custom transformers to convert DPML to any target format
 - **Type Safe** - Full TypeScript support with comprehensive type definitions
+- **Built-in Elements** - `<resource>` element for referencing external resources (ARP/RXL protocols)
 
 ## Installation
 
@@ -77,6 +78,31 @@ const result = await dpml.compile(`
 console.log(result);
 // { role: 'assistant', context: '...', instruction: '...' }
 ```
+
+## Built-in Elements
+
+DPML provides built-in elements that work automatically without schema definition.
+
+### `<resource>` - External Resource Reference
+
+```xml
+<prompt>
+  <resource src="arp:text:file://./config.md"/>
+  <resource src="deepractice.ai/sean/knowledge@1.0"/>
+</prompt>
+```
+
+Resources are automatically extracted and available in the compile result:
+
+```typescript
+import type { ResourceResult } from 'dpml';
+
+const result = await dpml.compile<ResourceResult>(content);
+console.log(result.resources);
+// [{ src: '...', protocol: 'arp' | 'rxl' | 'unknown', node: DPMLNode }]
+```
+
+See the [dpml package README](./packages/dpml/README.md) for detailed documentation.
 
 ## API Reference
 
