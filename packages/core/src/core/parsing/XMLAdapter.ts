@@ -1,6 +1,5 @@
 import type { ParseOptions } from '../../types';
-
-import { XMLParseError } from './errors';
+import { XMLParseError } from '../../types';
 import type { IXMLParser, XMLNode } from './types';
 
 /**

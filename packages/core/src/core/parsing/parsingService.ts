@@ -1,13 +1,6 @@
-import type { DPMLDocument, ParseOptions } from '../../types';
-
-import type { ParseResult } from './errors';
-import {
-  ParseError,
-  XMLParseError,
-  DPMLParseError,
-  createErrorResult,
-  createSuccessResult,
-} from './errors';
+import type { DPMLDocument, ParseOptions, ParseResult } from '../../types';
+import { ParseError, XMLParseError, DPMLParseError } from '../../types';
+import { createErrorResult, createSuccessResult } from './errors';
 import { parserFactory } from './parserFactory';
 
 /**

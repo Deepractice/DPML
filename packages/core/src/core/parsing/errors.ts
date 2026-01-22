@@ -2,13 +2,8 @@
  * 解析错误处理模块
  * 提供错误创建和处理的工具函数
  */
-import {
-  ParseError,
-  ParseErrorCode,
-  XMLParseError,
-  DPMLParseError,
-} from '../../types';
-import type { ParseResult } from '../../types';
+import { ParseError } from '../../types';
+import type { ParseResult, SourceLocation } from '../../types';
 
 import type { XMLPosition } from './types';
 
@@ -48,7 +43,10 @@ export function createErrorResult<T>(error: ParseError): ParseResult<T> {
  * @param fileName 文件名
  * @returns 源码位置信息
  */
-export function createSourceLocation(position: XMLPosition, fileName?: string) {
+export function createSourceLocation(
+  position: XMLPosition,
+  fileName?: string
+): SourceLocation {
   return {
     startLine: position.start.line,
     startColumn: position.start.column,
@@ -58,6 +56,5 @@ export function createSourceLocation(position: XMLPosition, fileName?: string) {
   };
 }
 
-// 重新导出核心错误类型，以保持向后兼容性
-export { ParseError, ParseErrorCode, XMLParseError, DPMLParseError };
-export type { ParseResult };
+// Note: ParseError, ParseErrorCode, XMLParseError, DPMLParseError, ParseResult
+// are exported from '@dpml/core' main entry point via types/index.ts

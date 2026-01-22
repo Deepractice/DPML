@@ -4,13 +4,12 @@ import type {
   ParseOptions,
   SourceLocation,
 } from '../../types';
-
 import {
   DPMLParseError,
   ParseError,
   ParseErrorCode,
   XMLParseError,
-} from './errors';
+} from '../../types';
 import type { XMLNode, XMLPosition } from './types';
 import type { XMLAdapter } from './XMLAdapter';
 
