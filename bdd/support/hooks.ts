@@ -2,8 +2,8 @@
  * Cucumber Hooks - 测试生命周期钩子
  */
 
-import { Before, After } from "@cucumber/cucumber";
-import type { DPMLWorld } from "./world";
+import { Before, After } from '@cucumber/cucumber';
+import type { DPMLWorld } from './world';
 
 Before(function (this: DPMLWorld) {
   // 重置状态

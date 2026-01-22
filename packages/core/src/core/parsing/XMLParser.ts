@@ -16,21 +16,21 @@ export class XMLParser implements IXMLParser {
    * 解析器选项
    */
   private parserOptions: xml2js.ParserOptions = {
-    explicitArray: true,     // 使用数组表示所有子元素，确保一致处理
+    explicitArray: true, // 使用数组表示所有子元素，确保一致处理
     explicitChildren: false, // 不需要额外的子节点结构
-    mergeAttrs: false,       // 保持属性在$对象中
-    attrkey: '$',            // 指定属性对象名
-    charkey: '_',            // 指定文本内容的键名
+    mergeAttrs: false, // 保持属性在$对象中
+    attrkey: '$', // 指定属性对象名
+    charkey: '_', // 指定文本内容的键名
     includeWhiteChars: false, // 不包含空白
-    trim: true,              // 裁剪值的空白
-    explicitRoot: true,      // 保留根元素
+    trim: true, // 裁剪值的空白
+    explicitRoot: true, // 保留根元素
     preserveChildrenOrder: true, // 保持子元素顺序
-    charsAsChildren: true,    // 将字符作为子节点，确保能捕获文本内容
-    normalizeTags: false,     // 不标准化标签名
-    normalize: true,          // 标准化数据，便于处理
-    xmlns: false,             // 不处理命名空间
+    charsAsChildren: true, // 将字符作为子节点，确保能捕获文本内容
+    normalizeTags: false, // 不标准化标签名
+    normalize: true, // 标准化数据，便于处理
+    xmlns: false, // 不处理命名空间
     // @ts-expect-error - 类型定义中可能没有这个属性，但实际支持
-    emptyTag: null,           // 空标签处理
+    emptyTag: null, // 空标签处理
   };
 
   /**
@@ -112,7 +112,7 @@ export class XMLParser implements IXMLParser {
     // 更新解析器选项
     this.parserOptions = {
       ...this.parserOptions,
-      ...xml2jsOptions
+      ...xml2jsOptions,
     };
 
     // 重新创建解析器实例以应用新配置
@@ -125,7 +125,10 @@ export class XMLParser implements IXMLParser {
    * @param originalContent 原始XML内容（用于位置计算）
    * @returns XMLNode格式的解析结果
    */
-  private transformToXMLNode(parseResult: Record<string, unknown>, originalContent: string): XMLNode {
+  private transformToXMLNode(
+    parseResult: Record<string, unknown>,
+    originalContent: string
+  ): XMLNode {
     // 获取根元素名称和内容
     const rootTagName = Object.keys(parseResult)[0];
     const rootContent = parseResult[rootTagName];
@@ -141,7 +144,11 @@ export class XMLParser implements IXMLParser {
    * @param originalContent 原始XML内容
    * @returns 处理后的XMLNode
    */
-  private processNode(tagName: string, nodeContent: unknown, originalContent: string): XMLNode {
+  private processNode(
+    tagName: string,
+    nodeContent: unknown,
+    originalContent: string
+  ): XMLNode {
     // 初始化节点属性
     const attributes: Record<string, string> = {};
     let text = '';
@@ -158,7 +165,7 @@ export class XMLParser implements IXMLParser {
         attributes,
         children: [],
         text: '',
-        position: this.calculatePosition(tagName, originalContent)
+        position: this.calculatePosition(tagName, originalContent),
       };
     }
 
@@ -187,7 +194,11 @@ export class XMLParser implements IXMLParser {
 
       if (typeof firstItem === 'string') {
         text = firstItem;
-      } else if (firstItem && typeof firstItem === 'object' && '_' in firstItem) {
+      } else if (
+        firstItem &&
+        typeof firstItem === 'object' &&
+        '_' in firstItem
+      ) {
         text = String(firstItem._);
       }
     }
@@ -204,7 +215,11 @@ export class XMLParser implements IXMLParser {
         if (Array.isArray(childItems)) {
           childItems.forEach(childItem => {
             // 递归处理每个子节点
-            const childNode = this.processNode(key, [childItem], originalContent);
+            const childNode = this.processNode(
+              key,
+              [childItem],
+              originalContent
+            );
 
             children.push(childNode);
           });
@@ -219,7 +234,7 @@ export class XMLParser implements IXMLParser {
       attributes,
       children,
       text,
-      position: this.calculatePosition(tagName, originalContent)
+      position: this.calculatePosition(tagName, originalContent),
     };
   }
 
@@ -229,7 +244,10 @@ export class XMLParser implements IXMLParser {
    * @param content 原始内容
    * @returns 位置信息
    */
-  private calculatePosition(nodeName: string, content: string): XMLPosition | undefined {
+  private calculatePosition(
+    nodeName: string,
+    content: string
+  ): XMLPosition | undefined {
     try {
       // 简单查找开始和结束标签
       const startPos = content.indexOf(`<${nodeName}`);
@@ -237,28 +255,39 @@ export class XMLParser implements IXMLParser {
       if (startPos === -1) return undefined;
 
       const closePos = content.indexOf(`</${nodeName}>`, startPos);
-      const endPos = closePos !== -1 ? closePos + `</${nodeName}>`.length : content.indexOf('>', startPos) + 1;
+      const endPos =
+        closePos !== -1
+          ? closePos + `</${nodeName}>`.length
+          : content.indexOf('>', startPos) + 1;
 
       // 计算行列信息
       const contentBeforeStart = content.substring(0, startPos);
       const startLine = (contentBeforeStart.match(/\n/g) || []).length + 1;
-      const startColumn = startPos - (contentBeforeStart.lastIndexOf('\n') > -1 ? contentBeforeStart.lastIndexOf('\n') : 0);
+      const startColumn =
+        startPos -
+        (contentBeforeStart.lastIndexOf('\n') > -1
+          ? contentBeforeStart.lastIndexOf('\n')
+          : 0);
 
       const contentBeforeEnd = content.substring(0, endPos);
       const endLine = (contentBeforeEnd.match(/\n/g) || []).length + 1;
-      const endColumn = endPos - (contentBeforeEnd.lastIndexOf('\n') > -1 ? contentBeforeEnd.lastIndexOf('\n') : 0);
+      const endColumn =
+        endPos -
+        (contentBeforeEnd.lastIndexOf('\n') > -1
+          ? contentBeforeEnd.lastIndexOf('\n')
+          : 0);
 
       return {
         start: {
           line: startLine,
           column: Math.max(1, startColumn),
-          offset: startPos
+          offset: startPos,
         },
         end: {
           line: endLine,
           column: Math.max(1, endColumn),
-          offset: endPos
-        }
+          offset: endPos,
+        },
       };
     } catch {
       // 位置计算失败
@@ -295,7 +324,9 @@ export class XMLParser implements IXMLParser {
   private enhanceError(error: unknown, content: string): Error {
     if (error instanceof Error) {
       // 尝试提取位置信息
-      const lineMatch = error.message.match(/line\s*(\d+)(?:,|\s+column\s+)(\d+)/i);
+      const lineMatch = error.message.match(
+        /line\s*(\d+)(?:,|\s+column\s+)(\d+)/i
+      );
 
       if (lineMatch) {
         const line = parseInt(lineMatch[1], 10);
@@ -309,7 +340,10 @@ export class XMLParser implements IXMLParser {
           errorPos += lines[i].length + 1; // +1 for the newline character
         }
 
-        errorPos += Math.min(column, lines[Math.min(line - 1, lines.length - 1)].length);
+        errorPos += Math.min(
+          column,
+          lines[Math.min(line - 1, lines.length - 1)].length
+        );
 
         // 提取上下文
         const errorContext = this.extractErrorContext(content, errorPos);

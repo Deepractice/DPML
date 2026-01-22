@@ -2,8 +2,8 @@
  * Cucumber World - 共享测试上下文
  */
 
-import { setWorldConstructor, World } from "@cucumber/cucumber";
-import type { DPML, Schema, Transformer } from "dpml";
+import { setWorldConstructor, World } from '@cucumber/cucumber';
+import type { DPML, Schema, Transformer } from 'dpml';
 
 export interface DPMLWorld extends World {
   // Schema 定义
@@ -21,7 +21,10 @@ export interface DPMLWorld extends World {
   lastResult: unknown;
   lastError: Error | null;
   lastDocument: unknown;
-  lastValidation: { isValid: boolean; errors: Array<{ message: string }> } | null;
+  lastValidation: {
+    isValid: boolean;
+    errors: Array<{ message: string }>;
+  } | null;
 }
 
 class CustomWorld extends World implements DPMLWorld {
@@ -33,7 +36,10 @@ class CustomWorld extends World implements DPMLWorld {
   lastResult: unknown = null;
   lastError: Error | null = null;
   lastDocument: unknown = null;
-  lastValidation: { isValid: boolean; errors: Array<{ message: string }> } | null = null;
+  lastValidation: {
+    isValid: boolean;
+    errors: Array<{ message: string }>;
+  } | null = null;
 
   constructor(options: any) {
     super(options);

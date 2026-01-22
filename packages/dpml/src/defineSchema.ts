@@ -2,8 +2,8 @@
  * defineSchema - 定义 DPML Schema
  */
 
-import type { Schema } from "@dpml/core";
-import type { SchemaDefinition } from "./types";
+import type { Schema } from '@dpml/core';
+import type { SchemaDefinition } from './types';
 
 /**
  * 定义 Schema
@@ -30,11 +30,11 @@ import type { SchemaDefinition } from "./types";
  */
 export function defineSchema(definition: SchemaDefinition): Schema {
   // 验证基本结构
-  if (!definition || typeof definition !== "object") {
-    throw new Error("Schema definition must be an object");
+  if (!definition || typeof definition !== 'object') {
+    throw new Error('Schema definition must be an object');
   }
 
-  if (!("element" in definition) && !("root" in definition)) {
+  if (!('element' in definition) && !('root' in definition)) {
     throw new Error('Schema definition must have "element" or "root" property');
   }
 

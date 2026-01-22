@@ -2,7 +2,12 @@
  * 解析错误处理模块
  * 提供错误创建和处理的工具函数
  */
-import { ParseError, ParseErrorCode, XMLParseError, DPMLParseError } from '../../types';
+import {
+  ParseError,
+  ParseErrorCode,
+  XMLParseError,
+  DPMLParseError,
+} from '../../types';
 import type { ParseResult } from '../../types';
 
 import type { XMLPosition } from './types';
@@ -13,11 +18,14 @@ import type { XMLPosition } from './types';
  * @param warnings 警告信息
  * @returns 解析结果
  */
-export function createSuccessResult<T>(data: T, warnings: ParseError[] = []): ParseResult<T> {
+export function createSuccessResult<T>(
+  data: T,
+  warnings: ParseError[] = []
+): ParseResult<T> {
   return {
     success: true,
     data,
-    warnings: warnings.length > 0 ? warnings : undefined
+    warnings: warnings.length > 0 ? warnings : undefined,
   };
 }
 
@@ -29,7 +37,7 @@ export function createSuccessResult<T>(data: T, warnings: ParseError[] = []): Pa
 export function createErrorResult<T>(error: ParseError): ParseResult<T> {
   return {
     success: false,
-    error
+    error,
   };
 }
 
@@ -46,7 +54,7 @@ export function createSourceLocation(position: XMLPosition, fileName?: string) {
     startColumn: position.start.column,
     endLine: position.end.line,
     endColumn: position.end.column,
-    fileName
+    fileName,
   };
 }
 

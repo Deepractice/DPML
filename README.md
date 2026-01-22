@@ -41,34 +41,29 @@ import { createDPML, defineSchema, defineTransformer } from 'dpml';
 // 1. Define a schema
 const schema = defineSchema({
   element: 'prompt',
-  attributes: [
-    { name: 'role', required: true }
-  ],
+  attributes: [{ name: 'role', required: true }],
   children: {
-    elements: [
-      { element: 'context' },
-      { element: 'instruction' }
-    ]
-  }
+    elements: [{ element: 'context' }, { element: 'instruction' }],
+  },
 });
 
 // 2. Define a transformer
 const transformer = defineTransformer({
   name: 'prompt-transformer',
-  transform: (input) => {
+  transform: input => {
     const doc = input.document;
     return {
       role: doc.rootNode.attributes.get('role'),
       context: doc.rootNode.children[0]?.content,
-      instruction: doc.rootNode.children[1]?.content
+      instruction: doc.rootNode.children[1]?.content,
     };
-  }
+  },
 });
 
 // 3. Create DPML instance
 const dpml = createDPML({
   schema,
-  transformers: [transformer]
+  transformers: [transformer],
 });
 
 // 4. Compile DPML content
@@ -97,6 +92,7 @@ const dpml = createDPML({
 ```
 
 **Methods:**
+
 - `compile<T>(content: string): Promise<T>` - Parse, validate, and transform DPML content
 - `parse(content: string): DPMLDocument` - Parse DPML content into a document
 - `validate(content: string): ValidationResult` - Validate content against schema
@@ -125,15 +121,15 @@ const transformer = defineTransformer({
   transform: (input, context) => {
     // Transform logic
     return result;
-  }
+  },
 });
 ```
 
 ## Packages
 
-| Package | Description |
-|---------|-------------|
-| [`dpml`](./packages/dpml) | Main package - public API |
+| Package                         | Description                                        |
+| ------------------------------- | -------------------------------------------------- |
+| [`dpml`](./packages/dpml)       | Main package - public API                          |
 | [`@dpml/core`](./packages/core) | Core library - parsing, validation, transformation |
 
 ## Development

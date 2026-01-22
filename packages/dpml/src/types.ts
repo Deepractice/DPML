@@ -6,14 +6,11 @@ import type {
   Schema,
   ElementSchema,
   DocumentSchema,
-  AttributeSchema,
-  ContentSchema,
-  ChildrenSchema,
   Transformer,
   TransformContext,
   DPMLDocument,
   ValidationResult,
-} from "@dpml/core";
+} from '@dpml/core';
 
 // ============================================
 // Schema Types
@@ -66,7 +63,7 @@ export interface CompileOptions {
    * 错误处理策略
    * @default 'throw'
    */
-  errorHandling?: "throw" | "collect";
+  errorHandling?: 'throw' | 'collect';
 }
 
 /**

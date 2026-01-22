@@ -2,8 +2,8 @@
  * defineTransformer - 定义 DPML Transformer
  */
 
-import type { Transformer, TransformContext } from "@dpml/core";
-import type { TransformerDefinition } from "./types";
+import type { Transformer } from '@dpml/core';
+import type { TransformerDefinition } from './types';
 
 /**
  * 定义 Transformer
@@ -28,16 +28,16 @@ export function defineTransformer<TInput = unknown, TOutput = unknown>(
   definition: TransformerDefinition<TInput, TOutput>
 ): Transformer<TInput, TOutput> {
   // 验证基本结构
-  if (!definition || typeof definition !== "object") {
-    throw new Error("Transformer definition must be an object");
+  if (!definition || typeof definition !== 'object') {
+    throw new Error('Transformer definition must be an object');
   }
 
-  if (!definition.name || typeof definition.name !== "string") {
-    throw new Error("Transformer must have a name");
+  if (!definition.name || typeof definition.name !== 'string') {
+    throw new Error('Transformer must have a name');
   }
 
-  if (typeof definition.transform !== "function") {
-    throw new Error("Transformer must have a transform function");
+  if (typeof definition.transform !== 'function') {
+    throw new Error('Transformer must have a transform function');
   }
 
   // 返回 Transformer 对象

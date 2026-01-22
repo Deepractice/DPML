@@ -2,16 +2,16 @@
  * Transformer Steps - Step definitions for transformer definition scenarios
  */
 
-import { When, Then } from "@cucumber/cucumber";
-import { strict as assert } from "assert";
-import { defineTransformer } from "dpml";
-import type { DPMLWorld } from "../support/world";
+import { When, Then } from '@cucumber/cucumber';
+import { strict as assert } from 'assert';
+import { defineTransformer } from 'dpml';
+import type { DPMLWorld } from '../support/world';
 
 // ============================================
 // When Steps
 // ============================================
 
-When("defining a transformer:", function (this: DPMLWorld, docString: string) {
+When('defining a transformer:', function (this: DPMLWorld, docString: string) {
   try {
     const definition = JSON.parse(docString);
     // Add a default transform function if not provided in JSON
@@ -21,7 +21,7 @@ When("defining a transformer:", function (this: DPMLWorld, docString: string) {
     };
     const transformer = defineTransformer(fullDefinition);
     this.transformers.push(transformer);
-    this.transformerDefinitions.set(definition.name || "", definition);
+    this.transformerDefinitions.set(definition.name || '', definition);
     this.lastError = null;
   } catch (error) {
     this.lastError = error as Error;
@@ -29,7 +29,7 @@ When("defining a transformer:", function (this: DPMLWorld, docString: string) {
 });
 
 When(
-  "defining a transformer with only name {string}",
+  'defining a transformer with only name {string}',
   function (this: DPMLWorld, name: string) {
     try {
       // Deliberately pass incomplete definition (no transform function)
@@ -46,21 +46,21 @@ When(
 // Then Steps
 // ============================================
 
-Then("transformer definition succeeds", function (this: DPMLWorld) {
+Then('transformer definition succeeds', function (this: DPMLWorld) {
   if (this.lastError) {
     throw new Error(`Transformer definition failed: ${this.lastError.message}`);
   }
-  assert(this.transformers.length > 0, "Transformer should be defined");
+  assert(this.transformers.length > 0, 'Transformer should be defined');
 });
 
-Then("transformer definition fails", function (this: DPMLWorld) {
-  assert(this.lastError !== null, "Transformer definition should have failed");
+Then('transformer definition fails', function (this: DPMLWorld) {
+  assert(this.lastError !== null, 'Transformer definition should have failed');
 });
 
 Then(
-  "transformer name is {string}",
+  'transformer name is {string}',
   function (this: DPMLWorld, expectedName: string) {
-    assert(this.transformers.length > 0, "Transformer should exist");
+    assert(this.transformers.length > 0, 'Transformer should exist');
     const transformer = this.transformers[this.transformers.length - 1];
     assert(
       transformer.name === expectedName,
@@ -70,9 +70,9 @@ Then(
 );
 
 Then(
-  "transformer description contains {string}",
+  'transformer description contains {string}',
   function (this: DPMLWorld, expectedText: string) {
-    assert(this.transformers.length > 0, "Transformer should exist");
+    assert(this.transformers.length > 0, 'Transformer should exist');
     const transformer = this.transformers[this.transformers.length - 1];
     assert(
       transformer.description?.includes(expectedText),

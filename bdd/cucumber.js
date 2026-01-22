@@ -9,11 +9,11 @@
  */
 
 export default {
-  format: ["progress-bar", "html:reports/cucumber-report.html"],
-  formatOptions: { snippetInterface: "async-await" },
-  import: ["support/**/*.ts", "steps/**/*.ts"],
-  paths: ["features/**/*.feature"],
-  tags: "not @pending and not @skip",
+  format: ['progress-bar', 'html:reports/cucumber-report.html'],
+  formatOptions: { snippetInterface: 'async-await' },
+  import: ['support/**/*.ts', 'steps/**/*.ts'],
+  paths: ['features/**/*.feature'],
+  tags: 'not @pending and not @skip',
   worldParameters: {
     defaultTimeout: 30000,
   },

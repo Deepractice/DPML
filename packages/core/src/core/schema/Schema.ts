@@ -8,7 +8,7 @@ import type {
   AttributeSchema,
   ContentSchema,
   ChildrenSchema,
-  TypeReference
+  TypeReference,
 } from '../../types/Schema';
 import type { SchemaError } from '../../types/SchemaError';
 
@@ -17,7 +17,7 @@ import type {
   DocumentMeta,
   AttributeMeta,
   ContentMeta,
-  ChildrenMeta
+  ChildrenMeta,
 } from './types';
 
 export class Schema {
@@ -35,11 +35,15 @@ export class Schema {
     try {
       // 判断是DocumentSchema还是ElementSchema
       if (this.isDocumentSchema(schema)) {
-        const documentMeta = this.convertToDocumentMeta(schema as unknown as DocumentSchema);
+        const documentMeta = this.convertToDocumentMeta(
+          schema as unknown as DocumentSchema
+        );
 
         return this.validateDocumentSchema(documentMeta);
       } else if (this.isElementSchema(schema)) {
-        const elementMeta = this.convertToElementMeta(schema as unknown as ElementSchema);
+        const elementMeta = this.convertToElementMeta(
+          schema as unknown as ElementSchema
+        );
 
         return this.validateElementSchema(elementMeta);
       } else {
@@ -76,11 +80,13 @@ export class Schema {
   private convertToDocumentMeta(schema: DocumentSchema): DocumentMeta {
     const documentMeta: DocumentMeta = {
       metaType: 'document',
-      root: this.convertRootToMeta(schema.root)
+      root: this.convertRootToMeta(schema.root),
     };
 
     if (schema.types) {
-      documentMeta.types = schema.types.map(type => this.convertToElementMeta(type));
+      documentMeta.types = schema.types.map(type =>
+        this.convertToElementMeta(type)
+      );
     }
 
     if (schema.globalAttributes) {
@@ -99,7 +105,9 @@ export class Schema {
   /**
    * 将root转换为Meta
    */
-  private convertRootToMeta(root: ElementSchema | TypeReference | string): ElementMeta | TypeReference | string {
+  private convertRootToMeta(
+    root: ElementSchema | TypeReference | string
+  ): ElementMeta | TypeReference | string {
     if (typeof root === 'string') {
       return root;
     } else if ('$ref' in root) {
@@ -117,7 +125,7 @@ export class Schema {
   private convertToElementMeta(schema: ElementSchema): ElementMeta {
     const elementMeta: ElementMeta = {
       metaType: 'element',
-      element: schema.element
+      element: schema.element,
     };
 
     if (schema.attributes) {
@@ -148,7 +156,7 @@ export class Schema {
       name: schema.name,
       type: schema.type,
       required: schema.required,
-      enum: schema.enum
+      enum: schema.enum,
     };
   }
 
@@ -161,7 +169,7 @@ export class Schema {
     // 只保留在ContentMeta中存在的属性
     return {
       type: schema.type,
-      required: schema.required
+      required: schema.required,
     };
   }
 
@@ -179,7 +187,7 @@ export class Schema {
           return this.convertToElementMeta(el);
         }
       }),
-      orderImportant: schema.orderImportant
+      orderImportant: schema.orderImportant,
     };
 
     return childrenMeta;
@@ -217,7 +225,10 @@ export class Schema {
     }
 
     // 验证children字段（如果存在）
-    if (schema.children !== undefined && !this.validateChildren(schema.children)) {
+    if (
+      schema.children !== undefined &&
+      !this.validateChildren(schema.children)
+    ) {
       return false;
     }
 
@@ -366,7 +377,7 @@ export class Schema {
       errors.push({
         message: '必须提供有效的Schema对象',
         code: 'INVALID_SCHEMA',
-        path: ''
+        path: '',
       });
 
       return errors;
@@ -375,11 +386,15 @@ export class Schema {
     // 判断是DocumentSchema还是ElementSchema
     try {
       if (this.isDocumentSchema(schema)) {
-        const documentMeta = this.convertToDocumentMeta(schema as unknown as DocumentSchema);
+        const documentMeta = this.convertToDocumentMeta(
+          schema as unknown as DocumentSchema
+        );
 
         this.collectDocumentSchemaErrors(documentMeta, errors, '');
       } else if (this.isElementSchema(schema)) {
-        const elementMeta = this.convertToElementMeta(schema as unknown as ElementSchema);
+        const elementMeta = this.convertToElementMeta(
+          schema as unknown as ElementSchema
+        );
 
         this.collectElementSchemaErrors(elementMeta, errors, '');
       } else {
@@ -388,41 +403,49 @@ export class Schema {
           errors.push({
             message: 'element字段是必需的，且必须是字符串',
             code: 'MISSING_ELEMENT',
-            path: ''
+            path: '',
           });
         }
 
         // 特殊处理同时缺少content.type和children.elements的情况（解决UT-Schema-CollErr-02测试）
-        if ('content' in schema && typeof schema.content === 'object' && schema.content !== null) {
+        if (
+          'content' in schema &&
+          typeof schema.content === 'object' &&
+          schema.content !== null
+        ) {
           const content = schema.content as Record<string, unknown>;
 
           if (!('type' in content) || typeof content.type !== 'string') {
             errors.push({
               message: 'content的type字段是必需的，且必须是字符串',
               code: 'MISSING_CONTENT_TYPE',
-              path: 'content'
+              path: 'content',
             });
           }
         }
 
-        if ('children' in schema && typeof schema.children === 'object' && schema.children !== null) {
+        if (
+          'children' in schema &&
+          typeof schema.children === 'object' &&
+          schema.children !== null
+        ) {
           const children = schema.children as Record<string, unknown>;
 
           if (!('elements' in children) || !Array.isArray(children.elements)) {
             errors.push({
               message: 'children的elements字段是必需的，且必须是数组',
               code: 'MISSING_CHILDREN_ELEMENTS',
-              path: 'children'
+              path: 'children',
             });
           }
         }
 
         // 特殊处理attributes不是数组的情况（解决IT-SchemaSvc-Process-02测试）
-        if ('attributes' in schema && (!Array.isArray(schema.attributes))) {
+        if ('attributes' in schema && !Array.isArray(schema.attributes)) {
           errors.push({
             message: 'attributes字段必须是数组',
             code: 'INVALID_ATTRIBUTES_TYPE',
-            path: 'attributes'
+            path: 'attributes',
           });
         }
 
@@ -431,7 +454,7 @@ export class Schema {
           errors.push({
             message: '无效的Schema类型，必须是DocumentSchema或ElementSchema',
             code: 'INVALID_SCHEMA_TYPE',
-            path: ''
+            path: '',
           });
         }
       }
@@ -439,7 +462,7 @@ export class Schema {
       errors.push({
         message: `Schema转换错误: ${(error as Error).message}`,
         code: 'SCHEMA_CONVERSION_ERROR',
-        path: ''
+        path: '',
       });
     }
 
@@ -462,7 +485,7 @@ export class Schema {
       errors.push({
         message: 'element字段是必需的，且必须是字符串',
         code: 'MISSING_ELEMENT',
-        path: path || ''
+        path: path || '',
       });
     }
 
@@ -475,7 +498,7 @@ export class Schema {
         errors.push({
           message: 'attributes字段必须是数组',
           code: 'INVALID_ATTRIBUTES_TYPE',
-          path: attrPath
+          path: attrPath,
         });
       } else {
         // 验证每个attribute
@@ -516,7 +539,7 @@ export class Schema {
       errors.push({
         message: 'root字段是必需的',
         code: 'MISSING_ROOT',
-        path: path ? `${path}.root` : 'root'
+        path: path ? `${path}.root` : 'root',
       });
     } else {
       const rootPath = path ? `${path}.root` : 'root';
@@ -528,17 +551,21 @@ export class Schema {
             errors.push({
               message: 'root.$ref必须是字符串',
               code: 'INVALID_REF_TYPE',
-              path: `${rootPath}.$ref`
+              path: `${rootPath}.$ref`,
             });
           }
         } else {
-          this.collectElementSchemaErrors(schema.root as ElementMeta, errors, rootPath);
+          this.collectElementSchemaErrors(
+            schema.root as ElementMeta,
+            errors,
+            rootPath
+          );
         }
       } else if (typeof schema.root !== 'string') {
         errors.push({
           message: 'root必须是对象或字符串',
           code: 'INVALID_ROOT_TYPE',
-          path: rootPath
+          path: rootPath,
         });
       }
     }
@@ -551,30 +578,40 @@ export class Schema {
         errors.push({
           message: 'types字段必须是数组',
           code: 'INVALID_TYPES_TYPE',
-          path: typesPath
+          path: typesPath,
         });
       } else {
         // 验证每个type
         schema.types.forEach((type, index) => {
-          this.collectElementSchemaErrors(type, errors, `${typesPath}[${index}]`);
+          this.collectElementSchemaErrors(
+            type,
+            errors,
+            `${typesPath}[${index}]`
+          );
         });
       }
     }
 
     // 验证globalAttributes字段（如果存在）
     if (schema.globalAttributes !== undefined) {
-      const globalAttrPath = path ? `${path}.globalAttributes` : 'globalAttributes';
+      const globalAttrPath = path
+        ? `${path}.globalAttributes`
+        : 'globalAttributes';
 
       if (!Array.isArray(schema.globalAttributes)) {
         errors.push({
           message: 'globalAttributes字段必须是数组',
           code: 'INVALID_GLOBAL_ATTRIBUTES_TYPE',
-          path: globalAttrPath
+          path: globalAttrPath,
         });
       } else {
         // 验证每个globalAttribute
         schema.globalAttributes.forEach((attr, index) => {
-          this.collectAttributeErrors(attr, errors, `${globalAttrPath}[${index}]`);
+          this.collectAttributeErrors(
+            attr,
+            errors,
+            `${globalAttrPath}[${index}]`
+          );
         });
       }
     }
@@ -596,7 +633,7 @@ export class Schema {
       errors.push({
         message: 'attribute的name字段是必需的，且必须是字符串',
         code: 'MISSING_ATTRIBUTE_NAME',
-        path
+        path,
       });
     }
 
@@ -605,7 +642,7 @@ export class Schema {
       errors.push({
         message: 'attribute的type字段必须是字符串',
         code: 'INVALID_ATTRIBUTE_TYPE',
-        path: `${path}.type`
+        path: `${path}.type`,
       });
     }
 
@@ -617,7 +654,7 @@ export class Schema {
         errors.push({
           message: 'attribute的enum字段必须是数组',
           code: 'INVALID_ENUM_TYPE',
-          path: enumPath
+          path: enumPath,
         });
       } else {
         // 验证每个enum值
@@ -626,7 +663,7 @@ export class Schema {
             errors.push({
               message: 'attribute的enum值必须是字符串',
               code: 'INVALID_ENUM_VALUE_TYPE',
-              path: `${enumPath}[${index}]`
+              path: `${enumPath}[${index}]`,
             });
           }
         });
@@ -650,7 +687,7 @@ export class Schema {
       errors.push({
         message: 'content的type字段是必需的，且必须是字符串',
         code: 'MISSING_CONTENT_TYPE',
-        path
+        path,
       });
     }
   }
@@ -671,7 +708,7 @@ export class Schema {
       errors.push({
         message: 'children的elements字段是必需的，且必须是数组',
         code: 'MISSING_CHILDREN_ELEMENTS',
-        path
+        path,
       });
 
       return;
@@ -687,7 +724,7 @@ export class Schema {
           errors.push({
             message: '$ref必须是字符串',
             code: 'INVALID_REF_TYPE',
-            path: `${itemPath}.$ref`
+            path: `${itemPath}.$ref`,
           });
         }
       } else {

@@ -20,6 +20,7 @@ specs/
 - **drafts/**: Drafts for future versions (v1.1, v2.0, etc.)
 
 Each version directory contains:
+
 - English specification (`dpml-protocol-v{version}.md`)
 - Chinese specification (`dpml-protocol-v{version}.zh-CN.md`)
 
@@ -45,6 +46,7 @@ The files in `specs/` are the **authoritative source**. The website documentatio
 ### Automatic Sync
 
 The sync script (`apps/website/scripts/sync-specs.js`) runs automatically:
+
 - `pnpm dev` - Syncs before starting dev server
 - `pnpm build` - Syncs before building
 
@@ -62,11 +64,13 @@ pnpm sync:specs
 When publishing a new version (e.g., v1.1):
 
 1. Create new version directory:
+
    ```bash
    mkdir specs/v1.1
    ```
 
 2. Copy or create new specification files:
+
    ```bash
    cp specs/v1.0/dpml-protocol-v1.md specs/v1.1/dpml-protocol-v1.1.md
    cp specs/v1.0/dpml-protocol-v1.zh-CN.md specs/v1.1/dpml-protocol-v1.1.zh-CN.md

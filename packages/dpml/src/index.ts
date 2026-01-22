@@ -31,7 +31,7 @@ export type {
   CompileOptions,
   SchemaDefinition,
   TransformerDefinition,
-} from "./types";
+} from './types';
 
 // Re-export core types for convenience
 export type {
@@ -44,18 +44,18 @@ export type {
   DPMLDocument,
   DPMLNode,
   ValidationResult,
-} from "@dpml/core";
+} from '@dpml/core';
 
 // ============================================
 // Core API
 // ============================================
-export { createDPML } from "./createDPML";
-export { defineSchema } from "./defineSchema";
-export { defineTransformer } from "./defineTransformer";
+export { createDPML } from './createDPML';
+export { defineSchema } from './defineSchema';
+export { defineTransformer } from './defineTransformer';
 
 // ============================================
 // Version
 // ============================================
 declare const __VERSION__: string | undefined;
 export const VERSION: string =
-  typeof __VERSION__ !== "undefined" ? __VERSION__ : "0.0.0-dev";
+  typeof __VERSION__ !== 'undefined' ? __VERSION__ : '0.0.0-dev';

@@ -15,8 +15,6 @@ export interface Transformer<TInput, TOutput> {
    */
   description?: string;
 
-
-
   /**
    * 执行转换的核心方法
    * @param input 输入数据，类型为TInput

@@ -3,7 +3,11 @@ import type { DPMLNode } from '../../types/DPMLNode';
 import type { ProcessedSchema } from '../../types/ProcessedSchema';
 import type { ProcessingError } from '../../types/ProcessingError';
 import type { ProcessingWarning } from '../../types/ProcessingWarning';
-import type { ElementSchema, TypeReference, DocumentSchema } from '../../types/Schema';
+import type {
+  ElementSchema,
+  TypeReference,
+  DocumentSchema,
+} from '../../types/Schema';
 import type { ValidationResult } from '../../types/ValidationResult';
 
 /**
@@ -93,12 +97,8 @@ export class DocumentValidator {
     document: DPMLDocument,
     schema: ProcessedSchema<object>
   ): T {
-    ;
-
     // 如果Schema本身无效，直接返回验证结果
     if (!schema.isValid) {
-      ;
-
       return {
         isValid: false,
         errors: [
@@ -110,30 +110,23 @@ export class DocumentValidator {
               startLine: 1,
               startColumn: 1,
               endLine: 1,
-              endColumn: 1
+              endColumn: 1,
             },
-            severity: 'error'
-          }
+            severity: 'error',
+          },
         ],
-        warnings: []
+        warnings: [],
       } as unknown as T;
     }
 
-    ;
-
     // 验证文档根节点
     const rootResult = this.validateNode(document.rootNode, schema);
-
-    ;
-    if (rootResult.errors.length > 0) {
-      ;
-    }
 
     // 返回验证结果
     return {
       isValid: rootResult.isValid,
       errors: rootResult.errors,
-      warnings: rootResult.warnings
+      warnings: rootResult.warnings,
     } as unknown as T;
   }
 
@@ -148,15 +141,12 @@ export class DocumentValidator {
     schema: ProcessedSchema<object>
   ): NodeValidationResult {
     // 查找节点对应的Schema定义
-    ;
-
     const elementDef = this.findSchemaForNode(node, schema);
     const errors: ProcessingError[] = [];
     const warnings: ProcessingWarning[] = [];
 
     // 如果找不到对应的Schema定义，添加错误并返回
     if (!elementDef) {
-      ;
       errors.push({
         code: 'UNKNOWN_ELEMENT',
         message: `未知元素: ${node.tagName}`,
@@ -165,19 +155,16 @@ export class DocumentValidator {
           startLine: 1,
           startColumn: 1,
           endLine: 1,
-          endColumn: 1
+          endColumn: 1,
         },
-        severity: 'error'
+        severity: 'error',
       });
 
       return { isValid: false, errors, warnings };
     }
 
-    ;
-
     // 验证节点标签
     if (elementDef.element !== node.tagName) {
-      ;
       errors.push({
         code: 'TAG_MISMATCH',
         message: `标签不匹配: 期望 ${elementDef.element}, 实际为 ${node.tagName}`,
@@ -186,9 +173,9 @@ export class DocumentValidator {
           startLine: 1,
           startColumn: 1,
           endLine: 1,
-          endColumn: 1
+          endColumn: 1,
         },
-        severity: 'error'
+        severity: 'error',
       });
 
       return { isValid: false, errors, warnings };
@@ -223,7 +210,7 @@ export class DocumentValidator {
     return {
       isValid: errors.length === 0,
       errors,
-      warnings
+      warnings,
     };
   }
 
@@ -274,20 +261,20 @@ export class DocumentValidator {
 
     // 检查是否需要对未知元素采取宽松策略
     // 对于简单Schema测试 (如仅定义root元素的Schema)，允许未知的子元素
-    if (docSchema.root &&
-        typeof docSchema.root === 'object' &&
-        'element' in docSchema.root &&
-        (!docSchema.types || docSchema.types.length === 0)) {
+    if (
+      docSchema.root &&
+      typeof docSchema.root === 'object' &&
+      'element' in docSchema.root &&
+      (!docSchema.types || docSchema.types.length === 0)
+    ) {
       // 在仅定义了根元素的简单Schema中，对于未定义的子元素采取宽松验证
       // 创建一个虚拟的通用元素定义
-      ;
-
       return {
         element: node.tagName,
         // 添加最小限度的约束，保持灵活性
         attributes: [],
         children: { elements: [] },
-        content: { type: 'mixed' }
+        content: { type: 'mixed' },
       };
     }
 
@@ -315,7 +302,7 @@ export class DocumentValidator {
     // 检查节点上的每个属性是否在Schema中定义
     const definedAttrs = new Set(elementDef.attributes.map(attr => attr.name));
 
-    node.attributes.forEach((value, name) => {
+    node.attributes.forEach((_value, name) => {
       if (!definedAttrs.has(name)) {
         errors.push({
           code: 'UNKNOWN_ATTRIBUTE',
@@ -325,9 +312,9 @@ export class DocumentValidator {
             startLine: 1,
             startColumn: 1,
             endLine: 1,
-            endColumn: 1
+            endColumn: 1,
           },
-          severity: 'error'
+          severity: 'error',
         });
       }
     });
@@ -343,9 +330,9 @@ export class DocumentValidator {
             startLine: 1,
             startColumn: 1,
             endLine: 1,
-            endColumn: 1
+            endColumn: 1,
           },
-          severity: 'error'
+          severity: 'error',
         });
       }
     });
@@ -356,20 +343,24 @@ export class DocumentValidator {
         const value = node.attributes.get(attrDef.name)!;
 
         // 检查枚举约束
-        if (attrDef.enum && attrDef.enum.length > 0 &&
-            !attrDef.enum.includes(value)) {
+        if (
+          attrDef.enum &&
+          attrDef.enum.length > 0 &&
+          !attrDef.enum.includes(value)
+        ) {
           errors.push({
             code: 'INVALID_ATTRIBUTE_VALUE',
-            message: `属性 ${attrDef.name} 的值无效: ${value}, ` +
+            message:
+              `属性 ${attrDef.name} 的值无效: ${value}, ` +
               `允许的值: ${attrDef.enum.join(', ')}`,
             path: `${this.buildNodePath(node)}/@${attrDef.name}`,
             source: node.sourceLocation || {
               startLine: 1,
               startColumn: 1,
               endLine: 1,
-              endColumn: 1
+              endColumn: 1,
             },
-            severity: 'error'
+            severity: 'error',
           });
         }
 
@@ -386,9 +377,9 @@ export class DocumentValidator {
                 startLine: 1,
                 startColumn: 1,
                 endLine: 1,
-                endColumn: 1
+                endColumn: 1,
               },
-              severity: 'error'
+              severity: 'error',
             });
           }
         }
@@ -398,7 +389,7 @@ export class DocumentValidator {
     return {
       isValid: errors.length === 0,
       errors,
-      warnings
+      warnings,
     };
   }
 
@@ -416,16 +407,18 @@ export class DocumentValidator {
     const warnings: ProcessingWarning[] = [];
 
     // 检查是否是简单Schema的宽松模式
-    const isLenientMode = elementDef.element === node.tagName &&
-                          (!elementDef.children ||
-                           (elementDef.children && !elementDef.children.elements) ||
-                           (elementDef.children && elementDef.children.elements && elementDef.children.elements.length === 0));
+    const isLenientMode =
+      elementDef.element === node.tagName &&
+      (!elementDef.children ||
+        (elementDef.children && !elementDef.children.elements) ||
+        (elementDef.children &&
+          elementDef.children.elements &&
+          elementDef.children.elements.length === 0));
 
     // 如果没有子元素定义，但节点有子元素，处理
     if (!elementDef.children && node.children.length > 0) {
       if (isLenientMode) {
         // 在宽松模式下(简单Schema)，只添加警告不添加错误
-        ;
         warnings.push({
           code: 'UNDEFINED_CHILDREN',
           message: `元素 ${node.tagName} 未定义子元素，但在宽松模式下被允许`,
@@ -434,9 +427,9 @@ export class DocumentValidator {
             startLine: 1,
             startColumn: 1,
             endLine: 1,
-            endColumn: 1
+            endColumn: 1,
           },
-          severity: 'warning'
+          severity: 'warning',
         });
       } else {
         // 严格模式下报错
@@ -448,16 +441,16 @@ export class DocumentValidator {
             startLine: 1,
             startColumn: 1,
             endLine: 1,
-            endColumn: 1
+            endColumn: 1,
           },
-          severity: 'error'
+          severity: 'error',
         });
       }
 
       return {
         isValid: isLenientMode, // 宽松模式下即使有警告也算有效
         errors,
-        warnings
+        warnings,
       };
     }
 
@@ -480,9 +473,9 @@ export class DocumentValidator {
           startLine: 1,
           startColumn: 1,
           endLine: 1,
-          endColumn: 1
+          endColumn: 1,
         },
-        severity: 'error'
+        severity: 'error',
       });
     }
 
@@ -495,16 +488,16 @@ export class DocumentValidator {
           startLine: 1,
           startColumn: 1,
           endLine: 1,
-          endColumn: 1
+          endColumn: 1,
         },
-        severity: 'error'
+        severity: 'error',
       });
     }
 
     return {
       isValid: errors.length === 0,
       errors,
-      warnings
+      warnings,
     };
   }
 
@@ -531,9 +524,9 @@ export class DocumentValidator {
           startLine: 1,
           startColumn: 1,
           endLine: 1,
-          endColumn: 1
+          endColumn: 1,
         },
-        severity: 'warning'
+        severity: 'warning',
       });
 
       return { isValid: true, errors, warnings };
@@ -547,7 +540,10 @@ export class DocumentValidator {
     const contentDef = elementDef.content;
 
     // 检查必需内容
-    if (contentDef.required && (!node.content || node.content.trim().length === 0)) {
+    if (
+      contentDef.required &&
+      (!node.content || node.content.trim().length === 0)
+    ) {
       errors.push({
         code: 'MISSING_REQUIRED_CONTENT',
         message: `缺少必需的文本内容`,
@@ -556,9 +552,9 @@ export class DocumentValidator {
           startLine: 1,
           startColumn: 1,
           endLine: 1,
-          endColumn: 1
+          endColumn: 1,
         },
-        severity: 'error'
+        severity: 'error',
       });
     }
 
@@ -575,9 +571,9 @@ export class DocumentValidator {
             startLine: 1,
             startColumn: 1,
             endLine: 1,
-            endColumn: 1
+            endColumn: 1,
           },
-          severity: 'error'
+          severity: 'error',
         });
       }
     }
@@ -586,23 +582,22 @@ export class DocumentValidator {
     if (contentDef.type === 'text' && node.children.length > 0) {
       errors.push({
         code: 'INVALID_CONTENT_TYPE',
-        message: `元素 ${node.tagName} 只允许纯文本内容，` +
-          `不允许子元素`,
+        message: `元素 ${node.tagName} 只允许纯文本内容，` + `不允许子元素`,
         path: this.buildNodePath(node),
         source: node.sourceLocation || {
           startLine: 1,
           startColumn: 1,
           endLine: 1,
-          endColumn: 1
+          endColumn: 1,
         },
-        severity: 'error'
+        severity: 'error',
       });
     }
 
     return {
       isValid: errors.length === 0,
       errors,
-      warnings
+      warnings,
     };
   }
 

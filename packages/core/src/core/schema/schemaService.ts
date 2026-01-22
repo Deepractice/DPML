@@ -12,9 +12,10 @@ import { Schema } from './Schema';
  * @template R 处理结果的类型，默认为 ProcessedSchema<T>。
  * 注意：这是一个骨架函数，具体逻辑将在后续任务中实现。
  */
-export function processSchema<T extends object = UserSchema, R extends ProcessedSchema<T> = ProcessedSchema<T>>(
-  schema: T,
-): R {
+export function processSchema<
+  T extends object = UserSchema,
+  R extends ProcessedSchema<T> = ProcessedSchema<T>,
+>(schema: T): R {
   // 创建 Schema 业务类实例
   const schemaInstance = createSchema();
 
@@ -28,7 +29,7 @@ export function processSchema<T extends object = UserSchema, R extends Processed
   return {
     schema,
     isValid,
-    errors
+    errors,
   } as R;
 }
 

@@ -23,7 +23,7 @@ export enum ParseErrorCode {
   DPML_INVALID_TAG = 'PARSE_DPML_INVALID_TAG',
   DPML_INVALID_ATTRIBUTE = 'PARSE_DPML_INVALID_ATTRIBUTE',
   DPML_MISSING_REQUIRED_TAG = 'PARSE_DPML_MISSING_REQUIRED_TAG',
-  DPML_MISSING_REQUIRED_ATTRIBUTE = 'PARSE_DPML_MISSING_REQUIRED_ATTRIBUTE'
+  DPML_MISSING_REQUIRED_ATTRIBUTE = 'PARSE_DPML_MISSING_REQUIRED_ATTRIBUTE',
 }
 
 /**
@@ -155,20 +155,29 @@ export class XMLParseError extends ParseError {
    * @param fileName 文件名
    * @returns XML解析错误
    */
-  static fromError(error: unknown, content?: string, fileName?: string): XMLParseError {
+  static fromError(
+    error: unknown,
+    content?: string,
+    fileName?: string
+  ): XMLParseError {
     // 提取错误消息
-    const message = error instanceof Error
-      ? error.message
-      : String(error);
+    const message = error instanceof Error ? error.message : String(error);
 
     // 尝试从错误消息中提取位置信息
-    const position = XMLParseError.extractPositionFromMessage(message, fileName);
+    const position = XMLParseError.extractPositionFromMessage(
+      message,
+      fileName
+    );
 
     // 提取相关源代码片段
     const source = content
-      ? (position
-        ? XMLParseError.extractSourceSnippet(content, position.startLine, position.startColumn)
-        : content.substring(0, Math.min(30, content.length)))
+      ? position
+        ? XMLParseError.extractSourceSnippet(
+            content,
+            position.startLine,
+            position.startColumn
+          )
+        : content.substring(0, Math.min(30, content.length))
       : undefined;
 
     return new XMLParseError(
@@ -186,9 +195,14 @@ export class XMLParseError extends ParseError {
    * @param fileName 文件名
    * @returns 源码位置信息或undefined
    */
-  private static extractPositionFromMessage(message: string, fileName?: string): SourceLocation | undefined {
+  private static extractPositionFromMessage(
+    message: string,
+    fileName?: string
+  ): SourceLocation | undefined {
     // 尝试匹配常见的位置信息格式，如"Line: 10, Column: 5"
-    const lineColMatch = message.match(/[Ll]ine[:\s]+(\d+)[\s,]+[Cc]olumn[:\s]+(\d+)/);
+    const lineColMatch = message.match(
+      /[Ll]ine[:\s]+(\d+)[\s,]+[Cc]olumn[:\s]+(\d+)/
+    );
 
     if (lineColMatch) {
       const startLine = parseInt(lineColMatch[1], 10);
@@ -199,7 +213,7 @@ export class XMLParseError extends ParseError {
         startColumn,
         endLine: startLine,
         endColumn: startColumn + 1,
-        fileName
+        fileName,
       };
     }
 
@@ -214,7 +228,11 @@ export class XMLParseError extends ParseError {
    * @param column 列号
    * @returns 源代码片段
    */
-  private static extractSourceSnippet(content: string, line: number, column: number): string {
+  private static extractSourceSnippet(
+    content: string,
+    line: number,
+    column: number
+  ): string {
     // 将内容分割为行
     const lines = content.split('\n');
 
@@ -281,7 +299,10 @@ export class DPMLParseError extends ParseError {
    * @param position 位置信息
    * @returns DPML解析错误
    */
-  static createMissingRequiredTagError(tagName: string, position?: SourceLocation): DPMLParseError {
+  static createMissingRequiredTagError(
+    tagName: string,
+    position?: SourceLocation
+  ): DPMLParseError {
     return new DPMLParseError(
       `缺少必需的标签: ${tagName}`,
       ParseErrorCode.DPML_MISSING_REQUIRED_TAG,
@@ -314,7 +335,10 @@ export class DPMLParseError extends ParseError {
    * @param position 位置信息
    * @returns DPML解析错误
    */
-  static createInvalidTagError(tagName: string, position?: SourceLocation): DPMLParseError {
+  static createInvalidTagError(
+    tagName: string,
+    position?: SourceLocation
+  ): DPMLParseError {
     return new DPMLParseError(
       `无效的DPML标签: ${tagName}`,
       ParseErrorCode.DPML_INVALID_TAG,

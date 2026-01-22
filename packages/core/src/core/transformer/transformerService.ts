@@ -26,7 +26,7 @@ function createResultCollector(name: string): Transformer<unknown, unknown> {
       const results = context.getAllResults();
       context.set('transformerResults', results);
       return input;
-    }
+    },
   };
 }
 
@@ -35,7 +35,7 @@ function createResultCollector(name: string): Transformer<unknown, unknown> {
  */
 const DEFAULT_OPTIONS: TransformOptions = {
   resultMode: 'full',
-  context: {}
+  context: {},
 };
 
 /**
@@ -51,12 +51,8 @@ export function transform<T>(
   const startTime = Date.now();
   const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
 
-
-
   // 创建上下文
   const context = new TransformContext(processingResult, mergedOptions.context);
-
-
 
   // 获取管道
   const pipeline = getPipeline();
@@ -64,18 +60,12 @@ export function transform<T>(
   // 获取转换器并过滤
   const transformers = transformerRegistryFactory().getTransformers();
 
-
-
-
   // 应用过滤器
   const filteredTransformers = applyTransformerFilters(
     transformers,
     mergedOptions.include,
     mergedOptions.exclude
   );
-
-
-
 
   // 将过滤后的转换器添加到管道
   filteredTransformers.forEach(transformer => {
@@ -86,51 +76,43 @@ export function transform<T>(
   if (mergedOptions.resultMode !== 'raw') {
     // 添加ResultCollectorTransformer以收集所有转换器结果
     pipeline.add(createResultCollector('resultCollector'));
-
   }
 
   // 执行管道
 
-  const rawResult = pipeline.execute<ProcessingResult, unknown>(processingResult, context);
-
-
+  const rawResult = pipeline.execute<ProcessingResult, unknown>(
+    processingResult,
+    context
+  );
 
   // 创建转换元数据
   const metadata: TransformMetadata = {
     transformers: filteredTransformers.map(t => t.name),
     options: mergedOptions,
     timestamp: Date.now(),
-    executionTime: Date.now() - startTime
+    executionTime: Date.now() - startTime,
   };
 
   // 收集所有转换器的结果
-
 
   // 修复：优先从上下文中获取ResultCollectorTransformer已收集的结果
   let transformerResults: Record<string, unknown>;
 
   // 检查是否存在由ResultCollectorTransformer设置的结果集
   if (context.has('transformerResults')) {
-    transformerResults = context.get<Record<string, unknown>>('transformerResults') || {};
+    transformerResults =
+      context.get<Record<string, unknown>>('transformerResults') || {};
   } else {
     // 如果没有，则回退到直接从上下文获取所有结果
     transformerResults = context.getAllResults();
   }
 
-
-
-
-
-
   // 合并结果
   const merged = mergeResults(transformerResults) as T;
 
-
-
   // 收集警告
-  const warnings: TransformWarning[] = context.get<TransformWarning[]>('warnings') || [];
-
-
+  const warnings: TransformWarning[] =
+    context.get<TransformWarning[]>('warnings') || [];
 
   // 根据结果模式创建返回值
   let result: TransformResult<T>;
@@ -142,7 +124,7 @@ export function transform<T>(
         merged: {} as T,
         raw: rawResult,
         warnings,
-        metadata
+        metadata,
       };
       break;
     case 'merged':
@@ -150,7 +132,7 @@ export function transform<T>(
         transformers: {},
         merged,
         warnings,
-        metadata
+        metadata,
       };
       break;
     case 'full':
@@ -160,12 +142,9 @@ export function transform<T>(
         merged,
         raw: rawResult,
         warnings,
-        metadata
+        metadata,
       };
   }
-
-
-
 
   return result;
 }
@@ -218,7 +197,9 @@ function deepMerge(target: Record<string, unknown>, source: unknown): void {
     if (Array.isArray(sourceValue)) {
       // 确保目标也是数组
       if (!Array.isArray(targetValue)) {
-        target[key] = Array.isArray(sourceValue) ? [...sourceValue] : [sourceValue];
+        target[key] = Array.isArray(sourceValue)
+          ? [...sourceValue]
+          : [sourceValue];
       } else {
         // 合并数组
         if (sourceValue.length > 0) {
@@ -286,5 +267,5 @@ function applyTransformerFilters(
 // 导出所有转换模块服务函数作为一个对象
 export const transformerService = {
   transform,
-  registerTransformer
+  registerTransformer,
 };

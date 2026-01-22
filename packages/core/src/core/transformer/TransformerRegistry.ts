@@ -24,7 +24,9 @@ export class TransformerRegistry {
     }
 
     if (this.transformerNames.has(transformer.name)) {
-      throw new Error(`Transformer name conflict: "${transformer.name}" is already registered`);
+      throw new Error(
+        `Transformer name conflict: "${transformer.name}" is already registered`
+      );
     }
 
     this.transformers.push(transformer as Transformer<unknown, unknown>);

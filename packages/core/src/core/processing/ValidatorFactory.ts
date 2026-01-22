@@ -48,7 +48,9 @@ export class ValidatorFactory {
         try {
           // 验证器初始化相关代码（目前为空）
         } catch (error) {
-          options.errorHandler(error instanceof Error ? error : new Error(String(error)));
+          options.errorHandler(
+            error instanceof Error ? error : new Error(String(error))
+          );
         }
       }
     }

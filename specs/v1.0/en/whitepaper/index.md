@@ -15,6 +15,7 @@
 **Solution**: DPML (Deepractice Prompt Markup Language) is grounded in the "Three-Party Positioning Theory"—humans excel at innovative intent, AI excels at semantic translation, computers excel at precise execution. Each requires different types of information, yet all must share a single carrier. By rigorously proving that the four semantic dimensions (tag/attribute/content/structure) constitute the necessary and sufficient minimal set, DPML adopts XML-like syntax to unify information flow among all three parties, enabling a unified infrastructure for configuration management, workflow orchestration, and end-to-end observability.
 
 **Key Innovations**:
+
 - Theoretical Foundation: Three-Party Positioning Theory → Four-Dimension Semantic Derivation → Six-State Flow Model
 - Technical Choice: XML-like syntax simultaneously serves humans (visualization), AI (native understanding), computers (structured parsing)
 - Design Philosophy: Constrain without binding (provide framework while preserving creativity), unified protocol with differentiated roles
@@ -55,11 +56,11 @@ Unlike ordinary text, prompts require **strong logic** (consistency, structure, 
 
 Modern AI systems involve three core roles, each with different information needs:
 
-| Role | What They Need | Traditional Approach | Problem |
-|------|---------------|---------------------|---------|
-| **Human** | Observable system state | Documentation separate from code | Cannot observe AI reasoning process, docs drift from implementation |
-| **AI** | Context and constraints | Prompts separate from configuration | Lacks execution context, cannot translate accurately |
-| **Computer** | Structured instructions | Config files (YAML/JSON) | AI cannot understand, humans struggle to audit |
+| Role         | What They Need          | Traditional Approach                | Problem                                                             |
+| ------------ | ----------------------- | ----------------------------------- | ------------------------------------------------------------------- |
+| **Human**    | Observable system state | Documentation separate from code    | Cannot observe AI reasoning process, docs drift from implementation |
+| **AI**       | Context and constraints | Prompts separate from configuration | Lacks execution context, cannot translate accurately                |
+| **Computer** | Structured instructions | Config files (YAML/JSON)            | AI cannot understand, humans struggle to audit                      |
 
 **The fundamental problem of traditional approaches**: forcing these three types of information into incompatible formats.
 
@@ -73,11 +74,13 @@ temperature: 0.7
 
 ```markdown
 # system_prompt.md
+
 You are a professional travel planning assistant, maintaining accurate and reliable advice.
 ```
 
 ```markdown
 # README.md
+
 This agent uses a conservative strategy, temperature=0.5 (Note: This documentation is outdated)
 ```
 
@@ -139,6 +142,7 @@ The irreplaceable positioning of three core roles in modern AI systems:
 
 **Driving Signal**
 In modern AI systems, structured information that guides and triggers system behavior. Divided into three types:
+
 - Computer driving signals: Configuration parameters (e.g., model, temperature)
 - AI driving signals: Natural language instructions (e.g., system prompts)
 - Human driving signals: Observable state information (e.g., execution logs, visual interfaces)
@@ -150,6 +154,7 @@ Independent semantic space for information expression. XML-like syntax has 4 sem
 
 **Strong Logic**
 Compared to ordinary text, prompts require higher levels of:
+
 - Consistency: The same concept must be expressed consistently across different locations
 - Structure: Information organization must follow clear hierarchical relationships
 - Precision: Instructions and constraints must be unambiguous
@@ -294,15 +299,15 @@ Based on the three-party positioning theory, DPML's functional requirements are 
 
 ### 2.3 Requirements Priority
 
-| Requirement | Priority | v1.0 Status |
-|------------|----------|---------------------|
-| FR1: Unified Information Carrier | P0 | Fully implemented |
-| FR2: Separation of Concerns | P0 | Fully implemented (4 dimensions) |
-| FR3: Full Observability | P1 | Protocol supports, tools pending |
-| FR4: Component Reusability | P2 | `id` syntax ready, reference mechanism for future versions |
-| NFR1: Low Cognitive Load | P0 | Core concepts ≤ 5 |
-| NFR2: Extensibility | P1 | Protocol/domain layer separation |
-| NFR3: Toolchain-Friendly | P1 | XML-like syntax adopted, can reuse XML parsers |
+| Requirement                      | Priority | v1.0 Status                                                |
+| -------------------------------- | -------- | ---------------------------------------------------------- |
+| FR1: Unified Information Carrier | P0       | Fully implemented                                          |
+| FR2: Separation of Concerns      | P0       | Fully implemented (4 dimensions)                           |
+| FR3: Full Observability          | P1       | Protocol supports, tools pending                           |
+| FR4: Component Reusability       | P2       | `id` syntax ready, reference mechanism for future versions |
+| NFR1: Low Cognitive Load         | P0       | Core concepts ≤ 5                                          |
+| NFR2: Extensibility              | P1       | Protocol/domain layer separation                           |
+| NFR3: Toolchain-Friendly         | P1       | XML-like syntax adopted, can reuse XML parsers             |
 
 ---
 
@@ -322,11 +327,11 @@ Based on the three-party positioning theory, DPML's functional requirements are 
 
 Modern AI systems are not a stage for a single role, but a **three-party collaboration** system:
 
-| Role | Core Capability | Irreplaceable Advantage |
-|------|----------------|------------------------|
-| **Human** | Practice + Consciousness → Innovation | The only role capable of actively initiating practice, learning from experience, and generating true innovation |
-| **AI** | Pattern + Knowledge → Mapping | The only role capable of **simultaneously** understanding natural language (like humans) and processing at high speed (like computers), best at bidirectional conversion between intent and instructions |
-| **Computer** | Precision + Speed → Efficiency | The only role capable of executing deterministic tasks with ultra-high speed and absolute precision |
+| Role         | Core Capability                       | Irreplaceable Advantage                                                                                                                                                                                  |
+| ------------ | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Human**    | Practice + Consciousness → Innovation | The only role capable of actively initiating practice, learning from experience, and generating true innovation                                                                                          |
+| **AI**       | Pattern + Knowledge → Mapping         | The only role capable of **simultaneously** understanding natural language (like humans) and processing at high speed (like computers), best at bidirectional conversion between intent and instructions |
+| **Computer** | Precision + Speed → Efficiency        | The only role capable of executing deterministic tasks with ultra-high speed and absolute precision                                                                                                      |
 
 **First Principle**:
 
@@ -381,11 +386,11 @@ Through **semantic dimension theory**, find the minimal set that can **simultane
 
 Different formats have different numbers of semantic dimensions:
 
-| Format | Dimensions | Dimension Components | Three-Party Collaboration Capability |
-|--------|-----------|---------------------|-------------------------------------|
-| Plain Text | 0 | (linear text) | Serves AI only |
-| YAML/JSON | 2 | key + value | Primarily serves computers |
-| XML-like Syntax | 4 | tag + attribute + content + structure | **Serves all three parties simultaneously** |
+| Format          | Dimensions | Dimension Components                  | Three-Party Collaboration Capability        |
+| --------------- | ---------- | ------------------------------------- | ------------------------------------------- |
+| Plain Text      | 0          | (linear text)                         | Serves AI only                              |
+| YAML/JSON       | 2          | key + value                           | Primarily serves computers                  |
+| XML-like Syntax | 4          | tag + attribute + content + structure | **Serves all three parties simultaneously** |
 
 #### 3.2.2 Derivation Process: Why Four Dimensions Are Needed
 
@@ -397,31 +402,31 @@ Different formats have different numbers of semantic dimensions:
 
 Extract **irreducible** requirements from the needs analysis in 3.1.2:
 
-| Source | Requirement Description | Can It Share Other Dimensions |
-|--------|------------------------|------------------------------|
-| Human | Need to understand "what concept this is" | [Required] Must be independent (concept cannot be expressed as config value) |
-| Computer | Need to parse configuration parameters | [Required] Must be independent (parameters cannot be mixed in natural language) |
-| AI | Need natural language expression space | [Required] Must be independent (natural language cannot be constrained by config syntax) |
-| Human | Need visualized hierarchical structure | [Required] Must be independent (hierarchy is an additional dimension) |
+| Source   | Requirement Description                   | Can It Share Other Dimensions                                                            |
+| -------- | ----------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Human    | Need to understand "what concept this is" | [Required] Must be independent (concept cannot be expressed as config value)             |
+| Computer | Need to parse configuration parameters    | [Required] Must be independent (parameters cannot be mixed in natural language)          |
+| AI       | Need natural language expression space    | [Required] Must be independent (natural language cannot be constrained by config syntax) |
+| Human    | Need visualized hierarchical structure    | [Required] Must be independent (hierarchy is an additional dimension)                    |
 
 **Step 2: Map to Semantic Dimensions**
 
-| Requirement | Corresponding Dimension | Necessity Proof |
-|------------|------------------------|----------------|
-| Understand concept | **Tag** | Required. `<agent>` vs `llm.agent` (Tag is concept, key is just path) |
-| Config parameters | **Attribute** | Required. `model="llm-model"` vs separate config node (avoid nesting explosion) |
-| Natural language | **Content** | Required. `<prompt>You are assistant</prompt>` vs `prompt: "You are assistant"` (former has lower AI cognitive load) |
-| Hierarchical visualization | **Structure** | Required. DOM tree vs indentation (former naturally visualizes) |
+| Requirement                | Corresponding Dimension | Necessity Proof                                                                                                      |
+| -------------------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Understand concept         | **Tag**                 | Required. `<agent>` vs `llm.agent` (Tag is concept, key is just path)                                                |
+| Config parameters          | **Attribute**           | Required. `model="llm-model"` vs separate config node (avoid nesting explosion)                                      |
+| Natural language           | **Content**             | Required. `<prompt>You are assistant</prompt>` vs `prompt: "You are assistant"` (former has lower AI cognitive load) |
+| Hierarchical visualization | **Structure**           | Required. DOM tree vs indentation (former naturally visualizes)                                                      |
 
 **Step 2.5: Dimension Independence Validation**
 
 Can the 4 dimensions be merged?
 
-| Attempted Merge | Merge Example | Core Problem | Conclusion |
-|----------------|---------------|--------------|-----------|
-| **Tag + Attribute** | `<"agent" model="...">` | Concept and config forced into same semantic layer, breaking conceptual hierarchy; needs extra rules to distinguish "concept attributes" from "config attributes"; violates separation of concerns | Cannot merge |
-| **Content + Attribute** | `<prompt content="..."/>` | Long text in attributes causes format chaos; natural language treated as "config value", requires quote escaping; multi-paragraph prompts completely unreadable | Cannot merge |
-| **Structure via indentation** | YAML's indentation syntax | Requires "mental calculation" of hierarchy, cannot directly render DOM tree; needs extra parsing of indentation semantics; AI must count spaces to determine levels | Must be independent |
+| Attempted Merge               | Merge Example             | Core Problem                                                                                                                                                                                       | Conclusion          |
+| ----------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| **Tag + Attribute**           | `<"agent" model="...">`   | Concept and config forced into same semantic layer, breaking conceptual hierarchy; needs extra rules to distinguish "concept attributes" from "config attributes"; violates separation of concerns | Cannot merge        |
+| **Content + Attribute**       | `<prompt content="..."/>` | Long text in attributes causes format chaos; natural language treated as "config value", requires quote escaping; multi-paragraph prompts completely unreadable                                    | Cannot merge        |
+| **Structure via indentation** | YAML's indentation syntax | Requires "mental calculation" of hierarchy, cannot directly render DOM tree; needs extra parsing of indentation semantics; AI must count spaces to determine levels                                | Must be independent |
 
 **Conclusion**: The 4 dimensions are mutually independent; any merge violates at least one party's core requirements or increases cognitive load.
 
@@ -429,12 +434,12 @@ Can the 4 dimensions be merged?
 
 What happens with fewer than 4 dimensions?
 
-| Missing Dimension | Consequence |
-|------------------|------------|
-| No Tag | Humans cannot understand concepts, computers cannot identify node types, AI lacks context |
-| No Attribute | Config parameters mixed into Content, AI struggles to understand, computers cannot parse structurally |
-| No Content | AI has no natural language space, loses flexibility, humans cannot express naturally |
-| No Structure | Humans cannot visualize, computers struggle to traverse, AI has difficulty understanding contextual hierarchy |
+| Missing Dimension | Consequence                                                                                                   |
+| ----------------- | ------------------------------------------------------------------------------------------------------------- |
+| No Tag            | Humans cannot understand concepts, computers cannot identify node types, AI lacks context                     |
+| No Attribute      | Config parameters mixed into Content, AI struggles to understand, computers cannot parse structurally         |
+| No Content        | AI has no natural language space, loses flexibility, humans cannot express naturally                          |
+| No Structure      | Humans cannot visualize, computers struggle to traverse, AI has difficulty understanding contextual hierarchy |
 
 Conclusion: All 4 dimensions are necessary, none can be removed.
 
@@ -442,10 +447,10 @@ Conclusion: All 4 dimensions are necessary, none can be removed.
 
 YAML/JSON have 2 dimensions (key+value), why not 5 dimensions (tag+attribute+content+structure+value)?
 
-| Format Comparison | Where is value | Why not an independent dimension |
-|---------|-----------|--------------|
-| YAML/JSON | `key: value` | value is a flat string, absorbed by the content dimension |
-| XML-like Syntax | `<tag>content</tag>` | content is a superset of value (supports rich text/nested child elements) |
+| Format Comparison | Where is value       | Why not an independent dimension                                          |
+| ----------------- | -------------------- | ------------------------------------------------------------------------- |
+| YAML/JSON         | `key: value`         | value is a flat string, absorbed by the content dimension                 |
+| XML-like Syntax   | `<tag>content</tag>` | content is a superset of value (supports rich text/nested child elements) |
 
 **Key Insight**: value is not an independent dimension, but a simplified form of content. The content dimension in XML-like syntax can express both simple values (`<name>John</name>`) and complex structures (`<prompt>Multi-line text...</prompt>`), thus fully covering the functionality of value.
 
@@ -454,23 +459,25 @@ YAML/JSON have 2 dimensions (key+value), why not 5 dimensions (tag+attribute+con
 **Hypothesis**: There exists a 5th independent dimension X
 
 **Derivation**: X must simultaneously satisfy:
+
 1. **Independence**: Cannot be expressed by Tag/Attribute/Content/Structure
 2. **Necessity**: At least one party (human/AI/computer) has an irreducible need
 
 **Exhaustive Analysis of Candidate Dimensions**:
 
-| Candidate Dimension | Independence Test | Conclusion |
-|-------------------|------------------|-----------|
-| **Namespace** | Can be expressed via Attribute: `namespace="mcp"` | Not independent |
-| **Comments/Docs** | Can be expressed via special Tag: `<metadata>`, `<doc>` | Not independent |
-| **Styling/Display** | Can be expressed via Attribute: `class="highlight"` | Not independent |
-| **Version/State** | Can be expressed via Attribute: `version="1.0"` | Not independent |
-| **Reference/Link** | Can be expressed via Attribute: `ref="agent-id"` | Not independent |
-| **Permissions/Security** | Can be expressed via Attribute: `access="private"` | Not independent |
-| **Events/Hooks** | Can be expressed via special Tag+Content: `<on-error>...</>` | Not independent |
-| **Variables/Templates** | Can be expressed via Content interpolation or special Tag | Not independent |
+| Candidate Dimension      | Independence Test                                            | Conclusion      |
+| ------------------------ | ------------------------------------------------------------ | --------------- |
+| **Namespace**            | Can be expressed via Attribute: `namespace="mcp"`            | Not independent |
+| **Comments/Docs**        | Can be expressed via special Tag: `<metadata>`, `<doc>`      | Not independent |
+| **Styling/Display**      | Can be expressed via Attribute: `class="highlight"`          | Not independent |
+| **Version/State**        | Can be expressed via Attribute: `version="1.0"`              | Not independent |
+| **Reference/Link**       | Can be expressed via Attribute: `ref="agent-id"`             | Not independent |
+| **Permissions/Security** | Can be expressed via Attribute: `access="private"`           | Not independent |
+| **Events/Hooks**         | Can be expressed via special Tag+Content: `<on-error>...</>` | Not independent |
+| **Variables/Templates**  | Can be expressed via Content interpolation or special Tag    | Not independent |
 
 **Key Insight**:
+
 - All possible extension needs can be expressed by the existing 4 dimensions
 - Tag's conceptualization + Attribute's configuration + Content's semantics + Structure's hierarchy already cover all orthogonal dimensions of information expression
 - Any new dimension is essentially a combination or specialization of these 4
@@ -499,7 +506,7 @@ agent:
   llm:
     model: llm-model
     temperature: 0.7
-  prompt: "You are a travel planning assistant"
+  prompt: 'You are a travel planning assistant'
 ```
 
 - [Supports] Computer parses key-value pairs
@@ -533,12 +540,12 @@ agent:
 
 Key design principle: **Separation of Concerns + Information Sharing**
 
-| Dimension | Primary Service | Secondary Service | Responsibility | Example |
-|-----------|----------------|------------------|----------------|---------|
-| Tag | Human (understand concept) | Computer (node type), AI (context) | Concept definition | `<prompt>`, `<tool>` |
-| Attribute | Computer (parse config) | AI (understand params), Human (view values) | Config parameters | `model="llm-model"` |
-| Content | AI (natural language) | Human (reading), Computer (extraction) | Semantic content | `You are an assistant` |
-| Structure | Human (visualization) | Computer (traversal), AI (hierarchical relations) | Hierarchical organization | DOM tree |
+| Dimension | Primary Service            | Secondary Service                                 | Responsibility            | Example                |
+| --------- | -------------------------- | ------------------------------------------------- | ------------------------- | ---------------------- |
+| Tag       | Human (understand concept) | Computer (node type), AI (context)                | Concept definition        | `<prompt>`, `<tool>`   |
+| Attribute | Computer (parse config)    | AI (understand params), Human (view values)       | Config parameters         | `model="llm-model"`    |
+| Content   | AI (natural language)      | Human (reading), Computer (extraction)            | Semantic content          | `You are an assistant` |
+| Structure | Human (visualization)      | Computer (traversal), AI (hierarchical relations) | Hierarchical organization | DOM tree               |
 
 **This is not information isolation, but responsibility optimization**:
 
@@ -551,6 +558,7 @@ Key design principle: **Separation of Concerns + Information Sharing**
 The four semantic dimensions (Tag/Attribute/Content/Structure) answer the question of "**what to express with**", but have not yet answered the question of "**where to express**".
 
 In modern AI systems, information flows among three entities:
+
 - **Human** needs to **input intent** and **observe results**
 - **AI** needs to **receive context** and **output instructions**
 - **Computer** needs to **execute commands** and **return data**
@@ -609,14 +617,14 @@ flowchart LR
 
 #### 3.3.2 Role Positioning of Six States
 
-| State | Position | Role | Purpose | Design Goal |
-|---|------|------|---------|---------|
-| **DPML₁** | Human→Computer | Receptive Container | Package user's natural expression | Preserve the original richness of human intent |
-| **DPML₂** | Computer→Human | Visualization Structure | Auto-render as interface | Reduce human comprehension cost, focus on content not format |
-| **DPML₃** | Computer→AI | Structured Framework | Organize context information hierarchically | Provide AI with complete reasoning basis |
-| **DPML₄** | AI→Computer | Parseable Command | AI-generated execution instructions | Enable computer to execute AI intent |
-| **DPML₅** | Computer Internal | Precise Instruction | Validated execution command | Guarantee computer can execute without error |
-| **DPML₆** | Computer Internal | Precise Data | Complete execution result | Provide reliable data source for AI's next reasoning |
+| State     | Position          | Role                    | Purpose                                     | Design Goal                                                  |
+| --------- | ----------------- | ----------------------- | ------------------------------------------- | ------------------------------------------------------------ |
+| **DPML₁** | Human→Computer    | Receptive Container     | Package user's natural expression           | Preserve the original richness of human intent               |
+| **DPML₂** | Computer→Human    | Visualization Structure | Auto-render as interface                    | Reduce human comprehension cost, focus on content not format |
+| **DPML₃** | Computer→AI       | Structured Framework    | Organize context information hierarchically | Provide AI with complete reasoning basis                     |
+| **DPML₄** | AI→Computer       | Parseable Command       | AI-generated execution instructions         | Enable computer to execute AI intent                         |
+| **DPML₅** | Computer Internal | Precise Instruction     | Validated execution command                 | Guarantee computer can execute without error                 |
+| **DPML₆** | Computer Internal | Precise Data            | Complete execution result                   | Provide reliable data source for AI's next reasoning         |
 
 **Detailed Explanation**:
 
@@ -698,12 +706,12 @@ AI generates response
 
 Although the six states have different roles, they share unified DPML syntax, bringing systematic advantages:
 
-| Value Dimension | Traditional Approach Problems | DPML Six-State Approach |
-|-----------------|------------------------------|------------------------|
-| **Information Flow** | Format conversion loss (JSON→Python→Markdown), difficult synchronization | Unified format, lossless flow, modify once and all three parties sync |
-| **Observability** | Black box flow, invisible intermediate states, difficult debugging | Every state is structured DPML, fully traceable and auditable |
-| **Tool Reuse** | Each format needs specialized parser, high maintenance cost | One parser handles all six states, lower implementation barrier |
-| **Cognitive Consistency** | Developers need to master multiple formats, difficult collaboration | Unified language, reduce cognitive load, improve collaboration efficiency |
+| Value Dimension           | Traditional Approach Problems                                            | DPML Six-State Approach                                                   |
+| ------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| **Information Flow**      | Format conversion loss (JSON→Python→Markdown), difficult synchronization | Unified format, lossless flow, modify once and all three parties sync     |
+| **Observability**         | Black box flow, invisible intermediate states, difficult debugging       | Every state is structured DPML, fully traceable and auditable             |
+| **Tool Reuse**            | Each format needs specialized parser, high maintenance cost              | One parser handles all six states, lower implementation barrier           |
+| **Cognitive Consistency** | Developers need to master multiple formats, difficult collaboration      | Unified language, reduce cognitive load, improve collaboration efficiency |
 
 **Design Philosophy**: **Protocol Unified, Role Differentiated**
 
@@ -722,6 +730,7 @@ Unified specification is a direct requirement of the three-party positioning the
 **2. Information Flow**
 
 Different formats would lead to:
+
 - Format conversion loss (JSON→Python→Markdown)
 - Information synchronization issues (modify one place, forget to update other formats)
 - Debugging difficulties (unable to trace complete chain)
@@ -729,12 +738,14 @@ Different formats would lead to:
 **3. Tool Reuse**
 
 One parser handles all six states = Simple and efficient
+
 - Avoid developing specialized parsers for each form
 - Reduce learning costs and maintenance burden
 
 **4. Cognitive Consistency**
 
 Developers, AI, humans see the same language:
+
 - Reduce cognitive load
 - Improve collaboration efficiency
 - Reduce understanding deviations
@@ -747,14 +758,14 @@ Protocol layer defines unified syntax, implementation layer optimizes processing
 
 From the developer's practical work scenarios, the six-state flow corresponds to the following specific development activities:
 
-| State | Developer-Facing Form | Typical Files/Interfaces | Development Work |
-|---|----------------|--------------|---------|
-| **DPML₁** | User input auto-wrapped as DPML by framework | Frontend form → `<user-input>...</>` | Design input forms, no need to handle DPML format |
-| **DPML₂** | Write Agent config, framework renders to UI | `agent.dpml` → React component tree | Write .dpml config files |
-| **DPML₃** | SDK auto-builds AI context | `buildContext(agent.dpml, history)` | Call SDK interface, pass config |
-| **DPML₄** | AI-returned tool call instructions | LLM response → `<tool-call>...</>` | Implement tool functions, handle calls |
-| **DPML₅** | Framework-validated execution commands | `validateAndExecute(toolCall)` | Framework auto-handles, transparent to developer |
-| **DPML₆** | Tool execution results | `<tool-result status="success">...</>` | Return structured data |
+| State     | Developer-Facing Form                        | Typical Files/Interfaces               | Development Work                                  |
+| --------- | -------------------------------------------- | -------------------------------------- | ------------------------------------------------- |
+| **DPML₁** | User input auto-wrapped as DPML by framework | Frontend form → `<user-input>...</>`   | Design input forms, no need to handle DPML format |
+| **DPML₂** | Write Agent config, framework renders to UI  | `agent.dpml` → React component tree    | Write .dpml config files                          |
+| **DPML₃** | SDK auto-builds AI context                   | `buildContext(agent.dpml, history)`    | Call SDK interface, pass config                   |
+| **DPML₄** | AI-returned tool call instructions           | LLM response → `<tool-call>...</>`     | Implement tool functions, handle calls            |
+| **DPML₅** | Framework-validated execution commands       | `validateAndExecute(toolCall)`         | Framework auto-handles, transparent to developer  |
+| **DPML₆** | Tool execution results                       | `<tool-result status="success">...</>` | Return structured data                            |
 
 **Key Insight**: Developers typically only need to focus on **DPML₂** (configuring Agent) and **DPML₄/₆** (implementing and handling tools). The other three states are automatically handled by the framework. This layering reduces development complexity, allowing developers to focus on business logic rather than protocol details.
 
@@ -833,14 +844,14 @@ sequenceDiagram
 
 #### 3.4.3 Information Characteristics of Each State
 
-| State | Information Content | Structural Features | Validation Points |
-|---|---------|---------|--------|
-| **DPML₁** | User intent, preferences ("natural scenery"), constraints ("5000 yuan") | Allows natural language mixing | Whether parseable |
-| **DPML₃** | System prompt (role definition), conversation history, current request, available tool list | Hierarchically organized, clear guidance | Whether information is complete |
-| **DPML₄** | Function name ("search attractions"), parameters (destination/preferences), reasoning process | Structured, may have minor deviations | Semantically correct+parseable |
-| **DPML₅** | Validated function call, complete metadata (timeout/caller) | Precise, zero ambiguity | Strict format+type checking |
-| **DPML₆** | Execution status (success/failure), attraction data (rating/price), timestamp | Complete, type-safe | Data integrity+consistency |
-| **DPML₂** | Itinerary arrangement (days/attractions), budget breakdown, recommendation rationale | Clear hierarchy, easy to render | Readability+structural soundness |
+| State     | Information Content                                                                           | Structural Features                      | Validation Points                |
+| --------- | --------------------------------------------------------------------------------------------- | ---------------------------------------- | -------------------------------- |
+| **DPML₁** | User intent, preferences ("natural scenery"), constraints ("5000 yuan")                       | Allows natural language mixing           | Whether parseable                |
+| **DPML₃** | System prompt (role definition), conversation history, current request, available tool list   | Hierarchically organized, clear guidance | Whether information is complete  |
+| **DPML₄** | Function name ("search attractions"), parameters (destination/preferences), reasoning process | Structured, may have minor deviations    | Semantically correct+parseable   |
+| **DPML₅** | Validated function call, complete metadata (timeout/caller)                                   | Precise, zero ambiguity                  | Strict format+type checking      |
+| **DPML₆** | Execution status (success/failure), attraction data (rating/price), timestamp                 | Complete, type-safe                      | Data integrity+consistency       |
+| **DPML₂** | Itinerary arrangement (days/attractions), budget breakdown, recommendation rationale          | Clear hierarchy, easy to render          | Readability+structural soundness |
 
 #### 3.4.4 Key Insights
 
@@ -924,12 +935,12 @@ This is why the **protocol unified, validation hierarchical** design philosophy 
 
 Based on requirements derived from the three-party positioning theory, the following candidate solutions were evaluated:
 
-| Solution | Description | Advantages | Disadvantages |
-|----------|------------|-----------|--------------|
-| **Custom DSL** | Domain-specific language for natural language | High expressiveness, customizable | High barrier, needs compilation, few tools |
-| **YAML** | Data serialization format | Human-readable, concise | 2D semantics, indentation semantics, AI cognitive load |
-| **JSON** | Data exchange format | Machine-friendly, universal | 2D semantics, bracket noise, no content space |
-| **XML-like Syntax** | Markup language | 4D semantics, mature ecosystem | Verbose (relative to JSON) |
+| Solution            | Description                                   | Advantages                        | Disadvantages                                          |
+| ------------------- | --------------------------------------------- | --------------------------------- | ------------------------------------------------------ |
+| **Custom DSL**      | Domain-specific language for natural language | High expressiveness, customizable | High barrier, needs compilation, few tools             |
+| **YAML**            | Data serialization format                     | Human-readable, concise           | 2D semantics, indentation semantics, AI cognitive load |
+| **JSON**            | Data exchange format                          | Machine-friendly, universal       | 2D semantics, bracket noise, no content space          |
+| **XML-like Syntax** | Markup language                               | 4D semantics, mature ecosystem    | Verbose (relative to JSON)                             |
 
 #### 4.1.2 Evaluation Criteria
 
@@ -945,26 +956,26 @@ Based on requirements analysis (Chapter 2) and three-party positioning theory, e
 
 **Correspondence between Weights and Three-Party Positioning**:
 
-| Evaluation Criteria | Weight | Corresponding Three-Party Needs |
-|--------------------|--------|--------------------------------|
-| Semantic Dimensions | 40% | Directly determines possibility of three-party collaboration (see 3.2: four dimensions are necessary and sufficient) |
-| AI Cognitive Load | 25% | AI is key mediator, efficiency affects overall (see 3.4.3: bidirectional translation) |
-| Tool Ecosystem | 20% | Affects computer-side implementation cost and parsing efficiency |
-| Visualization Capability | 10% | Corresponds to human observability needs (NFR2) |
-| Extensibility | 5% | Future needs, currently secondary |
+| Evaluation Criteria      | Weight | Corresponding Three-Party Needs                                                                                      |
+| ------------------------ | ------ | -------------------------------------------------------------------------------------------------------------------- |
+| Semantic Dimensions      | 40%    | Directly determines possibility of three-party collaboration (see 3.2: four dimensions are necessary and sufficient) |
+| AI Cognitive Load        | 25%    | AI is key mediator, efficiency affects overall (see 3.4.3: bidirectional translation)                                |
+| Tool Ecosystem           | 20%    | Affects computer-side implementation cost and parsing efficiency                                                     |
+| Visualization Capability | 10%    | Corresponds to human observability needs (NFR2)                                                                      |
+| Extensibility            | 5%     | Future needs, currently secondary                                                                                    |
 
 **Key Insight**: Weight distribution directly reflects three-party positioning theory—prioritize enabling three-party collaboration (semantic dimensions 40%), then optimize AI mediator efficiency (cognitive load 25%), finally consider implementation convenience (ecosystem 20% + visualization 10%).
 
 **Evaluation Matrix**:
 
-| Criterion | Weight | Custom DSL | YAML | JSON | XML-like Syntax |
-|-----------|--------|-----------|------|------|-------------|
-| **Semantic Dimensions** | 40% | 4+ | 2 | 2 | 4 |
-| **AI Cognitive Load** | 25% | High (learning) | High (indentation) | Medium (brackets) | Low (native) |
-| **Tool Ecosystem** | 20% | None | Mature | Mature | Mature |
-| **Visualization Capability** | 10% | Depends on implementation | Weak | Weak | Strong (DOM) |
-| **Extensibility** | 5% | High | Medium | Medium | High |
-| **Total Score** | - | 65 | 50 | 55 | **95** |
+| Criterion                    | Weight | Custom DSL                | YAML               | JSON              | XML-like Syntax |
+| ---------------------------- | ------ | ------------------------- | ------------------ | ----------------- | --------------- |
+| **Semantic Dimensions**      | 40%    | 4+                        | 2                  | 2                 | 4               |
+| **AI Cognitive Load**        | 25%    | High (learning)           | High (indentation) | Medium (brackets) | Low (native)    |
+| **Tool Ecosystem**           | 20%    | None                      | Mature             | Mature            | Mature          |
+| **Visualization Capability** | 10%    | Depends on implementation | Weak               | Weak              | Strong (DOM)    |
+| **Extensibility**            | 5%     | High                      | Medium             | Medium            | High            |
+| **Total Score**              | -      | 65                        | 50                 | 55                | **95**          |
 
 #### 4.1.3 Decision Process
 
@@ -987,9 +998,9 @@ Design idea: Like SASS/LESS to CSS, provide structural and logical capabilities 
 ```yaml
 agent:
   llm:
-    model: llm-model     # AI needs to understand agent.llm.model path
+    model: llm-model # AI needs to understand agent.llm.model path
     temperature: 0.7
-  prompt: |          # Indentation carries semantics, AI cognitive load
+  prompt: | # Indentation carries semantics, AI cognitive load
     You are an assistant
 ```
 
@@ -1002,8 +1013,8 @@ agent:
 ```json
 {
   "agent": {
-    "llm": {"model": "llm-model"},  // Bracket noise
-    "prompt": "You are an assistant"  // No content space, just string value
+    "llm": { "model": "llm-model" }, // Bracket noise
+    "prompt": "You are an assistant" // No content space, just string value
   }
 }
 ```
@@ -1053,7 +1064,7 @@ agent:
 
 ```json
 // JSON: Concise but semantically ambiguous
-{"agent": {"llm": {"model": "llm-model"}, "prompt": "You are assistant"}}
+{ "agent": { "llm": { "model": "llm-model" }, "prompt": "You are assistant" } }
 ```
 
 ```xml
@@ -1168,10 +1179,10 @@ When users are confused, I patiently explain. I always remain professional and f
 
 **Two Ways to "Constrain"**:
 
-| Approach | Constrains | AI Freedom | Typical Applications |
-|----------|-----------|-----------|---------------------|
-| **Principle Guidance** | Behavioral guidelines, values | Complete freedom to interpret and apply | `<personality>` `<principles>` |
-| **Framework Guidance** | Output structure, content nature | Free creation within framework | `<thought>` `<analysis>` `<review>` |
+| Approach               | Constrains                       | AI Freedom                              | Typical Applications                |
+| ---------------------- | -------------------------------- | --------------------------------------- | ----------------------------------- |
+| **Principle Guidance** | Behavioral guidelines, values    | Complete freedom to interpret and apply | `<personality>` `<principles>`      |
+| **Framework Guidance** | Output structure, content nature | Free creation within framework          | `<thought>` `<analysis>` `<review>` |
 
 **Core Philosophy**:
 
@@ -1210,10 +1221,10 @@ Total information entropy: Very high
 
 **Token Economics**:
 
-| Solution | Token Cost | AI Understanding |
-|----------|-----------|-----------------|
-| Consensus concept (`role`) | ~10 tokens | Immediate, accurate |
-| Invented word (`lero`) | ~100+ tokens | Needs reasoning |
+| Solution                   | Token Cost   | AI Understanding    |
+| -------------------------- | ------------ | ------------------- |
+| Consensus concept (`role`) | ~10 tokens   | Immediate, accurate |
+| Invented word (`lero`)     | ~100+ tokens | Needs reasoning     |
 
 **Selection Criteria**:
 
@@ -1233,12 +1244,12 @@ Total information entropy: Very high
 
 **Semantic Balance Across Four Dimensions**:
 
-| Dimension | Computer Semantics | AI Semantics |
-|-----------|-------------------|--------------|
-| Tag | Node type, traversal starting point | Concept definition, context |
-| Attribute | Key-value pair data | Comprehensible configuration |
-| Content | Text data | Natural language, home field |
-| Structure | DOM tree paths | Contextual hierarchical relationships |
+| Dimension | Computer Semantics                  | AI Semantics                          |
+| --------- | ----------------------------------- | ------------------------------------- |
+| Tag       | Node type, traversal starting point | Concept definition, context           |
+| Attribute | Key-value pair data                 | Comprehensible configuration          |
+| Content   | Text data                           | Natural language, home field          |
+| Structure | DOM tree paths                      | Contextual hierarchical relationships |
 
 **Theoretical Connection**: This is the concrete manifestation of 3.2.4 "Separation of Concerns and Information Sharing"—each dimension optimized for a specific role (primary responsibility), but all roles can access all dimensions (information sharing).
 
@@ -1301,11 +1312,11 @@ DPML adopts a **protocol layer/domain layer** separation architecture:
 
 The protocol layer serves all three parties through the "Constrain Without Binding" principle (see 4.3.1):
 
-| Role | How Protocol Layer Serves | Core Value |
-|------|--------------------------|-----------|
-| Human | Defines unified concept expression (tag, attribute), reduces learning cost | Understand concept boundaries, visualize system structure |
-| AI | Specifies simple consistent syntax rules (kebab-case), reduces comprehension burden | Rapid understanding and generation, minimized cognitive load |
-| Computer | Only validates format, doesn't constrain business logic, maintains flexibility | Efficient parsing, reuse mature toolchains |
+| Role     | How Protocol Layer Serves                                                           | Core Value                                                   |
+| -------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Human    | Defines unified concept expression (tag, attribute), reduces learning cost          | Understand concept boundaries, visualize system structure    |
+| AI       | Specifies simple consistent syntax rules (kebab-case), reduces comprehension burden | Rapid understanding and generation, minimized cognitive load |
+| Computer | Only validates format, doesn't constrain business logic, maintains flexibility      | Efficient parsing, reuse mature toolchains                   |
 
 **Design Trade-off**: Concrete manifestation of "Constrain Without Binding" principle—constrain format to ensure three-party comprehension (protocol layer), don't bind semantics to enable domain innovation (domain layer).
 
@@ -1382,11 +1393,11 @@ Domain layer builds higher-level abstractions on the protocol layer foundation, 
 
 DPML's extension capability stems from the protocol layer/domain layer separation architecture, this separation embodies the separation of concerns principle:
 
-| Layer | Concern | Stability | Extension Method |
-|-------|---------|----------|-----------------|
-| Protocol layer | How to express | Highly stable | Rarely changes, only adds, never modifies |
-| Domain layer | What to express | Evolvable | Add new domains, independent versioning |
-| Tool layer | How to process | Active | Community contributions, rapid iteration |
+| Layer          | Concern         | Stability     | Extension Method                          |
+| -------------- | --------------- | ------------- | ----------------------------------------- |
+| Protocol layer | How to express  | Highly stable | Rarely changes, only adds, never modifies |
+| Domain layer   | What to express | Evolvable     | Add new domains, independent versioning   |
+| Tool layer     | How to process  | Active        | Community contributions, rapid iteration  |
 
 **Why This Layering Supports Long-term Evolution**:
 
@@ -1457,14 +1468,14 @@ Prioritize tourist budget and time, recommend local specialties, avoid tourist t
 
 #### Effect Comparison
 
-| Dimension | Traditional Approach | DPML Approach |
-|-----------|---------------------|---------------|
-| **File Count** | 4 files | 1 file |
-| **Modification Efficiency** | Edit multiple files | Modify single source |
-| **Sync Issues** | Easily inconsistent | Automatic synchronization |
-| **Visualization** | Manual organization needed | Auto-render UI |
-| **Version Control** | Frequent Git conflicts | Single file, fewer conflicts |
-| **Observability** | None | Supports runtime state injection |
+| Dimension                   | Traditional Approach       | DPML Approach                    |
+| --------------------------- | -------------------------- | -------------------------------- |
+| **File Count**              | 4 files                    | 1 file                           |
+| **Modification Efficiency** | Edit multiple files        | Modify single source             |
+| **Sync Issues**             | Easily inconsistent        | Automatic synchronization        |
+| **Visualization**           | Manual organization needed | Auto-render UI                   |
+| **Version Control**         | Frequent Git conflicts     | Single file, fewer conflicts     |
+| **Observability**           | None                       | Supports runtime state injection |
 
 ### 6.2 Scenario 2: Workflow Orchestration
 
@@ -1614,12 +1625,12 @@ Total: 300ms | Tokens: 75 in, 70 out
 
 #### Key Advantages
 
-| Dimension | Traditional Development | DPML Framework |
-|-----------|------------------------|----------------|
-| **Learning Curve** | Need to understand underlying protocols | Only need to understand domain concepts |
-| **Development Efficiency** | Write complete code | Declarative configuration |
-| **AI Collaboration** | AI struggles to generate low-level code | AI excels at generating XML-like syntax |
-| **Maintainability** | Modify code and redeploy | Modify configuration directly |
+| Dimension                  | Traditional Development                 | DPML Framework                          |
+| -------------------------- | --------------------------------------- | --------------------------------------- |
+| **Learning Curve**         | Need to understand underlying protocols | Only need to understand domain concepts |
+| **Development Efficiency** | Write complete code                     | Declarative configuration               |
+| **AI Collaboration**       | AI struggles to generate low-level code | AI excels at generating XML-like syntax |
+| **Maintainability**        | Modify code and redeploy                | Modify configuration directly           |
 
 **For detailed design principles**: See Section 3.3.3 "Computation Encapsulation Layer" for complete theoretical justification and design principles.
 
@@ -1634,6 +1645,7 @@ DPML's XML-like syntax frameworks provide natural cognitive scaffolding, guiding
 **Theoretical Foundation**:
 
 Based on the "Separation of Concerns and Information Sharing" principle in Section 3.2.4, DPML's tag dimension provides cognitive scaffolding for AI:
+
 - Tag defines content nature (overview/strengths/weaknesses)
 - Content preserves creative freedom (AI fills autonomously)
 - Structure ensures output completeness (must fill all tags)
@@ -1693,6 +1705,7 @@ AI generates complete analysis following the framework:
 #### Other Application Scenarios
 
 **Code Review Framework**:
+
 ```xml
 <code-review>
   <security>Security analysis</security>
@@ -1703,6 +1716,7 @@ AI generates complete analysis following the framework:
 ```
 
 **Decision Analysis Framework**:
+
 ```xml
 <decision>
   <situation>Current situation</situation>
@@ -1713,6 +1727,7 @@ AI generates complete analysis following the framework:
 ```
 
 **Learning Summary Framework**:
+
 ```xml
 <learning-summary>
   <key-concepts>Core concepts</key-concepts>
@@ -1723,6 +1738,7 @@ AI generates complete analysis following the framework:
 ```
 
 **Chain-of-Thought Framework**:
+
 ```xml
 <thought>
   <observation>Observed phenomena</observation>
@@ -1733,24 +1749,24 @@ AI generates complete analysis following the framework:
 
 #### Value Summary
 
-| Value Dimension | Specific Manifestation |
-|----------------|----------------------|
-| **Output Quality** | Framework ensures output completeness, avoids missing key dimensions |
-| **Consistency** | Content generated with same framework has 100% consistent structure |
-| **Maintainability** | Modifying framework definition adjusts all related generation |
-| **Parseability** | Structured output convenient for subsequent processing and integration |
-| **Efficiency Boost** | No need for lengthy prompts explaining structural requirements |
-| **AI-Friendly** | AI excels at understanding and generating tag structures |
+| Value Dimension      | Specific Manifestation                                                 |
+| -------------------- | ---------------------------------------------------------------------- |
+| **Output Quality**   | Framework ensures output completeness, avoids missing key dimensions   |
+| **Consistency**      | Content generated with same framework has 100% consistent structure    |
+| **Maintainability**  | Modifying framework definition adjusts all related generation          |
+| **Parseability**     | Structured output convenient for subsequent processing and integration |
+| **Efficiency Boost** | No need for lengthy prompts explaining structural requirements         |
+| **AI-Friendly**      | AI excels at understanding and generating tag structures               |
 
 #### Comparison with Traditional Methods
 
-| Dimension | Markdown Prompts | DPML Framework |
-|-----------|-----------------|----------------|
-| **Structural Guarantee** | Soft constraint, may omit | Forced guarantee, must fill |
-| **Consistency** | May vary each time | Structure 100% consistent |
-| **AI Understanding** | Parse natural language instructions | Tag semantics directly explicit |
-| **Parseability** | Needs additional parsing | Direct tag content extraction |
-| **Maintenance Cost** | Modify prompts | Modify framework definition |
+| Dimension                | Markdown Prompts                    | DPML Framework                  |
+| ------------------------ | ----------------------------------- | ------------------------------- |
+| **Structural Guarantee** | Soft constraint, may omit           | Forced guarantee, must fill     |
+| **Consistency**          | May vary each time                  | Structure 100% consistent       |
+| **AI Understanding**     | Parse natural language instructions | Tag semantics directly explicit |
+| **Parseability**         | Needs additional parsing            | Direct tag content extraction   |
+| **Maintenance Cost**     | Modify prompts                      | Modify framework definition     |
 
 **Core Philosophy**:
 
@@ -1780,6 +1796,7 @@ DPML enables AI to have both creativity and discipline—frameworks provide disc
 **General Performance**: For typical application scenarios, DPML document parsing and validation performance overhead is negligible.
 
 **Optimization Directions**:
+
 - Caching mechanisms (parsing results, validation results)
 - Streaming processing (large document scenarios)
 - Index support (accelerate element lookup)
@@ -1787,11 +1804,13 @@ DPML enables AI to have both creativity and discipline—frameworks provide disc
 ### 7.3 Security Principles
 
 **Code Injection Protection**: For elements containing executable content (such as scripts), should:
+
 - Use sandbox isolation for execution environment
 - Perform static analysis before execution
 - Require explicit user authorization
 
 **Sensitive Information Protection**:
+
 - Prohibit hardcoding keys and other sensitive information
 - Support environment variable references
 - Support key management service integration

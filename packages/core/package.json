@@ -13,7 +13,7 @@
   },
   "scripts": {
     "build": "bun run build.ts",
-    "test": "bun test",
+    "test": "echo 'No unit tests - see BDD tests in /bdd'",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist"

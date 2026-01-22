@@ -18,24 +18,22 @@ import { createDPML, defineSchema, defineTransformer } from 'dpml';
 // Define schema
 const schema = defineSchema({
   element: 'prompt',
-  attributes: [
-    { name: 'role', required: true }
-  ]
+  attributes: [{ name: 'role', required: true }],
 });
 
 // Define transformer
 const transformer = defineTransformer({
   name: 'my-transformer',
-  transform: (input) => ({
+  transform: input => ({
     role: input.document.rootNode.attributes.get('role'),
-    content: input.document.rootNode.content
-  })
+    content: input.document.rootNode.content,
+  }),
 });
 
 // Create DPML instance
 const dpml = createDPML({
   schema,
-  transformers: [transformer]
+  transformers: [transformer],
 });
 
 // Compile content
@@ -49,10 +47,12 @@ const result = await dpml.compile('<prompt role="assistant">Hello</prompt>');
 Creates a DPML instance.
 
 **Config:**
+
 - `schema` - Schema definition for validation
 - `transformers` - Array of transformers to apply
 
 **Returns:** DPML instance with methods:
+
 - `compile<T>(content)` - Parse, validate, and transform content
 - `parse(content)` - Parse content to document
 - `validate(content)` - Validate content against schema
@@ -65,6 +65,7 @@ Creates a DPML instance.
 Creates a schema definition.
 
 **Definition:**
+
 - `element` - Element name (for ElementSchema)
 - `root` - Root element (for DocumentSchema)
 - `attributes` - Attribute definitions
@@ -76,6 +77,7 @@ Creates a schema definition.
 Creates a transformer definition.
 
 **Definition:**
+
 - `name` - Transformer name (required)
 - `description` - Optional description
 - `transform` - Transform function (required)
@@ -89,7 +91,7 @@ import type {
   Schema,
   Transformer,
   DPMLDocument,
-  ValidationResult
+  ValidationResult,
 } from 'dpml';
 ```
 

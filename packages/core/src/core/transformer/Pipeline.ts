@@ -21,7 +21,9 @@ export class Pipeline {
    * @param transformer 要添加的转换器
    * @returns Pipeline实例，支持链式调用
    */
-  public add<TInput, TOutput>(transformer: Transformer<TInput, TOutput>): Pipeline {
+  public add<TInput, TOutput>(
+    transformer: Transformer<TInput, TOutput>
+  ): Pipeline {
     this.transformers.push(transformer);
 
     return this;
@@ -33,7 +35,10 @@ export class Pipeline {
    * @param context 转换上下文
    * @returns 最后一个转换器的输出
    */
-  public execute<TInput, TOutput>(input: TInput, context: TransformContext): TOutput {
+  public execute<TInput, TOutput>(
+    input: TInput,
+    context: TransformContext
+  ): TOutput {
     if (this.transformers.length === 0) {
       return input as unknown as TOutput;
     }

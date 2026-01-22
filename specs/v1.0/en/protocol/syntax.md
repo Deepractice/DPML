@@ -53,11 +53,13 @@ The DPML protocol aims to:
 ### 1.2 Scope
 
 **This specification defines**:
+
 - Core syntax (format rules for elements, attributes, and content)
 - Validation rules (format correctness and structural validity)
 - Conformance requirements (compatibility guarantees across implementations)
 
 **This specification does NOT define**:
+
 - Domain semantics (specific meanings of `<agent>`, `<task>` are defined by domain specifications)
 - Runtime behavior (how elements execute is determined by implementations)
 - Advanced extensions (namespaces, version control reserved for future versions)
@@ -161,10 +163,11 @@ empty-element  = "<" element-name *attribute "/>"
 Element names MUST follow **kebab-case**:
 
 **Syntax Rules**:
+
 - All lowercase letters (a-z)
 - May contain digits (0-9), but MUST NOT start with a digit
 - Words separated by hyphens (-)
-- Underscores (_) and camelCase are prohibited
+- Underscores (\_) and camelCase are prohibited
 
 **ABNF Definition**:
 
@@ -202,6 +205,7 @@ Attribute names MUST follow the same **kebab-case** rules as element names.
 DPML documents SHOULD use **UTF-8** encoding.
 
 **Rules**:
+
 - UTF-8 is the recommended encoding; implementations MUST support it
 - If using other encodings, an XML declaration MUST be included:
   ```xml
@@ -213,6 +217,7 @@ DPML documents SHOULD use **UTF-8** encoding.
 **Whitespace Definition**: Space (U+0020), tab (U+0009), line feed (U+000A), carriage return (U+000D)
 
 **Processing Rules**:
+
 - **Element Content**: Protocol layer MUST preserve all whitespace characters (per XML 1.0)
 - **Attribute Values**: MUST preserve leading, trailing, and internal whitespace
 - **Between Tags**: Formatting whitespace MAY be ignored
@@ -257,6 +262,7 @@ Mixed content (text + child elements) is syntactically valid:
 ```
 
 **Processing Rules**:
+
 - Protocol layer: Syntactically legal
 - Domain layer: MAY restrict to pure text or pure child elements
 - Implementation: MUST preserve the order of text and elements
@@ -264,10 +270,12 @@ Mixed content (text + child elements) is syntactically valid:
 ### 3.3 Protocol Layer Constraints
 
 **Protocol defines**:
+
 - Naming MUST be kebab-case
 - SHOULD use consensus concepts
 
 **Protocol does NOT define**:
+
 - Which elements exist (defined by domain specifications)
 - Element hierarchy rules
 - Required or optional elements
@@ -286,12 +294,14 @@ Mixed content (text + child elements) is syntactically valid:
 ```
 
 **Rules**:
+
 - Attribute names MUST be kebab-case
 - Attribute values MUST be quoted (single or double quotes)
 - Attribute names MUST NOT be duplicated within the same element
 - Attribute order has no semantic significance
 
 **Escape Rules**:
+
 - `<` → `&lt;`
 - `>` → `&gt;`
 - `&` → `&amp;`
@@ -308,14 +318,14 @@ Mixed content (text + child elements) is syntactically valid:
 
 **Standard Type Values**:
 
-| Type Value | Content Format | Description |
-|-----------|---------------|-------------|
-| `text` | Plain text | Default, natural language |
-| `markdown` | Markdown | Formatted text |
-| `json` | JSON | Data structure |
-| `javascript` | JavaScript | Code |
-| `python` | Python | Code |
-| `yaml` | YAML | Data structure |
+| Type Value   | Content Format | Description               |
+| ------------ | -------------- | ------------------------- |
+| `text`       | Plain text     | Default, natural language |
+| `markdown`   | Markdown       | Formatted text            |
+| `json`       | JSON           | Data structure            |
+| `javascript` | JavaScript     | Code                      |
+| `python`     | Python         | Code                      |
+| `yaml`       | YAML           | Data structure            |
 
 **Examples**:
 
@@ -334,6 +344,7 @@ You are an assistant.
 ```
 
 **Processing Rules**:
+
 - Implementations MUST recognize the `type` attribute
 - Implementations SHOULD support standard type values
 - Implementations MAY support custom type values
@@ -344,6 +355,7 @@ You are an assistant.
 **Purpose**: Unique identifier for an element
 
 **Syntax Rules**:
+
 - MUST be unique within a single document
 - MAY contain letters, digits, hyphens, underscores
 - kebab-case is RECOMMENDED
@@ -357,6 +369,7 @@ You are an assistant.
 ```
 
 **Reserved Usage**:
+
 - v1.0: For identification only, does not support references
 - Future versions: Will support reference mechanisms
 
@@ -374,6 +387,7 @@ Domains MAY define their own attributes:
 ```
 
 **Constraints**:
+
 - MUST follow kebab-case
 - All attributes are strings at the protocol layer
 - Type interpretation is defined by domain specifications
@@ -396,10 +410,10 @@ Element content can be:
 **Characters that MUST be escaped**:
 
 | Character | Escape Form | Usage Context |
-|-----------|------------|---------------|
-| `<` | `&lt;` | Always |
-| `&` | `&amp;` | Always |
-| `>` | `&gt;` | Recommended |
+| --------- | ----------- | ------------- |
+| `<`       | `&lt;`      | Always        |
+| `&`       | `&amp;`     | Always        |
+| `>`       | `&gt;`      | Recommended   |
 
 **Code Content Handling**:
 
@@ -416,6 +430,7 @@ if (x < 10 && y > 5) {
 ### 5.3 Whitespace Normalization
 
 **Rules**:
+
 - Protocol layer: MUST preserve all whitespace characters
 - Domain layer: MAY define normalization rules
 
@@ -468,6 +483,7 @@ XML declaration is optional:
 ```
 
 **Recommendations**:
+
 - If encoding is not UTF-8, XML declaration MUST be included
 - For clarity, it is RECOMMENDED to always include it
 
@@ -484,6 +500,7 @@ XML comments are supported:
 ```
 
 **Rules**:
+
 - Comments MAY appear between elements
 - Comments MUST NOT appear inside tags
 - Comments MUST NOT be nested
@@ -527,27 +544,27 @@ Documents MUST satisfy XML 1.0 well-formedness rules:
 
 **Fatal Errors (E Series)**:
 
-| Code | Description |
-|------|-------------|
-| E01 | File read failure |
-| E02 | Malformed XML |
+| Code | Description       |
+| ---- | ----------------- |
+| E01  | File read failure |
+| E02  | Malformed XML     |
 
 **Validation Errors (V Series)**:
 
-| Code | Description |
-|------|-------------|
-| V11 | Element name is not kebab-case |
-| V12 | Attribute name is not kebab-case |
-| V21 | Invalid type attribute value |
-| V22 | Invalid id attribute value format |
-| V23 | Duplicate id |
+| Code | Description                       |
+| ---- | --------------------------------- |
+| V11  | Element name is not kebab-case    |
+| V12  | Attribute name is not kebab-case  |
+| V21  | Invalid type attribute value      |
+| V22  | Invalid id attribute value format |
+| V23  | Duplicate id                      |
 
 **Warnings (W Series)**:
 
-| Code | Description |
-|------|-------------|
-| W01 | Unknown type value |
-| W02 | UTF-8 encoding recommended |
+| Code | Description                |
+| ---- | -------------------------- |
+| W01  | Unknown type value         |
+| W02  | UTF-8 encoding recommended |
 
 ### 7.4 Error Report Format
 
@@ -602,6 +619,7 @@ Domain specifications MAY define custom elements, but MUST follow kebab-case.
 #### 8.3.2 Custom Attributes
 
 Domain specifications MAY define custom attributes, but:
+
 - MUST follow kebab-case
 - MUST NOT conflict with reserved attributes (type, id)
 - SHOULD use `x-` prefix for experimental attributes
@@ -619,6 +637,7 @@ fn main() {
 ```
 
 **Processing Rules**:
+
 - Unrecognized type values SHOULD be treated as `text`
 - SHOULD log warning W01
 - SHOULD NOT cause validation failure
@@ -628,6 +647,7 @@ fn main() {
 DPML v1.0 documents MUST remain valid in future versions.
 
 **Rules**:
+
 - All v1.0 syntax remains valid in v2.0+
 - New versions MAY add new features but MUST NOT break old syntax
 - When version declaration is absent, v1.0 SHOULD be assumed

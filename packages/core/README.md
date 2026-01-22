@@ -39,10 +39,8 @@ import { processSchema } from '@dpml/core';
 const schema = {
   root: {
     element: 'prompt',
-    attributes: [
-      { name: 'role', required: true }
-    ]
-  }
+    attributes: [{ name: 'role', required: true }],
+  },
 };
 
 const processedSchema = processSchema(schema);
@@ -72,9 +70,9 @@ registerTransformer({
   name: 'my-transformer',
   transform: (input, context) => {
     return {
-      content: context.getDocument().rootNode.content
+      content: context.getDocument().rootNode.content,
     };
-  }
+  },
 });
 
 // Transform processed result
@@ -103,7 +101,7 @@ import type {
   // Transformer types
   Transformer,
   TransformContext,
-  TransformResult
+  TransformResult,
 } from '@dpml/core';
 ```
 

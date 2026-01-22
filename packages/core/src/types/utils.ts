@@ -200,6 +200,8 @@ export function findNodesByAttr(
     if (!node.attributes) return false;
     const value = node.attributes.get(attrName);
 
-    return value !== undefined && (attrValue === undefined || value === attrValue);
+    return (
+      value !== undefined && (attrValue === undefined || value === attrValue)
+    );
   });
 }

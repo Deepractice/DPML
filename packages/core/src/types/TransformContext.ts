@@ -23,7 +23,10 @@ export class TransformContext {
    * @param processingResult 原始处理结果
    * @param initialData 可选的初始数据
    */
-  constructor(processingResult: ProcessingResult, initialData?: Record<string, unknown>) {
+  constructor(
+    processingResult: ProcessingResult,
+    initialData?: Record<string, unknown>
+  ) {
     this.processingResult = processingResult;
     this.data = new Map<string, unknown>();
 
@@ -85,7 +88,7 @@ export class TransformContext {
    * @returns 验证结果对象
    */
   getValidation(): ValidationResult {
-    return <ValidationResult> this.processingResult.validation;
+    return <ValidationResult>this.processingResult.validation;
   }
 
   /**

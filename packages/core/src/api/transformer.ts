@@ -8,7 +8,7 @@ import type {
   ProcessingResult,
   Transformer,
   TransformOptions,
-  TransformResult
+  TransformResult,
 } from '../types';
 
 // 导入核心服务模块

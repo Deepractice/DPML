@@ -80,7 +80,8 @@ export class XMLAdapter {
    */
   private shouldApplyLargeContentOptimization(content: string): boolean {
     // 获取用户配置的阈值，默认为1MB
-    const contentSizeThreshold = this.options.memoryOptimization?.largeFileThreshold || 1024 * 1024;
+    const contentSizeThreshold =
+      this.options.memoryOptimization?.largeFileThreshold || 1024 * 1024;
 
     return content.length > contentSizeThreshold;
   }
@@ -91,25 +92,25 @@ export class XMLAdapter {
   private applyLargeContentOptimization(): void {
     const optimizationOptions: Record<string, unknown> = {
       // xml2js优化选项
-      explicitArray: true,       // 使用数组保存子节点，简化遍历
-      normalizeTags: false,      // 不标准化标签名，保持原始命名
-      trim: true,                // 裁剪值的空白，减少内存占用
-      explicitRoot: true,        // 保留根元素
-      explicitChildren: true,    // 显式子节点结构，提高导航效率
+      explicitArray: true, // 使用数组保存子节点，简化遍历
+      normalizeTags: false, // 不标准化标签名，保持原始命名
+      trim: true, // 裁剪值的空白，减少内存占用
+      explicitRoot: true, // 保留根元素
+      explicitChildren: true, // 显式子节点结构，提高导航效率
       preserveChildrenOrder: true, // 保持子元素顺序
-      mergeAttrs: false,         // 不合并属性
-      charsAsChildren: false,    // 不将字符作为子节点
-      includeWhiteChars: false,  // 不包含空白
+      mergeAttrs: false, // 不合并属性
+      charsAsChildren: false, // 不将字符作为子节点
+      includeWhiteChars: false, // 不包含空白
     };
 
     // 应用用户自定义的内存优化选项
     if (this.options.memoryOptimization) {
-      const { batchSize, useStreaming } = this.options.memoryOptimization;
+      const { useStreaming } = this.options.memoryOptimization;
 
       // 如果启用了流式处理，进一步优化
       if (useStreaming) {
         optimizationOptions.preserveChildrenOrder = false; // 流式处理不需要保持顺序
-        optimizationOptions.charsAsChildren = false;      // 避免创建不必要的文本节点
+        optimizationOptions.charsAsChildren = false; // 避免创建不必要的文本节点
       }
     }
 
@@ -134,12 +135,8 @@ export class XMLAdapter {
     const xmlOptions: Record<string, unknown> = {};
 
     if (this.options.xmlParserOptions) {
-      const {
-        preserveWhitespace,
-        parseComments,
-        enableNamespaces,
-        maxDepth
-      } = this.options.xmlParserOptions;
+      const { preserveWhitespace, parseComments, enableNamespaces } =
+        this.options.xmlParserOptions;
 
       // 转换选项格式为xml2js接受的格式
       if (preserveWhitespace !== undefined) {
@@ -220,12 +217,16 @@ export class XMLAdapter {
       type: node.type,
       name: node.name,
       attributes: { ...node.attributes },
-      children: node.children ? node.children.map(child => this.cloneNode(child)) : [],
+      children: node.children
+        ? node.children.map(child => this.cloneNode(child))
+        : [],
       text: node.text,
-      position: node.position ? {
-        start: { ...node.position.start },
-        end: { ...node.position.end }
-      } : undefined
+      position: node.position
+        ? {
+            start: { ...node.position.start },
+            end: { ...node.position.end },
+          }
+        : undefined,
     };
 
     return clone;
@@ -259,7 +260,11 @@ export class XMLAdapter {
    */
   private normalizeTextContent(node: XMLNode): void {
     // 确保文本内容为字符串或undefined
-    if (node.text !== undefined && node.text !== null && typeof node.text !== 'string') {
+    if (
+      node.text !== undefined &&
+      node.text !== null &&
+      typeof node.text !== 'string'
+    ) {
       node.text = String(node.text);
     }
 
@@ -282,7 +287,11 @@ export class XMLAdapter {
     }
 
     // 创建增强的XML解析错误
-    const enhancedError = XMLParseError.fromError(error, content, this.options.fileName);
+    const enhancedError = XMLParseError.fromError(
+      error,
+      content,
+      this.options.fileName
+    );
 
     // 增强错误信息，添加更多上下文
     if (content && content.length > 0) {
@@ -292,7 +301,9 @@ export class XMLAdapter {
 
         // 尝试从错误消息提取位置信息
         if (error instanceof Error) {
-          const posMatch = error.message.match(/line\s*(\d+)(?:,|\s+column\s+)(\d+)/i);
+          const posMatch = error.message.match(
+            /line\s*(\d+)(?:,|\s+column\s+)(\d+)/i
+          );
 
           if (posMatch) {
             const line = parseInt(posMatch[1], 10);
@@ -306,7 +317,12 @@ export class XMLAdapter {
               offset += lines[i].length + 1;
             }
 
-            errorPosition = offset + Math.min(column, lines[Math.min(line - 1, lines.length - 1)].length);
+            errorPosition =
+              offset +
+              Math.min(
+                column,
+                lines[Math.min(line - 1, lines.length - 1)].length
+              );
           }
         }
 

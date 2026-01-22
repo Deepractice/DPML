@@ -2,22 +2,22 @@
  * Compile Steps - Step definitions for compilation scenarios
  */
 
-import { Given, When, Then } from "@cucumber/cucumber";
-import { strict as assert } from "assert";
-import { createDPML, defineSchema, defineTransformer } from "dpml";
-import type { DPMLWorld } from "../support/world";
+import { Given, When, Then } from '@cucumber/cucumber';
+import { strict as assert } from 'assert';
+import { createDPML, defineSchema, defineTransformer } from 'dpml';
+import type { DPMLWorld } from '../support/world';
 
 // ============================================
 // Given Steps
 // ============================================
 
-Given("a schema:", function (this: DPMLWorld, docString: string) {
+Given('a schema:', function (this: DPMLWorld, docString: string) {
   this.schemaDefinition = JSON.parse(docString);
   this.schema = defineSchema(this.schemaDefinition as any);
 });
 
 Given(
-  "a transformer {string} that returns document content",
+  'a transformer {string} that returns document content',
   function (this: DPMLWorld, name: string) {
     const transformer = defineTransformer({
       name,
@@ -34,7 +34,7 @@ Given(
 );
 
 Given(
-  "a transformer {string} that extracts attributes",
+  'a transformer {string} that extracts attributes',
   function (this: DPMLWorld, name: string) {
     const transformer = defineTransformer({
       name,
@@ -54,7 +54,7 @@ Given(
 );
 
 Given(
-  "a transformer {string} that extracts children",
+  'a transformer {string} that extracts children',
   function (this: DPMLWorld, name: string) {
     const transformer = defineTransformer({
       name,
@@ -74,15 +74,13 @@ Given(
 );
 
 Given(
-  "a transformer {string} that adds prefix {string}",
+  'a transformer {string} that adds prefix {string}',
   function (this: DPMLWorld, name: string, prefix: string) {
     const transformer = defineTransformer({
       name,
       transform: (input: any) => {
         const content =
-          input.content ||
-          input.document?.rootNode?.content ||
-          "";
+          input.content || input.document?.rootNode?.content || '';
         return {
           ...input,
           content: prefix + content,
@@ -94,15 +92,13 @@ Given(
 );
 
 Given(
-  "a transformer {string} that adds suffix {string}",
+  'a transformer {string} that adds suffix {string}',
   function (this: DPMLWorld, name: string, suffix: string) {
     const transformer = defineTransformer({
       name,
       transform: (input: any) => {
         const content =
-          input.content ||
-          input.document?.rootNode?.content ||
-          "";
+          input.content || input.document?.rootNode?.content || '';
         return {
           ...input,
           content: content + suffix,
@@ -113,8 +109,8 @@ Given(
   }
 );
 
-Given("a DPML instance is created", function (this: DPMLWorld) {
-  assert(this.schema, "Schema must be defined before creating DPML instance");
+Given('a DPML instance is created', function (this: DPMLWorld) {
+  assert(this.schema, 'Schema must be defined before creating DPML instance');
 
   this.dpml = createDPML({
     schema: this.schema,
@@ -126,8 +122,8 @@ Given("a DPML instance is created", function (this: DPMLWorld) {
 // When Steps
 // ============================================
 
-When("compiling:", async function (this: DPMLWorld, docString: string) {
-  assert(this.dpml, "DPML instance must be created before compiling");
+When('compiling:', async function (this: DPMLWorld, docString: string) {
+  assert(this.dpml, 'DPML instance must be created before compiling');
 
   try {
     this.lastResult = await this.dpml.compile(docString);
@@ -142,30 +138,33 @@ When("compiling:", async function (this: DPMLWorld, docString: string) {
 // Then Steps
 // ============================================
 
-Then("compilation succeeds", function (this: DPMLWorld) {
+Then('compilation succeeds', function (this: DPMLWorld) {
   if (this.lastError) {
     throw new Error(`Compilation failed: ${this.lastError.message}`);
   }
-  assert(this.lastResult !== null, "Compilation should produce a result");
+  assert(this.lastResult !== null, 'Compilation should produce a result');
 });
 
-Then("compilation fails", function (this: DPMLWorld) {
-  assert(this.lastError !== null, "Compilation should have failed");
-});
-
-Then("compilation succeeds with validation warnings", function (this: DPMLWorld) {
-  // Compilation itself should not throw
-  if (this.lastError) {
-    throw new Error(`Compilation failed: ${this.lastError.message}`);
-  }
-  assert(this.lastResult !== null, "Compilation should produce a result");
-  // Note: validation warnings are collected but don't cause failure
+Then('compilation fails', function (this: DPMLWorld) {
+  assert(this.lastError !== null, 'Compilation should have failed');
 });
 
 Then(
-  "result has attribute {string} with value {string}",
+  'compilation succeeds with validation warnings',
+  function (this: DPMLWorld) {
+    // Compilation itself should not throw
+    if (this.lastError) {
+      throw new Error(`Compilation failed: ${this.lastError.message}`);
+    }
+    assert(this.lastResult !== null, 'Compilation should produce a result');
+    // Note: validation warnings are collected but don't cause failure
+  }
+);
+
+Then(
+  'result has attribute {string} with value {string}',
   function (this: DPMLWorld, attrName: string, expectedValue: string) {
-    assert(this.lastResult, "Result should exist");
+    assert(this.lastResult, 'Result should exist');
     const result = this.lastResult as any;
     assert(
       result.attributes?.[attrName] === expectedValue,
@@ -175,9 +174,9 @@ Then(
 );
 
 Then(
-  "result has child element {string}",
+  'result has child element {string}',
   function (this: DPMLWorld, childName: string) {
-    assert(this.lastResult, "Result should exist");
+    assert(this.lastResult, 'Result should exist');
     const result = this.lastResult as any;
     assert(
       result.children?.[childName],
@@ -187,9 +186,9 @@ Then(
 );
 
 Then(
-  "error message contains {string}",
+  'error message contains {string}',
   function (this: DPMLWorld, expectedText: string) {
-    assert(this.lastError, "Error should exist");
+    assert(this.lastError, 'Error should exist');
     assert(
       this.lastError.message.toLowerCase().includes(expectedText.toLowerCase()),
       `Expected error message to contain "${expectedText}", got "${this.lastError.message}"`
@@ -198,11 +197,11 @@ Then(
 );
 
 Then(
-  "result content contains {string}",
+  'result content contains {string}',
   function (this: DPMLWorld, expectedText: string) {
-    assert(this.lastResult, "Result should exist");
+    assert(this.lastResult, 'Result should exist');
     const result = this.lastResult as any;
-    const content = result.content || "";
+    const content = result.content || '';
     assert(
       content.includes(expectedText),
       `Expected content to contain "${expectedText}", got "${content}"`

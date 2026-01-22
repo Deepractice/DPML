@@ -1,16 +1,18 @@
-import type { DPMLDocument, DPMLNode, ParseOptions, SourceLocation } from '../../types';
+import type {
+  DPMLDocument,
+  DPMLNode,
+  ParseOptions,
+  SourceLocation,
+} from '../../types';
 
-import { DPMLParseError, ParseError, ParseErrorCode, XMLParseError } from './errors';
+import {
+  DPMLParseError,
+  ParseError,
+  ParseErrorCode,
+  XMLParseError,
+} from './errors';
 import type { XMLNode, XMLPosition } from './types';
 import type { XMLAdapter } from './XMLAdapter';
-
-/**
- * 节点引用关系类型，用于临时存储
- */
-interface NodeRelation {
-  node: DPMLNode;
-  parentId?: string;
-}
 
 // 扩展XMLParserOptions接口，添加验证结构的属性
 declare module '../../types' {
@@ -67,9 +69,9 @@ export class DPMLAdapter {
       this.validateXMLResult(xmlResult, content);
 
       // 转换为DPML节点
-      const rootNode = isLargeContent ?
-        this.convertToDPMLOptimized(xmlResult) :
-        this.convertToDPML(xmlResult);
+      const rootNode = isLargeContent
+        ? this.convertToDPMLOptimized(xmlResult)
+        : this.convertToDPML(xmlResult);
 
       // 构建文档对象
       const document = this.createDPMLDocument(rootNode);
@@ -137,16 +139,22 @@ export class DPMLAdapter {
       throw new DPMLParseError(
         '空的DPML内容',
         ParseErrorCode.DPML_INVALID_STRUCTURE,
-        { startLine: 1, startColumn: 1, endLine: 1, endColumn: 1, fileName: this.options.fileName },
+        {
+          startLine: 1,
+          startColumn: 1,
+          endLine: 1,
+          endColumn: 1,
+          fileName: this.options.fileName,
+        },
         content
       );
     }
 
     // 特别检查未闭合的标签，这是一个常见错误
     // 使用正则表达式匹配所有标签
-    const openTagPattern = /<([a-zA-Z][\w:\-\.]*)[^>]*?>/g;
-    const closeTagPattern = /<\/([a-zA-Z][\w:\-\.]*)[^>]*?>/g;
-    const selfClosingPattern = /<([a-zA-Z][\w:\-\.]*)[^>]*?\/>/g;
+    const openTagPattern = /<([a-zA-Z][\w:.-]*)[^>]*?>/g;
+    const closeTagPattern = /<\/([a-zA-Z][\w:.-]*)[^>]*?>/g;
+    const selfClosingPattern = /<([a-zA-Z][\w:.-]*)[^>]*?\/>/g;
 
     // 收集所有标签
     const openTags: string[] = [];
@@ -209,7 +217,8 @@ export class DPMLAdapter {
    */
   private isLargeContent(content: string): boolean {
     // 使用用户配置的大文件阈值（如果有），否则使用默认值（2MB）
-    const threshold = this.options.memoryOptimization?.largeFileThreshold || 2 * 1024 * 1024;
+    const threshold =
+      this.options.memoryOptimization?.largeFileThreshold || 2 * 1024 * 1024;
 
     // 如果启用了内存优化，使用提供的阈值
     if (this.options.memoryOptimization?.enabled) {
@@ -234,7 +243,7 @@ export class DPMLAdapter {
     const metadata = {
       sourceFileName: this.options.fileName,
       createdAt: new Date(),
-      size: this.calculateDocumentSize(rootNode)
+      size: this.calculateDocumentSize(rootNode),
     };
 
     // 构建节点ID索引
@@ -251,20 +260,20 @@ export class DPMLAdapter {
         value: rootNode,
         writable: false,
         enumerable: true,
-        configurable: false
+        configurable: false,
       },
       nodesById: {
         value: nodesById,
         writable: false,
         enumerable: true,
-        configurable: false
+        configurable: false,
       },
       metadata: {
         value: metadata,
         writable: false,
         enumerable: true,
-        configurable: false
-      }
+        configurable: false,
+      },
     });
 
     return document;
@@ -315,7 +324,7 @@ export class DPMLAdapter {
           value: rootDPMLNode,
           writable: false,
           enumerable: true,
-          configurable: false
+          configurable: false,
         });
         // 将子节点加入队列继续处理
         queue.push({ xmlNode: childXml, dpmlNode: childDPML });
@@ -327,7 +336,8 @@ export class DPMLAdapter {
     let processed = 0;
 
     while (queue.length > 0) {
-      const { xmlNode: currentXmlNode, dpmlNode: currentDPMLNode } = queue.shift()!;
+      const { xmlNode: currentXmlNode, dpmlNode: currentDPMLNode } =
+        queue.shift()!;
 
       // 处理当前节点的子节点
       if (currentXmlNode.children && currentXmlNode.children.length > 0) {
@@ -340,7 +350,7 @@ export class DPMLAdapter {
             value: currentDPMLNode,
             writable: false,
             enumerable: true,
-            configurable: false
+            configurable: false,
           });
           // 将子节点加入队列继续处理
           queue.push({ xmlNode: childXml, dpmlNode: childDPML });
@@ -393,38 +403,40 @@ export class DPMLAdapter {
         value: xmlNode.name,
         writable: false,
         enumerable: true,
-        configurable: false
+        configurable: false,
       },
       attributes: {
         value: attributes,
         writable: false,
         enumerable: true,
-        configurable: false
+        configurable: false,
       },
       children: {
         value: [],
         writable: false,
         enumerable: true,
-        configurable: false
+        configurable: false,
       },
       content: {
         value: content,
         writable: false,
         enumerable: true,
-        configurable: false
+        configurable: false,
       },
       parent: {
         value: null,
         writable: false,
         enumerable: true,
-        configurable: true // 允许子节点重新配置该属性
+        configurable: true, // 允许子节点重新配置该属性
       },
       sourceLocation: {
-        value: xmlNode.position ? this.createSourceLocation(xmlNode.position) : undefined,
+        value: xmlNode.position
+          ? this.createSourceLocation(xmlNode.position)
+          : undefined,
         writable: false,
         enumerable: true,
-        configurable: false
-      }
+        configurable: false,
+      },
     });
 
     return node;
@@ -435,7 +447,9 @@ export class DPMLAdapter {
    * @param xmlNode XML节点
    * @returns Promise<DPMLNode>
    */
-  private async convertToDPMLAsyncOptimized(xmlNode: XMLNode): Promise<DPMLNode> {
+  private async convertToDPMLAsyncOptimized(
+    xmlNode: XMLNode
+  ): Promise<DPMLNode> {
     // 创建根节点
     const rootDPMLNode = this.createDPMLNode(xmlNode);
 
@@ -453,7 +467,7 @@ export class DPMLAdapter {
           value: rootDPMLNode,
           writable: false,
           enumerable: true,
-          configurable: false
+          configurable: false,
         });
         // 将子节点加入队列继续处理
         queue.push({ xmlNode: childXml, dpmlNode: childDPML });
@@ -468,7 +482,10 @@ export class DPMLAdapter {
       const batch = queue.splice(0, Math.min(batchSize, queue.length));
 
       // 处理批次
-      for (const { xmlNode: currentXmlNode, dpmlNode: currentDPMLNode } of batch) {
+      for (const {
+        xmlNode: currentXmlNode,
+        dpmlNode: currentDPMLNode,
+      } of batch) {
         // 处理当前节点的子节点
         if (currentXmlNode.children && currentXmlNode.children.length > 0) {
           currentXmlNode.children.forEach(childXml => {
@@ -480,7 +497,7 @@ export class DPMLAdapter {
               value: currentDPMLNode,
               writable: false,
               enumerable: true,
-              configurable: false
+              configurable: false,
             });
             // 将子节点加入队列继续处理
             queue.push({ xmlNode: childXml, dpmlNode: childDPML });
@@ -520,7 +537,7 @@ export class DPMLAdapter {
           value: dpmlNode,
           writable: false,
           enumerable: true,
-          configurable: false
+          configurable: false,
         });
       });
     }
@@ -570,7 +587,10 @@ export class DPMLAdapter {
    * @param rootNode 根节点
    * @param nodeMap 节点ID映射
    */
-  private validateReferences(rootNode: DPMLNode, nodeMap: Map<string, DPMLNode>): void {
+  private validateReferences(
+    rootNode: DPMLNode,
+    nodeMap: Map<string, DPMLNode>
+  ): void {
     // 仅当启用了严格模式时验证引用
     if (this.options.xmlParserOptions?.validateReferences === false) {
       return;
@@ -612,7 +632,7 @@ export class DPMLAdapter {
       startColumn: position.start.column,
       endLine: position.end.line,
       endColumn: position.end.column,
-      fileName: this.options.fileName
+      fileName: this.options.fileName,
     };
   }
 
@@ -675,7 +695,7 @@ export class DPMLAdapter {
           startColumn: pos.start.column,
           endLine: pos.end.line,
           endColumn: pos.end.column,
-          fileName: this.options.fileName
+          fileName: this.options.fileName,
         };
       }
 

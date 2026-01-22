@@ -1,34 +1,17 @@
 # Lefthook Configuration
 # https://github.com/evilmartians/lefthook
 
-# 提交信息检查
+# Commit message check
 commit-msg:
   commands:
     commitlint:
-      run: npx commitlint --edit {1}
+      run: bunx commitlint --edit {1}
 
-# 提交前检查
+# Pre-commit checks
 pre-commit:
   parallel: true
   commands:
-    # Lint staged files
     lint:
-      glob: "*.{js,ts,tsx,json}"
-      run: pnpm lint {staged_files}
+      glob: '*.{js,ts,tsx}'
+      run: bun run lint
       stage_fixed: true
-
-    # Type check (optional, can be slow)
-    # typecheck:
-    #   run: pnpm turbo run typecheck
-    #   skip:
-    #     - merge
-    #     - rebase
-
-# 推送前检查（可选）
-# pre-push:
-#   commands:
-#     test:
-#       run: pnpm test
-#       skip:
-#         - merge
-#         - rebase

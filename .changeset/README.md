@@ -11,6 +11,7 @@ bunx changeset
 ```
 
 This will prompt you to:
+
 1. Select which packages have changed
 2. Choose the version bump type (major/minor/patch)
 3. Write a summary of the changes
@@ -24,5 +25,6 @@ This will prompt you to:
 ## Publishing
 
 Publishing is automated via GitHub Actions. When changesets are merged to main:
+
 1. A "Version Packages" PR is created
 2. Merging that PR publishes to npm

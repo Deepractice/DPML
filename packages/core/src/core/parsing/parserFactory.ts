@@ -19,9 +19,9 @@ export const parserFactory = {
    * @param options 解析选项
    * @returns DPML适配器实例
    */
-  createDPMLAdapter<T>(options: ParseOptions = {}): DPMLAdapter {
+  createDPMLAdapter(options: ParseOptions = {}): DPMLAdapter {
     // 创建XML适配器
-    const xmlAdapter = this.createXMLAdapter<T>(options);
+    const xmlAdapter = this.createXMLAdapter(options);
 
     // 创建并返回DPML适配器
     return new DPMLAdapter(options, xmlAdapter);
@@ -32,7 +32,7 @@ export const parserFactory = {
    * @param options 解析选项
    * @returns XML适配器实例
    */
-  createXMLAdapter<T>(options: ParseOptions = {}): XMLAdapter {
+  createXMLAdapter(options: ParseOptions = {}): XMLAdapter {
     // 获取底层XML解析器实例
     const xmlParser = this.createXMLParser();
 
@@ -55,5 +55,5 @@ export const parserFactory = {
     this._xmlParser = new XMLParser();
 
     return this._xmlParser;
-  }
+  },
 };

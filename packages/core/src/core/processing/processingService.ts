@@ -4,7 +4,7 @@ import type {
   ProcessingResult,
   ProcessedSchema,
   ReferenceMap,
-  ProcessingWarning
+  ProcessingWarning,
 } from '../../types';
 
 import { ValidatorFactory } from './ValidatorFactory';
@@ -17,7 +17,9 @@ import { ValidatorFactory } from './ValidatorFactory';
  * @param document - 要处理的DPML文档
  * @returns 只读的ID到节点映射
  */
-export function buildIdMap(document: DPMLDocument): ReadonlyMap<string, DPMLNode> {
+export function buildIdMap(
+  document: DPMLDocument
+): ReadonlyMap<string, DPMLNode> {
   // 如果文档已经包含构建好的nodesById映射，直接返回
   if (document.nodesById && document.nodesById.size > 0) {
     return document.nodesById;
@@ -66,7 +68,7 @@ function collectNodesWithIdIterative(
           startLine: 0,
           startColumn: 0,
           endLine: 0,
-          endColumn: 0
+          endColumn: 0,
         };
 
         warnings.push({
@@ -74,14 +76,13 @@ function collectNodesWithIdIterative(
           message: `发现重复ID: ${id}，忽略后续出现的节点`,
           path: buildNodePath(node),
           source: sourceLocation,
-          severity: 'warning'
+          severity: 'warning',
         });
       } else {
         // 添加ID到映射
         idMap.set(id, node);
 
         // 调试信息 - 输出路径以验证节点层次
-
       }
     }
 
@@ -90,57 +91,6 @@ function collectNodesWithIdIterative(
     for (let i = node.children.length - 1; i >= 0; i--) {
       stack.push(node.children[i]);
     }
-  }
-}
-
-/**
- * 递归方式收集具有ID属性的节点
- * 保留用于小型文档处理，较大文档建议使用迭代方式
- *
- * @param node - 当前处理的节点
- * @param idMap - ID到节点的映射
- * @param warnings - 警告集合
- */
-// eslint-disable-next-line unused-imports/no-unused-vars,@typescript-eslint/no-unused-vars
-function collectNodesWithId(
-  node: DPMLNode,
-  idMap: Map<string, DPMLNode>,
-  warnings: ProcessingWarning[]
-): void {
-  // 检查节点是否有ID属性
-  if (node.attributes.has('id')) {
-    const id = node.attributes.get('id')!;
-
-    // 检查ID是否已存在
-    if (idMap.has(id)) {
-      const sourceLocation = node.sourceLocation || {
-        startLine: 0,
-        startColumn: 0,
-        endLine: 0,
-        endColumn: 0
-      };
-
-      warnings.push({
-        code: 'DUPLICATE_ID',
-        message: `发现重复ID: ${id}，忽略后续出现的节点`,
-        path: buildNodePath(node),
-        source: sourceLocation,
-        severity: 'warning'
-      });
-    } else {
-      // 添加ID到映射
-      idMap.set(id, node);
-    }
-  }
-
-  // 递归处理子节点
-  for (const child of node.children) {
-    // 验证parent关系是否正确（仅检查，不修改关系）
-    if (child.parent !== node) {
-      // 在此只检测parent关系，问题通常在解析阶段处理，这里不再修复
-    }
-
-    collectNodesWithId(child, idMap, warnings);
   }
 }
 
@@ -191,18 +141,10 @@ export function processDocument<T extends ProcessingResult = ProcessingResult>(
 
   // 调试日志：开始验证
 
-
   // 验证文档
   const validationResult = validator.validateDocument(document, schema);
 
   // 调试日志：验证结果
-
-  if (validationResult.errors.length > 0) {
-
-    validationResult.errors.forEach((error, i) => {
-
-    });
-  }
 
   // 收集处理过程中的警告
   const warnings: ProcessingWarning[] = [];
@@ -211,14 +153,12 @@ export function processDocument<T extends ProcessingResult = ProcessingResult>(
 
   const idMap = buildIdMap(document);
 
-
-
   // 调试: 检查引用关系
   if (idMap.size > 0 && validationResult.errors.length > 0) {
-
     // 取样几个ID节点检查父子关系
     for (const [id, node] of idMap.entries()) {
-      if (id.startsWith('para-')) { // 只检查段落节点的层次关系
+      if (id.startsWith('para-')) {
+        // 只检查段落节点的层次关系
         let path = '';
         let current: DPMLNode | null = node;
 
@@ -226,15 +166,13 @@ export function processDocument<T extends ProcessingResult = ProcessingResult>(
           path = `${current.tagName}${current.attributes.has('id') ? `(id=${current.attributes.get('id')})` : ''} > ${path}`;
           current = current.parent;
         }
-
-
       }
     }
   }
 
   // 创建引用映射
   const referenceMap: ReferenceMap = {
-    idMap
+    idMap,
   };
 
   // 创建处理结果 - 使用深复制避免共享引用问题
@@ -244,25 +182,32 @@ export function processDocument<T extends ProcessingResult = ProcessingResult>(
   if (!isValid && schema.schema) {
     const schemaObj = schema.schema as any;
 
-    if (schemaObj.root &&
-        typeof schemaObj.root === 'object' &&
-        'element' in schemaObj.root) {
-
+    if (
+      schemaObj.root &&
+      typeof schemaObj.root === 'object' &&
+      'element' in schemaObj.root
+    ) {
       // 检查是否是简单Schema
-      const isSimpleSchema = !schemaObj.types || schemaObj.types.length === 0 ||
-                              (Array.isArray(schemaObj.types) && schemaObj.types.length === 1 &&
-                               schemaObj.types[0].element === schemaObj.root.element);
+      const isSimpleSchema =
+        !schemaObj.types ||
+        schemaObj.types.length === 0 ||
+        (Array.isArray(schemaObj.types) &&
+          schemaObj.types.length === 1 &&
+          schemaObj.types[0].element === schemaObj.root.element);
 
       if (isSimpleSchema) {
         // 处理各种宽松模式的错误
         const ignorableErrorCodes = [
-          'UNKNOWN_ELEMENT',        // 未知元素
-          'UNEXPECTED_CHILDREN',    // 未定义的子元素
-          'UNDEFINED_CHILDREN'      // 未定义的子元素(警告)
+          'UNKNOWN_ELEMENT', // 未知元素
+          'UNEXPECTED_CHILDREN', // 未定义的子元素
+          'UNDEFINED_CHILDREN', // 未定义的子元素(警告)
         ];
 
-        if (validationResult.errors.every(err => ignorableErrorCodes.includes(err.code))) {
-
+        if (
+          validationResult.errors.every(err =>
+            ignorableErrorCodes.includes(err.code)
+          )
+        ) {
           isValid = true;
         }
       }
@@ -277,12 +222,11 @@ export function processDocument<T extends ProcessingResult = ProcessingResult>(
     validation: {
       isValid,
       errors: [...validationResult.errors],
-      warnings: [...validationResult.warnings, ...warnings]
-    }
+      warnings: [...validationResult.warnings, ...warnings],
+    },
   };
 
   // 调试日志：最终结果
-
 
   return result as T;
 }
