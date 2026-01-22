@@ -1,0 +1,41 @@
+name: Changeset Check
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check:
+    name: Ensure Changeset
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for changeset
+        run: |
+          # Get changed files in this PR
+          CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
+
+          # Check if any .changeset/*.md files (excluding README.md) were added
+          CHANGESET_FILES=$(echo "$CHANGED_FILES" | grep '^\.changeset/.*\.md$' | grep -v 'README\.md' || true)
+
+          if [ -z "$CHANGESET_FILES" ]; then
+            echo "❌ No changeset found in this PR."
+            echo ""
+            echo "Please add a changeset by running:"
+            echo "  bunx changeset"
+            echo ""
+            echo "Or manually create a file in .changeset/ with the format:"
+            echo "---"
+            echo "\"packageName\": patch|minor|major"
+            echo "---"
+            echo ""
+            echo "Description of changes"
+            exit 1
+          fi
+
+          echo "✅ Changeset found: $CHANGESET_FILES"

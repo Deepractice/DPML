@@ -1,54 +1,47 @@
 {
   "name": "@dpml/core",
-  "version": "0.0.0-20250504131739",
-  "description": "DPML Core: Implementations of base compiler, and provide a simple framework for domain developers.",
+  "version": "0.1.0",
+  "description": "DPML Core: Parsing, validation, and transformation for DPML documents",
   "type": "module",
-  "main": "dist/index.cjs",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "bin": {
-    "dpml-core": "./dist/bin.js"
-  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "default": "./dist/index.js"
     }
   },
   "scripts": {
-    "prebuild": "pnpm lint ",
-    "build": "tsup",
-    "postbuild": "chmod +x dist/bin.js",
-    "lint": "eslint src --ext .ts --fix",
-    "swc": "node -r @swc-node/register",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "clean": "rm -rf dist node_modules cover"
+    "build": "bun run build.ts",
+    "test": "bun test",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "keywords": [
     "dpml",
-    "AI",
-    "agent",
-    "compiler",
-    "framework",
-    "prompt",
-    "llm",
-    "mcp",
-    "domain",
-    "language",
-    "workflow"
+    "parser",
+    "validation",
+    "transformer",
+    "xml",
+    "markup",
+    "prompt"
   ],
   "author": "Deepractice",
   "license": "MIT",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "dependencies": {
-    "commander": "^13.1.0",
     "lodash": "^4.17.21",
-    "marked": "^15.0.7",
     "strnum": "^2.0.5",
     "xml2js": "^0.6.2"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

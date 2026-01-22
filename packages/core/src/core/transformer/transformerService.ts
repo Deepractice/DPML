@@ -1,6 +1,6 @@
 /**
- * 转换服务模块
- * 模块服务层，实现业务逻辑并协调组件
+ * Transformer Service
+ * Module service layer for transformation logic
  */
 
 import type {
@@ -12,11 +12,23 @@ import type {
   TransformWarning,
 } from '../../types';
 import { TransformContext } from '../../types/TransformContext';
-import { createResultCollector } from '../framework/transformer/transformerFactory';
-import { getLogger } from '../logging/loggingService';
 
 import { Pipeline } from './Pipeline';
 import { transformerRegistryFactory } from './TransformerRegistry';
+
+/**
+ * Creates a result collector transformer
+ */
+function createResultCollector(name: string): Transformer<unknown, unknown> {
+  return {
+    name,
+    transform: (input: unknown, context: TransformContext) => {
+      const results = context.getAllResults();
+      context.set('transformerResults', results);
+      return input;
+    }
+  };
+}
 
 /**
  * 默认转换选项
@@ -159,43 +171,21 @@ export function transform<T>(
 }
 
 /**
- * 合并转换器结果
- * @param results 转换器结果对象
- * @returns 合并后的结果对象
+ * Merge transformer results
+ * @param results Transformer results object
+ * @returns Merged result object
  */
 function mergeResults(results: Record<string, unknown>): unknown {
-  // 创建一个存储最终合并结果的对象
   const merged: Record<string, unknown> = {};
 
-  // 获取日志器
-  const logger = getLogger('transformer.service.merge');
-
-  // 遍历所有转换器名称
   Object.keys(results).forEach(transformerName => {
-    // 跳过非转换器结果
     if (transformerName === 'warnings') return;
 
-    // 获取当前转换器的结果
     const transformerResult = results[transformerName];
 
-    logger.debug(`处理转换器结果: ${transformerName}`, {
-      resultType: typeof transformerResult,
-      isObject: transformerResult && typeof transformerResult === 'object',
-      isArray: Array.isArray(transformerResult)
-    });
-
-    // 如果结果是对象，则进行深度合并
     if (transformerResult && typeof transformerResult === 'object') {
       deepMerge(merged, transformerResult);
     }
-  });
-
-  // 记录合并后的结果状态
-  logger.debug('合并后的结果', {
-    keys: Object.keys(merged),
-    hasVariables: 'variables' in merged,
-    hasSteps: 'steps' in merged,
-    hasTransitions: 'transitions' in merged
   });
 
   return merged;

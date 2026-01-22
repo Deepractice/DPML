@@ -1,27 +1,47 @@
 {
   "name": "dpml",
-  "version": "0.0.0-20250504141354",
-  "description": "Deepractice Prompt Markup Language",
-  "type": "module",
-  "bin": {
-    "dpml": "./bin.js"
-  },
-  "files": [
-    "bin.js"
-  ],
-  "scripts": {
-    "build": "chmod +x ./bin.js",
-    "lint": "pwd"
-  },
+  "version": "0.1.0",
+  "description": "DPML - Deepractice Prompt Markup Language",
   "keywords": [
     "dpml",
     "prompt",
-    "llm",
-    "ai"
+    "markup",
+    "language",
+    "ai",
+    "llm"
   ],
-  "author": "Deepractice",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Deepractice/PromptML.git"
+  },
   "license": "MIT",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bun run build.ts",
+    "test": "bun test",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
   "dependencies": {
-    "@dpml/cli": "workspace:*"
+    "@dpml/core": "workspace:*"
+  },
+  "devDependencies": {},
+  "publishConfig": {
+    "access": "public"
   }
 }
