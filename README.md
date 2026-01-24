@@ -1,209 +1,176 @@
-# DPML (Deepractice Prompt Markup Language)
+<div align="center">
+  <h1>DPML</h1>
+  <p><strong>Deepractice Prompt Markup Language</strong></p>
+  <p>结构化 AI 提示工程的声明式标记语言</p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![CI](https://github.com/Deepractice/dpml/actions/workflows/ci.yml/badge.svg)](https://github.com/Deepractice/dpml/actions/workflows/ci.yml)
+  <p>Define, validate, and transform AI prompts with XML-like syntax</p>
+  <p>使用类 XML 语法定义、验证和转换 AI 提示</p>
 
-> A markup language for structured AI prompt engineering
+  <p>
+    <b>Declarative</b> · <b>Type Safe</b> · <b>Extensible</b>
+  </p>
+  <p>
+    <b>声明式</b> · <b>类型安全</b> · <b>可扩展</b>
+  </p>
 
-## Overview
+  <p>
+    <a href="https://github.com/Deepractice/dpml"><img src="https://img.shields.io/github/stars/Deepractice/dpml?style=social" alt="Stars"/></a>
+    <a href="LICENSE"><img src="https://img.shields.io/github/license/Deepractice/dpml?color=blue" alt="License"/></a>
+    <a href="https://www.npmjs.com/package/dpml"><img src="https://img.shields.io/npm/v/dpml?color=cb3837&logo=npm" alt="npm"/></a>
+    <a href="https://github.com/Deepractice/dpml/actions/workflows/ci.yml"><img src="https://github.com/Deepractice/dpml/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
+  </p>
 
-DPML is a declarative markup language designed for defining structured prompts and AI configurations. It provides a standardized way to describe AI behaviors using familiar XML-like syntax.
+  <p>
+    <a href="#quick-start">Quick Start</a> •
+    <a href="./docs/README.md">Documentation</a> •
+    <a href="./docs/api/dpml.md">API Reference</a>
+  </p>
+</div>
 
-```xml
-<prompt role="assistant">
-  <context>You are a helpful travel planner</context>
-  <instruction>Help users plan their trips</instruction>
-</prompt>
+---
+
+## Why DPML?
+
+AI systems need structured ways to define behaviors: **prompts**, **contexts**, **instructions**, **constraints**, and more. DPML provides a unified markup language with schema validation and extensible transformers. _Everything is declarative._
+
 ```
-
-## Features
-
-- **Declarative Syntax** - Define AI prompts using intuitive XML-like markup
-- **Schema Validation** - Validate documents against customizable schemas
-- **Extensible** - Create custom transformers to convert DPML to any target format
-- **Type Safe** - Full TypeScript support with comprehensive type definitions
-- **Built-in Elements** - `<resource>` element for referencing external resources (ARP/RXL protocols)
-
-## Installation
-
-```bash
-# npm
-npm install dpml
-
-# bun
-bun add dpml
+┌─────────────────────────────────────────────────────────────┐
+│                      DPML Document                          │
+│                                                             │
+│  <prompt role="assistant">                                  │
+│    <context>You are a travel planner</context>              │
+│    <instruction>Help users plan trips</instruction>         │
+│    <resource src="arp:text:file://./knowledge.md"/>         │
+│  </prompt>                                                  │
+├─────────────────────────────────────────────────────────────┤
+│                     Processing Pipeline                     │
+│                                                             │
+│  Parse          →  DPML Text → DPMLDocument                 │
+│  Validate       →  Schema → ValidationResult                │
+│  Transform      →  Transformers → Target Format             │
+├─────────────────────────────────────────────────────────────┤
+│                      Core Concepts                          │
+│                                                             │
+│  Element        →  <tag>content</tag>                       │
+│  Attribute      →  name="value"                             │
+│  Schema         →  Structure & validation rules             │
+│  Transformer    →  Convert to any format                    │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ## Quick Start
 
+```bash
+npm install dpml
+```
+
 ```typescript
 import { createDPML, defineSchema, defineTransformer } from 'dpml';
 
-// 1. Define a schema
+// 1. Define schema
 const schema = defineSchema({
   element: 'prompt',
   attributes: [{ name: 'role', required: true }],
-  children: {
-    elements: [{ element: 'context' }, { element: 'instruction' }],
-  },
+  children: { elements: [{ element: 'context' }, { element: 'instruction' }] },
 });
 
-// 2. Define a transformer
+// 2. Define transformer
 const transformer = defineTransformer({
-  name: 'prompt-transformer',
-  transform: input => {
-    const doc = input.document;
-    return {
-      role: doc.rootNode.attributes.get('role'),
-      context: doc.rootNode.children[0]?.content,
-      instruction: doc.rootNode.children[1]?.content,
-    };
-  },
+  name: 'prompt-extractor',
+  transform: (input) => ({
+    role: input.document.rootNode.attributes.get('role'),
+    context: input.document.rootNode.children[0]?.content,
+    instruction: input.document.rootNode.children[1]?.content,
+  }),
 });
 
-// 3. Create DPML instance
-const dpml = createDPML({
-  schema,
-  transformers: [transformer],
-});
-
-// 4. Compile DPML content
+// 3. Compile
+const dpml = createDPML({ schema, transformers: [transformer] });
 const result = await dpml.compile(`
   <prompt role="assistant">
     <context>You are a helpful assistant</context>
     <instruction>Answer questions clearly</instruction>
   </prompt>
 `);
-
-console.log(result);
-// { role: 'assistant', context: '...', instruction: '...' }
+// → { role: 'assistant', context: '...', instruction: '...' }
 ```
 
-## Built-in Elements
+## [Documentation](./docs/README.md)
 
-DPML provides built-in elements that work automatically without schema definition.
+### [Getting Started](./docs/getting-started/introduction.md)
 
-### `<resource>` - External Resource Reference
+- [Introduction](./docs/getting-started/introduction.md) - Why DPML
+- [Installation](./docs/getting-started/installation.md) - Setup guide
+- [Quick Start](./docs/getting-started/quick-start.md) - 5-minute tutorial
 
-```xml
-<prompt>
-  <resource src="arp:text:file://./config.md"/>
-  <resource src="deepractice.ai/sean/knowledge@1.0"/>
-</prompt>
-```
+### [Core Concepts](./docs/concepts/overview.md)
 
-Resources are automatically extracted and available in the compile result:
+- [Architecture Overview](./docs/concepts/overview.md) - Three-party model
+- [Syntax](./docs/concepts/syntax.md) - Element, Attribute, Content
+- [Schema System](./docs/concepts/schema.md) - Validation & constraints
+- [Transformer](./docs/concepts/transformer.md) - Data transformation
+- [Built-in Elements](./docs/concepts/built-in-elements.md) - `<resource>` element
 
-```typescript
-import type { ResourceResult } from 'dpml';
+### [Guides](./docs/guides/defining-schema.md)
 
-const result = await dpml.compile<ResourceResult>(content);
-console.log(result.resources);
-// [{ src: '...', protocol: 'arp' | 'rxl' | 'unknown', node: DPMLNode }]
-```
+- [Defining Schema](./docs/guides/defining-schema.md) - Schema definition patterns
+- [Custom Transformer](./docs/guides/custom-transformer.md) - Transformer development
+- [Validation](./docs/guides/validation.md) - Error handling best practices
+- [Integration](./docs/guides/integration.md) - AI tools & build systems
 
-See the [dpml package README](./packages/dpml/README.md) for detailed documentation.
+### [API Reference](./docs/api/dpml.md)
 
-## API Reference
+- [dpml API](./docs/api/dpml.md) - Main package API
+- [@dpml/core API](./docs/api/core.md) - Core library internals
+- [Errors](./docs/api/errors.md) - Error handling
 
-### `createDPML(config)`
+### [Design & Contributing](./docs/design/README.md)
 
-Creates a DPML instance with the specified configuration.
-
-```typescript
-const dpml = createDPML({
-  schema: Schema,
-  transformers: Transformer[]
-});
-```
-
-**Methods:**
-
-- `compile<T>(content: string): Promise<T>` - Parse, validate, and transform DPML content
-- `parse(content: string): DPMLDocument` - Parse DPML content into a document
-- `validate(content: string): ValidationResult` - Validate content against schema
-
-### `defineSchema(definition)`
-
-Defines a schema for validating DPML documents.
-
-```typescript
-const schema = defineSchema({
-  element: 'prompt',           // Root element name
-  attributes: [...],           // Attribute definitions
-  children: { elements: [...] }, // Child element definitions
-  content: { type: 'text' }    // Content constraints
-});
-```
-
-### `defineTransformer(definition)`
-
-Defines a transformer for converting processed documents.
-
-```typescript
-const transformer = defineTransformer({
-  name: 'my-transformer',
-  description: 'Optional description',
-  transform: (input, context) => {
-    // Transform logic
-    return result;
-  },
-});
-```
+- [Design Decisions](./docs/design/README.md) - Architecture rationale (ADRs)
+- [Specification](./specs/README.md) - Language specification
+- [Whitepaper](./specs/v1.0/en/whitepaper/index.md) - Design philosophy
 
 ## Packages
 
-| Package                         | Description                                        |
-| ------------------------------- | -------------------------------------------------- |
-| [`dpml`](./packages/dpml)       | Main package - public API                          |
-| [`@dpml/core`](./packages/core) | Core library - parsing, validation, transformation |
+| Package                         | Description                             |
+| ------------------------------- | --------------------------------------- |
+| [`dpml`](./packages/dpml)       | Main package - public API               |
+| [`@dpml/core`](./packages/core) | Core library - parse, validate, transform |
+
+## Ecosystem
+
+Part of the [Deepractice](https://github.com/Deepractice) AI infrastructure:
+
+- **[AgentVM](https://github.com/Deepractice/AgentVM)** - AI Agent runtime
+- **[AgentX](https://github.com/Deepractice/AgentX)** - AI Agent framework
+- **[ResourceX](https://github.com/Deepractice/ResourceX)** - Resource management protocol
+- **DPML** - Prompt markup language (this project)
 
 ## Development
 
-### Prerequisites
-
-- [Bun](https://bun.sh/) >= 1.3.0
-- Node.js >= 22.0.0
-
-### Setup
-
 ```bash
-# Clone repository
+# Clone & setup
 git clone https://github.com/Deepractice/dpml.git
-cd dpml
+cd dpml && bun install
 
-# Install dependencies
-bun install
-
-# Build all packages
+# Build & test
 bun run build
-
-# Run tests
 bun run test
 bun run test:bdd
 ```
 
-### Project Structure
-
-```
-dpml/
-├── packages/
-│   ├── core/          # Core library
-│   └── dpml/          # Public API package
-├── bdd/               # BDD tests
-│   ├── features/      # Gherkin feature files
-│   └── steps/         # Step definitions
-└── specs/             # Language specification
-```
-
-## Specification
-
-See the [DPML Language Specification](./specs/README.md) for detailed syntax and semantics documentation.
+See [Development Guide](./issues/000-unified-development-mode.md) for BDD workflow.
 
 ## Contributing
 
-Contributions are welcome! Please read our contributing guidelines before submitting PRs.
+Contributions welcome! Please read our contributing guidelines before submitting PRs.
 
 ## License
 
-MIT © [Deepractice](https://github.com/Deepractice)
+[MIT](./LICENSE) © [Deepractice](https://github.com/Deepractice)
+
+---
+
+<div align="center">
+  Built with care by <a href="https://github.com/Deepractice">Deepractice</a>
+</div>
